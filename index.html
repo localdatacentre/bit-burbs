@@ -844,8 +844,12 @@ body{font-size:19px!important;line-height:1.18}
 #sheetBody,#sheetBody p,#sheetBody small,#sheetBody label,#sheetBody .info,
 .mgmsg,.note,.task,.bcard,.mcard,.chip,#clock{font-family:'VT323',monospace!important}
 #sheetBody h2,#sheetBody h3,.mgtitle,.wl-t,.crate-intro b,.daily-head strong,
-.streak-hero strong,.streak-card-top b{font-family:'Silkscreen',monospace!important}
-#nav .nav-settings{width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;background:linear-gradient(#36C5DC,#119BBE)!important;color:#082D45!important;border:2px solid #A8F2F7!important;border-radius:2px!important;box-shadow:inset 0 2px 0 #D9FFFF,0 3px 0 #08758F!important;font:24px 'VT323',monospace!important}
+.streak-hero strong{font-family:'Silkscreen',monospace!important}
+.streak-card-top b,.streak-card-top span{font:14px 'VT323',monospace!important;letter-spacing:.03em!important}
+.streak-reward{font:18px 'VT323',monospace!important;line-height:1.1!important}
+.streak-state{font:16px 'VT323',monospace!important}
+.streak-claim{font-size:17px!important;min-height:34px!important}
+#nav .nav-settings{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;padding:4px!important;display:flex!important;align-items:center!important;justify-content:center!important;background:linear-gradient(#4A84F2,#2F6FEB)!important;color:#fff!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:4px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 2px 6px rgba(0,0,0,.22)!important;font:24px 'VT323',monospace!important}
 #nav .nav-settings:active{transform:translateY(2px)!important;box-shadow:inset 0 2px 0 #CFFFFF,0 1px 0 #08758F!important}
 .mg-crates .crate-stage-label{font-size:11px!important}
 .mg-crates.crate-opening .cstage{animation:crateStageCharge .65s steps(3,end) infinite;border-color:#FFE17B!important}
@@ -859,6 +863,17 @@ body{font-size:19px!important;line-height:1.18}
 @keyframes crateStageCharge{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
 @keyframes crateChestRattle{0%,100%{transform:translateX(-4px) rotate(-1deg)}50%{transform:translateX(4px) rotate(1deg)}}
 @media(prefers-reduced-motion:reduce){.mg-crates.crate-opening .cstage,.mg-crates.crate-opening #chest,.mg-crates.crate-opening .crate-stage-sparkle{animation:none!important}}
+
+/* Reward reveal card for opened crates */
+.mg-crates .crate-reward-reveal{display:flex;align-items:center;gap:12px;width:100%;max-width:340px;margin:0 auto 10px;padding:10px;background:linear-gradient(135deg,#FFF0B4,#F3B43D);border:3px solid #FFF4C9;box-shadow:0 4px 0 #8E541A,0 0 18px rgba(255,220,105,.28);color:#30200B;animation:crateRewardIn .35s steps(3,end) both}
+.mg-crates .crate-reward-icon{width:68px;height:68px;flex:0 0 68px;display:grid;place-items:center;background:#FFF9E8;border:2px solid #D99B2F;box-shadow:inset 0 -3px 0 #E7C56D}
+.mg-crates .crate-reward-icon canvas{width:56px;height:56px;image-rendering:pixelated}
+.mg-crates .crate-reward-copy{display:flex;flex-direction:column;gap:3px;min-width:0;text-align:left}
+.mg-crates .crate-reward-copy span{font:10px 'Silkscreen',monospace;color:#815014}
+.mg-crates .crate-reward-copy b{font:22px 'VT323',monospace;color:#2B1A06;line-height:1.05;overflow-wrap:anywhere}
+.mg-crates .crate-reward-copy small{font:16px 'VT323',monospace;color:#704313}
+@keyframes crateRewardIn{0%{transform:translateY(8px) scale(.94);opacity:0}100%{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){.mg-crates .crate-reward-reveal{animation:none}}
 </style>
 </head>
 <body>
@@ -3633,11 +3648,13 @@ function buildCrates() {
     return `<button class="ctier" data-act="crsel" data-tier="${k}" aria-pressed="${crateSel === k}"><span data-tic="${k}"></span><b>${TIER[k]}</b><span class="ccount">×${n}</span>${ready ? '<i class="cready">READY</i>' : ''}</button>`; }).join('');
   const odds = C.table.map(r => `<div class="orow"><span data-oic="${C.table.indexOf(r)}"></span><span class="oname">${r[1]}</span><b>${Math.round(r[0] / C.table.reduce((a, x) => a + x[0], 0) * 100)}%</b></div>`).join('');
   const pity = C.pity ? `<div class="pity"><span>Guaranteed ${DEFS[C.pity].name} in ${S.pity[crateSel]}</span><div class="pbar"><i style="width:${Math.round((1 - S.pity[crateSel] / C.pityN) * 100)}%"></i></div></div>` : '';
+  const reveal = crateReveal ? `<div class="crate-reward-reveal"><div class="crate-reward-icon" data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></div><div class="crate-reward-copy"><span>CHEST OPENED</span><b>${crateReveal.label}</b><small>${TIER[crateSel]} chest reward</small></div></div>` : '';
   mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CRATES</h2>
   <div class="keysrow"><span class="klab">YOUR CHEST KEYS</span>${['steel','gold','diamond'].map(k => `<span class="kchip"><span data-kic="${k}"></span>${S.keys[k] || 0}</span>`).join('')}</div>
   <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Every key reveals a surprise. Better chests bring bigger rewards.</small></div>
   <div class="ctiers">${tiers}</div>
   <div class="cstage"><div class="crate-stage-label">YOUR REWARD AWAITS</div>${hiCanvas('chest', 320, 210)}<div class="crate-stage-sparkle sparkle-a">✦</div><div class="crate-stage-sparkle sparkle-b">✧</div></div>
+  ${reveal}
   <button class="pb green" data-act="openCrate" id="openBtn" style="min-width:220px;font-size:20px">Open ${TIER[crateSel]}</button>
   <p class="mgmsg" id="crateMsg"></p>${pity}
   <details class="odds"><summary>See the odds</summary>${odds}</details>
@@ -3645,6 +3662,7 @@ function buildCrates() {
   mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 44)));
   mgPanel.querySelectorAll('[data-kic]').forEach(el => el.replaceWith(iconCanvas('key', el.dataset.kic, 22)));
   mgPanel.querySelectorAll('[data-oic]').forEach(el => { const r = C.table[+el.dataset.oic][2]; el.replaceWith(iconCanvas(rewIconKind(r), r.tier, 22)); });
+  mgPanel.querySelectorAll('[data-reward-icon]').forEach(el => el.replaceWith(iconCanvas(el.dataset.rewardIcon, el.dataset.tier, 56)));
   updateCrateUI();
 }
 function updateCrateUI() {
