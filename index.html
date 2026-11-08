@@ -4019,3 +4019,22 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) { wind
 </script>
 </body>
 </html>
+
+
+/* ===== button borders: darker shade of each button's own colour ===== */
+.pb{--btn-edge:#08758F!important}
+.pb::before{background:var(--btn-edge)!important}
+.pb.green{--btn-edge:#087F58!important}
+.pb.purple,.pb.teal,.pb.cream{--btn-edge:#403A91!important}
+.pb.red{--btn-edge:#A52C3B!important}
+.pb.gold{--btn-edge:#A96B12!important}
+.pb.sq{--btn-edge:#294765!important}
+#rollBtn,#spinBtn,#openBtn,.mcard .pb.green{--btn-edge:#A52C3B!important}
+#zmkt{--btn-edge:#A96B12!important}
+#nav .pb{--btn-edge:#294765!important}
+#nav .pb[data-open="build"]{--btn-edge:#B84E38!important}
+#nav .pb[data-open="dice"]{--btn-edge:#176F9B!important}
+#nav .pb[data-open="wheel"]{--btn-edge:#A92D64!important}
+#nav .pb[data-open="crates"]{--btn-edge:#9A6410!important}
+#nav .pb[data-open="tasks"]{--btn-edge:#237A50!important}
+#nav .pb::before,#zmkt::before{background:var(--btn-edge)!important}
