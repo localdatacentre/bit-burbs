@@ -702,15 +702,7 @@ button:focus-visible{outline:3px solid #FFF2A8!important;outline-offset:3px!impo
 .task-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:12px}.task-tabs .pb{font-size:10px;min-height:42px;padding:5px 2px;white-space:normal}.rank-card{background:linear-gradient(135deg,#183d60,#236b91);border:2px solid #69c8ed;padding:14px;color:#fff;text-align:center;margin:8px 0}.rank-name{font-family:VT323,monospace;font-size:22px;letter-spacing:2px;color:#b7edff}.rank-level{font-size:12px;margin:5px 0 10px}.rank-card small{color:#e8f7ff}.task .pb:disabled{opacity:.55}.task .info b{display:block}.bcard small{color:var(--muted)}#settingsBtn{background:#244b70!important;color:#fff!important;border:1px solid #70bde8!important;box-shadow:0 2px 0 #102d49!important}
 
 
-/* Free-prize jet and reward reveal */
-.reward-reveal{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 8px;background:linear-gradient(180deg,#173e60,#102943);border:2px solid #72c9ef;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08)}
-.reward-reveal .reward-icon{width:86px;height:86px;display:grid;place-items:center;background:linear-gradient(145deg,#e9faff,#8bd9f5);border:3px solid #d7f7ff;box-shadow:0 5px 0 #286b91,0 0 22px rgba(113,211,255,.3);animation:rewardBounce .55s cubic-bezier(.2,1.5,.4,1) both}
-.reward-reveal .reward-icon canvas{width:58px;height:58px;image-rendering:pixelated}
-.reward-reveal .reward-amount{font-family:VT323,monospace;font-size:23px;color:#fff;text-shadow:0 3px 0 #10243a}
-.reward-reveal .reward-name{font-family:VT323,monospace;font-size:11px;color:#bdefff;letter-spacing:.04em}
-.reward-extra{font-size:13px;color:#fff;background:rgba(255,255,255,.12);padding:7px 10px;border:1px solid rgba(255,255,255,.2)}
-@keyframes rewardBounce{0%{transform:scale(.45) rotate(-8deg);opacity:0}70%{transform:scale(1.12) rotate(3deg)}100%{transform:scale(1);opacity:1}}
-@media(prefers-reduced-motion:reduce){.reward-reveal .reward-icon{animation:none}}
+/* Legacy free-prize flyover/reveal styling removed; the feature is no longer used. */
 
 
 /* ===== final pixel readability and interface polish ===== */
@@ -722,7 +714,7 @@ body{font-size:18px!important;letter-spacing:.015em}
 #nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:4px!important}
 #nav .pb{font-size:16px!important;min-width:0!important;padding:4px 2px!important}
 #nav .pb canvas{width:23px!important;height:23px!important}
-#nav .nav-settings{width:44px!important;height:44px!important;min-height:44px!important;justify-self:center;align-self:center;font-size:25px!important;background:#3E3889!important;color:#fff!important;border:2px solid #15122E!important;border-radius:0!important;box-shadow:inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.25)!important}
+#nav .nav-settings{width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;justify-self:center;align-self:center;padding:4px!important;font-size:25px!important;background:linear-gradient(#4A84F2,#2F6FEB)!important;color:#fff!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:4px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 2px 6px rgba(0,0,0,.22)!important}
 #sheetBody{font-size:18px!important;line-height:1.22}
 .note,.sect p,.task small,.bcard small,.mcard small{font-family:'VT323',monospace!important;font-size:17px!important;line-height:1.15!important;color:#E4E9F8!important}
 .task-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
@@ -2911,7 +2903,6 @@ function render() {
   ctx.drawImage(low, 0, 0, lw, lh, 0, 0, lw * PXD, lh * PXD);
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   V.cx = camX; V.cy = camY;
-  /* removed broken free-prize flyover */
   drawTutArrow();
   badgeHits = []; const tnow = now(); const hideBadges = !!placing;
   D.list.forEach(b => {
@@ -3788,7 +3779,7 @@ function checkDaily() {
  const prev=new Date(cycle+'T00:00:00Z');prev.setUTCDate(prev.getUTCDate()-1);
  S.streak=S.dailyCycleKey===prev.toISOString().slice(0,10)?(S.streak||0)+1:1;
  S.dailyCycleKey=cycle;S.dailyPending=true;
- const shuffled=DAILY_POOL.slice().sort(()=>Math.random()-.5),pool=[]; for(const task of shuffled){if(!pool.some(x=>x[0]===task[0]))pool.push(task);if(pool.length===5)break;}
+ const shuffled=DAILY_POOL.slice(),pool=[]; for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];} for(const task of shuffled){if(!pool.some(x=>x[0]===task[0]))pool.push(task);if(pool.length===5)break;}
  const rews=[{k:'stars',n:8},{k:'cash',n:650},{k:'ticket',n:1},{k:'cash',n:1100},{k:'stars',n:15}];
  S.daily=pool.map(([type,text,n],q)=>({type,text,n,p:0,rew:rews[q],done:false}));
 }
