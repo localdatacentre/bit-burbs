@@ -3628,11 +3628,9 @@ const MISSIONS = [
   ['Neighbourhood', 'Reach 50 residents.', () => S.pop >= 50, { k: 'stars', n: 10 }],
   ['Green city', 'Place 3 parks, trees or gardens.', () => S.tiles.filter(t => t && ['park', 'tree', 'flowers', 'sakura', 'fountain'].includes(t.id)).length >= 3, { k: 'crate', tier: 'steel' }],
   ['Busy streets', 'Run 5 businesses.', () => D.list.filter(b => isBiz(b.d)).length >= 5, { k: 'key', tier: 'steel' }],
-  ['Three-star city', 'Reach a 3-star City Rating.', () => cityStars() >= 3, { k: 'deed', n: 2 }],
   ['Big earner', 'Earn 500 coins per minute.', () => (D.cpm || 0) >= 500, { k: 'key', tier: 'gold' }],
   ['Landmark', 'Build a landmark: Golden Bull, Observation Tower or Space Centre.', () => ['statue', 'needle', 'space'].some(id => countOf(id) > 0), { k: 'stars', n: 25 }],
   ['Thriving city', 'Reach 200 residents.', () => S.pop >= 200, { k: 'key', tier: 'gold' }],
-  ['Five-star city', 'Reach a 5-star City Rating.', () => cityStars() >= 5, { k: 'deed', n: 3 }]];
 function claimMission() { const m = MISSIONS[S.mission || 0]; if (!m || !m[2]()) return; const label = grant(m[3]); S.mission = (S.mission || 0) + 1; addXP(40); snd('levelup'); confetti(80); toast('Mission complete! ' + label); changed(); }
 const dayNum = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 864e5); };
 const STREAK_REW = [{ k: 'stars', n: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 8 }, { k: 'cash', m: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 10 }, { k: 'key', tier: 'steel' }];
