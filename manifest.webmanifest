@@ -1,0 +1,9 @@
+{
+  "name": "BitCity \u2014 Build Your Block",
+  "short_name": "BitCity",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#111A17",
+  "theme_color": "#172320",
+  "orientation": "landscape"
+}
