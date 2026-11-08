@@ -875,6 +875,17 @@ body{font-size:19px!important;line-height:1.18}
 .mg-crates .crate-reward-copy small{font:16px 'VT323',monospace;color:#704313}
 @keyframes crateRewardIn{0%{transform:translateY(8px) scale(.94);opacity:0}100%{transform:none;opacity:1}}
 @media(prefers-reduced-motion:reduce){.mg-crates .crate-reward-reveal{animation:none}}
+
+/* Clean icon treatment: keep tap targets, remove decorative square frames. */
+.pb.sq,#zmkt{background:transparent!important;border:0!important;box-shadow:none!important;outline:0!important}
+.pb.sq::before,.pb.sq::after,#zmkt::before,#zmkt::after{display:none!important;content:none!important}
+.pb.sq{clip-path:none!important}
+.chip{background:transparent!important;border:0!important;box-shadow:none!important;padding-left:0!important;padding-right:0!important}
+.wl-icons canvas{background:transparent!important;border:0!important;padding:0!important}
+#modalBox .wl-chip{background:transparent!important;border:0!important;padding:0!important}
+#modalBox .px-r{background:transparent!important;padding:0!important;clip-path:none!important}
+#modalBox .px-r>*{clip-path:none!important}
+.reward-icon,.crate-reward-icon{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 </style>
 </head>
 <body>
