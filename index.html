@@ -933,6 +933,23 @@ body{font-size:19px!important;line-height:1.18}
 @keyframes tutpulse{0%,100%{outline-color:#FFC93C}50%{outline-color:#FFF0A6}}
 body.tut-on #coach{border-color:#FFC93C!important}
 
+
+/* Dosh Shop: daily rotating deals + premium weekly exclusive */
+.msection{display:flex;flex-direction:column;gap:7px;width:100%;margin-top:5px}
+.msection-head{display:flex;flex-direction:column;gap:2px;text-align:left;border-bottom:1px solid rgba(255,255,255,.12);padding:0 2px 6px}
+.msection-head b{font-family:'VT323',monospace;font-size:23px;letter-spacing:.06em;color:#F4D58A}
+.msection-head span{font-size:11px;color:var(--muted)}
+.msection .mgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.msection .mcard{min-width:0;padding:8px 6px;gap:5px}
+.msection .minfo{gap:4px}
+.msection .minfo b{font-size:14px;line-height:1.15}
+.msection .minfo span{font-size:11px;line-height:1.2}
+.msection .mleft{font-size:10px!important;color:#D6BD85!important}
+.msection .pb{font-size:14px!important;padding:6px 8px}
+.msection.weekly .mcard.feat{grid-column:auto;min-height:116px;background:linear-gradient(135deg,#3C3527,#242C27);color:#F4E7C6;border:1px solid #B8944D!important}
+.msection.weekly .mcard.feat em{color:#E8C36C}
+.msection.weekly .mcard.feat .minfo b{font-size:17px}
+.msection.weekly .mcard.feat .minfo span{color:#D7D0BE}
 </style>
 </head>
 <body>
@@ -1899,13 +1916,15 @@ const WTOT = WHEEL.reduce((a, sg) => a + sg.w, 0); WHEEL.forEach((sg, q) => { sg
 const WHEEL_CD = 12 * 3600 * 1000;
 const GRIND_D = 14, GRIND_T = 40;
 const MARKET = {
-  statue:     { name: 'Golden Bull', desc: 'A gleaming gold bull statue.', price: 60, limit: 1, feat: true },
-  fountain:   { name: 'Fountain', desc: 'A splashing fountain.', price: 30, limit: 2, feat: true },
-  sakura:     { name: 'Cherry Blossom', desc: 'Pretty pink tree.', price: 10, limit: 5, feat: true },
-  goldkey:    { name: 'Gold Key', desc: 'Opens a Gold crate.', price: 30, limit: 2, icon: ['key', 'gold'] },
-  steelcrate: { name: 'Steel Crate', desc: 'Needs a Steel key to open.', price: 20, limit: 3, icon: ['crate', 'steel'] },
-  boost10:    { name: '2× Earnings', desc: 'Double everything for 10 minutes.', price: 15, limit: 3, icon: ['boost'] },
-  rush:       { name: 'Rush Hour', desc: 'Every restocking shop sells out instantly.', price: 10, limit: 3, icon: ['cash'] }
+  statue:   { name: 'Golden Bull Statue', desc: 'A polished gold landmark for your city.', price: 85, limit: 1, feat: true },
+  fountain: { name: 'Grand Fountain', desc: 'An elegant centrepiece for your town square.', price: 70, limit: 1, feat: true },
+  sakura:   { name: 'Cherry Blossom', desc: 'A premium pink blossom tree.', price: 55, limit: 1, feat: true }
+};
+const DAILY_DEALS = {
+  wheel:  { name: 'Lucky Wheel Spin', desc: 'One extra spin on the Lucky Wheel.', price: 16, icon: ['wheel'] },
+  silver: { name: 'Silver Crate Key', desc: 'Unlock one Silver crate.', price: 28, icon: ['key', 'steel'] },
+  gold:   { name: 'Gold Crate Key', desc: 'Unlock one Gold crate.', price: 58, icon: ['key', 'gold'] },
+  coins:  { name: 'Coin Bundle', desc: 'A handy bundle of 1,200 Coins.', price: 34, icon: ['cash'] }
 };
 
 
@@ -2038,7 +2057,7 @@ function hash(a, b, c) { let x = (a * 374761393 + b * 668265263 + (c || 0) * 214
 /* ================= state ================= */
 let S;
 function baseState() {
-  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), keys: { steel: 1, gold: 0, diamond: 0 }, crates: { steel: 0, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, market: { week: 0, bought: {}, seen: 0 }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
+  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), keys: { steel: 1, gold: 0, diamond: 0 }, crates: { steel: 0, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
 }
 function newGame() {
   const s = baseState(); const tiles = s.tiles;
@@ -3504,49 +3523,67 @@ function weekInfo() {
   return { seed: Math.round(x.getTime() / 86400000), next: next.getTime() };
 }
 function marketStock() {
-  const w = weekInfo();
-  if (!S.market) S.market = { week: 0, bought: {}, seen: 0 };
+  const w = weekInfo(), day = brisbaneTaskCycle();
+  if (!S.market) S.market = { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} };
+  if (!S.market.bought) S.market.bought = {};
+  if (!S.market.dailyBought) S.market.dailyBought = {};
   if (S.market.week !== w.seed) { S.market.week = w.seed; S.market.bought = {}; }
+  if (S.market.day !== day) { S.market.day = day; S.market.dailyBought = {}; }
   const ids = Object.keys(MARKET);
-  const feats = ids.filter(k => MARKET[k].feat).sort((a, b) => hash(w.seed, a.length * 7 + a.charCodeAt(0)) - hash(w.seed, b.length * 7 + b.charCodeAt(0)));
-  const feat = feats[0];
-  const rest = ids.filter(k => k !== feat).sort((a, b) => hash(w.seed + 3, a.charCodeAt(1) * 13 + a.length) - hash(w.seed + 3, b.charCodeAt(1) * 13 + b.length)).slice(0, 3);
-  return { list: [feat].concat(rest), next: w.next, week: w.seed };
+  const featured = ids[Math.abs(w.seed) % ids.length];
+  const nextDaily = brisbaneNextReset();
+  return { featured, next: w.next, week: w.seed, day, nextDaily };
+}
+function brisbaneNextReset() {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Brisbane',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  let t = Date.UTC(+p.year,+p.month-1,+p.day,8,0,0);
+  if (Date.now() >= t) t += 86400000;
+  return t;
+}
+function dailyDealIds(day) {
+  const keys = Object.keys(DAILY_DEALS), seed = day.split('-').reduce((a,x)=>a*31 + (+x||0),7);
+  const extras = keys.filter(k => k !== 'wheel').sort((a,b) => hash(seed,a.charCodeAt(0)) - hash(seed,b.charCodeAt(0)));
+  return ['wheel', ...extras.slice(0,2)];
 }
 function buildMarket() {
-  const m = marketStock(); if (S.market.seen !== m.week) snd('shop'); S.market.seen = m.week;
-  mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">DOSH SHOP</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div><p class="mgmsg" id="mktCd"></p><div class="mgrid">${m.list.map((id, k) => { const it = MARKET[id]; const left = it.limit - (S.market.bought[id] || 0); return `<div class="mcard ${k === 0 ? 'feat' : ''}"><span data-mic="${id}"></span><div class="minfo">${k === 0 ? '<em>This week’s featured building</em>' : ''}<b>${it.name}</b><span>${it.desc}</span><span class="mleft">${left > 0 ? left + ' left this week' : 'Sold out'}</span><button class="pb ${left > 0 && S.stars >= it.price ? 'green' : 'cream'}" data-act="buy" data-id="${id}" ${left > 0 ? '' : 'disabled'}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div><p class="mgmsg" id="mktMsg"></p><p class="mgmsg" style="font-size:13px;font-weight:500"></p>`;
+  const m = marketStock(), daily = dailyDealIds(m.day);
+  if (S.market.seen !== m.week) { snd('shop'); S.market.seen = m.week; }
+  mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button>
+  <h2 class="mgtitle">DOSH SHOP</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
+  <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
+  <section class="msection weekly"><div class="msection-head"><b>WEEKLY EXCLUSIVE</b><span>Premium · changes every 7 days</span></div><p class="mgmsg" id="mktCd"></p>${(() => { const id=m.featured,it=MARKET[id],bought=!!S.market.bought[id]; return `<div class="mcard feat"><span data-mic="${id}"></span><div class="minfo"><em>THIS WEEK ONLY</em><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Owned · sold out for this week':'Limited to one per Mayor'}</span><button class="pb" data-act="buy" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; })()}</section>
+  <p class="mgmsg" id="mktMsg"></p>`;
   const row = $('#starRow'); row.appendChild(iconCanvas('stars', null, 22)); const sp = document.createElement('span'); sp.id = 'starN'; row.appendChild(sp);
   mgPanel.querySelectorAll('[data-star]').forEach(el => el.replaceWith(iconCanvas('stars', null, 18)));
-  mgPanel.querySelectorAll('[data-mic]').forEach(el => {
-    const id = el.dataset.mic, it = MARKET[id];
-    if (it.icon) el.replaceWith(iconCanvas(it.icon[0], it.icon[1], 56));
-    else { const cv2 = document.createElement('canvas'); cv2.width = 220; cv2.height = 184; cv2.style.width = '96px'; cv2.style.height = '80px'; cv2.setAttribute('aria-hidden', 'true'); previewInto(cv2, id); el.replaceWith(cv2); }
-  });
+  mgPanel.querySelectorAll('[data-dmic]').forEach(el => { const it=DAILY_DEALS[el.dataset.dmic]; el.replaceWith(iconCanvas(it.icon[0],it.icon[1]||null,48)); });
+  mgPanel.querySelectorAll('[data-mic]').forEach(el => { const id=el.dataset.mic; const cv2=document.createElement('canvas');cv2.width=220;cv2.height=184;cv2.style.width='96px';cv2.style.height='80px';cv2.setAttribute('aria-hidden','true');previewInto(cv2,id);el.replaceWith(cv2); });
   updateMarketUI();
 }
 function updateMarketUI() {
   if (mg !== 'market') return;
   setText($('#starN'), S.stars + ' Dosh');
-  const m = weekInfo(); if (S.market && S.market.week !== m.seed) { buildMarket(); return; }
-  setText($('#mktCd'), 'New stock in ' + mmss(m.next - now()));
+  const m = marketStock();
+  setText($('#mktCd'), 'New exclusive in ' + mmss(m.next - now()));
+  setText($('#dailyMktCd'), 'Daily stock refreshes in ' + mmss(m.nextDaily - now()));
+}
+function buyDailyMarket(id) {
+  const it=DAILY_DEALS[id], m=marketStock();
+  if (!it || dailyDealIds(m.day).indexOf(id)<0) return;
+  if (S.market.dailyBought[id]) { snd('error'); toast('This deal has already been purchased today.'); return; }
+  if (S.stars < it.price) { snd('error'); toast('Not enough Dosh. Complete tasks and activities to earn more.'); return; }
+  let msg='';
+  if(id==='wheel'){ S.tickets=(S.tickets||0)+1; msg='One Lucky Wheel spin added!'; }
+  else if(id==='silver'){ S.keys.steel=(S.keys.steel||0)+1; msg='Silver crate key added!'; }
+  else if(id==='gold'){ S.keys.gold=(S.keys.gold||0)+1; msg='Gold crate key added!'; }
+  else { S.cash=(S.cash||0)+1200; msg='1,200 Coins added!'; }
+  S.stars-=it.price; S.market.dailyBought[id]=true; addXP(5); snd('confirm'); toast(msg); changed(); buildMarket();
 }
 function buyMarket(id) {
-  const it = MARKET[id]; const m = marketStock(); if (m.list.indexOf(id) < 0) return;
-  const got = S.market.bought[id] || 0;
-  if (got >= it.limit) { snd('error'); toast('Sold out until next week.'); return; }
-  if (S.stars < it.price) { snd('error'); toast('You need ' + it.price + ' Dosh. Earn more from tasks, dice and the wheel.'); return; }
-  let msg = '';
-  if (id === 'rush') {
-    const sell = (D.shops || []).filter(b => b.t.st === 'sell');
-    if (!sell.length) { snd('error'); toast('No shops are restocking right now. Restock some first.'); return; }
-    sell.forEach(b => { b.t.t = now() - stime(b.t, b.d); }); msg = sell.length + ' shops sold out instantly!';
-  } else if (id === 'goldkey') { S.keys.gold++; msg = 'Gold key added.'; }
-  else if (id === 'steelcrate') { S.crates.steel++; msg = 'Steel crate added.'; }
-  else if (id === 'boost10') { grant({ k: 'boost', min: 10 }); msg = '2× earnings for 10 minutes!'; }
-  else { S.items[id] = (S.items[id] || 0) + 1; msg = it.name + ' added to Build › My items.'; }
-  S.stars -= it.price; S.market.bought[id] = got + 1; addXP(10); snd('confirm');
-  toast(msg); changed(); buildMarket(); setText($('#mktMsg'), msg);
+  const it = MARKET[id], m = marketStock(); if (!it || id !== m.featured) return;
+  if (S.market.bought[id]) { snd('error'); toast('This weekly exclusive is already yours.'); return; }
+  if (S.stars < it.price) { snd('error'); toast('Not enough Dosh. Complete tasks and activities to earn more.'); return; }
+  S.items[id] = (S.items[id] || 0) + 1; S.stars -= it.price; S.market.bought[id] = 1;
+  addXP(10); snd('rare'); confetti(24); toast(it.name + ' added to Build › My items.'); changed(); buildMarket();
 }
 
 /* ----- crates ----- */
@@ -3626,6 +3663,7 @@ mgPanel.addEventListener('click', e => {
   else if (a === 'crsel') { if (crateAnim) return; snd('tab'); crateSel = b.dataset.tier; crateReveal = null; buildCrates(); }
   else if (a === 'openCrate') openCrate();
   else if (a === 'buy') buyMarket(b.dataset.id);
+  else if (a === 'buyDaily') buyDailyMarket(b.dataset.id);
   else if (a === 'info') showInfo(b.dataset.k);
 });
 document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => { placing = null; const n = b.dataset.open; if (n === 'build' || n === 'tasks' || n === 'settings') { closeMg(); openSheet(n); } else openMg(n); }));
