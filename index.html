@@ -2632,8 +2632,7 @@ function progressBadge(x, y, f, label) {
   c.fillStyle = ink; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(label, Math.round(x), by - 7);
 }
 
-/* ================= free prize jet ================= */
-let jetFlight = null;
+/* ================= reward reveal ================= */
 const rewardQueue = [];
 function queueRewardPopup(data) { rewardQueue.push(data); }
 function rewardPopup(data) {
@@ -2642,13 +2641,11 @@ function rewardPopup(data) {
   const amount = r.k === 'item' ? 'UNLOCKED' : (r.k === 'boost' ? (r.min + ' MIN') : ('+' + rewAmt(r)));
   const name = rewLabel(r);
   const extra = data.extra ? `<div class="reward-extra">${data.extra}</div>` : '';
-  $('#modalBox').innerHTML = `<h2 class="wl-t">${data.title || 'FREE PRIZE!'}</h2><p class="wl-s">${data.subtitle || 'A little something for your city.'}</p><div class="reward-reveal"><div class="reward-icon"><canvas data-icon="${kind}" ${tier ? `data-tier="${tier}"` : ''} width="112" height="112" aria-hidden="true"></canvas></div><div class="reward-amount">${amount}</div><div class="reward-name">${name}</div></div>${extra}<button class="pb wl-r" id="rewardOk">Awesome!</button>`;
+  $('#modalBox').innerHTML = `<h2 class="wl-t">${data.title || 'REWARD UNLOCKED'}</h2><p class="wl-s">${data.subtitle || 'A little something for your city.'}</p><div class="reward-reveal"><div class="reward-icon"><canvas data-icon="${kind}" ${tier ? `data-tier="${tier}"` : ''} width="112" height="112" aria-hidden="true"></canvas></div><div class="reward-amount">${amount}</div><div class="reward-name">${name}</div></div>${extra}<button class="pb wl-r" id="rewardOk">Awesome!</button>`;
   $('#modal').classList.add('show'); paintNewIcons(); snd('big'); buzz([25,35,25]);
   $('#rewardOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
 }
 function pumpRewardPopup() { if (rewardQueue.length && !$('#modal').classList.contains('show')) rewardPopup(rewardQueue.shift()); }
-function updateJetFlight() { jetFlight = null; }
-function drawJetFlight() { return; }
 
 function render() {
   const PXD = Math.max(2, Math.round(1.1 * DPR)); PX = PXD / DPR;
