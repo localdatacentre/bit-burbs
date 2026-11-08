@@ -2966,7 +2966,7 @@ function updateHUD() {
   dot(hud.dotWheel, S.tickets + (now() - S.wheelT >= WHEEL_CD ? 1 : 0));
   dot(hud.dotCrates, (S.keys.steel || 0) + (S.keys.gold || 0) + (S.keys.diamond || 0));
   dot(hud.dotTasks, (S.daily || []).filter(t => !t.done && t.p >= t.n).length);
-  $('#dotMkt').hidden = !(S.market && S.market.seen !== weekInfo().seed);
+  $('#dotMkt').hidden = !(S.market && (S.market.seen !== weekInfo().seed || S.market.dailySeen !== brisbaneTaskCycle()));
 }
 let advTab = 'homes';
 function advice() {
@@ -3548,6 +3548,7 @@ function dailyDealIds(day) {
 function buildMarket() {
   const m = marketStock(), daily = dailyDealIds(m.day);
   if (S.market.seen !== m.week) { snd('shop'); S.market.seen = m.week; }
+  S.market.dailySeen = m.day; S.market.renderedDay = m.day; S.market.renderedWeek = m.week;
   mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button>
   <h2 class="mgtitle">DOSH SHOP</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
   <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
@@ -3563,6 +3564,7 @@ function updateMarketUI() {
   if (mg !== 'market') return;
   setText($('#starN'), S.stars + ' Dosh');
   const m = marketStock();
+  if (S.market.renderedDay !== m.day || S.market.renderedWeek !== m.week) { buildMarket(); return; }
   setText($('#mktCd'), 'New exclusive in ' + mmss(m.next - now()));
   setText($('#dailyMktCd'), 'Daily stock refreshes in ' + mmss(m.nextDaily - now()));
 }
