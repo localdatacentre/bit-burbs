@@ -924,6 +924,15 @@ body{font-size:19px!important;line-height:1.18}
   box-shadow:inset 0 2px 0 #E0DCFF,0 1px 0 #403A91!important;
 }
 
+
+/* Tutorial focus: warm yellow, never the normal green success colour. */
+#coach b{color:#FFC93C!important}
+#coach .coach-step{color:#B77900!important}
+#coach .coach-skip{color:#8A6A1B!important}
+.tut-hl{outline:4px solid #FFC93C!important;outline-offset:3px;animation:tutpulse 1s steps(2,end) infinite}
+@keyframes tutpulse{0%,100%{outline-color:#FFC93C}50%{outline-color:#FFF0A6}}
+body.tut-on #coach{border-color:#FFC93C!important}
+
 </style>
 </head>
 <body>
@@ -3714,17 +3723,21 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
-  { t: 'Place your Town Hall', d: 'Every city starts here. Tap BUILD, then tap Town Hall at the top.', build: 'hall', done: () => !!findHall() },
-  { t: 'Lay a road', d: 'Every building needs one road touching it. Place 2 road tiles next to your Town Hall, so your next buildings have somewhere to go.', build: 'road', tab: 'city', done: () => roadCount() >= 2 },
-  { t: 'Build a Cottage', d: 'Homes bring people to your city. Build a Cottage next to a road.', build: 'house', tab: 'homes', done: () => hasB('house') },
-  { t: 'Add power', d: 'Buildings need electricity. Build a Wind Turbine next to a road.', build: 'wind', tab: 'util', done: () => hasB('wind') },
-  { t: 'Add water', d: 'They need water too. Build a Water Tower next to a road.', build: 'wtower', tab: 'util', done: () => hasB('wtower') },
-  { t: 'Welcome your first residents', d: 'Your new homes attract residents over time. Build more housing to grow your city.', done: () => S.pop >= 2, start: () => { S.busT = now() + 2500; } },
-  { t: 'Open a Bakery', d: 'Shops earn Coins and need workers. Build a Bakery next to a road.', build: 'bakery', tab: 'shops', done: () => hasB('bakery') },
-  { t: 'Order stock', d: 'Tap your Bakery, then ORDER Bread. Each worker unlocks another product.', target: 'bakery', act: 'order', done: () => tev('restock') },
-  { t: 'Watch the coins roll in', d: 'When the Bread arrives your Bakery sells it automatically. Check your coins per minute at the top.', target: 'bakery', done: () => (D.cpm || 0) > 0 },
-  { t: 'Upgrade the Bakery', d: 'Tap your Bakery, then tap UPGRADE. Higher levels earn more and grow taller.', target: 'bakery', act: 'upgrade', done: () => tev('upgrade') },
-  { t: 'Spin the Lucky Wheel', d: 'Tap WHEEL at the bottom, then SPIN for a free prize.', nav: 'wheel', done: () => tev('spin') }
+  { t: 'Start with Town Hall', d: 'Your Town Hall is the heart of the city. Open BUILD and place it on the highlighted spot.', build: 'hall', done: () => !!findHall() },
+  { t: 'Plan your streets', d: 'Roads connect every building to your city. Lay 3 road tiles out from Town Hall to make room for a little neighbourhood.', build: 'road', tab: 'city', done: () => roadCount() >= 3 },
+  { t: 'Build your first home', d: 'Homes attract residents. Place a Cottage beside your new road.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 1 },
+  { t: 'Grow the neighbourhood', d: 'A second Cottage gives your town more room for residents and workers. Add one beside a road.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 2 },
+  { t: 'Power the neighbourhood', d: 'Buildings need electricity to operate. Place a Wind Turbine beside a road.', build: 'wind', tab: 'util', done: () => hasB('wind') },
+  { t: 'Connect the water supply', d: 'Homes and businesses also use water. Place a Water Tower beside a road.', build: 'wtower', tab: 'util', done: () => hasB('wtower') },
+  { t: 'Welcome your residents', d: 'Your homes bring people into town over time. Residents become the workforce for shops and services.', done: () => S.pop >= 2, start: () => { S.busT = now() + 2500; } },
+  { t: 'Open your first business', d: 'Shops turn stocked products into Coins. Build a Bakery beside a road to start the local economy.', build: 'bakery', tab: 'shops', done: () => hasB('bakery') },
+  { t: 'Stock the shelves', d: 'Tap the Bakery and order Bread. Stock takes a little time to arrive; workers unlock more product slots.', target: 'bakery', act: 'order', done: () => tev('restock') },
+  { t: 'Collect your first earnings', d: 'When the order is ready, the Bakery starts earning. Tap COLLECT on the Bakery to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('collect') },
+  { t: 'Improve your business', d: 'Upgrade the Bakery to increase its level and earning potential. Higher levels can unlock more products and taller buildings.', target: 'bakery', act: 'upgrade', done: () => tev('upgrade') },
+  { t: 'Check your city tasks', d: 'Tasks give you useful rewards for growing, upgrading and running your town. Open TASKS to see your goals.', nav: 'tasks', done: () => mg === 'tasks' },
+  { t: 'Visit the Dosh Shop', d: 'Dosh is a special currency. The Dosh Shop lets you exchange it for new buildings and items; have a look at the stock.', nav: 'market', done: () => mg === 'market' },
+  { t: 'Try the Lucky Wheel', d: 'The Wheel gives you prizes. You get free spins over time, and tickets let you spin more often.', nav: 'wheel', done: () => tev('spin') },
+  { t: 'Your starter town is ready!', d: 'You now have streets, homes, power, water and a working shop. As you level up, unlock services, industry, parks and bigger utilities to keep the city thriving.', done: () => true }
 ];
 let tutHL = null;
 function tutStep() { return S.tut && TUT[S.tut.step]; }
@@ -3777,7 +3790,7 @@ function tutTick() {
     else if (!sheet && !mg) sel = '[data-open="build"]';
   } else if (st.act) {
     if (card.classList.contains('show') && sel === null) sel = `#card [data-act="${st.act}"]`;
-  } else if (st.nav) sel = mg === st.nav ? (st.nav === 'wheel' ? '#spinBtn' : '#rollBtn') : (!mg && !sheet ? `[data-open="${st.nav}"]` : null);
+  } else if (st.nav) sel = mg === st.nav ? (st.nav === 'wheel' ? '#spinBtn' : st.nav === 'market' ? null : st.nav === 'tasks' ? null : '#rollBtn') : (!mg && !sheet ? (st.nav === 'market' ? '#zmkt' : `[data-open="${st.nav}"]`) : null);
   setHL(sel);
 }
 function setHL(sel) {
@@ -3794,12 +3807,12 @@ function tutMapTarget() {
 function drawTutArrow() {
   const tg = tutMapTarget(); if (!tg) return;
   const c = V.ctx, t = performance.now() / 1000;
-  if (tg.ghost) { const pulse = .35 + .25 * Math.sin(t * 5); poly(diamond(tg.i, tg.j), `rgba(62,190,122,${pulse})`, '#8AF0B0', 2); }
+  if (tg.ghost) { const pulse = .35 + .25 * Math.sin(t * 5); poly(diamond(tg.i, tg.j), `rgba(255,201,60,${pulse})`, '#FFF0A6', 2); }
   const tl = tileAt(tg.i, tg.j); const d = tl ? DEFS[tl.id] : null;
   const top = up(P(tg.i + .5, tg.j + .5), (d && d.h ? d.h * hFac(tl) : 6) * V.z + 46 + Math.round(Math.sin(t * 6) * 4));
   const x = Math.round(top.x), y = Math.round(top.y);
   c.fillStyle = '#0E3A44'; c.fillRect(x - 9, y - 18, 18, 12); c.fillRect(x - 15, y - 6, 30, 3); c.fillRect(x - 12, y - 3, 24, 3); c.fillRect(x - 9, y, 18, 3); c.fillRect(x - 6, y + 3, 12, 3); c.fillRect(x - 3, y + 6, 6, 3);
-  c.fillStyle = '#3EBE7A'; c.fillRect(x - 6, y - 15, 12, 12); c.fillRect(x - 12, y - 6, 24, 3); c.fillRect(x - 9, y - 3, 18, 3); c.fillRect(x - 6, y, 12, 3); c.fillRect(x - 3, y + 3, 6, 3);
+  c.fillStyle = '#FFC93C'; c.fillRect(x - 6, y - 15, 12, 12); c.fillRect(x - 12, y - 6, 24, 3); c.fillRect(x - 9, y - 3, 18, 3); c.fillRect(x - 6, y, 12, 3); c.fillRect(x - 3, y + 3, 6, 3);
 }
 function finishTut() { document.body.classList.remove('tut-on');
   S.tut = null; S.tutDone = true; setHL(null); $('#coach').classList.remove('show');
