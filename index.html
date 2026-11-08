@@ -961,15 +961,18 @@ body.tut-on #coach{border-color:#FFC93C!important}
 .shead .pb[data-act="closeSheet"]::after{display:block!important;content:""!important;position:absolute!important;inset:3px!important;z-index:-1!important;background:#E53B3B!important;clip-path:polygon(0 3px,3px 3px,3px 0,calc(100% - 3px) 0,calc(100% - 3px) 3px,100% 3px,100% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,3px calc(100% - 3px),0 calc(100% - 3px))!important;box-shadow:inset 0 3px 0 rgba(255,255,255,.35),inset 0 -4px 0 rgba(0,0,0,.28)!important}
 .shead .pb[data-act="closeSheet"]:focus,.shead .pb[data-act="closeSheet"]:focus-visible{outline:0!important}
 
-/* Keep all five bottom navigation buttons styled consistently with Build. */
-#nav .pb,
-#nav .pb[data-open="build"]{
-  background:#20B8D2!important;
+/* Match the Build button's pixel shape while keeping each tab's own colour. */
+#nav .pb{
   color:#102C45!important;
   border:2px solid #A5F0F5!important;
-  box-shadow:inset 0 2px 0 #D5FFFF,0 3px 0 #087E9A!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.55),0 3px 0 rgba(0,0,0,.28)!important;
   text-shadow:none!important;
 }
+#nav .pb[data-open="build"]{background:#20B8D2!important}
+#nav .pb[data-open="wheel"]{background:#F25AA0!important}
+#nav .pb[data-open="crates"]{background:#F2B21A!important}
+#nav .pb[data-open="tasks"]{background:#3EBE7A!important}
+#nav .pb[data-open="settings"]{background:#8D83EE!important;color:#FFFFFF!important}
 </style>
 </head>
 <body>
