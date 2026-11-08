@@ -963,18 +963,21 @@ body.tut-on #coach{border-color:#FFC93C!important}
 .shead .pb[data-act="closeSheet"]::after{display:block!important;content:""!important;position:absolute!important;inset:3px!important;z-index:-1!important;background:#E53B3B!important;clip-path:polygon(0 3px,3px 3px,3px 0,calc(100% - 3px) 0,calc(100% - 3px) 3px,100% 3px,100% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,3px calc(100% - 3px),0 calc(100% - 3px))!important;box-shadow:inset 0 3px 0 rgba(255,255,255,.35),inset 0 -4px 0 rgba(0,0,0,.28)!important}
 .shead .pb[data-act="closeSheet"]:focus,.shead .pb[data-act="closeSheet"]:focus-visible{outline:0!important}
 
-/* Match the Build button's pixel shape while keeping each tab's own colour. */
+/* Apply one consistent flat pixel-button format to every bottom navigation button. */
 #nav .pb{
-  color:#102C45!important;
-  border:1px solid currentColor!important;
+  appearance:none!important;
+  border:1px solid!important;
+  border-radius:0!important;
   box-shadow:none!important;
+  outline:0!important;
   text-shadow:none!important;
+  clip-path:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px))!important;
 }
 #nav .pb::before,#nav .pb::after{display:none!important;content:none!important}
-#nav .pb[data-open="build"]{background:#20B8D2!important;border-color:#0C879D!important}
-#nav .pb[data-open="wheel"]{background:#F25AA0!important;border-color:#B93270!important}
-#nav .pb[data-open="crates"]{background:#F2B21A!important;border-color:#B77A0B!important}
-#nav .pb[data-open="tasks"]{background:#3EBE7A!important;border-color:#218653!important}
+#nav .pb[data-open="build"]{background:#20B8D2!important;color:#102C45!important;border-color:#0C879D!important}
+#nav .pb[data-open="wheel"]{background:#F25AA0!important;color:#102C45!important;border-color:#B93270!important}
+#nav .pb[data-open="crates"]{background:#F2B21A!important;color:#102C45!important;border-color:#B77A0B!important}
+#nav .pb[data-open="tasks"]{background:#3EBE7A!important;color:#102C45!important;border-color:#218653!important}
 #nav .pb[data-open="settings"]{background:#8D83EE!important;color:#FFFFFF!important;border-color:#574DB8!important}
 </style>
 </head>
