@@ -2965,7 +2965,7 @@ function advice() {
   if (L.some(b => !b.ok && b.d.type !== 'decor' && b.d.type !== 'hall')) return ['Needs roads', 'A building isn’t next to a road', 'city', true];
   const free = S.pop - D.employed;
   if (L.some(b => b.d.staff && b.works && !b.staffed)) return ['Needs homes', 'Not enough workers. Tap to build homes', 'homes', true];
-  if (free >= 3) return ['Needs jobs', free + ' residents want work. Tap to build shops', 'shops', false];
+  if (free >= 3) return ['Needs jobs', free + ' residents want work. Tap to build businesses', 'businesses', false];
   if (D.cap - S.pop <= 1) return ['Needs homes', 'Homes are full. Tap to build more', 'homes', false];
   return ['Looking good!', 'Pop ' + S.pop + ' · tap a building to upgrade it', 'homes', false];
 }
