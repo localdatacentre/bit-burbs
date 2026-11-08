@@ -2172,17 +2172,17 @@ if (S.deeds == null) S.deeds = 2;
 }
 function collectShop(i, j) {
   const b = info(i, j); const amt = Math.round(b.d.earn * 1.35 * (b.mul || 1) * boostMul());
-  S.cash += amt; b.t.st = 'idle'; grindAdd(2); snd('coins'); track('collect', amt); addXP(amt / 20); popup(i, j, '+' + fmt(amt)); changed();
+  S.cash += amt; b.t.st = 'idle'; grindAdd(2); snd('coins'); track('collect', 1); addXP(amt / 20); popup(i, j, '+' + fmt(amt)); changed();
 }
 function collectRent(i, j) {
   const t = tileAt(i, j); const amt = Math.floor(t.rent || 0);
   if (amt < 1) { toast('No rent to collect yet.'); return; }
-  S.cash += amt; t.rent = 0; grindAdd(1); snd('coins'); track('collect', amt); track('rent'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
+  S.cash += amt; t.rent = 0; grindAdd(1); snd('coins'); track('rent'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
 }
 function collectInd(i, j) {
   const t = tileAt(i, j); const amt = Math.floor(t.stock || 0);
   if (amt < 1) { toast('Nothing produced yet.'); return; }
-  S.cash += amt; t.stock = 0; grindAdd(1); snd('coins'); track('collect', amt); track('industry'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
+  S.cash += amt; t.stock = 0; grindAdd(1); snd('coins'); track('industry'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
 }
 function placeAt(i, j, id, fromItem) {
   const d = DEFS[id];
@@ -3788,7 +3788,7 @@ function checkDaily() {
  const prev=new Date(cycle+'T00:00:00Z');prev.setUTCDate(prev.getUTCDate()-1);
  S.streak=S.dailyCycleKey===prev.toISOString().slice(0,10)?(S.streak||0)+1:1;
  S.dailyCycleKey=cycle;S.dailyPending=true;
- const pool=DAILY_POOL.slice().sort(()=>Math.random()-.5).slice(0,5);
+ const shuffled=DAILY_POOL.slice().sort(()=>Math.random()-.5),pool=[]; for(const task of shuffled){if(!pool.some(x=>x[0]===task[0]))pool.push(task);if(pool.length===5)break;}
  const rews=[{k:'stars',n:8},{k:'cash',n:650},{k:'ticket',n:1},{k:'cash',n:1100},{k:'stars',n:15}];
  S.daily=pool.map(([type,text,n],q)=>({type,text,n,p:0,rew:rews[q],done:false}));
 }
