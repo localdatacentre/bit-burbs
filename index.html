@@ -2595,18 +2595,17 @@ function drawBuilding(i, j, id) {
   }
 }
 function drawCar(car) {
-  const w=carWorld(car),z=V.z,cv=V.ctx;
-  const L=.235,Wd=.115,h=4.2*z,hx=w.ax?L:Wd,hy=w.ax?Wd:L;
-  // Compact wheels, tucked under the chassis.
-  for(const [ox,oy] of [[-.72,-.72],[.72,-.72],[-.72,.72],[.72,.72]]){const q=P(w.wx+hx*ox,w.wy+hy*oy);cv.fillStyle='#202A35';cv.fillRect(Math.round(q.x-1.15*z),Math.round(q.y-1.15*z),Math.max(2,Math.round(2.2*z)),Math.max(2,Math.round(2*z)));}
-  const body=prism(w.wx-hx,w.wy-hy,w.wx+hx,w.wy+hy,h,shade(car.col,1.16),car.col,shade(car.col,.72));
-  const cx=w.ax?L*.52:Wd*.72,cy=w.ax?Wd*.72:L*.52;
-  const roof=prism(w.wx-cx,w.wy-cy,w.wx+cx,w.wy+cy,h+2.7*z,shade(car.col,1.22),DARK>.35?T('#B9D8E9'):T('#CDEAF7'),DARK>.35?T('#7396AE'):T('#8BB9D1'));
-  // Front and rear light pixels orient to travel direction.
-  const nose=P(w.wx+w.dx*(hx+.012),w.wy+w.dy*(hy+.012)); const tail=P(w.wx-w.dx*(hx+.012),w.wy-w.dy*(hy+.012));
-  cv.fillStyle='#FFF1C5';cv.fillRect(Math.round(nose.x-1.5*z),Math.round(nose.y-1.5*z),Math.max(2,Math.round(2*z)),Math.max(2,Math.round(1.5*z)));
-  cv.fillStyle='#E85D62';cv.fillRect(Math.round(tail.x-1.2*z),Math.round(tail.y-1.2*z),Math.max(2,Math.round(1.8*z)),Math.max(2,Math.round(1.5*z)));
-  if(DARK>.35){cv.save();cv.globalAlpha=.45;cv.fillStyle='#FFE9A8';cv.beginPath();cv.arc(nose.x,nose.y,5*z,0,Math.PI*2);cv.fill();cv.restore();}
+ const w=carWorld(car),z=V.z,c=V.ctx,L=.31,W=.17,hx=w.ax?L:W,hy=w.ax?W:L;
+ const pt=(x,y,lift=0)=>{const q=P(x,y);return{x:q.x,y:q.y-lift*z};};
+ for(const [ox,oy] of [[-.78,-.72],[.78,-.72],[-.78,.72],[.78,.72]]){const q=pt(w.wx+hx*ox,w.wy+hy*oy,1);c.fillStyle='#17202B';c.fillRect(Math.round(q.x-2.2*z),Math.round(q.y-2*z),Math.max(3,Math.round(4.4*z)),Math.max(3,Math.round(4*z)));c.fillStyle='#AAB3BC';c.fillRect(Math.round(q.x-.8*z),Math.round(q.y-.8*z),Math.max(2,Math.round(1.6*z)),Math.max(2,Math.round(1.6*z)));}
+ prism(w.wx-hx,w.wy-hy,w.wx+hx,w.wy+hy,4.2*z,shade(car.col,1.2),car.col,shade(car.col,.62));
+ const rx=(w.ax?L*.54:W*.69),ry=(w.ax?W*.69:L*.54);
+ prism(w.wx-rx,w.wy-ry,w.wx+rx,w.wy+ry,8.7*z,shade(car.col,1.3),DARK>.35?'#B8D5E5':'#D9F0FA',DARK>.35?'#6689A3':'#8AB6CE');
+ const nose=pt(w.wx+w.dx*(hx+.015),w.wy+w.dy*(hy+.015),2),tail=pt(w.wx-w.dx*(hx+.015),w.wy-w.dy*(hy+.015),2);
+ c.fillStyle='#284B63';c.fillRect(Math.round(nose.x-3.4*z),Math.round(nose.y-1.4*z),Math.max(3,Math.round(6.8*z)),Math.max(2,Math.round(2.8*z)));
+ c.fillStyle='#284B63';c.fillRect(Math.round(tail.x-3*z),Math.round(tail.y-1.2*z),Math.max(3,Math.round(6*z)),Math.max(2,Math.round(2.4*z)));
+ c.fillStyle='#FFF0B3';c.fillRect(Math.round(nose.x-2*z),Math.round(nose.y-1.4*z),Math.max(2,Math.round(4*z)),Math.max(2,Math.round(2.8*z)));
+ c.fillStyle='#E74C55';c.fillRect(Math.round(tail.x-2*z),Math.round(tail.y-1.4*z),Math.max(2,Math.round(4*z)),Math.max(2,Math.round(2.8*z)));
 }
 
 
@@ -3013,8 +3012,9 @@ function tasksHTML() {
     h += `<div class="sect"><h3>Mayor's milestones</h3>` + (m ? `<div class="task"><div class="info"><b>${m[0]}</b><small>${m[1]} · Reward: ${rewLabel(m[3])}</small></div><button class="pb sm" data-act="mclaim" ${m[2]()?'':'disabled'}>${m[2]()?'Claim':'In progress'}</button></div>` : '<p class="note">Every mayor milestone complete. Legend!</p>') + `</div>`;
     if (eventLive()) { const pts=(S.ev&&S.ev.pts)||0; h+=`<div class="sect"><h3>${EVENT.name} · ${pts} ${EVENT.currency}</h3>`+EVENT.track.map(([at,r],q)=>`<div class="task"><div class="info"><b>${at} ${EVENT.currency}</b><small>${rewLabel(r)}</small></div><button class="pb sm" data-act="eclaim" data-k="${q}" ${pts>=at&&!(S.ev&&S.ev.got.includes(q))?'':'disabled'}>${S.ev&&S.ev.got.includes(q)?'Claimed':'Claim'}</button></div>`).join('')+'</div>'; }
   } else if (taskTab === 'tasks') {
-    h += `<div class="sect"><h3>Today's objectives</h3><p class="note">Complete and claim each task separately. Rewards can be Coins, Dosh or Wheel Spins.</p>`;
-    (S.daily||[]).forEach((t,q)=>{const done=t.p>=t.n; h+=`<div class="task"><div class="info"><b>${t.text}</b><div class="bar"><i style="width:${Math.round(t.p/t.n*100)}%"></i></div><small>${fmt(t.p)}/${fmt(t.n)} · Reward: ${rewLabel(t.rew)}</small></div><button class="pb sm" data-act="dclaim" data-k="${q}" ${t.done||!done?'disabled':''}>${t.done?'Claimed':done?'Claim':'In progress'}</button></div>`;});
+    const tasks=S.daily||[];
+    h += `<div class="daily-head"><div><strong>DAILY CHALLENGES</strong><small>5 tasks · refreshes at 6:00 pm Brisbane time</small></div><span class="daily-count">${tasks.filter(t=>t.done).length}/5</span></div><div class="daily-list">`;
+    tasks.forEach((t,q)=>{const done=t.p>=t.n,pct=Math.max(0,Math.min(100,Math.round(t.p/t.n*100)));h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><span class="daily-task-number">0${q+1}</span><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} / ${fmt(t.n)} completed</small></div><span class="daily-reward">${rewLabel(t.rew)}</span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done||!done?'disabled':''}>${t.done?'CLAIMED':done?'CLAIM REWARD':'IN PROGRESS'}</button></div>`;});
     h += `</div>`;
   } else {
     const rank=stage(S.level), progress=Math.max(0,Math.min(100,Math.round((S.xp||0)/need(S.level)*100)));
