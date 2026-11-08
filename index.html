@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Bit-Burbs — Build Your Block</title>
 <meta name="theme-color" content="#172320">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,6 +33,7 @@ body{font-family:'Oswald',ui-rounded,system-ui,-apple-system,'Segoe UI',sans-ser
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ui-deep)}
 button{font:inherit}
 button:focus-visible{outline:3px solid #FFFFFF;outline-offset:2px}
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;filter:saturate(1.12) contrast(1.05) brightness(1.03)}
 
 /* pixel buttons */
@@ -929,6 +930,18 @@ body{font-size:19px!important;line-height:1.18}
 <div id="toast" role="status"></div>
 <div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
 
+<script>
+(function(){
+ function report(message,source,line,column,stack){
+  let panel=document.getElementById('bb-runtime-diagnostics');
+  if(!panel){panel=document.createElement('div');panel.id='bb-runtime-diagnostics';panel.style.cssText='position:fixed;z-index:2147483647;left:8px;right:8px;top:8px;max-height:42vh;overflow:auto;padding:12px;background:#35191d;color:#fff;border:2px solid #ff7272;font:13px/1.45 monospace;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 4px 18px #0009';(document.body||document.documentElement).appendChild(panel);}
+  panel.textContent='BIT-BURBS STARTUP ERROR\\n'+String(message||'Unknown error')+(source?'\\nFile: '+source:'')+(line?'\\nLine: '+line+(column?':'+column:''):'')+(stack?'\\n\\n'+String(stack).slice(0,1800):'')+'\\n\\nPlease send a screenshot of this message.';
+ }
+ window.addEventListener('error',e=>report(e.message||'Script/resource error',e.filename,e.lineno,e.colno,e.error&&e.error.stack));
+ window.addEventListener('unhandledrejection',e=>{const r=e.reason;report(r&&r.message||r||'Unhandled promise rejection','',0,0,r&&r.stack);});
+ document.addEventListener('touchend',e=>{const now=Date.now();if(window.__bbLastTouchEnd&&now-window.__bbLastTouchEnd<320)e.preventDefault();window.__bbLastTouchEnd=now;},{passive:false});
+})();
+</script>
 <script>
 const SPRK=(function(){let NO_SKIRT=true;
 /* ===== Bit-Burbs model kit v2: crisp iso pixel renderer with painter sorting ===== */
