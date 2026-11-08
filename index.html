@@ -2381,6 +2381,11 @@ function T(hex) {
 
 /* ================= view / camera ================= */
 const cv = $('#game'); const ctx = cv.getContext('2d');
+// Off-screen pixel buffers used by the city renderer.
+const low = document.createElement('canvas');
+const mid = document.createElement('canvas');
+const lowCtx = mid.getContext('2d');
+const lowOut = low.getContext('2d');
 let W = 0, H = 0, DPR = 1;
 const V = { ctx, z: 1.15, cx: 0, cy: 0 };
 let ROT = 0;
