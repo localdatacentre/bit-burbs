@@ -3660,7 +3660,7 @@ function openCrate() {
   const rew = row[2];
   if (C.pity) { if (rew.k === 'item' && rew.id === C.pity) S.pity[tier] = C.pityN; else S.pity[tier]--; }
   const label = grant(rew); track('crate'); addXP(10); confetti(isBig(rew)?150:55); if(isBig(rew)) bigWin={text:'BIG WIN!',t0:performance.now()};
-  crateReveal = null; crateAnim = { t0: performance.now(), rew: { r: rew, label } };
+  crateReveal = null; crateAnim = { t0: performance.now(), rew: { r: rew, label } }; mgPanel.classList.add('crate-opening'); mgPanel.classList.remove('crate-revealed');
   setText($('#crateMsg'), 'Opening…');
   setTimeout(() => { if (mg === 'crates') { setText($('#crateMsg'), 'You got ' + label + '!' + (rew.k === 'item' ? ' Find it in Build › My items.' : '')); buildCratesKeepScene(); } }, 1650);
   updateCrateUI(); changed();
