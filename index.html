@@ -2260,6 +2260,7 @@ if (S.deeds == null) S.deeds = 2;
   if (S.grind.t >= GRIND_T) { S.grind.t -= GRIND_T; S.tickets++; toast('All that work earned you a Wheel ticket!'); }
 }
 function collectShop(i, j) {
+  if (S.tut) S.tut.ev.shopCollect = 1;
   const b = info(i, j); const amt = Math.round(b.d.earn * 1.35 * (b.mul || 1) * boostMul());
   S.cash += amt; b.t.st = 'idle'; grindAdd(2); snd('coins'); track('collect', 1); addXP(amt / 20); popup(i, j, '+' + fmt(amt)); changed();
 }
@@ -3771,7 +3772,7 @@ const TUT = [
   { t: 'Welcome your residents', d: 'Your Cottage is ready. Give your first 2 residents a moment to arrive; they’ll become the workforce for your Bakery.', done: () => S.pop >= 2, start: () => { S.busT = now() + 2500; } },
   { t: 'Open your first business', d: 'Build a Bakery beside a road. Your residents will help keep it running.', build: 'bakery', tab: 'shops', done: () => hasB('bakery') },
   { t: 'Stock the Bakery', d: 'Tap your Bakery and order Bread. It will be ready in a few seconds during the tutorial.', target: 'bakery', act: 'order', done: () => tev('restock') },
-  { t: 'Collect your first earnings', d: 'Once the Bread is ready, collect the Bakery’s earnings to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('collect') },
+  { t: 'Collect your first earnings', d: 'Once the Bread is ready, collect the Bakery’s earnings to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('shopCollect') },
   { t: 'Upgrade your business', d: 'Upgrade the Bakery to improve its earning potential. That covers the basics of running your city!', target: 'bakery', act: 'upgrade', done: () => tev('upgrade') }
 ];
 let tutHL = null;
