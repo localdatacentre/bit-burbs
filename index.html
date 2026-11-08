@@ -883,7 +883,7 @@ body{font-size:19px!important;line-height:1.18}
 <header id="hud">
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
-    <div class="cname"><b class="wm">BIT-BURBS<small id="stage">Village</small><button id="rateBtn" class="ratebtn" aria-label="City rating">★ 1/5</button></b><div class="xp" aria-label="Progress to next level"><i id="xpFill"></i></div></div>
+    <div class="cname"><b class="wm">BIT-BURBS<small id="stage">Village</small></b><div class="xp" aria-label="Progress to next level"><i id="xpFill"></i></div></div>
     <div id="boost" hidden>2× <span id="boostT"></span></div>
     <div style="display:flex;align-items:center;gap:6px"><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
   </div>
@@ -2146,6 +2146,7 @@ function grant(r) {
   }
   return '';
 }
+function rewAmt(r) { r = resolveR(r); const n = r.n || 1; return r.k === 'cash' || r.k === 'stars' || r.k === 'dice' || r.k === 'ticket' ? fmt(r.n || n) : r.k === 'boost' ? (r.min + 'm') : r.k === 'item' ? '1' : String(n); }
 function rewLabel(r) {
   r = resolveR(r); const n = r.n || 1;
   switch (r.k) {
@@ -2871,7 +2872,7 @@ function setText(el, v) { v = String(v); if (el && el.textContent !== v) el.text
 let lastClockKind = '', lastFace = -1;
 function updateHUD() {
   { const n = restockAllCount(); setText($('#rsAll'), n ? 'RESTOCK ALL · ' + restockAllCost(n) + ' DOSH' : 'ALL STOCKED'); $('#rsAll').disabled = !n; }
-  setText(hud.lvl, S.level); setText(hud.stage, stage(S.level)); setText($('#rateBtn'), '★ ' + cityStars() + '/5'); setText($('#popLbl'), S.pop + ' / ' + (D.cap || 0) + ' RESIDENTS'); setText($('#cpmLbl'), fmt(D.cpm || 0) + ' COINS/MIN');
+  setText(hud.lvl, S.level); setText(hud.stage, stage(S.level)); setText($('#popLbl'), S.pop + ' / ' + (D.cap || 0) + ' RESIDENTS'); setText($('#cpmLbl'), fmt(D.cpm || 0) + ' COINS/MIN');
   hud.xp.style.width = Math.min(100, S.xp / need(S.level) * 100) + '%';
   setText(hud.cash, S.cash >= 1000 && S.cash < 1e4 ? (S.cash / 1000).toFixed(1) + 'k' : fmt(S.cash)); setText(hud.stars, fmt(S.stars)); setText(hud.dice, S.dice);
   setText($('#deeds'), S.deeds || 0); setText(hud.tix, S.tickets);
@@ -2887,7 +2888,7 @@ function updateHUD() {
 
   dot(hud.dotWheel, S.tickets + (now() - S.wheelT >= WHEEL_CD ? 1 : 0));
   dot(hud.dotCrates, (S.keys.steel || 0) + (S.keys.gold || 0) + (S.keys.diamond || 0));
-  dot(hud.dotTasks, (S.daily || []).filter(t => !t.done && t.p >= t.n).length + (S.loginClaimDay !== dayNum() ? 1 : 0) + ((MISSIONS[S.mission || 0] && MISSIONS[S.mission || 0][2]()) ? 1 : 0));
+  dot(hud.dotTasks, (S.daily || []).filter(t => !t.done && t.p >= t.n).length);
   $('#dotMkt').hidden = !(S.market && S.market.seen !== weekInfo().seed);
 }
 let advTab = 'homes';
@@ -3024,20 +3025,20 @@ let camAnim = null;
 function animateTo(wx, wy) { const r = rotXY(wx, wy); camAnim = { sx: V.cx, sy: V.cy, tx: W / 2 - (r[0] - r[1]) * (TW / 2) * V.z, ty: mapMidY() - (r[0] + r[1]) * (TH / 2) * V.z, t0: performance.now() }; }
 
 /* ================= sheets: build + tasks ================= */
-let sheet = null, sheetKeyVal = '', buildTab = 'homes', buildTarget = null, resetArm = false, taskTab = 'rewards';
+let sheet = null, sheetKeyVal = '', buildTab = 'homes', buildTarget = null, resetArm = false, taskTab = 'tasks';
 const sheetEl = $('#sheet'), sheetBody = $('#sheetBody'), scrim = $('#scrim');
 function openSheet(name) { snd('open'); document.body.classList.add('sheet-open'); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); }
 function closeSheet() { snd('close'); document.body.classList.remove('sheet-open'); sheet = null; buildTarget = null; sheetEl.classList.remove('open'); scrim.classList.remove('open'); renderCard(true); }
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
   if (sheet === 'build') return buildTab + '|' + S.level + '|' + Object.keys(DEFS).map(k => S.cash >= (DEFS[k].cost || 0) ? 1 : 0).join('') + '|' + JSON.stringify(S.items);
-  if (sheet === 'tasks') return JSON.stringify([S.daily,S.mission,S.streak,S.dayLast,S.loginClaimDay,taskTab,S.level,S.xp,S.pop,S.cash,S.stars,D.happy,D.cap,D.employed,D.jobs,D.useP,D.supP,D.useW,D.supW]);
+  if (sheet === 'tasks') return JSON.stringify([S.daily]);
   if (sheet === 'settings') return String(S.sound !== false) + '|' + LOC.src + '|' + resetArm;
   return '';
 }
 function renderSheet(force) {
   if (!sheet) return; const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
-  setText($('#sheetTitle'), sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Progress & Rewards');
+  setText($('#sheetTitle'), sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
   sheetBody.innerHTML = sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
   if (sheet === 'build') drawPreviews();
 }
@@ -3083,9 +3084,8 @@ function previewInto(cvs, id) {
   }
 }
 function tasksHTML() {
-  const tabs = [['rewards','Daily rewards'],['tasks','Daily tasks'],['rank','City rank']];
-  let h = `<div class="tabs task-tabs" role="tablist">${tabs.map(([k,l])=>`<button class="pb sm ${taskTab===k?'':'purple'}" data-act="tasktab" data-tab="${k}" aria-pressed="${taskTab===k}">${l}</button>`).join('')}</div>`;
-  if (taskTab === 'rewards') {
+  let h = '';
+  if (true) {
     const today = dayNum(), claimed = S.loginClaimDay === today, day = Math.max(1, Math.min(7, ((S.streak || 1)-1)%7+1));
     h += `<div class="streak-hero"><div><strong>7-DAY STREAK</strong><small>Log in daily to unlock each reward</small></div><span class="streak-count">DAY ${day} / 7</span></div><div class="streak-grid">`;
     STREAK_REW.forEach((r,q)=>{const past=q+1<day, active=q+1===day, icon=rewIconKind(r); h += `<div class="streak-card streak-day-${q+1} ${active?'is-current':past?'is-past':'is-next'}"><div class="streak-card-top"><b>DAY ${q+1}</b><span>${active?'TODAY':past?'DONE':'LOCKED'}</span></div><div class="streak-icon"><canvas data-icon="${icon}" ${r.tier?`data-tier="${r.tier}"`:''} width="80" height="80" aria-hidden="true"></canvas></div><div class="streak-reward">${rewLabel(r)}</div>${active ? `<button class="pb sm streak-claim" data-act="loginclaim" ${claimed?'disabled':''}>${claimed?'CLAIMED':'CLAIM REWARD'}</button>` : `<small class="streak-state">${past?'Reward collected':'Keep your streak going'}</small>`}</div>`;});
@@ -3096,14 +3096,11 @@ function tasksHTML() {
   } else if (taskTab === 'tasks') {
     const tasks=S.daily||[];
     h += `<div class="daily-head"><div><strong>DAILY TASKS</strong><small>Five fresh challenges every day · 6 pm Brisbane</small></div><span class="daily-count">${tasks.filter(t=>t.done).length}/5</span></div><div class="daily-list">`;
-    tasks.forEach((t,q)=>{const done=t.p>=t.n,pct=Math.max(0,Math.min(100,Math.round(t.p/t.n*100))),icons=['🏪','📦','🏗️','🎡','🛣️'];h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><span class="daily-task-number">${icons[q%icons.length]}</span><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} of ${fmt(t.n)} completed</small></div><span class="daily-reward">${rewLabel(t.rew)}</span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done||!done?'disabled':''}>${t.done?'REWARD CLAIMED':done?'COLLECT REWARD':'IN PROGRESS'}</button></div>`;});
+    tasks.forEach((t,q)=>{const done=t.p>=t.n,pct=Math.max(0,Math.min(100,Math.round(t.p/t.n*100))),icons=['🏪','📦','🏗️','🎡','🛣️'];h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><span class="daily-task-number">${icons[q%icons.length]}</span><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} of ${fmt(t.n)} completed</small></div><span class="daily-reward"><canvas data-icon="${rewIconKind(t.rew)}" ${t.rew.tier?`data-tier="${t.rew.tier}"`:``} width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><b>${rewAmt(t.rew)}</b></span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done||!done?'disabled':''}>${t.done?'REWARD CLAIMED':done?'COLLECT REWARD':'IN PROGRESS'}</button></div>`;});
     h += `</div>`;
   } else {
     const rank=stage(S.level), progress=Math.max(0,Math.min(100,Math.round((S.xp||0)/need(S.level)*100)));
-    const buildings=S.tiles.filter(t=>t&&DEFS[t.id]&&t.id!=='_occ').length, businesses=D.list.filter(b=>isBiz(b.d)).length;
     h += `<div class="sect"><h3>City rank</h3><div class="rank-card"><div class="rank-name">${rank.toUpperCase()}</div><div class="rank-level">LEVEL ${S.level}</div><div class="bar"><i style="width:${progress}%"></i></div><small>${fmt(S.xp||0)} / ${fmt(need(S.level))} XP to Level ${S.level+1}</small></div><p class="note">Your rank rises as your city earns XP, builds new places and grows. Higher ranks unlock more buildings and opportunities.</p></div>`;
-    h += `<div class="sect"><h3>City overview</h3><div class="tags"><span class="tag">${S.pop} Residents</span><span class="tag">${D.cap} Housing</span><span class="tag">${businesses} Businesses</span><span class="tag">${buildings} Buildings</span><span class="tag">${fmt(D.cpm||0)} Coins/min</span><span class="tag">${cityStars()} / 5 Stars</span></div></div>`;
-    h += `<div class="sect"><h3>City rating</h3><p class="note">${'★'.repeat(cityStars())}${'☆'.repeat(5-cityStars())} · +5% income per star</p>${RATING_RULES.map(([label,fn])=>`<div class="task"><div class="info"><b>${label}</b><small>${fn()?'Completed':'Not yet achieved'}</small></div><span>${fn()?'✓':'○'}</span></div>`).join('')}</div>`;
   }
   return h;
 }
@@ -3610,7 +3607,7 @@ function bizTick(dt) { const tn = now(); let cpm = 0;
   D.list.forEach(b => { if (!isBiz(b.d)) return; const pr = ensureProds(b.t);
     pr.forEach((p, k) => { if (p.o && tn >= p.o) { p.s = Math.max(tn, p.s) + P_LAST[k]; p.o = 0; eventPts(EVENT.perDelivery * (k + 1)); if (k >= 1) grindAdd(1); track(b.d.type === 'ind' ? 'industry' : 'collect', 1); } });
     const c = bizCpm(b) * boostMul(); cpm += c; if (c > 0) { const key = b.i + ',' + b.j; bizAcc.set(key, (bizAcc.get(key) || 0) + c / 60 * dt); } });
-  cpm = Math.round(cpm * (1 + .05 * (cityStars() - 1))); D.cpm = cpm; S.cash += cpm / 60 * dt;
+  D.cpm = cpm; S.cash += cpm / 60 * dt;
   bizPopT += dt; if (bizPopT >= 4) { bizPopT = 0; for (const [key, v] of bizAcc) { if (v >= 1) { const [i, j] = key.split(',').map(Number); popup(i, j, '+' + fmt(Math.floor(v)), '#FFE066'); bizAcc.set(key, v - Math.floor(v)); } } } }
 function bizOffline(from, to) { derive(); let earned = 0; const mins = Math.max(0, to - from) / 60000;
   D.list.forEach(b => { if (!isBiz(b.d) || !b.workers || whyNot(b)) return; const pr = ensureProds(b.t);
@@ -3824,10 +3821,6 @@ $('#clock').style.cursor = 'pointer';
 $('#clock').addEventListener('click', () => { const tm = SK.times || {}; const f = x => x ? new Date(x).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; toast('Sunrise ' + f(tm.rise) + ' · Sunset ' + f(tm.set) + (LOC.src === 'gps' ? ' · your location' : ' · tap Tasks to use your location')); });
 $('#coachSkip').addEventListener('click', skipTut);
 $('#rsAll').addEventListener('click', () => restockAll());
-function showRating() { const st = cityStars(); const next = RATING_RULES.find(([t, f], q) => q > 0 && !f());
-  $('#modalBox').innerHTML = `<h2 class="wl-t">City Rating ${'★'.repeat(st)}${'☆'.repeat(5 - st)}</h2><p class="wl-s">Your rating shows how well your city is run. <b>Every star adds +5% to your coins per minute.</b> You're earning <b>+${(st - 1) * 5}%</b> right now.</p><div class="rlist">${RATING_RULES.map(([t, f], q) => `<div class="rr ${f() ? 'ok' : ''}"><span>★${q + 1}</span>${t}<i>${f() ? '✔' : ''}</i></div>`).join('')}</div><p class="wl-s">${next ? 'Next star: ' + next[0] + '.' : 'Five stars! Your city is perfect.'}</p><button class="pb" id="modalOk">Got it</button>`;
-  $('#modal').classList.add('show'); snd('open'); $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); }; }
-$('#rateBtn').addEventListener('click', e => { e.stopPropagation(); showRating(); });
 const COMPASS = ['N', 'E', 'S', 'W'];
 let rotBusy = false;
 $('#zrot').addEventListener('click', () => {
