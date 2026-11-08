@@ -932,14 +932,35 @@ body{font-size:19px!important;line-height:1.18}
 
 <script>
 (function(){
- function report(message,source,line,column,stack){
-  let panel=document.getElementById('bb-runtime-diagnostics');
-  if(!panel){panel=document.createElement('div');panel.id='bb-runtime-diagnostics';panel.style.cssText='position:fixed;z-index:2147483647;left:8px;right:8px;top:8px;max-height:42vh;overflow:auto;padding:12px;background:#35191d;color:#fff;border:2px solid #ff7272;font:13px/1.45 monospace;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 4px 18px #0009';(document.body||document.documentElement).appendChild(panel);}
-  panel.textContent='BIT-BURBS STARTUP ERROR\\n'+String(message||'Unknown error')+(source?'\\nFile: '+source:'')+(line?'\\nLine: '+line+(column?':'+column:''):'')+(stack?'\\n\\n'+String(stack).slice(0,1800):'')+'\\n\\nPlease send a screenshot of this message.';
+ const KEY='bb-diagnostic-log-v1',MAX=100;let logs=[];
+ try{logs=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(logs))logs=[];}catch(_){logs=[];}
+ const stamp=()=>new Date().toISOString();
+ function add(kind,message,details){
+  const entry={time:stamp(),kind,message:String(message==null?'Unknown error':message).slice(0,1600),details:String(details||'').slice(0,2400)};
+  logs.push(entry);if(logs.length>MAX)logs=logs.slice(-MAX);
+  try{localStorage.setItem(KEY,JSON.stringify(logs));}catch(_){}
+  render();
  }
- window.addEventListener('error',e=>report(e.message||'Script/resource error',e.filename,e.lineno,e.colno,e.error&&e.error.stack));
- window.addEventListener('unhandledrejection',e=>{const r=e.reason;report(r&&r.message||r||'Unhandled promise rejection','',0,0,r&&r.stack);});
+ function dump(){
+  return ['BIT-BURBS DIAGNOSTICS','Captured: '+stamp(),'Page: '+location.origin+location.pathname,'Viewport: '+innerWidth+'x'+innerHeight+'; DPR '+devicePixelRatio,'User agent: '+navigator.userAgent,'Entries: '+logs.length,'',...logs.map((x,i)=>'['+(i+1)+'] '+x.time+' '+x.kind+'\\n'+x.message+(x.details?'\\n'+x.details:''))].join('\\n');
+ }
+ function render(){
+  let panel=document.getElementById('bb-runtime-diagnostics');
+  if(!panel){panel=document.createElement('section');panel.id='bb-runtime-diagnostics';panel.style.cssText='position:fixed;z-index:2147483647;left:8px;right:8px;top:8px;max-height:65vh;overflow:auto;padding:12px;background:#171c26;color:#fff;border:2px solid #ff7272;border-radius:8px;font:12px/1.4 monospace;box-shadow:0 4px 18px #0009;display:none';(document.body||document.documentElement).appendChild(panel);}
+  panel.innerHTML='';
+  const head=document.createElement('div');head.textContent='BIT-BURBS DIAGNOSTICS · '+logs.length+' events';head.style.cssText='font-weight:bold;margin-bottom:8px;color:#ffaaaa';panel.appendChild(head);
+  const copy=document.createElement('button');copy.textContent='COPY ERROR LOG';copy.style.cssText='padding:10px;margin:0 8px 8px 0;background:#2f6feb;color:white;border:0;border-radius:6px;font-weight:bold';copy.onclick=async()=>{const data=dump();try{await navigator.clipboard.writeText(data);copy.textContent='COPIED — PASTE IT HERE';}catch(_){const t=document.createElement('textarea');t.value=data;panel.appendChild(t);t.focus();t.select();try{document.execCommand('copy');copy.textContent='COPIED — PASTE IT HERE';}catch(__){copy.textContent='SELECT THE LOG TEXT BELOW';}}};panel.appendChild(copy);
+  const close=document.createElement('button');close.textContent='CLOSE';close.style.cssText='padding:10px;background:#394150;color:white;border:0;border-radius:6px';close.onclick=()=>panel.style.display='none';panel.appendChild(close);
+  const pre=document.createElement('pre');pre.textContent=logs.length?logs.slice(-15).map(x=>x.time+' '+x.kind+'\\n'+x.message+(x.details?'\\n'+x.details:'')).join('\\n\\n'):'No errors captured yet. Keep playing; this log records errors automatically.';pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin-top:10px';panel.appendChild(pre);
+  panel.style.display=logs.length?'block':'none';
+ }
+ const launcher=document.createElement('button');launcher.textContent='LOGS';launcher.setAttribute('aria-label','Open diagnostic logs');launcher.style.cssText='position:fixed;z-index:2147483646;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));padding:8px 12px;background:#2f6feb;color:white;border:1px solid #fff6;border-radius:6px;font:bold 12px monospace';launcher.onclick=()=>{render();const p=document.getElementById('bb-runtime-diagnostics');p.style.display='block';};(document.body||document.documentElement).appendChild(launcher);
+ window.addEventListener('error',e=>add(e.target&&e.target!==window?'RESOURCE ERROR':'JAVASCRIPT ERROR',e.message||((e.target&&e.target.src)||'Script/resource failed'),(e.filename||'')+(e.lineno?' line '+e.lineno:'')+(e.colno?':'+e.colno:'')+(e.error&&e.error.stack?'\\n'+e.error.stack:'')),true);
+ window.addEventListener('unhandledrejection',e=>{const r=e.reason;add('UNHANDLED PROMISE',r&&r.message||r||'Unhandled promise rejection',r&&r.stack||'');});
+ const oldError=console.error.bind(console);console.error=function(){try{add('CONSOLE.ERROR',Array.from(arguments).map(v=>v&&v.stack||String(v)).join(' | '));}catch(_){}oldError(...arguments);};
+ window.__BB_DIAGNOSTICS={dump,add};
  document.addEventListener('touchend',e=>{const now=Date.now();if(window.__bbLastTouchEnd&&now-window.__bbLastTouchEnd<320)e.preventDefault();window.__bbLastTouchEnd=now;},{passive:false});
+ render();
 })();
 </script>
 <script>
