@@ -3944,7 +3944,7 @@ function frame(t) {
 S = load() || newGame();
 if (S.tut && !S.tutDone) {
   const oldStep = Math.max(0, S.tut.step || 0);
-  const oldToNew = [0, 1, 2, 2, 3, 4, 5, 5, 6, 7, 8];
+  const oldToNew = [0, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9];
   S.tut.step = oldStep >= 11 ? TUT.length : (oldToNew[oldStep] ?? TUT.length);
   S.tut.ev = {}; S.tut.started = false;
 }
