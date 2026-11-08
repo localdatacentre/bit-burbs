@@ -979,6 +979,8 @@ body.tut-on #coach{border-color:#FFC93C!important}
 #nav .pb[data-open="crates"]{background:#F2B21A!important;color:#102C45!important;border-color:#B77A0B!important}
 #nav .pb[data-open="tasks"]{background:#3EBE7A!important;color:#102C45!important;border-color:#218653!important}
 #nav .pb[data-open="settings"]{background:#8D83EE!important;color:#FFFFFF!important;border-color:#574DB8!important}
+/* The legacy Build-only selector had higher specificity; force it into the same 1px flat border as every other tab. */
+#nav button.pb[data-open="build"]{border:1px solid #0C879D!important;box-shadow:none!important;outline:0!important}
 </style>
 </head>
 <body>
