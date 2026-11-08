@@ -3790,7 +3790,7 @@ function tutTick() {
     else if (!sheet && !mg) sel = '[data-open="build"]';
   } else if (st.act) {
     if (card.classList.contains('show') && sel === null) sel = `#card [data-act="${st.act}"]`;
-  } else if (st.nav) sel = mg === st.nav ? (st.nav === 'wheel' ? '#spinBtn' : st.nav === 'market' ? null : st.nav === 'tasks' ? null : '#rollBtn') : (!mg && !sheet ? (st.nav === 'market' ? '#zmkt' : `[data-open="${st.nav}"]`) : null);
+  } else if (st.nav) sel = mg === st.nav ? (st.nav === 'wheel' ? '#spinBtn' : null) : (mg ? '#mg .mgx' : !sheet ? (st.nav === 'market' ? '#zmkt' : `[data-open="${st.nav}"]`) : null);
   setHL(sel);
 }
 function setHL(sel) {
