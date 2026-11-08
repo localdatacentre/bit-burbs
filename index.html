@@ -2380,12 +2380,13 @@ function T(hex) {
 }
 
 /* ================= view / camera ================= */
-const cv = $('#game'); const ctx = cv.getContext('2d');
-// Off-screen pixel buffers used by the city renderer.
+let sel = null, placing = null, view = 'normal';
+let PX = 3;
 const low = document.createElement('canvas');
+const lowOut = low.getContext('2d');
 const mid = document.createElement('canvas');
 const lowCtx = mid.getContext('2d');
-const lowOut = low.getContext('2d');
+const cv = $('#game'); const ctx = cv.getContext('2d');
 let W = 0, H = 0, DPR = 1;
 const V = { ctx, z: 1.15, cx: 0, cy: 0 };
 let ROT = 0;
@@ -2931,7 +2932,7 @@ function rewardPopup(data) {
 function pumpRewardPopup() { if (rewardQueue.length && !$('#modal').classList.contains('show')) rewardPopup(rewardQueue.shift()); }
 
 function render() {
-  const PXD = Math.max(2, Math.round(1.1 * DPR)); const PX = PXD / DPR;
+  const PXD = Math.max(2, Math.round(1.1 * DPR)); PX = PXD / DPR;
   const lw = Math.ceil(W / PX), lh = Math.ceil(H / PX);
   if (low.width !== lw || low.height !== lh) { low.width = lw; low.height = lh; mid.width = lw * 2; mid.height = lh * 2; }
   stepZoomAnim(); const camX = V.cx, camY = V.cy; V.cx = Math.round(V.cx / PX) * PX; V.cy = Math.round(V.cy / PX) * PX;
