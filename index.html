@@ -3188,6 +3188,19 @@ function audio() {
   if (actx.state === 'suspended') actx.resume();
   return actx;
 }
+/* Unlock Web Audio directly inside the first real user gesture (required by iOS Safari). */
+function unlockAudio() {
+  if (S && S.sound === false) return;
+  try {
+    const ctx = audio();
+    if (ctx.state === 'suspended') {
+      const resumed = ctx.resume();
+      if (resumed && resumed.catch) resumed.catch(() => {});
+    }
+  } catch (e) { /* audio will retry on the next gesture */ }
+}
+document.addEventListener('pointerdown', unlockAudio, { capture: true, passive: true });
+document.addEventListener('keydown', unlockAudio, { capture: true });
 function sTone(f, dur, o) {
   o = o || {}; const t = actx.currentTime + (o.at || 0); const os = actx.createOscillator(), g = actx.createGain();
   os.type = o.type || 'sine'; os.frequency.setValueAtTime(f, t); if (o.to) os.frequency.exponentialRampToValueAtTime(o.to, t + dur);
