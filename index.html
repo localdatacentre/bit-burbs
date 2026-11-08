@@ -3737,7 +3737,8 @@ const TUT = [
   { t: 'Check your city tasks', d: 'Tasks give you useful rewards for growing, upgrading and running your town. Open TASKS to see your goals.', nav: 'tasks', done: () => mg === 'tasks' },
   { t: 'Visit the Dosh Shop', d: 'Dosh is a special currency. The Dosh Shop lets you exchange it for new buildings and items; have a look at the stock.', nav: 'market', done: () => mg === 'market' },
   { t: 'Try the Lucky Wheel', d: 'The Wheel gives you prizes. You get free spins over time, and tickets let you spin more often.', nav: 'wheel', done: () => tev('spin') },
-  { t: 'See what you can unlock next', d: 'Your starter town now has streets, homes, power, water and a working shop. Crates, Dice and the Wheel offer extra rewards; as you level up, unlock services, industry, parks and bigger utilities. Open CRATES to finish your tour.', nav: 'crates', done: () => mg === 'crates' }
+  { t: 'Take a turn in City Dice', d: 'Dice lets you travel around the prize board and collect rewards. Open DICE and try a free roll.', nav: 'dice', done: () => tev('roll') },
+  { t: 'See what you can unlock next', d: 'Your starter town now has streets, homes, power, water and a working shop. Crates add another reward path; as you level up, unlock services, industry, parks and bigger utilities. Open CRATES to finish your tour.', nav: 'crates', done: () => mg === 'crates' }
 ];
 let tutHL = null;
 function tutStep() { return S.tut && TUT[S.tut.step]; }
@@ -3790,7 +3791,7 @@ function tutTick() {
     else if (!sheet && !mg) sel = '[data-open="build"]';
   } else if (st.act) {
     if (card.classList.contains('show') && sel === null) sel = `#card [data-act="${st.act}"]`;
-  } else if (st.nav) sel = mg === st.nav ? (st.nav === 'wheel' ? '#spinBtn' : null) : (mg ? '#mg .mgx' : !sheet ? (st.nav === 'market' ? '#zmkt' : `[data-open="${st.nav}"]`) : null);
+  } else if (st.nav) sel = mg === st.nav ? (st.nav === 'wheel' ? '#spinBtn' : st.nav === 'dice' ? '#rollBtn' : null) : (mg ? '#mg .mgx' : !sheet ? (st.nav === 'market' ? '#zmkt' : `[data-open="${st.nav}"]`) : null);
   setHL(sel);
 }
 function setHL(sel) {
