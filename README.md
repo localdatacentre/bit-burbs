@@ -1,4 +1,4 @@
-# BitCity Update 9
+# Bit-Burbs Update 9
 
 This update simplifies the Progress & Rewards hub by removing the separate ongoing-task system.
 
@@ -13,7 +13,7 @@ This update simplifies the Progress & Rewards hub by removing the separate ongoi
 ## Upload
 Replace the existing five files in the root of your GitHub Pages repository with the five files in this ZIP. Keep all files at the repository root.
 
-The service-worker cache is updated to `bitcity-v9` so browsers fetch the new build.
+The service-worker cache is updated to `bit-burbs-v11` so browsers fetch the new build.
 
 
 ## Update 10 – Free Prize jet and reward reveals
