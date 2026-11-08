@@ -935,6 +935,10 @@ body.tut-on #coach{border-color:#FFC93C!important}
 .msection.weekly .mcard.feat .minfo b{font-size:17px}
 .msection.weekly .mcard.feat .minfo span{color:#D7D0BE}
 
+
+/* Owned items use a distinct green accent; other tabs retain their existing style. */
+#sheetBody .tabs [data-tab="items"]{background:#3B8D68!important;color:#FFFFFF!important;border-color:#A5E7BD!important;box-shadow:inset 0 2px 0 #C9F5D6,0 3px 0 #20583F!important}
+#sheetBody .tabs [data-tab="items"][aria-pressed="true"]{background:#57B77E!important;color:#102B20!important;border-color:#D0F7DB!important}
 </style>
 </head>
 <body>
@@ -1832,8 +1836,8 @@ const DEFS = {
   gym:      { name: 'Iron Gym', type: 'shop', cat: 'Leisure', cost: 6000, lvl: 4, staff: 2, rc: 320, earn: 880, time: 75, h: 28, wall: '#C6CED8', side: '#A6AEB8', roof: '#3E4650', awn: ['#2F5A8A', '#E4E8EE'], pw: 2, wa: 2 },
   hardware: { name: 'Hardware', type: 'shop', cat: 'Retail', cost: 8500, lvl: 5, staff: 3, rc: 420, earn: 1180, time: 90, h: 26, wall: '#DACFB8', side: '#BAAF98', roof: '#55504A', awn: ['#B0662E', '#EDE4D4'], pw: 3, wa: 1 },
   cinema:   { name: 'Cinema', type: 'shop', cat: 'Leisure', cost: 15000, lvl: 7, staff: 4, rc: 800, earn: 2450, time: 120, h: 38, wall: '#BDB7C8', side: '#9D97A8', roof: '#3E3A48', awn: ['#4A3E6E', '#D9C98A'], pw: 4, wa: 2 },
-  workshop: { name: 'Workshop', type: 'ind', cost: 2000, lvl: 2, staff: 3, rate: .9, h: 24, wall: '#D2C0AE', side: '#AE9C8A', roof: '#6B5B4E', pw: 3, wa: 1, poll: 1, rad: 2 },
-  factory:  { name: 'Factory', type: 'ind', cost: 9000, lvl: 6, staff: 6, rate: 2.6, h: 34, wall: '#B8C1CA', side: '#8E979F', roof: '#4E565E', pw: 6, wa: 2, poll: 2, rad: 3 },
+  workshop: { name: 'Workshop', type: 'ind', cost: 2000, lvl: 2, staff: 3, rate: .9, h: 24, wall: '#D2C0AE', side: '#AE9C8A', roof: '#6B5B4E', pw: 3, wa: 1 },
+  factory:  { name: 'Factory', type: 'ind', cost: 9000, lvl: 6, staff: 6, rate: 2.6, h: 34, wall: '#B8C1CA', side: '#8E979F', roof: '#4E565E', pw: 6, wa: 2 },
   wind:     { name: 'Wind Turbine', type: 'util', cost: 1200, lvl: 1, supP: 12, h: 52 },
   wtower:   { name: 'Water Tower', type: 'util', cost: 1000, lvl: 1, supW: 12, h: 46 },
   pump:     { name: 'Water Pump', type: 'util', cost: 5000, lvl: 4, supW: 45, h: 20, wall: '#A8DCF0', side: '#7FB3C8', roof: '#3E7B9A' },
@@ -1864,19 +1868,18 @@ const DEFS = {
 const SVC_NAMES = ['Police', 'Fire', 'Health', 'Education'];
 const BUILD_TABS = [
   ['homes', 'Homes', ['house', 'house2', 'aptS', 'aptP', 'tower', 'town']],
-  ['shops', 'Shops', ['bakery', 'coffee', 'grocery', 'gym', 'hardware', 'cinema', 'gas']],
-  ['ind', 'Industry', ['workshop', 'factory', 'warehouse', 'skyscraper']],
+  ['businesses', 'Businesses', ['bakery', 'coffee', 'grocery', 'gym', 'hardware', 'cinema', 'gas', 'workshop', 'factory', 'warehouse', 'skyscraper']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar2', 'nuclear']],
   ['city', 'Roads & parks', ['road', 'park', 'tree', 'needle', 'space']],
-  ['items', 'My items', ['sakura', 'flowers', 'fountain', 'statue']]
+  ['items', 'My items', ['sakura', 'fountain', 'statue']]
 ];
 const EXPAND = [];
 const expIdx = () => 13 - S.lo;
 
 const CRATES = {
-  steel:   { key: 'steel', table: [[28, 'Silver coin bundle', { k: 'cash', m: 10 }], [15, '12 Dosh', { k: 'stars', n: 12 }], [10, '2 Wheel tickets', { k: 'ticket', n: 2 }], [5, 'Gold key', { k: 'key', tier: 'gold' }], [14, 'Flower Bed', { k: 'item', id: 'flowers' }], [12, '2× boost 10 min', { k: 'boost', min: 10 }], [16, 'Bonus Coins', { k: 'cash', m: 18 }]] },
-  gold:    { key: 'gold', pity: 'fountain', pityN: 7, table: [[24, 'Big Coin bundle', { k: 'cash', m: 28 }], [14, '25 Dosh', { k: 'stars', n: 25 }], [14, '4 Wheel tickets', { k: 'ticket', n: 4 }], [18, 'Fountain', { k: 'item', id: 'fountain' }], [4, 'Diamond key', { k: 'key', tier: 'diamond' }], [12, '2 Deeds', { k: 'deed', n: 2 }], [14, '2× boost 20 min', { k: 'boost', min: 20 }]] },
-  diamond: { key: 'diamond', pity: 'statue', pityN: 3, table: [[20, 'Mega Coin vault', { k: 'cash', m: 90 }], [18, '50 Dosh', { k: 'stars', n: 50 }], [22, 'Golden Bull', { k: 'item', id: 'statue' }], [14, 'Fountain', { k: 'item', id: 'fountain' }], [10, '5 Wheel tickets', { k: 'ticket', n: 5 }], [10, '3 Deeds', { k: 'deed', n: 3 }], [6, 'Diamond key', { k: 'key', tier: 'diamond' }]] }
+  steel:   { key: 'steel', table: [[28, 'Silver coin bundle', { k: 'cash', m: 10 }], [15, '12 Dosh', { k: 'stars', n: 12 }], [10, '2 Wheel tickets', { k: 'ticket', n: 2 }], [5, 'Gold key', { k: 'key', tier: 'gold' }], [14, 'Bonus Coins', { k: 'cash', m: 18 }], [12, '2× boost 10 min', { k: 'boost', min: 10 }], [16, 'Bonus Coins', { k: 'cash', m: 18 }]] },
+  gold:    { key: 'gold', table: [[34, 'Big Coin bundle', { k: 'cash', m: 28 }], [22, '25 Dosh', { k: 'stars', n: 25 }], [14, '4 Wheel tickets', { k: 'ticket', n: 4 }], [4, 'Diamond key', { k: 'key', tier: 'diamond' }], [12, '2 Deeds', { k: 'deed', n: 2 }], [14, '2× boost 20 min', { k: 'boost', min: 20 }]] },
+  diamond: { key: 'diamond', table: [[36, 'Mega Coin vault', { k: 'cash', m: 90 }], [30, '50 Dosh', { k: 'stars', n: 50 }], [18, '5 Wheel tickets', { k: 'ticket', n: 5 }], [10, '3 Deeds', { k: 'deed', n: 3 }], [6, 'Diamond key', { k: 'key', tier: 'diamond' }]] }
 };
 
 const BOARD = [
@@ -2042,7 +2045,7 @@ function hash(a, b, c) { let x = (a * 374761393 + b * 668265263 + (c || 0) * 214
 /* ================= state ================= */
 let S;
 function baseState() {
-  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), keys: { steel: 1, gold: 0, diamond: 0 }, crates: { steel: 0, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
+  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), keys: { steel: 1, gold: 0, diamond: 0 }, crates: { steel: 0, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
 }
 function newGame() {
   const s = baseState(); const tiles = s.tiles;
@@ -2204,7 +2207,7 @@ function grant(r) {
     case 'crate': { const tier = r.tier === 'wood' ? 'steel' : r.tier; S.keys[tier] = (S.keys[tier] || 0) + n; return TIER[tier] + ' key' + (n > 1 ? 's' : ''); }
     case 'ticket': S.tickets += n; return n + ' Wheel ticket' + (n > 1 ? 's' : '');
     case 'boost': S.boostUntil = Math.max(now(), S.boostUntil) + r.min * 60000; return '2× earnings for ' + r.min + ' min';
-    case 'item': S.items[r.id]++; return DEFS[r.id].name;
+    case 'item': return 'Cosmetic items are only available from the Dosh Shop';
   }
   return '';
 }
@@ -2265,8 +2268,8 @@ function placeAt(i, j, id, fromItem) {
   if (!fpFree(i, j, id)) { snd('error'); const [fx, fy] = fpOf(id); toast(fx * fy > 1 ? 'This needs a clear ' + fx + '×' + fy + ' space here.' : 'Something is already built there.'); return false; }
   const cost = fromItem ? 0 : costOf(id);
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
-  if (fromItem && !(S.items[id] > 0)) { snd('error'); toast('You have none left.'); return false; }
-  S.cash -= cost; setTile(i, j, newTile(id)); { const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) if (a || b) setTile(i + a, j + b, { id: '_occ', ref: [i, j] }); } if (fromItem) S.items[id]--;
+  if (fromItem && !(S.shopItems && S.shopItems[id] > 0)) { snd('error'); toast('You have none of this Dosh Shop item left.'); return false; }
+  S.cash -= cost; setTile(i, j, newTile(id)); { const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) if (a || b) setTile(i + a, j + b, { id: '_occ', ref: [i, j] }); } if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
   if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build'); addXP(Math.max(5, cost / 40)); popup(i, j, d.name + '!', '#FFF3D6'); }
   if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
@@ -2275,7 +2278,7 @@ function demolish(i, j) {
   ({ i, j } = anchorOf(i, j)); const t = tileAt(i, j); if (!t || t.id === 'hall') return;
   { const [fx, fy] = fpOf(t.id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) if (a || b) { const o = tileAt(i + a, j + b); if (o && o.id === '_occ') setTile(i + a, j + b, null); } }
   const d = DEFS[t.id];
-  if (d.crateOnly) { S.items[t.id]++; toast(d.name + ' packed into My items.'); }
+  if (MARKET[t.id]) { S.items[t.id] = (S.items[t.id] || 0) + 1; S.shopItems[t.id] = (S.shopItems[t.id] || 0) + 1; toast(d.name + ' packed into My items.'); }
   else if (t.id !== 'road') { const back = Math.round(d.cost * .5); S.cash += back; toast('Demolished. Refunded ' + fmt(back) + ' Coins.'); }
   setTile(i, j, null); sel = null; changed();
 }
@@ -3109,17 +3112,18 @@ function buildHTML() {
   let h = `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
   if (!findHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="bcard" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>The heart of your city. Every city needs one.</span><span class="price">Free</span></button></div>`;
   if (buildTarget) h += `<p class="note">Building on the plot you picked.</p>`;
-  const tab0 = BUILD_TABS.find(t => t[0] === buildTab); const tab = tab0;
+  const tab0 = BUILD_TABS.find(t => t[0] === buildTab) || BUILD_TABS[0]; const tab = tab0;
   h += '<div class="grid2">';
-  tab[2].forEach(id => {
+  const visibleIds = buildTab === 'items' ? tab[2].filter(id => (S.shopItems && S.shopItems[id] || 0) > 0) : tab[2];
+  visibleIds.forEach(id => {
     const d = DEFS[id]; const item = buildTab === 'items';
-    const locked = !item && d.lvl > S.level; const count = item ? (S.items[id] || 0) : 0;
+    const locked = !item && d.lvl > S.level; const count = item ? (S.shopItems && S.shopItems[id] || 0) : 0;
     const cant = locked || (item ? count < 1 : S.cash < costOf(id));
     let sub = '';
     if (d.type === 'shop') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
     else if (d.type === 'home') sub = `${d.cap} residents`;
     else if (d.type === 'ind') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
-    else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`) + (d.poll ? ' · pollutes' : '');
+    else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
     else if (d.type === 'svc') sub = `${SVC_NAMES[d.svc]} for ${d.rad} tiles · ${d.staff} staff`;
     else if (d.type === 'decor') sub = 'Decoration';
     else if (d.type === 'hall') sub = 'Your city centre, free';
@@ -3128,7 +3132,8 @@ function buildHTML() {
     h += `<button class="bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
   });
   h += '</div>';
-  if (buildTab === 'items') h += `<p class="note">Items come from crates and the Dosh Shop. Placing them is free.</p>`;
+  if (buildTab === 'items') h += `<p class="note">Only cosmetic items purchased from the Dosh Shop appear here. Placing them is free.</p>`;
+  if (buildTab === 'items' && !visibleIds.length) h += `<p class="note">You haven't purchased any cosmetic items yet. Visit the Dosh Shop to add one to your item bag.</p>`;
   if (buildTab === 'util') h += `<p class="note">City power ${D.useP}/${D.supP} · water ${D.useW}/${D.supW}. Buildings without power or water stop working.</p>`;
   return h;
 }
@@ -3564,14 +3569,14 @@ function buyDailyMarket(id) {
   else if(id==='silver'){ S.keys.steel=(S.keys.steel||0)+1; msg='Silver crate key added!'; }
   else if(id==='gold'){ S.keys.gold=(S.keys.gold||0)+1; msg='Gold crate key added!'; }
   else { S.cash=(S.cash||0)+1200; msg='1,200 Coins added!'; }
-  S.stars-=it.price; S.market.dailyBought[id]=true; addXP(5); snd('confirm'); toast(msg); changed(); buildMarket();
+  S.stars-=it.price; S.market.dailyBought[id]=true; addXP(5); snd('confirm'); toast(msg); changed(); save(); buildMarket();
 }
 function buyMarket(id) {
   const it = MARKET[id], m = marketStock(); if (!it || id !== m.featured) return;
   if (S.market.bought[id]) { snd('error'); toast('This weekly exclusive is already yours.'); return; }
   if (S.stars < it.price) { snd('error'); toast('Not enough Dosh. Complete tasks and activities to earn more.'); return; }
-  S.items[id] = (S.items[id] || 0) + 1; S.stars -= it.price; S.market.bought[id] = 1;
-  addXP(10); snd('rare'); confetti(24); toast(it.name + ' added to Build › My items.'); changed(); buildMarket();
+  S.items[id] = (S.items[id] || 0) + 1; S.shopItems[id] = (S.shopItems[id] || 0) + 1; S.stars -= it.price; S.market.bought[id] = 1;
+  addXP(10); snd('rare'); confetti(24); toast(it.name + ' added to Build › My items.'); changed(); save(); buildMarket();
 }
 
 /* ----- crates ----- */
@@ -3755,7 +3760,7 @@ const TUT = [
   { t: 'Set up electricity', d: 'Your buildings need power to operate. Place a Wind Turbine beside a road.', build: 'wind', tab: 'util', done: () => hasB('wind') },
   { t: 'Connect the water supply', d: 'Homes and businesses need water too. Place a Water Tower beside a road.', build: 'wtower', tab: 'util', done: () => hasB('wtower') },
   { t: 'Welcome your residents', d: 'Your Cottage is ready. Give your first 2 residents a moment to arrive; they’ll become the workforce for your Bakery.', done: () => S.pop >= 2, start: () => { S.busT = now() + 2500; } },
-  { t: 'Open your first business', d: 'Build a Bakery beside a road. Your residents will help keep it running.', build: 'bakery', tab: 'shops', done: () => hasB('bakery') },
+  { t: 'Open your first business', d: 'Build a Bakery beside a road. Your residents will help keep it running.', build: 'bakery', tab: 'businesses', done: () => hasB('bakery') },
   { t: 'Stock the Bakery', d: 'Tap your Bakery and order Bread. It will be ready in a few seconds during the tutorial.', target: 'bakery', act: 'order', done: () => tev('restock') },
   { t: 'Collect your first earnings', d: 'Once the Bread is ready, collect the Bakery’s earnings to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('shopCollect') },
   { t: 'Upgrade your business', d: 'Upgrade the Bakery to improve its earning potential. That covers the basics of running your city!', target: 'bakery', act: 'upgrade', done: () => tev('upgrade') }
@@ -3944,6 +3949,8 @@ if (!S.grind) S.grind = { d: 0, t: 0 };
 if (S.dice > 15) S.dice = 15;
 S.dicePos = (S.dicePos || 0) % 12;
 S.items = Object.assign({ fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, S.items || {});
+S.shopItems = Object.assign({}, S.shopItems || {});
+for (const id of Object.keys(S.shopItems)) if (!MARKET[id]) delete S.shopItems[id];
 if (!S.market) S.market = { week: 0, bought: {}, seen: 0 };
 (function catchUp() {
   const el = Math.max(0, now() - (S.saved || now()));
