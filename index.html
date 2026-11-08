@@ -3978,7 +3978,6 @@ function frame(t) {
   if (camAnim) { const e = Math.min(1, (t - camAnim.t0) / 450); const k = 1 - Math.pow(1 - e, 3); V.cx = camAnim.sx + (camAnim.tx - camAnim.sx) * k; V.cy = camAnim.sy + (camAnim.ty - camAnim.sy) * k; if (e >= 1) camAnim = null; }
   skyAcc += dt; if (skyAcc > 10) { skyAcc = 0; updateSky(); }
   tick(dt);
-  /* free-prize plane removed */
   pumpRewardPopup();
   carAcc += dt; if (carAcc > 1) { carAcc = 0; manageCars(); }
   cars.forEach(c => stepCar(c, dt)); cars = cars.filter(c => !c.dead);
@@ -3993,7 +3992,6 @@ function frame(t) {
 
 /* ================= boot ================= */
 S = load() || newGame();
-if (!S.planeNextAt) S.planeNextAt = now() + 90000;
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
 if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; S.cars = []; }
 if (!S.crates) S.crates = { steel: 0, gold: 0, diamond: 0 };
