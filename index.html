@@ -967,9 +967,10 @@ body.tut-on #coach{border-color:#FFC93C!important}
 #nav .pb{
   color:#102C45!important;
   border:1px solid currentColor!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 2px 0 rgba(0,0,0,.3)!important;
+  box-shadow:none!important;
   text-shadow:none!important;
 }
+#nav .pb::before,#nav .pb::after{display:none!important;content:none!important}
 #nav .pb[data-open="build"]{background:#20B8D2!important;border-color:#0C879D!important}
 #nav .pb[data-open="wheel"]{background:#F25AA0!important;border-color:#B93270!important}
 #nav .pb[data-open="crates"]{background:#F2B21A!important;border-color:#B77A0B!important}
