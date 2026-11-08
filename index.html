@@ -769,6 +769,38 @@ body{font-size:18px!important;letter-spacing:.015em}
 @keyframes crateButtonPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
 @media(prefers-reduced-motion:reduce){.mg-crates #chest,.mg-crates #openBtn,.mg-crates .cstage:before{animation:none!important}}
 
+
+/* Readable, colourful daily rewards and challenge screens */
+.streak-hero{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;background:linear-gradient(110deg,#244E9A,#513C9B);border:2px solid #75B9F5;margin:8px 0 10px}
+.streak-hero strong{display:block;font:12px 'Silkscreen',monospace;color:#FFE47A}
+.streak-hero small{display:block;font:17px 'VT323',monospace;color:#EAF5FF;margin-top:5px}
+.streak-count{font:11px 'Silkscreen',monospace;color:#fff;background:#1B2D62;padding:8px;white-space:nowrap}
+.streak-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.streak-card{min-width:0;min-height:128px;padding:9px;background:#202D58;border:2px solid #465B9A;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:inset 0 4px 0 rgba(255,255,255,.035)}
+.streak-day-1{--streak:#37BDEB}.streak-day-2{--streak:#A67AF4}.streak-day-3{--streak:#43CE8A}.streak-day-4{--streak:#F0B94C}.streak-day-5{--streak:#ED79B2}.streak-day-6{--streak:#5D9FF4}.streak-day-7{--streak:#F0785F}
+.streak-card-top{display:flex;align-items:center;justify-content:space-between;width:100%;gap:3px}
+.streak-card-top b{font:10px 'Silkscreen',monospace;color:#fff}
+.streak-card-top span{font:10px 'Silkscreen',monospace;color:var(--streak)}
+.streak-icon{width:54px;height:48px;display:grid;place-items:center;background:color-mix(in srgb,var(--streak) 18%,#111B3D);border:1px solid color-mix(in srgb,var(--streak) 65%,#26365F)}
+.streak-icon canvas{width:42px;height:42px;image-rendering:pixelated}
+.streak-reward{font:16px 'VT323',monospace;color:#fff;text-align:center;min-height:18px}
+.streak-claim{width:100%;background:#258BDB!important;min-height:30px!important;font-size:15px!important}
+.streak-claim:disabled{background:#38516B!important;color:#C9D6E8!important;opacity:1!important}
+.streak-state{font:14px 'VT323',monospace;color:#BAC9E8;text-align:center}
+.streak-card.is-current{border-color:#FFE078;box-shadow:inset 0 0 0 1px #FFE078,0 0 12px rgba(255,220,95,.15)}
+.streak-card.is-past{opacity:.72}
+.streak-footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;padding:10px;background:#17264A;border-left:4px solid #46C88C}
+.streak-footer b{font:10px 'Silkscreen',monospace;color:#8DE9B4}
+.streak-footer span{font:15px 'VT323',monospace;color:#E8F1FF;text-align:right}
+.daily-head{background:linear-gradient(110deg,#175E88,#3C4796)!important;border:2px solid #5DBDEB!important}
+.daily-task-card{border:2px solid #455D9E!important;background:#202D58!important;box-shadow:inset 4px 0 0 var(--task-accent),0 3px 0 rgba(0,0,0,.18)}
+.daily-task-number{font-size:20px!important;min-width:30px!important}
+.daily-task-copy b{font-size:19px!important;line-height:1.1!important}
+.daily-task-copy small{font-size:16px!important}
+.daily-reward{font-size:16px!important;color:#FFE27A!important}
+.daily-progress{height:10px!important}
+.daily-claim{font-size:16px!important;letter-spacing:.04em}
+@media(max-width:370px){.streak-grid{gap:6px}.streak-card{padding:7px}.streak-footer{align-items:flex-start;flex-direction:column}.streak-footer span{text-align:left}}
 </style>
 </head>
 <body>
@@ -3077,16 +3109,16 @@ function tasksHTML() {
   let h = `<div class="tabs task-tabs" role="tablist">${tabs.map(([k,l])=>`<button class="pb sm ${taskTab===k?'':'purple'}" data-act="tasktab" data-tab="${k}" aria-pressed="${taskTab===k}">${l}</button>`).join('')}</div>`;
   if (taskTab === 'rewards') {
     const today = dayNum(), claimed = S.loginClaimDay === today, day = Math.max(1, Math.min(7, ((S.streak || 1)-1)%7+1));
-    h += `<div class="sect"><h3>7-day login rewards</h3><p class="note">Log in each day to keep your streak moving. Claim today's reward here — it is separate from your daily tasks.</p><div class="grid2">`;
-    STREAK_REW.forEach((r,q)=>{const past=q+1<day, active=q+1===day; h += `<div class="bcard" style="min-height:88px;padding:10px;text-align:center"><b>DAY ${q+1}</b><span>${rewLabel(r)}</span>${active ? `<button class="pb sm" data-act="loginclaim" ${claimed?'disabled':''}>${claimed?'Claimed':'Claim reward'}</button>` : `<small>${past?'Streak passed':'Coming up'}</small>`}</div>`;});
-    h += `</div><p class="note">Current login streak: ${S.streak || 1} day${(S.streak||1)===1?'':'s'}. ${claimed?'Today’s reward has been claimed.':'Your reward is ready to claim.'}</p></div>`;
+    h += `<div class="streak-hero"><div><strong>7-DAY STREAK</strong><small>Log in daily to unlock each reward</small></div><span class="streak-count">DAY ${day} / 7</span></div><div class="streak-grid">`;
+    STREAK_REW.forEach((r,q)=>{const past=q+1<day, active=q+1===day, icon=rewIconKind(r); h += `<div class="streak-card streak-day-${q+1} ${active?'is-current':past?'is-past':'is-next'}"><div class="streak-card-top"><b>DAY ${q+1}</b><span>${active?'TODAY':past?'DONE':'LOCKED'}</span></div><div class="streak-icon"><canvas data-icon="${icon}" ${r.tier?`data-tier="${r.tier}"`:''} width="80" height="80" aria-hidden="true"></canvas></div><div class="streak-reward">${rewLabel(r)}</div>${active ? `<button class="pb sm streak-claim" data-act="loginclaim" ${claimed?'disabled':''}>${claimed?'CLAIMED':'CLAIM REWARD'}</button>` : `<small class="streak-state">${past?'Reward collected':'Keep your streak going'}</small>`}</div>`;});
+    h += `</div><div class="streak-footer"><b>${S.streak || 1} DAY STREAK</b><span>${claimed?'Today’s reward has been collected.':'Your reward is ready to claim.'}</span></div>`;
     const mi=S.mission||0,m=MISSIONS[mi];
     h += `<div class="sect"><h3>Mayor's milestones</h3>` + (m ? `<div class="task"><div class="info"><b>${m[0]}</b><small>${m[1]} · Reward: ${rewLabel(m[3])}</small></div><button class="pb sm" data-act="mclaim" ${m[2]()?'':'disabled'}>${m[2]()?'Claim':'In progress'}</button></div>` : '<p class="note">Every mayor milestone complete. Legend!</p>') + `</div>`;
     if (eventLive()) { const pts=(S.ev&&S.ev.pts)||0; h+=`<div class="sect"><h3>${EVENT.name} · ${pts} ${EVENT.currency}</h3>`+EVENT.track.map(([at,r],q)=>`<div class="task"><div class="info"><b>${at} ${EVENT.currency}</b><small>${rewLabel(r)}</small></div><button class="pb sm" data-act="eclaim" data-k="${q}" ${pts>=at&&!(S.ev&&S.ev.got.includes(q))?'':'disabled'}>${S.ev&&S.ev.got.includes(q)?'Claimed':'Claim'}</button></div>`).join('')+'</div>'; }
   } else if (taskTab === 'tasks') {
     const tasks=S.daily||[];
-    h += `<div class="daily-head"><div><strong>DAILY CHALLENGES</strong><small>5 tasks · refreshes at 6:00 pm Brisbane time</small></div><span class="daily-count">${tasks.filter(t=>t.done).length}/5</span></div><div class="daily-list">`;
-    tasks.forEach((t,q)=>{const done=t.p>=t.n,pct=Math.max(0,Math.min(100,Math.round(t.p/t.n*100)));h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><span class="daily-task-number">0${q+1}</span><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} / ${fmt(t.n)} completed</small></div><span class="daily-reward">${rewLabel(t.rew)}</span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done||!done?'disabled':''}>${t.done?'CLAIMED':done?'CLAIM REWARD':'IN PROGRESS'}</button></div>`;});
+    h += `<div class="daily-head"><div><strong>DAILY TASKS</strong><small>Five fresh challenges every day · 6 pm Brisbane</small></div><span class="daily-count">${tasks.filter(t=>t.done).length}/5</span></div><div class="daily-list">`;
+    tasks.forEach((t,q)=>{const done=t.p>=t.n,pct=Math.max(0,Math.min(100,Math.round(t.p/t.n*100))),icons=['🏪','📦','🏗️','🎡','🛣️'];h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><span class="daily-task-number">${icons[q%icons.length]}</span><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} of ${fmt(t.n)} completed</small></div><span class="daily-reward">${rewLabel(t.rew)}</span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done||!done?'disabled':''}>${t.done?'REWARD CLAIMED':done?'COLLECT REWARD':'IN PROGRESS'}</button></div>`;});
     h += `</div>`;
   } else {
     const rank=stage(S.level), progress=Math.max(0,Math.min(100,Math.round((S.xp||0)/need(S.level)*100)));
