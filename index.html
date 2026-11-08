@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>BitCity — Build Your Block</title>
+<title>Bit-Burbs — Build Your Block</title>
 <meta name="theme-color" content="#172320">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -308,7 +308,7 @@ body{font-family:'Oswald','Arial Narrow',system-ui,sans-serif!important}
 .mgp .ptable .pr:nth-child(odd){background:rgba(60,30,120,.55)!important}
 @media (prefers-reduced-motion: reduce){#rollBtn,#spinBtn,#openBtn{animation:none}}
 
-/* ===== BitCity pixel UI ===== */
+/* ===== Bit-Burbs pixel UI ===== */
 *,*::before,*::after{border-radius:0!important}
 body{font-family:'VT323',monospace!important}
 canvas{image-rendering:pixelated}
@@ -547,7 +547,7 @@ body.tut-on.sheet-open .sbody{padding-bottom:190px!important}
 .mcard span:not(.price):nth-of-type(1){display:none}
 .bcard span:not(.price){font-size:16px!important}
 
-/* ===== BitCity refresh: Midnight City / Concrete & Moss ===== */
+/* ===== Bit-Burbs refresh: Midnight City / Concrete & Moss ===== */
 :root{
   --ink:#101815; --cream:#E8E4D8; --muted:#A5B0A5;
   --ui:#202D29; --ui-deep:#17211E; --ui-hi:#2B3A34; --ui-row:#26342F; --ui-row2:#304039;
@@ -605,7 +605,7 @@ body{font-family:'Oswald',system-ui,sans-serif!important}
 
 
 
-/* ===== BitCity: Light Navy + Pop refresh ===== */
+/* ===== Bit-Burbs: Light Navy + Pop refresh ===== */
 :root{
   --ink:#14263D; --cream:#F5FAFF; --muted:#D2E1F1;
   --ui:#52749D; --ui-deep:#3B5B82; --ui-hi:#6689B3; --ui-row:#496B94; --ui-row2:#587BA4;
@@ -720,7 +720,7 @@ button:focus-visible{outline:3px solid #FFF2A8!important;outline-offset:3px!impo
 <header id="hud">
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
-    <div class="cname"><b class="wm">BITCITY<small id="stage">Village</small><button id="rateBtn" class="ratebtn" aria-label="City rating">★ 1/5</button></b><div class="xp" aria-label="Progress to next level"><i id="xpFill"></i></div></div>
+    <div class="cname"><b class="wm">BIT-BURBS<small id="stage">Village</small><button id="rateBtn" class="ratebtn" aria-label="City rating">★ 1/5</button></b><div class="xp" aria-label="Progress to next level"><i id="xpFill"></i></div></div>
     <div id="boost" hidden>2× <span id="boostT"></span></div>
     <div style="display:flex;align-items:center;gap:6px"><button id="settingsBtn" class="pb sq" data-open="settings" aria-label="Settings" title="Settings" style="width:34px;height:34px;min-height:34px;padding:0;font-size:18px">⚙</button><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
   </div>
@@ -768,7 +768,7 @@ button:focus-visible{outline:3px solid #FFF2A8!important;outline-offset:3px!impo
 
 <script>
 const SPRK=(function(){let NO_SKIRT=true;
-/* ===== BitCity model kit v2: crisp iso pixel renderer with painter sorting ===== */
+/* ===== Bit-Burbs model kit v2: crisp iso pixel renderer with painter sorting ===== */
 let OX=40,OY=76,FX=1,FY=1,SC=2;
 const R=Math.floor;
 function sh(h,f){const n=parseInt(h.slice(1),16);return'#'+[n>>16,(n>>8)&255,n&255].map(v=>Math.max(0,Math.min(255,Math.round(v*f))).toString(16).padStart(2,'0')).join('');}
@@ -2660,7 +2660,7 @@ function updateJetFlight() {
       ? {k:'cash',n:Math.round((260 + Math.random()*520) * Math.max(1, S.level*.72))}
       : {k:'stars',n:5 + Math.floor(Math.random()*8)};
     const label = grant(r); changed();
-    queueRewardPopup({title:'FREE PRIZE!',subtitle:'The BitCity jet dropped off a little bonus.',reward:r});
+    queueRewardPopup({title:'FREE PRIZE!',subtitle:'The Bit-Burbs jet dropped off a little bonus.',reward:r});
     snd('win'); confetti(36); toast('The FREE PRIZE jet brought you ' + label + '!');
   }
 }
@@ -3701,7 +3701,7 @@ function drawTutArrow() {
 function finishTut() { document.body.classList.remove('tut-on');
   S.tut = null; S.tutDone = true; setHL(null); $('#coach').classList.remove('show');
   const r1 = grant({ k: 'ticket', n: 2 }), r2 = grant({ k: 'crate', tier: 'steel' }), r3 = grant({ k: 'cash', n: 1000 });
-  $('#modalBox').innerHTML = `<h2 class="wl-t">Tutorial complete!</h2><p class="wl-s">You’re ready to run BitCity. Here’s a little reward:</p><ul style="text-align:center"><li>${r3}</li><li>${r1}</li><li>${r2}</li></ul><button class="pb wl-r" id="modalOk">Keep building</button>`;
+  $('#modalBox').innerHTML = `<h2 class="wl-t">Tutorial complete!</h2><p class="wl-s">You’re ready to run Bit-Burbs. Here’s a little reward:</p><ul style="text-align:center"><li>${r3}</li><li>${r1}</li><li>${r2}</li></ul><button class="pb wl-r" id="modalOk">Keep building</button>`;
   $('#modal').classList.add('show'); snd('levelup'); confetti(120);
   $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
   changed();
@@ -3732,12 +3732,12 @@ let toastT = 0;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
 function showLevel() {
   if (!pendingLevel) return; const p = pendingLevel; pendingLevel = null;
-  $('#modalBox').innerHTML = `<h2>Level ${p.level}!</h2><p class="note">${stage(p.level)} · keep growing BitCity</p><ul>${p.labels.map(l => `<li>${l}</li>`).join('')}</ul>${p.unlocks.length ? `<p class="note" style="font-weight:700">New to build: ${p.unlocks.join(', ')}</p>` : ''}<button class="pb" id="modalOk">Nice!</button>`;
+  $('#modalBox').innerHTML = `<h2>Level ${p.level}!</h2><p class="note">${stage(p.level)} · keep growing Bit-Burbs</p><ul>${p.labels.map(l => `<li>${l}</li>`).join('')}</ul>${p.unlocks.length ? `<p class="note" style="font-weight:700">New to build: ${p.unlocks.join(', ')}</p>` : ''}<button class="pb" id="modalOk">Nice!</button>`;
   $('#modal').classList.add('show'); $('#modalOk').focus(); $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
 }
 function welcome(upgraded) {
   const bonus = !S.welcomeBonus;
-  $('#modalBox').innerHTML = `<h2 class="wl-t">${upgraded ? 'BitCity is here!' : 'Welcome to BitCity'}</h2><p class="wl-s">${upgraded ? 'A fresh new look, upgrades and Deeds.' : 'Your city is waiting, Mayor.'}</p>` + (bonus
+  $('#modalBox').innerHTML = `<h2 class="wl-t">${upgraded ? 'Bit-Burbs is here!' : 'Welcome to Bit-Burbs'}</h2><p class="wl-s">${upgraded ? 'A fresh new look, upgrades and Deeds.' : 'Your city is waiting, Mayor.'}</p>` + (bonus
     ? `<p class="wl-s">Here’s a welcome gift to get you started.</p><div class="wl-row"><span class="px-r"><span class="wl-chip"><canvas data-icon="dosh" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><span>+50</span></span></span><button class="pb wl-r" id="modalOk">Redeem</button></div>`
     : `<button class="pb" id="modalOk">Let’s build</button>`);
   $('#modal').classList.add('show'); paintNewIcons();
