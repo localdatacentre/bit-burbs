@@ -2926,7 +2926,7 @@ function rewardPopup(data) {
 function pumpRewardPopup() { if (rewardQueue.length && !$('#modal').classList.contains('show')) rewardPopup(rewardQueue.shift()); }
 
 function render() {
-  const PXD = Math.max(2, Math.round(1.1 * DPR)); PX = PXD / DPR;
+  const PXD = Math.max(2, Math.round(1.1 * DPR)); const PX = PXD / DPR;
   const lw = Math.ceil(W / PX), lh = Math.ceil(H / PX);
   if (low.width !== lw || low.height !== lh) { low.width = lw; low.height = lh; mid.width = lw * 2; mid.height = lh * 2; }
   stepZoomAnim(); const camX = V.cx, camY = V.cy; V.cx = Math.round(V.cx / PX) * PX; V.cy = Math.round(V.cy / PX) * PX;
