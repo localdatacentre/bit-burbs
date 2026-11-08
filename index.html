@@ -940,15 +940,14 @@ body.tut-on #coach{border-color:#FFC93C!important}
 #sheetBody .tabs [data-tab="items"]{background:#3B8D68!important;color:#FFFFFF!important;border-color:#A5E7BD!important;box-shadow:inset 0 2px 0 #C9F5D6,0 3px 0 #20583F!important}
 #sheetBody .tabs [data-tab="items"][aria-pressed="true"]{background:#57B77E!important;color:#102B20!important;border-color:#D0F7DB!important}
 
-/* Settings controls: remove stray accent outlines and keep the existing crisp pixel-button frame. */
+/* Settings task buttons: keep their own colours and remove the unwanted backing layers. */
 #sheetBody .task .pb{
-  position:relative!important;isolation:isolate!important;
-  border:0!important;outline:0!important;border-radius:0!important;
+  position:relative!important;isolation:auto!important;
+  border:2px solid #15122E!important;outline:0!important;border-radius:0!important;
   clip-path:polygon(0 3px,3px 3px,3px 0,calc(100% - 3px) 0,calc(100% - 3px) 3px,100% 3px,100% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,3px calc(100% - 3px),0 calc(100% - 3px))!important;
-  box-shadow:none!important;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.2)!important;
 }
-#sheetBody .task .pb::before{display:block!important;content:""!important;position:absolute!important;inset:0!important;z-index:-2!important;background:#15122E!important}
-#sheetBody .task .pb::after{display:block!important;content:""!important;position:absolute!important;inset:3px!important;z-index:-1!important;background:inherit!important;clip-path:polygon(0 3px,3px 3px,3px 0,calc(100% - 3px) 0,calc(100% - 3px) 3px,100% 3px,100% calc(100% - 3px),calc(100% - 3px) calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,3px calc(100% - 3px),0 calc(100% - 3px))!important;box-shadow:inset 0 3px 0 rgba(255,255,255,.35),inset 0 -4px 0 rgba(0,0,0,.28)!important}
+#sheetBody .task .pb::before,#sheetBody .task .pb::after{content:none!important;display:none!important}
 #sheetBody .task .pb:focus,#sheetBody .task .pb:focus-visible{outline:0!important}
 .shead .pb[data-act="closeSheet"]{
   position:relative!important;isolation:isolate!important;
