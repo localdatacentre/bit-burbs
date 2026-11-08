@@ -3763,22 +3763,15 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
-  { t: 'Start with Town Hall', d: 'Your Town Hall is the heart of the city. Open BUILD and place it on the highlighted spot.', build: 'hall', done: () => !!findHall() },
-  { t: 'Plan your streets', d: 'Roads connect every building to your city. Lay 3 road tiles out from Town Hall to make room for a little neighbourhood.', build: 'road', tab: 'city', done: () => roadCount() >= 3 },
-  { t: 'Build your first home', d: 'Homes attract residents. Place a Cottage beside your new road.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 1 },
-  { t: 'Grow the neighbourhood', d: 'A second Cottage gives your town more room for residents and workers. Add one beside a road.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 2 },
-  { t: 'Power the neighbourhood', d: 'Buildings need electricity to operate. Place a Wind Turbine beside a road.', build: 'wind', tab: 'util', done: () => hasB('wind') },
-  { t: 'Connect the water supply', d: 'Homes and businesses also use water. Place a Water Tower beside a road.', build: 'wtower', tab: 'util', done: () => hasB('wtower') },
-  { t: 'Welcome your residents', d: 'Your homes bring people into town over time. Residents become the workforce for shops and services.', done: () => S.pop >= 2, start: () => { S.busT = now() + 2500; } },
-  { t: 'Open your first business', d: 'Shops turn stocked products into Coins. Build a Bakery beside a road to start the local economy.', build: 'bakery', tab: 'shops', done: () => hasB('bakery') },
-  { t: 'Stock the shelves', d: 'Tap the Bakery and order Bread. Stock takes a little time to arrive; workers unlock more product slots.', target: 'bakery', act: 'order', done: () => tev('restock') },
-  { t: 'Collect your first earnings', d: 'When the order is ready, the Bakery starts earning. Tap COLLECT on the Bakery to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('collect') },
-  { t: 'Improve your business', d: 'Upgrade the Bakery to increase its level and earning potential. Higher levels can unlock more products and taller buildings.', target: 'bakery', act: 'upgrade', done: () => tev('upgrade') },
-  { t: 'Check your city tasks', d: 'Tasks give you useful rewards for growing, upgrading and running your town. Open TASKS to see your goals.', nav: 'tasks', done: () => mg === 'tasks' },
-  { t: 'Visit the Dosh Shop', d: 'Dosh is a special currency. The Dosh Shop lets you exchange it for new buildings and items; have a look at the stock.', nav: 'market', done: () => mg === 'market' },
-  { t: 'Try the Lucky Wheel', d: 'The Wheel gives you prizes. You get free spins over time, and tickets let you spin more often.', nav: 'wheel', done: () => tev('spin') },
-  { t: 'Take a turn in City Dice', d: 'Dice lets you travel around the prize board and collect rewards. Open DICE and try a free roll.', nav: 'dice', done: () => tev('roll') },
-  { t: 'See what you can unlock next', d: 'Your starter town now has streets, homes, power, water and a working shop. Crates add another reward path; as you level up, unlock services, industry, parks and bigger utilities. Open CRATES to finish your tour.', nav: 'crates', done: () => mg === 'crates' }
+  { t: 'Place Town Hall', d: 'Your Town Hall is the heart of your city. Open BUILD and place it on the highlighted spot.', build: 'hall', done: () => !!findHall() },
+  { t: 'Connect your streets', d: 'Roads connect your buildings. Lay 3 road tiles beside Town Hall.', build: 'road', tab: 'city', done: () => roadCount() >= 3 },
+  { t: 'Build your neighbourhood', d: 'Place 2 Cottages beside the road to bring residents and workers into town.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 2 },
+  { t: 'Set up electricity', d: 'Your buildings need power to operate. Place a Wind Turbine beside a road.', build: 'wind', tab: 'util', done: () => hasB('wind') },
+  { t: 'Connect the water supply', d: 'Homes and businesses need water too. Place a Water Tower beside a road.', build: 'wtower', tab: 'util', done: () => hasB('wtower') },
+  { t: 'Open your first business', d: 'Build a Bakery beside a road. Your residents will help keep it running.', build: 'bakery', tab: 'shops', done: () => hasB('bakery') },
+  { t: 'Stock the Bakery', d: 'Tap your Bakery and order Bread. It will be ready in a few seconds during the tutorial.', target: 'bakery', act: 'order', done: () => tev('restock') },
+  { t: 'Collect your first earnings', d: 'Once the Bread is ready, collect the Bakery’s earnings to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('collect') },
+  { t: 'Upgrade your business', d: 'Upgrade the Bakery to improve its earning potential. That covers the basics of running your city!', target: 'bakery', act: 'upgrade', done: () => tev('upgrade') }
 ];
 let tutHL = null;
 function tutStep() { return S.tut && TUT[S.tut.step]; }
@@ -3812,6 +3805,7 @@ function suggestTile(id) {
   return best;
 }
 function tutTick() {
+  if (S.tut && S.tut.step >= TUT.length) { finishTut(); return; }
   const coach = $('#coach'); const st = tutStep();
   if (!st || S.firstRun) { coach.classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); return; }
   if (!S.tut.started) { S.tut.started = true; S.tut.ev = {}; if (st.start) st.start(); }
@@ -3857,8 +3851,8 @@ function drawTutArrow() {
 }
 function finishTut() { document.body.classList.remove('tut-on');
   S.tut = null; S.tutDone = true; setHL(null); $('#coach').classList.remove('show');
-  const r1 = grant({ k: 'ticket', n: 2 }), r2 = grant({ k: 'crate', tier: 'steel' }), r3 = grant({ k: 'cash', n: 1000 });
-  $('#modalBox').innerHTML = `<h2 class="wl-t">Tutorial complete!</h2><p class="wl-s">You’re ready to run Bit-Burbs. Here’s a little reward:</p><ul style="text-align:center"><li>${r3}</li><li>${r1}</li><li>${r2}</li></ul><button class="pb wl-r" id="modalOk">Keep building</button>`;
+  const reward = grant({ k: 'stars', n: 50 });
+  $('#modalBox').innerHTML = `<h2 class="wl-t">Tutorial complete!</h2><p class="wl-s">Your starter city has the essentials: roads, homes, power, water and a working business. You’re ready to grow!</p><ul style="text-align:center"><li>${reward} reward</li></ul><button class="pb wl-r" id="modalOk">Keep building</button>`;
   $('#modal').classList.add('show'); snd('levelup'); confetti(120);
   $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
   changed();
@@ -3947,6 +3941,12 @@ function frame(t) {
 
 /* ================= boot ================= */
 S = load() || newGame();
+if (S.tut && !S.tutDone) {
+  const oldStep = Math.max(0, S.tut.step || 0);
+  const oldToNew = [0, 1, 2, 2, 3, 4, 5, 5, 6, 7, 8];
+  S.tut.step = oldStep >= 11 ? TUT.length : (oldToNew[oldStep] ?? TUT.length);
+  S.tut.ev = {}; S.tut.started = false;
+}
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
 if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; }
 if (!S.crates) S.crates = { steel: 0, gold: 0, diamond: 0 };
