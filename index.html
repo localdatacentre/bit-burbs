@@ -3764,10 +3764,11 @@ const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
   { t: 'Place Town Hall', d: 'Your Town Hall is the heart of your city. Open BUILD and place it on the highlighted spot.', build: 'hall', done: () => !!findHall() },
-  { t: 'Connect your streets', d: 'Roads connect your buildings. Lay 3 road tiles beside Town Hall.', build: 'road', tab: 'city', done: () => roadCount() >= 3 },
-  { t: 'Build your neighbourhood', d: 'Place 2 Cottages beside the road to bring residents and workers into town.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 2 },
+  { t: 'Connect your streets', d: 'Roads connect your buildings. Lay 2 road tiles beside Town Hall.', build: 'road', tab: 'city', done: () => roadCount() >= 2 },
+  { t: 'Build your first home', d: 'Place a Cottage beside the road. It will attract residents who can work in your businesses.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 1 },
   { t: 'Set up electricity', d: 'Your buildings need power to operate. Place a Wind Turbine beside a road.', build: 'wind', tab: 'util', done: () => hasB('wind') },
   { t: 'Connect the water supply', d: 'Homes and businesses need water too. Place a Water Tower beside a road.', build: 'wtower', tab: 'util', done: () => hasB('wtower') },
+  { t: 'Welcome your residents', d: 'Your Cottage is ready. Give your first 2 residents a moment to arrive; they’ll become the workforce for your Bakery.', done: () => S.pop >= 2, start: () => { S.busT = now() + 2500; } },
   { t: 'Open your first business', d: 'Build a Bakery beside a road. Your residents will help keep it running.', build: 'bakery', tab: 'shops', done: () => hasB('bakery') },
   { t: 'Stock the Bakery', d: 'Tap your Bakery and order Bread. It will be ready in a few seconds during the tutorial.', target: 'bakery', act: 'order', done: () => tev('restock') },
   { t: 'Collect your first earnings', d: 'Once the Bread is ready, collect the Bakery’s earnings to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('collect') },
