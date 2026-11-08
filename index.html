@@ -3618,8 +3618,6 @@ function restockAllCount() { const tn = now(); let n = 0; D.list.forEach(b => { 
 const restockAllCost = n => n ? Math.max(1, Math.ceil(n / 4)) : 0;
 function restockAll() { const want = restockAllCount(); if (!want) { snd('error'); toast('Nothing needs restocking right now.'); return; } const c = restockAllCost(want); if (S.stars < c) { snd('error'); toast('Restock All costs ' + c + ' Dosh. Tap RESTOCK on each business to do it free.'); return; }
   S.stars -= c; let n = 0; D.list.forEach(b => { n += restockBiz(b); }); snd('restock'); toast('Ordered ' + n + ' product' + (n > 1 ? 's' : '') + ' for ' + c + ' Dosh.'); changed(); }
-function cityStars() { const biz = D.list.filter(b => isBiz(b.d)); let st = 1; if (S.pop >= 30) st++; if (new Set(biz.map(b => b.t.id)).size >= 4) st++; if (biz.length >= 3 && biz.every(b => b.workers >= 1 && !whyNot(b))) st++; if (S.tiles.filter(t => t && DEFS[t.id] && DEFS[t.id].type === 'decor').length >= 4) st++; return Math.min(5, st); }
-const RATING_RULES = [['Start your city', () => true], ['Have 30 or more residents', () => S.pop >= 30], ['Run 4 different types of business', () => new Set(D.list.filter(b => isBiz(b.d)).map(b => b.t.id)).size >= 4], ['Keep 3+ businesses fully running (staff, power, water, road)', () => { const biz = D.list.filter(b => isBiz(b.d)); return biz.length >= 3 && biz.every(b => b.workers >= 1 && !whyNot(b)); }], ['Place 4 or more parks, trees or decorations', () => S.tiles.filter(t => t && DEFS[t.id] && DEFS[t.id].type === 'decor').length >= 4]];
 const MISSIONS = [
   ['Found the city', 'Place your Town Hall.', () => !!findHall(), { k: 'stars', n: 5 }],
   ['Open for business', 'Build a Bakery.', () => countOf('bakery') > 0, { k: 'cash', m: 5 }],
