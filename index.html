@@ -3295,7 +3295,7 @@ sheetEl.addEventListener('click', e => {
 /* ================= mini-games ================= */
 const mgEl = $('#mg'), mgPanel = $('#mgPanel');
 let mg = null;
-function openMg(name) { snd('open');
+function openMg(name) { if (name !== 'crates') snd('open');
   if (sheet) closeSheet(); mg = name; card.classList.remove('show');
   mgPanel.className = 'mgp ' + (name === 'dice' ? 'tan' : 'purple') + ' mg-' + name;
   if (name === 'dice') buildDice(); else if (name === 'wheel') buildWheel(); else if (name === 'market') buildMarket(); else buildCrates();
@@ -3713,7 +3713,7 @@ function openCrate() {
   const label = grant(rew); track('crate'); addXP(10); confetti(isBig(rew)?150:55); if(isBig(rew)) bigWin={text:'BIG WIN!',t0:performance.now()};
   crateReveal = null; crateAnim = { t0: performance.now(), rew: { r: rew, label } }; mgPanel.classList.add('crate-opening'); mgPanel.classList.remove('crate-revealed');
   setText($('#crateMsg'), 'Opening…');
-  setTimeout(() => { if (mg === 'crates') { setText($('#crateMsg'), 'You got ' + label + '!' + (rew.k === 'item' ? ' Find it in Build › My items.' : '')); buildCratesKeepScene(); } }, 1650);
+  setTimeout(() => { if (mg === 'crates') { if (crateAnim) { crateReveal = crateAnim.rew; crateAnim = null; } setText($('#crateMsg'), 'You got ' + label + '!' + (rew.k === 'item' ? ' Find it in Build › My items.' : '')); buildCratesKeepScene(); } }, 1650);
   updateCrateUI(); changed();
 }
 function buildCratesKeepScene() { const msg = $('#crateMsg') ? $('#crateMsg').textContent : ''; buildCrates(); setText($('#crateMsg'), msg); }
