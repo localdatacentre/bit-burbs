@@ -833,7 +833,7 @@ body{font-size:18px!important;letter-spacing:.015em}
 #nav .pb canvas{image-rendering:pixelated}
 @media(prefers-reduced-motion:reduce){.mg-crates #chest,.mg-crates .cstage:after,.mg-crates .crate-stage-sparkle,.mg-crates #openBtn{animation:none!important}}
 
-/* Final type and Australian street-detail pass */
+/* Final type consistency pass */
 body,button,input,select,textarea{font-family:'VT323',monospace!important}
 #sheetBody,#sheetBody p,#sheetBody small,#sheetBody label,#sheetBody .info{font-family:'VT323',monospace!important;font-size:18px!important;line-height:1.18!important}
 #sheetBody h2,#sheetBody h3,.mgtitle,.wl-t{font-family:'Silkscreen',monospace!important}
@@ -931,37 +931,7 @@ body{font-size:19px!important;line-height:1.18}
 <div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
 
 <script>
-(function(){
- const KEY='bb-diagnostic-log-v1',MAX=100;let logs=[];
- try{logs=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(logs))logs=[];}catch(_){logs=[];}
- const stamp=()=>new Date().toISOString();
- function add(kind,message,details){
-  const entry={time:stamp(),kind,message:String(message==null?'Unknown error':message).slice(0,1600),details:String(details||'').slice(0,2400)};
-  logs.push(entry);if(logs.length>MAX)logs=logs.slice(-MAX);
-  try{localStorage.setItem(KEY,JSON.stringify(logs));}catch(_){}
-  render();
- }
- function dump(){
-  return ['BIT-BURBS DIAGNOSTICS','Captured: '+stamp(),'Page: '+location.origin+location.pathname,'Viewport: '+innerWidth+'x'+innerHeight+'; DPR '+devicePixelRatio,'User agent: '+navigator.userAgent,'Entries: '+logs.length,'',...logs.map((x,i)=>'['+(i+1)+'] '+x.time+' '+x.kind+'\\n'+x.message+(x.details?'\\n'+x.details:''))].join('\\n');
- }
- function render(){
-  let panel=document.getElementById('bb-runtime-diagnostics');
-  if(!panel){panel=document.createElement('section');panel.id='bb-runtime-diagnostics';panel.style.cssText='position:fixed;z-index:2147483647;left:8px;right:8px;top:8px;max-height:65vh;overflow:auto;padding:12px;background:#171c26;color:#fff;border:2px solid #ff7272;border-radius:8px;font:12px/1.4 monospace;box-shadow:0 4px 18px #0009;display:none';(document.body||document.documentElement).appendChild(panel);}
-  panel.innerHTML='';
-  const head=document.createElement('div');head.textContent='BIT-BURBS DIAGNOSTICS · '+logs.length+' events';head.style.cssText='font-weight:bold;margin-bottom:8px;color:#ffaaaa';panel.appendChild(head);
-  const copy=document.createElement('button');copy.textContent='COPY ERROR LOG';copy.style.cssText='padding:10px;margin:0 8px 8px 0;background:#2f6feb;color:white;border:0;border-radius:6px;font-weight:bold';copy.onclick=async()=>{const data=dump();try{await navigator.clipboard.writeText(data);copy.textContent='COPIED — PASTE IT HERE';}catch(_){const t=document.createElement('textarea');t.value=data;panel.appendChild(t);t.focus();t.select();try{document.execCommand('copy');copy.textContent='COPIED — PASTE IT HERE';}catch(__){copy.textContent='SELECT THE LOG TEXT BELOW';}}};panel.appendChild(copy);
-  const close=document.createElement('button');close.textContent='CLOSE';close.style.cssText='padding:10px;background:#394150;color:white;border:0;border-radius:6px';close.onclick=()=>panel.style.display='none';panel.appendChild(close);
-  const pre=document.createElement('pre');pre.textContent=logs.length?logs.slice(-15).map(x=>x.time+' '+x.kind+'\\n'+x.message+(x.details?'\\n'+x.details:'')).join('\\n\\n'):'No errors captured yet. Keep playing; this log records errors automatically.';pre.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin-top:10px';panel.appendChild(pre);
-  panel.style.display=logs.length?'block':'none';
- }
- const launcher=document.createElement('button');launcher.textContent='LOGS';launcher.setAttribute('aria-label','Open diagnostic logs');launcher.style.cssText='position:fixed;z-index:2147483646;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));padding:8px 12px;background:#2f6feb;color:white;border:1px solid #fff6;border-radius:6px;font:bold 12px monospace';launcher.onclick=()=>{render();const p=document.getElementById('bb-runtime-diagnostics');p.style.display='block';};(document.body||document.documentElement).appendChild(launcher);
- window.addEventListener('error',e=>add(e.target&&e.target!==window?'RESOURCE ERROR':'JAVASCRIPT ERROR',e.message||((e.target&&e.target.src)||'Script/resource failed'),(e.filename||'')+(e.lineno?' line '+e.lineno:'')+(e.colno?':'+e.colno:'')+(e.error&&e.error.stack?'\\n'+e.error.stack:'')),true);
- window.addEventListener('unhandledrejection',e=>{const r=e.reason;add('UNHANDLED PROMISE',r&&r.message||r||'Unhandled promise rejection',r&&r.stack||'');});
- const oldError=console.error.bind(console);console.error=function(){try{add('CONSOLE.ERROR',Array.from(arguments).map(v=>v&&v.stack||String(v)).join(' | '));}catch(_){}oldError(...arguments);};
- window.__BB_DIAGNOSTICS={dump,add};
- document.addEventListener('touchend',e=>{const now=Date.now();if(window.__bbLastTouchEnd&&now-window.__bbLastTouchEnd<320)e.preventDefault();window.__bbLastTouchEnd=now;},{passive:false});
- render();
-})();
+document.addEventListener('touchend',e=>{const now=Date.now();if(window.__bbLastTouchEnd&&now-window.__bbLastTouchEnd<320)e.preventDefault();window.__bbLastTouchEnd=now;},{passive:false});
 </script>
 <script>
 const SPRK=(function(){let NO_SKIRT=true;
@@ -2262,48 +2232,7 @@ function busArrive() { const pop0 = S.pop; setTimeout(() => { if (S.pop > pop0) 
   }
 }
 
-/* ================= agents ================= */
-let cars = [];
-const CAR_COLS = ['#C9CDD3', '#2B2F36', '#7A2328', '#3A4A6A', '#E8E8E8', '#5A5F66', '#8A8F96'];
-function roadList() { const a = []; for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) if (isRoad(i, j)) a.push({ i, j }); return a; }
-function mkCar(i, j) {
-  return { fx:i, fy:j, tx:i, ty:j, x:i, y:j, p:0, speed:.34+Math.random()*.10, col:pick(CAR_COLS), px:null, py:null, dead:false, lane:.105 };
-}
-function spawnBus() { /* resident arrivals no longer use traffic vehicles */ }
-function roadIntersection(i,j) { return [[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>isRoad(i+dx,j+dy)).length >= 3; }
-function manageCars() {
-  const rl=roadList(); cars=cars.filter(c=>!c.dead && isRoad(c.fx,c.fy));
-  const pop=Math.max(0,S.pop||0);
-  const roadFactor=Math.min(1,rl.length/10);
-  const want=rl.length<3||pop<1?0:Math.min(12,Math.floor(pop/7)+1,Math.max(1,Math.floor(rl.length/2)))*roadFactor|0;
-  while(cars.length<want && rl.length) {
-    const r=pick(rl); if(cars.some(c=>c.fx===r.i&&c.fy===r.j&&c.p<.65)) continue;
-    const car=mkCar(r.i,r.j); const nb=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>isRoad(r.i+dx,r.j+dy));
-    if(!nb.length) continue; const [dx,dy]=pick(nb); car.tx=r.i+dx; car.ty=r.j+dy; car.px=r.i-dx; car.py=r.j-dy; cars.push(car);
-  }
-}
-function stepCar(c,dt) {
-  const ahead=cars.some(o=>o!==c&&!o.dead&&o.fx===c.fx&&o.fy===c.fy&&o.tx===c.tx&&o.ty===c.ty&&o.p>c.p&&o.p-c.p<.34);
-  if(ahead) { c.x=c.fx+(c.tx-c.fx)*c.p; c.y=c.fy+(c.ty-c.fy)*c.p; return; }
-  // Gentle stop at intersections to avoid cars overlapping at junctions.
-  if(c.p>.72 && roadIntersection(c.tx,c.ty)) {
-    const phase=(performance.now()/1800 + c.tx*1.7 + c.ty*.9)%3;
-    if(phase<1.15) { c.x=c.fx+(c.tx-c.fx)*c.p; c.y=c.fy+(c.ty-c.fy)*c.p; return; }
-  }
-  c.p+=dt*c.speed;
-  while(c.p>=1) {
-    c.p-=1; c.fx=c.tx; c.fy=c.ty;
-    let nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[c.fx+dx,c.fy+dy]).filter(([x,y])=>isRoad(x,y)&&!(x===c.px&&y===c.py));
-    if(!nb.length) nb=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[c.fx+dx,c.fy+dy]).filter(([x,y])=>isRoad(x,y));
-    if(!nb.length){c.dead=true;break;}
-    // Prefer continuing straight; turn only when the road network requires it.
-    const straight=nb.filter(([x,y])=>x-c.fx===c.fx-c.px&&y-c.fy===c.fy-c.py);
-    const [nx,ny]=pick(straight.length&&Math.random()<.78?straight:nb); c.px=c.fx;c.py=c.fy;c.tx=nx;c.ty=ny;
-  }
-  c.x=c.fx+(c.tx-c.fx)*c.p; c.y=c.fy+(c.ty-c.fy)*c.p;
-}
-function carWorld(c) { const dx=c.tx-c.fx,dy=c.ty-c.fy; const lane=c.lane||.10; return { wx:c.x+.5+dy*lane, wy:c.y+.5-dx*lane, ax:dx!==0, dx, dy }; }
-
+/* ================= traffic removed ================= */
 /* ================= tick ================= */
 function tick(dt) {
   const t = now(); derive();
@@ -2578,88 +2507,6 @@ function drawRoad(i,j) {
   }
   c.restore();
 }
-function roadLampSpot(i,j) {
-  if (!isRoad(i,j) || ((i*7+j*11)%7)!==0) return null;
-  const sides=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>!isRoad(i+dx,j+dy));
-  if (!sides.length) return null;
-  const q=sides[(i*3+j*5)%sides.length], p=P(i+.5+q[0]*.39,j+.5+q[1]*.39);
-  return {x:p.x,y:p.y};
-}
-function drawRoadLamps() {
- const c=V.ctx,z=V.z;c.save();c.lineCap='square';c.lineJoin='miter';
- const rect=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));};
- const signal=(x,y,active)=>{
-  rect(x-2*z,y-3*z,5*z,16*z,'#263342');rect(x-3*z,y-4*z,7*z,10*z,'#17202B');
-  ['#E84C4C','#FFC43D','#42C86A'].forEach((col,k)=>rect(x-1.5*z,y+(-2+k*3)*z,3*z,2.4*z,active===k?col:'#39424D'));
-  rect(x-1*z,y+7*z,3*z,5*z,'#6B7784');
- };
- for(let j=0;j<N;j++)for(let i=0;i<N;i++){
-  if(!isRoad(i,j))continue;
-  const p=roadLampSpot(i,j),links=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>isRoad(i+dx,j+dy)),mid=P(i+.5,j+.5);
-  // Warm, square-headed street lamps.
-  if(p){
-   const h=19*z,arm=5*z;
-   rect(p.x-2*z,p.y-1*z,5*z,2*z,'rgba(20,32,46,.35)');
-   c.strokeStyle='#26394B';c.lineWidth=Math.max(1.2,1.6*z);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x,p.y-h);c.lineTo(p.x+arm,p.y-h-2*z);c.stroke();
-   rect(p.x-1.4*z,p.y-h-1*z,2.8*z,2.5*z,'#35495C');
-   rect(p.x+(arm-1)*z,p.y-h-3.2*z,5*z,2.2*z,'#F9D985');rect(p.x+(arm+1)*z,p.y-h-3*z,2*z,1*z,'#FFF1B7');
-  }
-  // Two opposing signal heads at larger junctions: one direction green while the cross street waits.
-  if(links.length>=3){
-   const phase=Math.floor((performance.now()/1000+i*.7+j*.4)%18),vertical=phase<8?2:phase<10?1:0,horizontal=phase<8?0:phase<10?1:2;
-   signal(mid.x+9*z,mid.y-23*z,vertical);
-   signal(mid.x-12*z,mid.y-20*z,horizontal);
-   // Zebra crossings on each approach: three crisp bars across the road lane.
-   for(const [dx,dy] of links){
-    for(let stripe=0;stripe<3;stripe++){
-     const along=.16+stripe*.085,wx=i+.5+dx*along,wy=j+.5+dy*along;
-     const a=P(wx-dy*.17,wy+dx*.17),b=P(wx+dy*.17,wy-dx*.17);
-     c.strokeStyle='#26384B';c.lineWidth=Math.max(1,3*z);c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();
-     c.strokeStyle='#F5F2D9';c.lineWidth=Math.max(1,1.8*z);c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();
-    }
-   }
-  }
-  // Australian green street blades.
-  if((i*3+j*5)%13===0&&links.length){
-   const x=mid.x-10*z,y=mid.y-13*z;
-   rect(x,y,1.5*z,15*z,'#596A70');rect(x-10*z,y-1*z,22*z,6*z,'#087B55');rect(x-9*z,y,20*z,1.5*z,'#D7F4E7');
-   c.fillStyle='#fff';c.font=Math.max(3,5*z)+'px VT323,monospace';c.textAlign='center';c.textBaseline='middle';c.fillText('ST',x+1*z,y+2.5*z);
-  }
-  // Wheelie bins: yellow recycling, green garden and red general waste.
-  if((i*7+j*11)%17===0){
-   const q=P(i+.78,j+.62),col=(i+j)%3===0?'#F5C928':(i+j)%3===1?'#237A4C':'#C63B36';
-   rect(q.x-2*z,q.y-5*z,5*z,6*z,'#1D2933');rect(q.x-1.5*z,q.y-4*z,4*z,4*z,col);rect(q.x-2.2*z,q.y-5.7*z,5.4*z,1.2*z,'#263342');
-  }
-  // Classic red Australian post boxes.
-  if((i*5+j*3)%29===0){
-   const q=P(i+.22,j+.78);
-   rect(q.x-1.5*z,q.y-7*z,3*z,7*z,'#343B43');rect(q.x-3*z,q.y-8*z,6*z,4*z,'#C83E38');rect(q.x-2*z,q.y-7*z,4*z,1*z,'#F7E7C5');
-  }
-  // Yellow bus-stop blade with a blue bus pictogram.
-  if((i*11+j*13)%37===0){
-   const q=P(i+.18,j+.72);
-   rect(q.x-1*z,q.y-11*z,2*z,11*z,'#4C5966');rect(q.x-4*z,q.y-13*z,8*z,7*z,'#F5C84B');
-   rect(q.x-2.5*z,q.y-11.5*z,5*z,3.2*z,'#2676B8');rect(q.x-2*z,q.y-7*z,1.3*z,1.3*z,'#263342');rect(q.x+1*z,q.y-7*z,1.3*z,1.3*z,'#263342');
-  }
-  // Small red-and-white speed-limit marker, a familiar suburban street detail.
-  if((i*17+j*7)%43===0){
-   const q=P(i+.84,j+.18);
-   rect(q.x-1*z,q.y-12*z,2*z,12*z,'#596A70');rect(q.x-5*z,q.y-15*z,10*z,7*z,'#F4F4E9');rect(q.x-5*z,q.y-15*z,10*z,1.5*z,'#D7443E');rect(q.x-5*z,q.y-9.5*z,10*z,1.5*z,'#D7443E');
-   c.fillStyle='#25354A';c.font=Math.max(4,6*z)+'px VT323,monospace';c.textAlign='center';c.textBaseline='middle';c.fillText('50',q.x,q.y-12*z);
-  }
- }
- c.restore();
-}
-function drawLampGlow() {
-  if (DARK < .3) return;
-  const c = V.ctx; c.save(); c.globalCompositeOperation = 'lighter';
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
-    const p = roadLampSpot(i,j); if (!p) continue; const r = 34 * V.z;
-    const g = c.createRadialGradient(p.x, p.y, 2, p.x, p.y, r); g.addColorStop(0, `rgba(255,200,110,${.42 * DARK})`); g.addColorStop(1, 'rgba(255,200,110,0)');
-    c.fillStyle = g; c.fillRect(p.x - r, p.y - r, r * 2, r * 2);
-  }
-  c.restore();
-}
 function drawFence() {
   const lo = S.lo, hi = N - S.lo; const c = V.ctx;
   c.save(); c.setLineDash([6 * V.z, 5 * V.z]); c.lineWidth = Math.max(1.5, 2 * V.z); c.strokeStyle = 'rgba(255,243,214,.85)';
@@ -2851,48 +2698,6 @@ function drawBuilding(i, j, id) {
     poly([{ x: top.x, y: top.y - 30 * z }, { x: top.x + 13 * z, y: top.y - 27 * z + wave }, { x: top.x, y: top.y - 23 * z }], '#E53B3B', INK, Math.max(1, z));
   }
 }
-function drawCar(car) {
- const w=carWorld(car),z=V.z,c=V.ctx,L=.35,W=.19,hx=w.ax?L:W,hy=w.ax?W:L;
- const pt=(x,y,lift=0)=>{const q=P(x,y);return{x:q.x,y:q.y-lift*z};};
- const px=(x,y,col,ww,hh)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(ww)),Math.max(1,Math.round(hh)));};
- // Four tyres and metallic hubs sit outside the body, so the wheels read clearly at game zoom.
- for(const [ox,oy] of [[-.76,-.76],[.76,-.76],[-.76,.76],[.76,.76]]){
-  const q=pt(w.wx+hx*ox,w.wy+hy*oy,1);
-  px(q.x-2.6*z,q.y-2.2*z,'#17202B',5.2*z,4.4*z);
-  px(q.x-.9*z,q.y-.8*z,'#B9C5D0',1.8*z,1.8*z);
- }
- // Low hatchback body with separate bonnet, boot and bumpers.
- prism(w.wx-hx,w.wy-hy,w.wx+hx,w.wy+hy,4.8*z,shade(car.col,1.28),car.col,shade(car.col,.58));
- const noseX=w.wx+w.dx*(hx*.63),noseY=w.wy+w.dy*(hy*.63);
- const tailX=w.wx-w.dx*(hx*.63),tailY=w.wy-w.dy*(hy*.63);
- const bonnet=pt(noseX,noseY,5.2),boot=pt(tailX,tailY,5.1);
- px(bonnet.x-3.1*z,bonnet.y-1.2*z,shade(car.col,1.28),6.2*z,2.4*z);
- px(boot.x-3*z,boot.y-1.2*z,shade(car.col,.78),6*z,2.4*z);
- px(bonnet.x-4*z,bonnet.y+1.4*z,'#283747',8*z,1.5*z);
- px(boot.x-4*z,boot.y+1.4*z,'#283747',8*z,1.5*z);
- // Raised cabin, windscreen and rear glass.
- const rx=w.ax?L*.49:W*.68,ry=w.ax?W*.68:L*.49;
- prism(w.wx-rx,w.wy-ry,w.wx+rx,w.wy+ry,9.2*z,shade(car.col,1.38),'#B9D8E9','#6689A3');
- const front=pt(w.wx+w.dx*(hx*.34),w.wy+w.dy*(hy*.34),9.4);
- const rear=pt(w.wx-w.dx*(hx*.34),w.wy-w.dy*(hy*.34),9.4);
- px(front.x-3.2*z,front.y-1.3*z,'#244B67',6.4*z,2.6*z);
- px(rear.x-2.8*z,rear.y-1.2*z,'#244B67',5.6*z,2.4*z);
- // Side windows and a door seam give the vehicle a recognisable passenger cabin.
- const sideA=pt(w.wx+(w.ax?0:rx*.45),w.wy+(w.ax?ry*.45:0),9.1);
- const sideB=pt(w.wx-(w.ax?0:rx*.45),w.wy-(w.ax?ry*.45:0),9.1);
- px(sideA.x-1.5*z,sideA.y-1.2*z,'#315C78',3*z,2.4*z);
- px(sideB.x-1.5*z,sideB.y-1.2*z,'#315C78',3*z,2.4*z);
- const door=pt(w.wx,w.wy,5.5);
- px(door.x-1.4*z,door.y-1*z,shade(car.col,.72),2.8*z,1.4*z);
- // Headlights, red tail lamps and a small front grille.
- const nose=pt(w.wx+w.dx*(hx+.018),w.wy+w.dy*(hy+.018),2.4);
- const tail=pt(w.wx-w.dx*(hx+.018),w.wy-w.dy*(hy+.018),2.4);
- px(nose.x-2.3*z,nose.y-1.4*z,'#FFF0B3',4.6*z,2.8*z);
- px(nose.x-2*z,nose.y+1.6*z,'#283747',4*z,1.4*z);
- px(tail.x-2*z,tail.y-1.3*z,'#E64D58',4*z,2.6*z);
-}
-
-
 /* ================= badges ================= */
 let badgeHits = [], hulls = [];
 function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
@@ -2939,7 +2744,7 @@ function render() {
   V.ctx = lowCtx; lowCtx.setTransform(2 / PX, 0, 0, 2 / PX, 0, 0); lowCtx.imageSmoothingEnabled = false;
   drawSky(); drawSea(); drawIsland();
   for (let s = 0; s < 2 * N - 1; s++) for (let i = 0; i < N; i++) { const j = s - i; if (j < 0 || j >= N) continue; drawGround(i, j); }
-  drawRoadLamps(); drawOverlay(); drawLampGlow();
+  drawOverlay();
   if (sel) poly(diamond(sel.i, sel.j), 'rgba(255,255,255,.25)', '#FFFFFF', 3);
   if (placing && placing.ghost) {
     const gi = placing.ghost; const ok = fpFree(gi.i, gi.j, placing.id); const [gfx, gfy] = fpOf(placing.id);
@@ -2949,12 +2754,10 @@ function render() {
   }
   const objs = [];
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const t = S.tiles[j * N + i]; if (t && t.id !== 'road' && t.id !== '_occ' && DEFS[t.id]) { const [fx, fy] = fpOf(t.id); objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, t }); } }
-  cars.forEach(car => { const w = carWorld(car); objs.push({ d: vdepth(w.wx, w.wy) - .05, car }); });
   if (placing && placing.ghost && placing.id !== 'road' && fpFree(placing.ghost.i, placing.ghost.j, placing.id)) objs.push({ d: vdepth(placing.ghost.i + .5, placing.ghost.j + .5), i: placing.ghost.i, j: placing.ghost.j, ghost: placing.id });
   objs.sort((a, b) => a.d - b.d);
   hulls = [];
   objs.forEach(o => {
-    if (o.car) { drawCar(o.car); return; }
     if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost); V.ctx.restore(); return; }
     if (placing) { V.ctx.save(); V.ctx.globalAlpha = .22; drawBuilding(o.i, o.j, o.t.id); V.ctx.restore(); }
     else drawBuilding(o.i, o.j, o.t.id);
@@ -2985,7 +2788,6 @@ function render() {
     } else if (d.type === 'svc') { if (!b.staffed) hit = badge(a.x, a.y, 'NEED STAFF', '#C9434A', '#FFFFFF'); }
     if (hit) badgeHits.push(Object.assign(hit, { i: b.i, j: b.j }));
   });
-  cars.forEach(car => { car.hit = null; });
   const pn = performance.now(), c = V.ctx;
   for (let k = popups.length - 1; k >= 0; k--) {
     const p = popups[k]; const e = (pn - p.t0) / 1000; if (e > 1.3) { popups.splice(k, 1); continue; }
@@ -3329,7 +3131,7 @@ sheetEl.addEventListener('click', e => {
   if (a === 'mclaim') claimMission();
   else if (a === 'dclaim') claimDaily(+b.dataset.k);
   else if (a === 'eclaim') claimEvent(+b.dataset.k);
-  else if (a === 'reset') { if (!resetArm) { resetArm = true; renderSheet(true); return; } S = newGame(); S.welcomeBonus = true; S.firstRun = false; cars = []; sel = null; placing = null; save(); closeSheet(); derive(); centerOn(MID, MID); toast('A fresh city awaits.'); }
+  else if (a === 'reset') { if (!resetArm) { resetArm = true; renderSheet(true); return; } S = newGame(); S.welcomeBonus = true; S.firstRun = false; sel = null; placing = null; save(); closeSheet(); derive(); centerOn(MID, MID); toast('A fresh city awaits.'); }
 });
 
 /* ================= mini-games ================= */
@@ -4030,15 +3832,13 @@ $('#zhome').addEventListener('click', () => { const h = findHall(); if (h) anima
 /* ================= loop ================= */
 let dirty = false;
 function changed() { dirty = true; }
-let last = performance.now(), uiAcc = 0, saveAcc = 0, carAcc = 0, skyAcc = 99;
+let last = performance.now(), uiAcc = 0, saveAcc = 0, skyAcc = 99;
 function frame(t) {
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (camAnim) { const e = Math.min(1, (t - camAnim.t0) / 450); const k = 1 - Math.pow(1 - e, 3); V.cx = camAnim.sx + (camAnim.tx - camAnim.sx) * k; V.cy = camAnim.sy + (camAnim.ty - camAnim.sy) * k; if (e >= 1) camAnim = null; }
   skyAcc += dt; if (skyAcc > 10) { skyAcc = 0; updateSky(); }
   tick(dt);
   pumpRewardPopup();
-  carAcc += dt; if (carAcc > 1) { carAcc = 0; manageCars(); }
-  cars.forEach(c => stepCar(c, dt)); cars = cars.filter(c => !c.dead);
   render();
   if (mg === 'dice') drawBoard(); else if (mg === 'wheel') drawWheel(); else if (mg === 'crates') drawChestScene();
   drawFx();
@@ -4051,7 +3851,7 @@ function frame(t) {
 /* ================= boot ================= */
 S = load() || newGame();
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
-if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; S.cars = []; }
+if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; }
 if (!S.crates) S.crates = { steel: 0, gold: 0, diamond: 0 };
 if (S.crates.wood > 0) { S.keys.steel = (S.keys.steel || 0) + S.crates.wood; S.crates.wood = 0; }
 for (const k of ['steel', 'gold', 'diamond']) { if (S.crates[k] > 0) { S.keys[k] = (S.keys[k] || 0) + S.crates[k]; S.crates[k] = 0; } }
@@ -4074,7 +3874,7 @@ updateSky(true);
 if (LOC.src !== 'gps') askLocation(false);
 addEventListener('resize', () => { resize(); clampCam(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else updateSky(); });
-resize(); derive(); centerOn(MID, MID); manageCars(); paintStaticIcons(); updateHUD();
+resize(); derive(); centerOn(MID, MID); paintStaticIcons(); updateHUD();
 if (S.upgraded) welcome(true); else if (S.firstRun) welcome(false);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resize(); paintStaticIcons(); lastClockKind = ''; lastFace = -1; });
 requestAnimationFrame(frame);
