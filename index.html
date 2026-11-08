@@ -11,7 +11,7 @@
 <link rel="icon" href="bitburbs-icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Anton&family=VT323&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Anton&family=VT323&family=Silkscreen:wght@400;700&display=swap">
 <style>
 :root{
   --ink:#0B0E13; --cream:#F2F5F8; --muted:#9AA6B4;
@@ -845,6 +845,28 @@ body,button,input,select,textarea{font-family:'VT323',monospace!important}
 #sheetBody,#sheetBody p,#sheetBody small,#sheetBody label,#sheetBody .info{font-family:'VT323',monospace!important;font-size:18px!important;line-height:1.18!important}
 #sheetBody h2,#sheetBody h3,.mgtitle,.wl-t{font-family:'Silkscreen',monospace!important}
 #nav .nav-settings{border-radius:0!important;outline:0!important}
+
+/* Final consistency pass: readable pixel type, matching controls and reward reveal */
+body,button,input,select,textarea{font-family:'VT323',monospace!important}
+body{font-size:19px!important;line-height:1.18}
+#sheetBody,#sheetBody p,#sheetBody small,#sheetBody label,#sheetBody .info,
+.mgmsg,.note,.task,.bcard,.mcard,.chip,#clock{font-family:'VT323',monospace!important}
+#sheetBody h2,#sheetBody h3,.mgtitle,.wl-t,.crate-intro b,.daily-head strong,
+.streak-hero strong,.streak-card-top b{font-family:'Silkscreen',monospace!important}
+#nav .nav-settings{width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;background:linear-gradient(#36C5DC,#119BBE)!important;color:#082D45!important;border:2px solid #A8F2F7!important;border-radius:2px!important;box-shadow:inset 0 2px 0 #D9FFFF,0 3px 0 #08758F!important;font:24px 'VT323',monospace!important}
+#nav .nav-settings:active{transform:translateY(2px)!important;box-shadow:inset 0 2px 0 #CFFFFF,0 1px 0 #08758F!important}
+.mg-crates .crate-stage-label{font-size:11px!important}
+.mg-crates.crate-opening .cstage{animation:crateStageCharge .65s steps(3,end) infinite;border-color:#FFE17B!important}
+.mg-crates.crate-opening #chest{animation:crateChestRattle .11s steps(2,end) infinite!important;filter:drop-shadow(0 0 14px rgba(255,225,115,.7))}
+.mg-crates.crate-opening .crate-stage-sparkle{animation:crateSparkle .22s steps(2,end) infinite!important;color:#FFF!important}
+.mg-crates.crate-revealed .cstage{border-color:#FFE27A!important;box-shadow:inset 0 0 0 3px rgba(255,255,255,.16),0 0 0 3px rgba(255,226,122,.22),0 0 28px rgba(255,205,85,.45)!important}
+.mg-crates.crate-revealed .crate-stage-label{color:#FFE27A!important}
+.mg-crates.crate-revealed #chest{filter:drop-shadow(0 0 16px rgba(255,226,122,.8))}
+.mg-crates.crate-revealed .crate-stage-sparkle{color:#FFF3A8!important;animation-duration:.45s!important}
+.mg-crates.crate-revealed #crateMsg{color:#FFF0A6!important;font:24px 'VT323',monospace!important;text-shadow:0 2px 0 #592B55,0 0 12px rgba(255,218,96,.45)}
+@keyframes crateStageCharge{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+@keyframes crateChestRattle{0%,100%{transform:translateX(-4px) rotate(-1deg)}50%{transform:translateX(4px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.mg-crates.crate-opening .cstage,.mg-crates.crate-opening #chest,.mg-crates.crate-opening .crate-stage-sparkle{animation:none!important}}
 </style>
 </head>
 <body>
@@ -3582,7 +3604,7 @@ function buyMarket(id) {
 let crateSel = 'steel', crateAnim = null, crateReveal = null;
 function buildCrates() {
   const C = CRATES[crateSel];
-  mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel');
+  mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
   const tiers = Object.keys(CRATES).map(k => { const kk = CRATES[k].key, n = S.keys[kk], ready = n > 0;
     return `<button class="ctier" data-act="crsel" data-tier="${k}" aria-pressed="${crateSel === k}"><span data-tic="${k}"></span><b>${TIER[k]}</b><span class="ccount">×${n}</span>${ready ? '<i class="cready">READY</i>' : ''}</button>`; }).join('');
   const odds = C.table.map(r => `<div class="orow"><span data-oic="${C.table.indexOf(r)}"></span><span class="oname">${r[1]}</span><b>${Math.round(r[0] / C.table.reduce((a, x) => a + x[0], 0) * 100)}%</b></div>`).join('');
