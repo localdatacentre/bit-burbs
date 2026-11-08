@@ -801,6 +801,44 @@ body{font-size:18px!important;letter-spacing:.015em}
 .daily-progress{height:10px!important}
 .daily-claim{font-size:16px!important;letter-spacing:.04em}
 @media(max-width:370px){.streak-grid{gap:6px}.streak-card{padding:7px}.streak-footer{align-items:flex-start;flex-direction:column}.streak-footer span{text-align:left}}
+
+/* Crate-opening presentation: a reward-showcase scene, not a plain menu */
+.mgp.mg-crates{background:radial-gradient(ellipse at 50% 24%,#347DC4 0%,#1B4D91 48%,#102653 100%)!important}
+.mg-crates .mgtitle{background:linear-gradient(90deg,#38C9E8,#526FF0,#9564E9)!important;color:#fff!important;border-bottom:3px solid #102653!important}
+.mg-crates .crate-intro{text-align:center;padding:7px 10px 2px}
+.mg-crates .crate-intro b{display:block;font:12px 'Silkscreen',monospace;color:#FFE47A;text-shadow:0 2px 0 #17345F}
+.mg-crates .crate-intro small{display:block;font:18px 'VT323',monospace;color:#EAF5FF;margin-top:4px}
+.mg-crates .ctiers{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px!important;margin:8px 0 10px!important}
+.mg-crates .ctier{position:relative;min-width:0!important;min-height:82px!important;padding:7px 4px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:linear-gradient(180deg,#527CB7,#254879)!important;border:2px solid #8BC8F1!important;color:#fff!important;box-shadow:inset 0 3px 0 rgba(255,255,255,.17),0 3px 0 #10264A!important}
+.mg-crates .ctier span[data-tic] canvas,.mg-crates .ctier canvas{width:34px!important;height:34px!important}
+.mg-crates .ctier b{font:10px 'Silkscreen',monospace!important}
+.mg-crates .ctier .ccount{font:17px 'VT323',monospace!important;color:#FFE98B!important}
+.mg-crates .ctier .cready{font:9px 'Silkscreen',monospace!important;color:#A9FFCE!important}
+.mg-crates .ctier[aria-pressed="true"]{background:linear-gradient(180deg,#FFE58A,#F1A92E)!important;color:#30200B!important;border-color:#FFF4C6!important;box-shadow:inset 0 3px 0 #FFF9D9,0 4px 0 #8E5318,0 0 14px rgba(255,220,105,.28)!important;transform:translateY(-2px)}
+.mg-crates .ctier[aria-pressed="true"] .ccount{color:#3B260A!important}
+.mg-crates .cstage{position:relative!important;min-height:220px!important;margin:8px 0 12px!important;display:grid!important;place-items:center!important;overflow:hidden!important;background:radial-gradient(ellipse at 50% 73%,rgba(114,224,255,.38),rgba(39,103,177,.1) 52%,transparent 72%),linear-gradient(180deg,rgba(11,31,74,.38),rgba(9,24,58,.72))!important;border:2px solid #77CFF0!important;box-shadow:inset 0 0 0 3px rgba(255,255,255,.06),inset 0 -15px 24px rgba(0,0,0,.24),0 4px 0 #10264A!important}
+.mg-crates .cstage:after{content:"";position:absolute;left:12%;right:12%;bottom:20px;height:22px;background:rgba(95,219,255,.28);filter:blur(9px);animation:crateStageGlow 1.6s ease-in-out infinite}
+.mg-crates #chest{position:relative;z-index:2;width:min(100%,340px)!important;height:auto!important;max-height:210px!important;filter:drop-shadow(0 8px 0 rgba(4,18,43,.35)) drop-shadow(0 0 10px rgba(113,220,255,.28));animation:crateChestIdle 2.2s steps(4,end) infinite}
+.crate-stage-label{position:absolute;z-index:3;top:10px;left:0;right:0;text-align:center;font:10px 'Silkscreen',monospace;color:#DDF8FF;text-shadow:0 2px 0 #10264A;letter-spacing:.05em}
+.crate-stage-sparkle{position:absolute;z-index:1;color:#FFF1A8;text-shadow:0 0 9px #74E7FF;animation:crateSparkle 1.5s steps(2,end) infinite}
+.sparkle-a{left:13%;top:36%;font-size:24px}.sparkle-b{right:14%;top:57%;font-size:19px;animation-delay:.7s}
+.mg-crates #openBtn{min-height:56px!important;width:100%;max-width:340px!important;align-self:center;background:linear-gradient(180deg,#FF875B,#E53D54)!important;color:#fff!important;border:3px solid #FFE4A0!important;box-shadow:inset 0 3px 0 rgba(255,255,255,.25),0 5px 0 #86253B,0 0 18px rgba(255,105,95,.25)!important;font:12px 'Silkscreen',monospace!important;letter-spacing:.04em!important;animation:crateButtonGlow 1.8s ease-in-out infinite}
+.mg-crates #openBtn:disabled{animation:none!important;filter:grayscale(.5)!important;opacity:.75}
+.mg-crates .mgmsg{font:20px 'VT323',monospace!important;color:#fff!important;text-align:center;text-shadow:0 2px 0 #10264A}
+.mg-crates .odds{background:rgba(8,20,57,.62)!important;border:2px solid #76BEE9!important;color:#F4FBFF!important}
+.mg-crates .odds summary{font:16px 'VT323',monospace!important;color:#FFE58B!important}
+.mg-crates .orow{font:16px 'VT323',monospace!important;color:#fff!important}
+.mg-crates .pity{background:rgba(8,20,57,.62)!important;border:2px solid #76BEE9!important;color:#fff!important;font:16px 'VT323',monospace!important}
+@keyframes crateChestIdle{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes crateStageGlow{0%,100%{opacity:.45;transform:scaleX(.8)}50%{opacity:1;transform:scaleX(1.08)}}
+@keyframes crateSparkle{0%,100%{opacity:.3;transform:scale(.75)}50%{opacity:1;transform:scale(1.12)}}
+@keyframes crateButtonGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+#nav .nav-settings{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;margin:auto!important;background:linear-gradient(180deg,#8D83EE,#675CD0)!important;color:#fff!important;border:2px solid #C5BFFF!important;box-shadow:inset 0 2px 0 #E0DCFF,0 3px 0 #403A91!important;text-shadow:0 1px 2px #403A91!important;font:24px 'VT323',monospace!important;clip-path:none!important}
+#nav .nav-settings:before,#nav .nav-settings:after{display:none!important}
+#nav .nav-settings:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px}
+#nav .pb{font-family:'VT323',monospace!important;font-size:18px!important;line-height:1!important}
+#nav .pb canvas{image-rendering:pixelated}
+@media(prefers-reduced-motion:reduce){.mg-crates #chest,.mg-crates .cstage:after,.mg-crates .crate-stage-sparkle,.mg-crates #openBtn{animation:none!important}}
 </style>
 </head>
 <body>
@@ -3523,8 +3561,9 @@ function buildCrates() {
   const pity = C.pity ? `<div class="pity"><span>Guaranteed ${DEFS[C.pity].name} in ${S.pity[crateSel]}</span><div class="pbar"><i style="width:${Math.round((1 - S.pity[crateSel] / C.pityN) * 100)}%"></i></div></div>` : '';
   mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CRATES</h2>
   <div class="keysrow"><span class="klab">YOUR CHEST KEYS</span>${['steel','gold','diamond'].map(k => `<span class="kchip"><span data-kic="${k}"></span>${S.keys[k] || 0}</span>`).join('')}</div>
+  <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Every key reveals a surprise. Better chests bring bigger rewards.</small></div>
   <div class="ctiers">${tiers}</div>
-  <div class="cstage">${hiCanvas('chest', 320, 210)}</div>
+  <div class="cstage"><div class="crate-stage-label">YOUR REWARD AWAITS</div>${hiCanvas('chest', 320, 210)}<div class="crate-stage-sparkle sparkle-a">✦</div><div class="crate-stage-sparkle sparkle-b">✧</div></div>
   <button class="pb green" data-act="openCrate" id="openBtn" style="min-width:220px;font-size:20px">Open ${TIER[crateSel]}</button>
   <p class="mgmsg" id="crateMsg"></p>${pity}
   <details class="odds"><summary>See the odds</summary>${odds}</details>
