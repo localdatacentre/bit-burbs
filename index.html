@@ -886,6 +886,44 @@ body{font-size:19px!important;line-height:1.18}
 #modalBox .px-r>*{clip-path:none!important}
 .reward-icon,.crate-reward-icon{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 
+
+/* Restore the original custom map controls; keep other icon frames clean. */
+#mapctl .pb.sq{
+  width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+  padding:0!important;background:#3D5F87!important;color:#FFFFFF!important;
+  border:2px solid #91B2D6!important;
+  box-shadow:inset 0 2px 0 #7898BA,0 2px 0 #2A476B!important;
+  clip-path:none!important;border-radius:0!important;
+}
+#mapctl .pb.sq:active:not(:disabled){
+  transform:translateY(2px)!important;
+  box-shadow:inset 0 2px 0 #7898BA,0 0 0 #2A476B!important;
+}
+#mapctl #zmkt{
+  background:#FFC93C!important;color:#2A1E10!important;
+  border:3px solid #15122E!important;
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.4),inset 0 -4px 0 rgba(0,0,0,.25)!important;
+}
+#mapctl #zmkt canvas{width:26px!important;height:26px!important}
+#mapctl .pb.sq canvas{image-rendering:pixelated}
+#nav .nav-settings{
+  min-width:0!important;min-height:56px!important;height:auto!important;width:auto!important;
+  padding:4px 2px!important;display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:center!important;gap:3px!important;
+  background:#675CD0!important;color:#FFFFFF!important;
+  border:2px solid #C5BFFF!important;
+  box-shadow:inset 0 2px 0 #E0DCFF,0 3px 0 #403A91!important;
+  font:18px 'VT323',monospace!important;letter-spacing:.02em!important;
+}
+#nav .nav-settings .nav-icon{
+  display:block!important;width:23px;height:23px;line-height:23px;
+  font:23px/23px 'VT323',monospace!important;text-align:center;
+}
+#nav .nav-settings:active:not(:disabled){
+  transform:translateY(2px)!important;
+  box-shadow:inset 0 2px 0 #E0DCFF,0 1px 0 #403A91!important;
+}
+
 </style>
 </head>
 <body>
@@ -928,7 +966,7 @@ body{font-size:19px!important;line-height:1.18}
   <button class="pb purple" data-open="wheel"><canvas data-icon="wheel" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Wheel<span class="dot" id="dotWheel" hidden></span></button>
   <button class="pb purple" data-open="crates"><canvas data-icon="crate" data-tier="steel" width="56" height="56" style="width:28px;height:28px" aria-hidden="true"></canvas>Crates<span class="dot" id="dotCrates" hidden></span></button>
   <button class="pb purple" data-open="tasks"><canvas data-icon="clip" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Tasks<span class="dot" id="dotTasks" hidden></span></button>
-  <button id="settingsBtn" class="pb purple nav-settings" data-open="settings" aria-label="Settings" title="Settings"><span aria-hidden="true">⚙</span>Settings</button>
+  <button id="settingsBtn" class="pb purple nav-settings" data-open="settings" aria-label="Settings" title="Settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
 </nav>
 
 <div id="scrim"></div>
