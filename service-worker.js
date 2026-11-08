@@ -1,4 +1,4 @@
-const CACHE='bit-burbs-v37';
+const CACHE='bit-burbs-v38';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./bitburbs-icon.svg'];
 
 self.addEventListener('install',event=>{
