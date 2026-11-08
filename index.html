@@ -2541,27 +2541,55 @@ function roadLampSpot(i,j) {
 function drawRoadLamps() {
  const c=V.ctx,z=V.z;c.save();c.lineCap='square';c.lineJoin='miter';
  const rect=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(w)),Math.max(1,Math.round(h)));};
+ const signal=(x,y,active)=>{
+  rect(x-2*z,y-3*z,5*z,16*z,'#263342');rect(x-3*z,y-4*z,7*z,10*z,'#17202B');
+  ['#E84C4C','#FFC43D','#42C86A'].forEach((col,k)=>rect(x-1.5*z,y+(-2+k*3)*z,3*z,2.4*z,active===k?col:'#39424D'));
+  rect(x-1*z,y+7*z,3*z,5*z,'#6B7784');
+ };
  for(let j=0;j<N;j++)for(let i=0;i<N;i++){
   if(!isRoad(i,j))continue;
-  const p=roadLampSpot(i,j);
-  if(p){const h=19*z,arm=5*z;rect(p.x-2*z,p.y-1*z,5*z,2*z,'rgba(20,32,46,.35)');c.strokeStyle='#26394B';c.lineWidth=Math.max(1.2,1.6*z);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x,p.y-h);c.lineTo(p.x+arm,p.y-h-2*z);c.stroke();rect(p.x-1.4*z,p.y-h-1*z,2.8*z,2.5*z,'#35495C');rect(p.x+(arm-1)*z,p.y-h-3.2*z,5*z,2.2*z,'#F9D985');rect(p.x+(arm+1)*z,p.y-h-3*z,2*z,1*z,'#FFF1B7');}
-  const links=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>isRoad(i+dx,j+dy)),mid=P(i+.5,j+.5);
+  const p=roadLampSpot(i,j),links=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>isRoad(i+dx,j+dy)),mid=P(i+.5,j+.5);
+  // Warm, square-headed street lamps.
+  if(p){
+   const h=19*z,arm=5*z;
+   rect(p.x-2*z,p.y-1*z,5*z,2*z,'rgba(20,32,46,.35)');
+   c.strokeStyle='#26394B';c.lineWidth=Math.max(1.2,1.6*z);c.beginPath();c.moveTo(p.x,p.y);c.lineTo(p.x,p.y-h);c.lineTo(p.x+arm,p.y-h-2*z);c.stroke();
+   rect(p.x-1.4*z,p.y-h-1*z,2.8*z,2.5*z,'#35495C');
+   rect(p.x+(arm-1)*z,p.y-h-3.2*z,5*z,2.2*z,'#F9D985');rect(p.x+(arm+1)*z,p.y-h-3*z,2*z,1*z,'#FFF1B7');
+  }
+  // Two opposing signal heads at larger junctions: one direction green while the cross street waits.
   if(links.length>=3){
-   const phase=Math.floor((performance.now()/1000+i*.7+j*.4)%18),active=phase<8?0:phase<10?1:2,sx=mid.x+9*z,sy=mid.y-23*z;
-   rect(sx-2*z,sy-3*z,5*z,16*z,'#263342');rect(sx-3*z,sy-4*z,7*z,10*z,'#17202B');
-   ['#E84C4C','#FFC43D','#42C86A'].forEach((col,k)=>rect(sx-1.5*z,sy+(-2+k*3)*z,3*z,2.4*z,active===k?col:'#39424D'));
-   rect(sx-1*z,sy+7*z,3*z,5*z,'#6B7784');
+   const phase=Math.floor((performance.now()/1000+i*.7+j*.4)%18),vertical=phase<8?2:phase<10?1:0,horizontal=phase<8?0:phase<10?1:2;
+   signal(mid.x+9*z,mid.y-23*z,vertical);
+   signal(mid.x-12*z,mid.y-20*z,horizontal);
   }
+  // Australian green street blades.
   if((i*3+j*5)%13===0&&links.length){
-   const sx=mid.x-10*z,sy=mid.y-13*z;rect(sx,sy,1.5*z,15*z,'#596A70');rect(sx-10*z,sy-1*z,22*z,6*z,'#087B55');rect(sx-9*z,sy,20*z,1.5*z,'#D7F4E7');
-   c.fillStyle='#fff';c.font=Math.max(3,5*z)+'px VT323,monospace';c.textAlign='center';c.textBaseline='middle';c.fillText('ST',sx+1*z,sy+2.5*z);
+   const x=mid.x-10*z,y=mid.y-13*z;
+   rect(x,y,1.5*z,15*z,'#596A70');rect(x-10*z,y-1*z,22*z,6*z,'#087B55');rect(x-9*z,y,20*z,1.5*z,'#D7F4E7');
+   c.fillStyle='#fff';c.font=Math.max(3,5*z)+'px VT323,monospace';c.textAlign='center';c.textBaseline='middle';c.fillText('ST',x+1*z,y+2.5*z);
   }
+  // Wheelie bins: yellow recycling, green garden and red general waste.
   if((i*7+j*11)%17===0){
    const q=P(i+.78,j+.62),col=(i+j)%3===0?'#F5C928':(i+j)%3===1?'#237A4C':'#C63B36';
    rect(q.x-2*z,q.y-5*z,5*z,6*z,'#1D2933');rect(q.x-1.5*z,q.y-4*z,4*z,4*z,col);rect(q.x-2.2*z,q.y-5.7*z,5.4*z,1.2*z,'#263342');
   }
+  // Classic red Australian post boxes.
   if((i*5+j*3)%29===0){
-   const q=P(i+.22,j+.78);rect(q.x-1.5*z,q.y-7*z,3*z,7*z,'#343B43');rect(q.x-3*z,q.y-8*z,6*z,4*z,'#C83E38');rect(q.x-2*z,q.y-7*z,4*z,1*z,'#F7E7C5');
+   const q=P(i+.22,j+.78);
+   rect(q.x-1.5*z,q.y-7*z,3*z,7*z,'#343B43');rect(q.x-3*z,q.y-8*z,6*z,4*z,'#C83E38');rect(q.x-2*z,q.y-7*z,4*z,1*z,'#F7E7C5');
+  }
+  // Yellow bus-stop blade with a blue bus pictogram.
+  if((i*11+j*13)%37===0){
+   const q=P(i+.18,j+.72);
+   rect(q.x-1*z,q.y-11*z,2*z,11*z,'#4C5966');rect(q.x-4*z,q.y-13*z,8*z,7*z,'#F5C84B');
+   rect(q.x-2.5*z,q.y-11.5*z,5*z,3.2*z,'#2676B8');rect(q.x-2*z,q.y-7*z,1.3*z,1.3*z,'#263342');rect(q.x+1*z,q.y-7*z,1.3*z,1.3*z,'#263342');
+  }
+  // Small red-and-white speed-limit marker, a familiar suburban street detail.
+  if((i*17+j*7)%43===0){
+   const q=P(i+.84,j+.18);
+   rect(q.x-1*z,q.y-12*z,2*z,12*z,'#596A70');rect(q.x-5*z,q.y-15*z,10*z,7*z,'#F4F4E9');rect(q.x-5*z,q.y-15*z,10*z,1.5*z,'#D7443E');rect(q.x-5*z,q.y-9.5*z,10*z,1.5*z,'#D7443E');
+   c.fillStyle='#25354A';c.font=Math.max(4,6*z)+'px VT323,monospace';c.textAlign='center';c.textBaseline='middle';c.fillText('50',q.x,q.y-12*z);
   }
  }
  c.restore();
@@ -2770,36 +2798,41 @@ function drawBuilding(i, j, id) {
 function drawCar(car) {
  const w=carWorld(car),z=V.z,c=V.ctx,L=.35,W=.19,hx=w.ax?L:W,hy=w.ax?W:L;
  const pt=(x,y,lift=0)=>{const q=P(x,y);return{x:q.x,y:q.y-lift*z};};
- const px=(x,y,col,ww,hh)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(2,Math.round(ww)),Math.max(2,Math.round(hh)));};
- // Four chunky tyres sit just outside the body, with tiny silver hubs.
+ const px=(x,y,col,ww,hh)=>{c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),Math.max(1,Math.round(ww)),Math.max(1,Math.round(hh)));};
+ // Four tyres and metallic hubs sit outside the body, so the wheels read clearly at game zoom.
  for(const [ox,oy] of [[-.76,-.76],[.76,-.76],[-.76,.76],[.76,.76]]){
   const q=pt(w.wx+hx*ox,w.wy+hy*oy,1);
   px(q.x-2.6*z,q.y-2.2*z,'#17202B',5.2*z,4.4*z);
-  px(q.x-.9*z,q.y-.8*z,'#AEBCC8',1.8*z,1.8*z);
+  px(q.x-.9*z,q.y-.8*z,'#B9C5D0',1.8*z,1.8*z);
  }
- // Main body, with a distinct bonnet and boot so the silhouette reads as a car.
+ // Low hatchback body with separate bonnet, boot and bumpers.
  prism(w.wx-hx,w.wy-hy,w.wx+hx,w.wy+hy,4.8*z,shade(car.col,1.28),car.col,shade(car.col,.58));
  const noseX=w.wx+w.dx*(hx*.63),noseY=w.wy+w.dy*(hy*.63);
  const tailX=w.wx-w.dx*(hx*.63),tailY=w.wy-w.dy*(hy*.63);
  const bonnet=pt(noseX,noseY,5.2),boot=pt(tailX,tailY,5.1);
- px(bonnet.x-3.1*z,bonnet.y-1.2*z,shade(car.col,1.22),6.2*z,2.4*z);
+ px(bonnet.x-3.1*z,bonnet.y-1.2*z,shade(car.col,1.28),6.2*z,2.4*z);
  px(boot.x-3*z,boot.y-1.2*z,shade(car.col,.78),6*z,2.4*z);
- // Raised passenger cabin with a pale pixel roof and dark glazed windows.
- const rx=w.ax?L*.52:W*.70,ry=w.ax?W*.70:L*.52;
+ px(bonnet.x-4*z,bonnet.y+1.4*z,'#283747',8*z,1.5*z);
+ px(boot.x-4*z,boot.y+1.4*z,'#283747',8*z,1.5*z);
+ // Raised cabin, windscreen and rear glass.
+ const rx=w.ax?L*.49:W*.68,ry=w.ax?W*.68:L*.49;
  prism(w.wx-rx,w.wy-ry,w.wx+rx,w.wy+ry,9.2*z,shade(car.col,1.38),'#B9D8E9','#6689A3');
  const front=pt(w.wx+w.dx*(hx*.34),w.wy+w.dy*(hy*.34),9.4);
  const rear=pt(w.wx-w.dx*(hx*.34),w.wy-w.dy*(hy*.34),9.4);
  px(front.x-3.2*z,front.y-1.3*z,'#244B67',6.4*z,2.6*z);
  px(rear.x-2.8*z,rear.y-1.2*z,'#244B67',5.6*z,2.4*z);
- // Side windows give the roof a recognisable cabin rather than a plain block.
+ // Side windows and a door seam give the vehicle a recognisable passenger cabin.
  const sideA=pt(w.wx+(w.ax?0:rx*.45),w.wy+(w.ax?ry*.45:0),9.1);
  const sideB=pt(w.wx-(w.ax?0:rx*.45),w.wy-(w.ax?ry*.45:0),9.1);
  px(sideA.x-1.5*z,sideA.y-1.2*z,'#315C78',3*z,2.4*z);
  px(sideB.x-1.5*z,sideB.y-1.2*z,'#315C78',3*z,2.4*z);
- // Bright front lamps, red tail lamps and a dark bumper.
+ const door=pt(w.wx,w.wy,5.5);
+ px(door.x-1.4*z,door.y-1*z,shade(car.col,.72),2.8*z,1.4*z);
+ // Headlights, red tail lamps and a small front grille.
  const nose=pt(w.wx+w.dx*(hx+.018),w.wy+w.dy*(hy+.018),2.4);
  const tail=pt(w.wx-w.dx*(hx+.018),w.wy-w.dy*(hy+.018),2.4);
  px(nose.x-2.3*z,nose.y-1.4*z,'#FFF0B3',4.6*z,2.8*z);
+ px(nose.x-2*z,nose.y+1.6*z,'#283747',4*z,1.4*z);
  px(tail.x-2*z,tail.y-1.3*z,'#E64D58',4*z,2.6*z);
 }
 
