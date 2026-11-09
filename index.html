@@ -3327,7 +3327,7 @@ function cloudSave(force) { if (!CLOUD || cloudBusy) return; const t = Date.now(
   CLOUD.set({ json: saveJSON(), t: S.saved || now() }).catch(() => {}).finally(() => { cloudBusy = false; }); }
 (async () => { try { if (!window.claude || !window.claude.use) return; const db = await window.claude.use('db'); const user = await window.claude.use('user'); if (!db || !user) return;
   const uid = await user.id(); const ref = db.doc('data/users/' + uid + '/save'); const snap = await ref.get();
-  if (snap.exists) { const d = snap.data(); if (d && d.json && (d.t || 0) > (S.saved || 0) + 5000 && !sessionStorage.getItem('bc-cloud-loaded')) { sessionStorage.setItem('bc-cloud-loaded', '1'); localStorage.setItem(SAVE_KEY, d.json); location.reload(); return; } }
+  if (snap.exists) { const d = snap.data(); if (d && d.json && (d.t || 0) > loadedSaveTime + 5000 && !sessionStorage.getItem('bc-cloud-loaded')) { sessionStorage.setItem('bc-cloud-loaded', '1'); localStorage.setItem(SAVE_KEY, d.json); location.reload(); return; } }
   CLOUD = ref; cloudSave(true); } catch (e) { /* cloud save unavailable: local save still works */ } })();
 document.addEventListener('visibilitychange', () => { if (document.hidden) cloudSave(true); });
 function load() { try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const d = JSON.parse(raw); if (d && Array.isArray(d.tiles) && (d.v === 1 || d.v === 2)) return migrate(d); } } catch (e) { /* ignore */ } return null; }
@@ -5710,16 +5710,27 @@ function bizTick(dt) { const tn = now(); let cpm = 0;
     const c = bizCpm(b) * boostMul(); cpm += c; if (c > 0) { const key = b.i + ',' + b.j; bizAcc.set(key, (bizAcc.get(key) || 0) + c / 60 * dt); } });
   D.cpm = cpm; S.cash += cpm / 60 * dt;
   bizPopT += dt; if (bizPopT >= 4) { bizPopT = 0; for (const [key, v] of bizAcc) { if (v >= 1) { const [i, j] = key.split(',').map(Number); popup(i, j, '+' + fmt(Math.floor(v)), '#FFE066'); bizAcc.set(key, v - Math.floor(v)); } } } }
-function bizOffline(from, to) { derive(); let earned = 0; const mins = Math.max(0, to - from) / 60000;
-  D.list.forEach(b => { if (!isBiz(b.d) || !b.workers || whyNot(b)) return; const pr = ensureProds(b.t);
-    for (let k = 0; k < Math.min(3, b.workers); k++) { const p = pr[k];
-      // Businesses keep producing while the player is away; a 75% uptime keeps this generous but balanced.
-      earned += prodCpm(b, k) * mins * .75; p.o = 0; p.s = to + P_LAST[k];
-    }
-  });
-  return Math.round(earned);
+function bizOffline(from, to) {
+  derive();
+  const cutoff = Math.min(to, from + 30 * 60000);
+  const overlap = (start,end) => Math.max(0, Math.min(end,cutoff) - Math.max(start,from));
+  let earned = 0;
+  for (const b of D.list) {
+    if (!isBiz(b.d)) continue;
+    const eligible = !whyNot(b);
+    ensureProds(b.t).forEach((p,k) => {
+      let stockedMs = overlap(from,p.s);
+      if (p.o && p.o <= to) {
+        const start = Math.max(p.s,p.o);
+        p.s = start + P_LAST[k];
+        p.o = 0;
+        stockedMs += overlap(start,p.s);
+      }
+      if (eligible && k < b.workers) earned += prodCpm(b,k) * stockedMs / 60000;
+    });
+  }
+  return Math.floor(earned * .10);
 }
-
 
 /* ================= engagement: restock all, missions, daily, rating, events ================= */
 function restockBiz(b, tn = now()) {
@@ -5745,7 +5756,7 @@ function productRestockCost(t,k) {
   const buildPrice = DEFS[t.id].cost;
   const base = 190 + Math.floor(hash(buildPrice,1) * 20);
   const step = 175 + Math.floor(hash(buildPrice,2) * 25);
-  return base + k * step + (Math.min(lvlOf(t),5) - 1) * 45;
+  return base + k * step + (Math.min(lvlOf(t),5) - 1) * 100;
 }
 function restockCost(businesses, tn = now()) {
   return businesses.reduce((total,b) => total + ensureProds(b.t).reduce((sum,p,k) => sum + (k < b.workers && !p.o && p.s <= tn ? productRestockCost(b.t,k) : 0), 0), 0);
@@ -6232,6 +6243,7 @@ function frame(t) {
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (camAnim) { const e = Math.min(1, (t - camAnim.t0) / 450); const k = 1 - Math.pow(1 - e, 3); V.cx = camAnim.sx + (camAnim.tx - camAnim.sx) * k; V.cy = camAnim.sy + (camAnim.ty - camAnim.sy) * k; if (e >= 1) camAnim = null; }
   skyAcc += dt; if (skyAcc > 10) { skyAcc = 0; updateSky(); }
+  if (document.hidden) { requestAnimationFrame(frame); return; }
   tick(dt);
   updateWalkers(dt);
   if(!document.hidden){
@@ -6252,6 +6264,7 @@ function frame(t) {
 
 /* ================= boot ================= */
 S = load() || newGame();
+const loadedSaveTime = S.saved || 0;
 if (S.tut && !S.tutDone && S.tut.version!==3) {
   // Convert old ten-step tutorial saves without replacing established towns.
   if(!findHall() && S.tiles.every(t=>!t||t.id==='road'))seedTutorialTown(S);
@@ -6298,7 +6311,7 @@ if (!S.market) S.market = { week: 0, bought: {}, seen: 0 };
   const el = Math.max(0, now() - (S.saved || now()));
   if (el > 10000) {
     derive(); S.pop = Math.min(D.cap, S.pop + Math.min(20, Math.floor(el / 45000)) * 2);
-    const to = now(), from = to - Math.min(el, 12 * 3600e3); const got = bizOffline(from, to); S.cash += got;
+    const got = bizOffline(S.saved, now()); S.cash += got; save();
     if (el > 60000 && !S.upgraded && got > 0) setTimeout(() => toast('Welcome back! Your businesses earned ' + fmt(got) + ' Coins while you were away.'), 600);
   }
   S.busT = Math.max(S.busT || 0, now() + 8000);
@@ -6306,7 +6319,16 @@ if (!S.market) S.market = { week: 0, bought: {}, seen: 0 };
 updateSky(true);
 if (LOC.src !== 'gps') askLocation(false);
 addEventListener('resize', () => { resize(); clampCam(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else updateSky(); });
+let hiddenSince = document.hidden ? now() : 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenSince = now(); save(); return; }
+  if (hiddenSince) {
+    S.cash += bizOffline(hiddenSince, now());
+    hiddenSince = 0;
+    save();
+  }
+  updateSky();
+});
 resize(); derive(); centerOn(MID, MID); paintStaticIcons(); updateHUD();
 if (S.upgraded || S.firstRun) {
   welcome(!!S.upgraded);
