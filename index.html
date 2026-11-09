@@ -1399,6 +1399,9 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #mg #mgPanel.mg-crates .crate-bonus progress{height:8px}
 #mg #mgPanel.mg-crates .crate-feature #openBtn{margin:0!important;min-height:44px!important}
 #mg #mgPanel.mg-crates .odds{box-sizing:border-box;background:#203743;color:#edf1e8;border-color:#47606a}
+#mgPanel.mg-crates .crate-notice{display:flex;align-items:center;justify-content:center;gap:8px;min-height:32px;color:#fff2cd;font:22px/1.1 'VT323',monospace}
+#mgPanel.mg-crates .crate-notice:empty{display:flex}
+#mgPanel.mg-crates .crate-notice.reward-in{animation:crateRewardIn .18s ease-out}
 </style>
 </head>
 <body>
@@ -5067,7 +5070,7 @@ function openMg(name) { pickingMove=false; if (name !== 'crates') snd('open');
   mgEl.classList.add('show'); paintNewIcons();
   const x = mgPanel.querySelector('.mgx'); if (x) x.focus();
 }
-function closeMg() { if (!mg) return; if (diceAnim || wheelAnim) return; snd('close'); mg = null; mgEl.classList.remove('show'); renderCard(true); }
+function closeMg() { if (!mg) return; if (diceAnim || wheelAnim || crateAnim) return; snd('close'); mg = null; mgEl.classList.remove('show'); renderCard(true); }
 mgEl.addEventListener('click', e => { if (e.target === mgEl) closeMg(); });
 function hiCanvas(id, w, h) { return `<canvas id="${id}" class="mgcanvas" width="${w * 2}" height="${h * 2}" style="width:${w}px;height:${h}px"></canvas>`; }
 function tableHTML(title, rows) { return `<div class="ptable"><div class="ph">${title}</div>${rows.map((r, k) => `<div class="pr"><span data-pic="${k}"></span><span>${r[1]}</span><b>${r[0]}%</b></div>`).join('')}</div>`; }
@@ -5483,23 +5486,21 @@ function buildCrates() {
   mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
   const tiers = Object.keys(CRATES).map(tier => `<button class="pixel-btn crate-slot" data-act="crsel" data-tier="${tier}" aria-pressed="${crateSel === tier}"><span data-tic="${tier}"></span><b>${TIER[tier]}</b><span class="crate-count">${S.crates[tier]} owned</span></button>`).join('');
   const odds = C.table.map(([weight, label], i) => `<div class="orow"><span data-oic="${i}"></span><span class="oname">${label}</span><b>${weight}%</b></div>`).join('');
-  const receipt = crateReveal
-    ? `<div class="freight-result"><span data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></span><div><small>DELIVERY RECEIPT</small><b>${crateReveal.label}</b></div></div><b class="freight-stamp">CLAIMED</b>`
-    : `<div><small>CARGO MANIFEST</small><b>${TIER[crateSel]} crate</b></div><b class="freight-stamp">${S.crates[crateSel] ? 'ON DOCK' : 'AWAITING CARGO'}</b>`;
   mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">HARBOUR FREIGHT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
   <div class="cstage freight-quay"><span class="dock-light"></span><canvas id="chest" width="288" height="156" aria-hidden="true"></canvas></div>
-  <div class="freight-ticket" role="status">${receipt}</div>
+
   <div class="crate-shelf">${tiers}</div>
 
   <div class="crate-feature">
-    <button class="pixel-btn pb" data-act="openCrate" id="openBtn">Unload ${TIER[crateSel]} crate</button>
-    <p class="mgmsg" id="crateMsg" role="status"></p>
+    <button class="pixel-btn pb" data-act="openCrate" id="openBtn">Open ${TIER[crateSel]} crate</button>
+    <div class="crate-notice" id="crateMsg" role="status"></div>
   </div>
   <div class="crate-bonus"><span>Gold crate bonus</span><b>${S.wheelPips}/${SPINS_PER_GOLD_CRATE} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_GOLD_CRATE}" aria-label="Spins towards a Gold crate"></progress></div>
   <details class="odds"><summary>${TIER[crateSel]} reward odds</summary>${odds}</details>`;
   mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 36)));
   mgPanel.querySelectorAll('[data-oic]').forEach(el => { const r = C.table[+el.dataset.oic][2]; el.replaceWith(iconCanvas(rewIconKind(r), r.tier, 22)); });
   mgPanel.querySelectorAll('[data-reward-icon]').forEach(el => el.replaceWith(iconCanvas(el.dataset.rewardIcon, el.dataset.tier, 32)));
+  if (crateReveal) $('#crateMsg').replaceChildren(iconCanvas(rewIconKind(crateReveal.r), crateReveal.r.tier, 24), document.createTextNode(crateReveal.label));
   updateCrateUI();
   paintNewIcons();
   drawChestSceneInner($('#chest'), performance.now());
@@ -5516,27 +5517,26 @@ let crateSceneFrame = -1;
 const crateEase = x => { x = Math.max(0, Math.min(1, x)); return 1-Math.pow(1-x,3); };
 function finishCrateReveal() {
   if (!crateAnim) return;
-  const { rew, tier } = crateAnim;
+  const { rew, reduceMotion } = crateAnim;
   crateAnim = null;
   crateReveal = rew;
   mgPanel.classList.remove('crate-opening');
   mgPanel.classList.add('crate-revealed');
   snd('win');
   buzz(isBig(rew.r) ? [20,35,35] : 18);
-  // Celebrate only when the chest actually opens, not while it is loading.
-  const stage = mgPanel.querySelector('.cstage');
-  const rect = stage && stage.getBoundingClientRect();
-  confetti(isBig(rew.r) ? 48 : 24, rect ? rect.left+rect.width/2 : undefined, rect ? rect.top+rect.height*.45 : undefined);
-  if (isBig(rew.r)) bigWin={text:'BIG WIN!',t0:performance.now()};
-  buildCrates();
-  crateSceneFrame=-1;
+  const notice = $('#crateMsg');
+  notice.replaceChildren(iconCanvas(rewIconKind(rew.r), rew.r.tier, 24), document.createTextNode(rew.label));
+  if (!reduceMotion) notice.classList.add('reward-in');
+  $('#openBtn').textContent = S.crates[crateSel] ? 'Open another ' + TIER[crateSel] + ' crate' : 'No ' + TIER[crateSel] + ' crates left';
+  updateCrateUI();
+  drawChestSceneInner($('#chest'), performance.now());
   changed();
 }
 function drawChestScene() {
   const cvs=$('#chest');
-  if(!cvs) return;
+  if(!cvs || !crateAnim) return;
   const t=performance.now();
-  if(crateAnim && t-crateAnim.t0 >= (crateAnim.reduceMotion?260:2400)){
+  if(crateAnim && t-crateAnim.t0 >= (crateAnim.reduceMotion?80:950)){
     finishCrateReveal();
     return;
   }
@@ -5549,49 +5549,46 @@ function drawChestScene() {
 function drawChestSceneInner(cvs,t) {
   const c=cvs.getContext('2d');
   c.clearRect(0,0,288,156);
-  const anim=crateAnim, opened=!!crateReveal, stocked=S.crates[crateSel]>0;
-  const e=opened?1:anim?(anim.reduceMotion?0:Math.min(1,(t-anim.t0)/2400)):0;
-  const lower=crateEase(e/.37), release=crateEase((e-.38)/.19);
-  const lid=crateEase((e-.59)/.19), rise=crateEase((e-.68)/.25);
-  const hasCargo=stocked||anim||opened;
-  const base=hasCargo?94+lower*40:85;
-  const x=157+Math.round(e>.39&&e<.59?Math.sin(e*145)*2:0);
-  const accent={steel:'#c0e1e4',gold:'#ffcf66',diamond:'#94efff'}[crateSel];
-  function rect(x,y,w,h,col){c.fillStyle=col;c.fillRect(Math.round(x),Math.round(y),w,h);}
-  if(crateSel==='diamond'){
-    for(let k=0;k<25;k++)rect((k*67+23)%288,(k*17+4)%43,1,1,k%3?'#91b3ce':'#eaf6ff');
+  const anim = crateAnim;
+  const progress = crateReveal ? 1 : anim && !anim.reduceMotion ? Math.min(1,(t-anim.t0)/950) : 0;
+  const lid = crateEase((progress-.22)/.30);
+  const rise = crateEase((progress-.34)/.52);
+  const accent = {steel:'#d1e4eb',gold:'#ffd374',diamond:'#91ecff'}[crateSel];
+  // Frame the chest in the foreground of the wharf.
+  c.fillStyle = 'rgba(12,25,38,.58)';
+  c.fillRect(0,0,288,156);
+  const present = anim || crateReveal || S.crates[crateSel];
+  if (!present) return;
+  const press = progress < .22 ? Math.round(3*Math.sin(Math.PI*progress/.22)) : 0;
+  c.fillStyle = '#182632';
+  c.fillRect(98,130,92,4);
+  const body = chestPix(crateSel,'body'), cover = chestPix(crateSel,'lid');
+  c.imageSmoothingEnabled = false;
+  // The back hinge stays fixed as the lid tips away from the viewer.
+  const height = Math.round(32-23*lid);
+  c.drawImage(cover,3,4,20,8,104,96-height+press,80,height);
+  if (lid > 0) {
+    c.fillStyle = '#252634';
+    c.fillRect(104,95,80,4);
+    c.fillStyle = accent;
+    c.fillRect(108,95,72,2);
   }
-  // Two rails and a striped landing pad put the load on the wharf.
-  rect(116,134,82,3,'#192d39');rect(112,137,89,2,'#8f704d');
-  for(let i=0;i<10;i++)rect(116+i*8,134,4,2,'#d2a858');
-  const hookY=Math.round((hasCargo?base-55:48)*(1-release)+38*release);
-  rect(155,35,2,Math.max(1,hookY-35),'#243c49');
-  rect(159,35,1,Math.max(1,hookY-35),'#e7b770');
-  rect(153,hookY-1,9,4,'#273c46');rect(154,hookY,6,1,'#e7b358');
-  if(hasCargo&&release<1){
-    for(const sign of [-1,1])for(let i=0;i<=18;i++){
-      rect(157+sign*i*(1-release),hookY+i*.83*(1-release),2,2,'#293945');
+  c.drawImage(body,3,12,20,9,104,97+press,80,36-press);
+  if (rise > 0) {
+    const reward = crateReveal || anim.rew;
+    const y = Math.round(89-44*rise);
+    const size = Math.round(14+28*rise);
+    drawIcon(c,rewIconKind(reward.r),144,y,size,reward.r.tier);
+    for (let i=0;i<8;i++) {
+      const angle = i*Math.PI/4;
+      const radius = 20+rise*22;
+      const x = Math.round(144+Math.cos(angle)*radius);
+      const sy = Math.round(y+Math.sin(angle)*radius*.64);
+      c.fillStyle = i%2 ? '#fff3d6' : accent;
+      c.fillRect(x-2,sy,5,1);
+      c.fillRect(x,sy-2,1,5);
     }
   }
-  if(!hasCargo)return;
-  if(lid){
-    c.save();c.translate(157,113);c.globalAlpha=.25*lid;c.fillStyle=accent;
-    for(let i=0;i<9;i++){c.rotate(Math.PI*2/9);c.beginPath();c.moveTo(0,0);c.lineTo(-6,-98);c.lineTo(7,-98);c.fill();}
-    c.restore();
-  }
-  // Draw aligned sprite layers so the suspended load stays attached to its sling.
-  pixDraw(c,chestPix(crateSel,'body'),x-32,base-52,65,60);
-  pixDraw(c,chestPix(crateSel,'lid'),x-32-Math.round(9*lid),base-52-Math.round(19*lid),65,60);
-  if(rise){
-    const reward=opened?crateReveal:anim.rew;
-    const y=Math.round(92-40*rise);
-    drawIcon(c,rewIconKind(reward.r),157,y,30*rise,reward.r.tier);
-    for(let i=0;i<8;i++){
-      const angle=i*Math.PI/4, dist=15+rise*13;
-      rect(157+Math.cos(angle)*dist,y+Math.sin(angle)*dist*.72,2,2,i%2?accent:'#fff4cb');
-    }
-  }
-
 }
 function openCrate() {
   if (crateAnim) return; const tier = crateSel, C = CRATES[tier];
@@ -5603,10 +5600,9 @@ function openCrate() {
   crateSceneFrame = -1;
   crateAnim = { t0: performance.now(), tier, reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, rew: { r: rew, label } };
   buildCrates();
-  setText(mgPanel.querySelector('.freight-stamp'), 'UNLOADING');
   snd('open'); buzz(12);
   save();
-  setText($('#openBtn'), 'Unloading…');
+  setText($('#openBtn'), 'Opening…');
   updateCrateUI(); changed();
 }
 mgPanel.addEventListener('click', e => {
