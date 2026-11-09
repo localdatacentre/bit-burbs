@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=87">
+<link rel="stylesheet" href="pocket-ui.css?v=89">
 <style>
 .binlink-brand{display:flex;align-items:center;gap:8px;background:#16575c;color:#fff1d5;padding:6px 12px;margin:8px 0;font-size:24px}
 .binlink-brand canvas{width:39px;height:21px;image-rendering:pixelated}
@@ -1347,6 +1347,8 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
   <button class="pixel-btn pb sq" id="zmkt" aria-label="Dosh Shop" style="position:relative"><canvas data-icon="shop" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas><span class="dot" id="dotMkt" hidden>!</span></button>
   <button class="pixel-btn pb purple sq" id="zin" aria-label="Zoom in"><canvas data-icon="plus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
   <button class="pixel-btn pb purple sq" id="zout" aria-label="Zoom out"><canvas data-icon="minus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb sq" id="moveTool" aria-label="Move buildings" aria-pressed="false" title="Move buildings"><canvas data-icon="move" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb sq" id="eyeTool" aria-label="Transparent buildings" aria-pressed="false" title="Transparent buildings"><canvas data-icon="eye" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
 </div>
 
 <section id="card" aria-live="polite"></section>
@@ -3021,6 +3023,8 @@ const DAILY_DEALS = {
 /* ================= pixel art kit ================= */
 const PX_PAL = {k:'#15122E',W:'#FFFFFF',B:'#3E7BFA',b:'#2A55C4',Y:'#FFD23F',y:'#F2B32C',o:'#C98A0C',w:'#FFF6C8',R:'#E53B3B',r:'#A8202A',G:'#4BE34B',g:'#2E9E2E',O:'#FF8A1F',S:'#9AA6B8',s:'#D9DFE8',L:'#E8ECF4',N:'#C9965A',n:'#8A5A2A',T:'#F4E2B0',P:'#F6C9A0',C:'#6ADAF6',c:'#2B7FB0',V:'#8E5CF7',v:'#5A2FC0',D:'#3A3F4A',H:'#B8860B',q:'#FFFFFF',x:'#8A1620',X:'#D9343F',l:'#A8875A',p:'#C9A86A',K:'#36C9D2',E:'#8AE07A',F:'#3FB52E',f:'#2A8A22',Z:'#1E5A1A',t:'#FFE066',U:'#FF5A7A',u:'#C42F55'};
 const PX_MAP = {
+move:['......kk......','.....kWWk.....','....kWWWWk....','.....kWWk.....','..k..kWWk..k..','.kWkkkWWkkkWk.','kWWWWWWWWWWWWk','kWWWWWWWWWWWWk','.kWkkkWWkkkWk.','..k..kWWk..k..','.....kWWk.....','....kWWWWk....','.....kWWk.....','......kk......'],
+eye:['..............','..............','....kkkkkk....','..kkWWWWWWkk..','.kWWWWkkWWWWk.','kWWWkCCCBkWWWk','kWWkCCkkCBkWWk','kWWkCCkkCBkWWk','kWWWkBBBBkWWWk','.kWWWWkkWWWWk.','..kkWWWWWWkk..','....kkkkkk....','..............','..............'],
 cash:['....kkkkkk....','..kkYYYYYYkk..','.kYYwwYYYYyyk.','.kYwYYooooYyk.','kYwYYoYYYYoyyk','kYYYoYYYYYYoyk','kYYYoYYYYYYoyk','kYYYoYYYYYYoyk','kYYYoYYYYYYoyk','kyYYYoYYYYoyyk','.kyYYYooooyyk.','.kyyyYYYYyyyk.','..kkyyyyyykk..','....kkkkkk....'],
 dosh:['..............','..kkkkkkkkkkkk','..kEEEEEEEEEEk','kkkkkkkkkkkkEk','kEEEEEEEEEEkEk','kEFFFFFFFFEkfk','kFFFFkkFFFFkfk','kFFFkEEkFFFkkk','kFFFkEEkFFFk..','kFFFFkkFFFFk..','kEFFFFFFFFEk..','kffffffffffk..','kkkkkkkkkkkk..','..............'],
 deed:['..............','.kkkkkkkkkkkk.','kTTTTTTTTTTTTk','kpkkkkkkkkkkpk','.kTTTTTTTTTTk.','.kTlllllllTTk.','.kTTTTTTTTTTk.','.kTllllllTTTk.','.kTTTTTTTTTTk.','.kTlllTTTXXTk.','.kTTTTTTXXXXk.','kpkkkkkkkXXkpk','kTTTTTTTTxTTTk','.kkkkkkkkxkkk.'],
@@ -3211,10 +3215,43 @@ const isLand = (i, j) => i >= 0 && j >= 0 && i < N && j < N && !!ISL.land[j * N 
 const isBeach = (i, j) => !isLand(i, j) || !!ISL.beach[j * N + i];
 const isRoad = (i, j) => { const t = tileAt(i, j); return !!t && t.id === 'road'; };
 const roadNear = (i, j) => isRoad(i + 1, j) || isRoad(i - 1, j) || isRoad(i, j + 1) || isRoad(i, j - 1);
-const fpOf = id => { const d = DEFS[id]; return [(d && d.fx) || 1, (d && d.fy) || 1]; };
+function fpOf(id,turned=false){
+  const d=DEFS[id],w=d?.fx||1,h=d?.fy||1;return turned?[h,w]:[w,h];
+}
 const anchorOf = (i, j) => { const t = tileAt(i, j); return t && t.id === '_occ' ? { i: t.ref[0], j: t.ref[1] } : { i, j }; };
-function roadNearFP(i, j, id) { const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) { if (isRoad(i + a, j - 1) || isRoad(i + a, j + fy)) return true; } for (let b = 0; b < fy; b++) { if (isRoad(i - 1, j + b) || isRoad(i + fx, j + b)) return true; } return false; }
-function fpFree(i, j, id) { if(isStop(id)&&!stopKerb(i,j))return false; const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) { if (!inB(i + a, j + b) || tileAt(i + a, j + b)) return false; } return true; }
+function roadNearFP(i, j, id, turned=tileAt(i,j)?.turned) { const [fx, fy] = fpOf(id,turned); for (let a = 0; a < fx; a++) { if (isRoad(i + a, j - 1) || isRoad(i + a, j + fy)) return true; } for (let b = 0; b < fy; b++) { if (isRoad(i - 1, j + b) || isRoad(i + fx, j + b)) return true; } return false; }
+function fpFree(i,j,id,turned=false,source=null){
+  if(!Number.isInteger(i)||!Number.isInteger(j)||isStop(id)&&!stopKerb(i,j))return false;
+  const [w,h]=fpOf(id,turned);
+  for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++){
+    const x=i+dx,y=j+dy;
+    if(!inB(x,y))return false;
+    if(tileAt(x,y)){
+      const a=anchorOf(x,y);
+      if(!source||a.i!==source.i||a.j!==source.j)return false;
+    }
+  }
+  return true;
+}
+function occupy(i,j,t){
+  const [w,h]=fpOf(t.id,t.turned);
+  for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++)
+    setTile(i+dx,j+dy,dx||dy?{id:'_occ',ref:[i,j]}:t);
+}
+function vacate(i,j,t){
+  const [w,h]=fpOf(t.id,t.turned);
+  for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++){
+    const a=anchorOf(i+dx,j+dy);
+    if(a.i===i&&a.j===j)setTile(i+dx,j+dy,null);
+  }
+}
+function commitMove(edit,i,j){
+  const {source,object,turned}=edit;
+  if(tileAt(source.i,source.j)!==object||!fpFree(i,j,object.id,turned,source))return false;
+  vacate(source.i,source.j,object);
+  object.turned=!!turned;occupy(i,j,object);
+  derive();changed();save();snd('build');return true;
+}
 const boostOn = () => S.boostUntil > now();
 const boostMul = () => boostOn() ? 2 : 1;
 
@@ -3380,27 +3417,27 @@ function collectInd(i, j) {
   if (amt < 1) { toast('Nothing produced yet.'); return; }
   S.cash += amt; t.stock = 0; grindAdd(1); snd('coins'); track('industry'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
 }
-function placeAt(i, j, id, fromItem) {
+function placeAt(i, j, id, fromItem, turned=false) {
   const d = DEFS[id];
   if (!d || Boolean(MARKET[id]) !== Boolean(fromItem)) return false;
   if (!inB(i, j)) { snd('error'); toast('That land is locked. Expand from the Town Hall.'); return false; }
   if(isStop(id)&&!stopKerb(i,j)){toast('Choose a clear plot beside the middle of a straight road.');return false;}
-  if (!fpFree(i, j, id)) { snd('error'); const [fx, fy] = fpOf(id); toast(fx * fy > 1 ? 'This needs a clear ' + fx + '×' + fy + ' space here.' : 'Something is already built there.'); return false; }
+  if (!fpFree(i, j, id, turned)) { snd('error'); const [fx, fy] = fpOf(id,turned); toast(fx * fy > 1 ? 'This needs a clear ' + fx + '×' + fy + ' space here.' : 'Something is already built there.'); return false; }
   const cost = fromItem ? 0 : costOf(id);
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
   if (fromItem && !(S.shopItems && S.shopItems[id] > 0)) { snd('error'); toast('You have none of this Dosh Shop item left.'); return false; }
-  S.cash -= cost; setTile(i, j, newTile(id)); { const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) if (a || b) setTile(i + a, j + b, { id: '_occ', ref: [i, j] }); } if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
+  S.cash -= cost; const tile=newTile(id);if(turned)tile.turned=true;occupy(i,j,tile); if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
   if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build'); addXP(Math.max(5, cost / 40)); popup(i, j, d.name + '!', '#FFF3D6'); }
   if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
 }
 function demolish(i, j) {
   ({ i, j } = anchorOf(i, j)); const t = tileAt(i, j); if (!t || t.id === 'hall') return;
-  { const [fx, fy] = fpOf(t.id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) if (a || b) { const o = tileAt(i + a, j + b); if (o && o.id === '_occ') setTile(i + a, j + b, null); } }
+  vacate(i,j,t);
   const d = DEFS[t.id];
   if (MARKET[t.id]) { S.items[t.id] = (S.items[t.id] || 0) + 1; S.shopItems[t.id] = (S.shopItems[t.id] || 0) + 1; toast(d.name + ' packed into My items.'); }
   else if (t.id !== 'road') { const back = Math.round(d.cost * .5); S.cash += back; toast('Demolished. Refunded ' + fmt(back) + ' Coins.'); }
-  setTile(i, j, null); sel = null; changed();
+  sel = null; changed();
 }
 function expand() {
   const e = EXPAND[expIdx()]; if (!e) return;
@@ -3497,6 +3534,21 @@ function T(hex) {
 
 /* ================= view / camera ================= */
 let sel = null, placing = null, view = 'normal';
+let pickingMove=false,transparency=null;
+function fadedBuildings(){return transparency??!!placing;}
+function syncMapTools(){
+  $('#moveTool').setAttribute('aria-pressed',String(!!(pickingMove||placing?.source)));
+  $('#eyeTool').setAttribute('aria-pressed',String(fadedBuildings()));
+}
+function fitsEdit(g){return g&&fpFree(g.i,g.j,placing.id,placing.turned,placing.source);}
+function canTurn(id){return id!=='road'&&!isStop(id);}
+function pickForMove(i,j){
+  const source=anchorOf(i,j),object=tileAt(source.i,source.j);
+  if(!object||!DEFS[object.id])return false;
+  pickingMove=false;sel=null;
+  placing={id:object.id,object,source,turned:!!object.turned,ghost:{...source}};
+  renderCard(true);return true;
+}
 let PX = 3;
 const low = document.createElement('canvas');
 const lowOut = low.getContext('2d');
@@ -3952,12 +4004,12 @@ function spriteImg(sp,mir){
   }
   sp[key]={stage,img:c};return c;
 }
-function spriteBox(i, j, id) {
+function spriteBox(i, j, id, turned=tileAt(i,j)?.turned) {
   const stop=tileAt(i,j);
   const transport=isStop(id);
   const orientation=transport?(stopKerb(i,j,stop?.stopDir)?.dir??stop?.stopDir??1):0;
-  const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id); if (!sp) return null; const [fx, fy] = fpOf(id); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
-  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !transport && ROT % 2 === 1; const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
+  const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id); if (!sp) return null; const [fx, fy] = fpOf(id,turned); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
+  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
   return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
 // Frames are rendered from the approved models at the same metres-per-tile scale.
 const streetArt = new Image();
@@ -4255,8 +4307,8 @@ function drawVehicle(v){
 }
 document.addEventListener('visibilitychange',()=>{serviceClock=null;});
 
-function drawBuilding(i, j, id) {
-  { const b = spriteBox(i, j, id); if (b) { const c = V.ctx; const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(spriteImg(b.sp, b.mir), b.x, b.y, b.w, b.h);
+function drawBuilding(i, j, id, turned=tileAt(i,j)?.turned) {
+  { const b = spriteBox(i, j, id,turned); if (b) { const c = V.ctx; const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(spriteImg(b.sp, b.mir), b.x, b.y, b.w, b.h);
     if (b.sp.rotor) {
       const hub = b.sp.rotor;
       drawRotor(c, b.x + (b.mir ? b.sp.w-hub.x : hub.x)*b.s, b.y+hub.y*b.s, b.s,
@@ -4407,7 +4459,7 @@ function render() {
   drawOverlay();
   if (sel) poly(diamond(sel.i, sel.j), 'rgba(255,255,255,.25)', '#FFFFFF', 3);
   if (placing && placing.ghost) {
-    const gi = placing.ghost; const ok = fpFree(gi.i, gi.j, placing.id); const [gfx, gfy] = fpOf(placing.id);
+    const gi = placing.ghost; const ok = fitsEdit(gi); const [gfx, gfy] = fpOf(placing.id,placing.turned);
     poly([P(gi.i, gi.j), P(gi.i + gfx, gi.j), P(gi.i + gfx, gi.j + gfy), P(gi.i, gi.j + gfy)], ok ? 'rgba(80,230,80,.5)' : 'rgba(230,60,60,.5)', '#FFFFFF', 2);
     const d = DEFS[placing.id];
     if (ok && d.rad) poly([P(gi.i - d.rad, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j + d.rad + 1), P(gi.i - d.rad, gi.j + d.rad + 1)], d.poll ? 'rgba(229,59,59,.15)' : 'rgba(62,123,250,.15)', d.poll ? '#E53B3B' : '#7FB2FF', 2);
@@ -4416,9 +4468,9 @@ function render() {
   for(const lamp of streetLamps)objs.push({lamp,d:vdepth(lamp.x,lamp.y)});
   for(const vehicle of [...traffic,...buses])objs.push({vehicle,d:vdepth(vehicle.x,vehicle.y)+.04});
   for(const walker of walkers)objs.push({walker,d:vdepth(walker.x,walker.y)+.015});
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const t = S.tiles[j * N + i]; if(t && t.id==='road') addJunctionSignals(objs,i,j); if (t && t.id !== 'road' && t.id !== '_occ' && DEFS[t.id]) { const [fx, fy] = fpOf(t.id); objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, t }); } }
-  if (placing && placing.ghost && placing.id !== 'road' && fpFree(placing.ghost.i, placing.ghost.j, placing.id)) {
-    const { i, j } = placing.ghost, [fx, fy] = fpOf(placing.id);
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const t = S.tiles[j * N + i]; if(t && t.id==='road') addJunctionSignals(objs,i,j); if (t && t.id !== 'road' && t.id !== '_occ' && DEFS[t.id]) { const [fx, fy] = fpOf(t.id,t.turned); objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, t }); } }
+  if (placing && placing.ghost && placing.id !== 'road' && fitsEdit(placing.ghost)) {
+    const { i, j } = placing.ghost, [fx, fy] = fpOf(placing.id,placing.turned);
     objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id });
   }
   objs.sort((a, b) => a.d - b.d);
@@ -4429,11 +4481,12 @@ function render() {
     if(o.vehicle){drawVehicle(o.vehicle);return;}
     if(o.walker){drawWalker(o.walker);return;}
     if(o.signal){drawJunctionSignal(o,signalSeconds);return;}
-    if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost); V.ctx.restore(); return; }
-    if (placing) { V.ctx.save(); V.ctx.globalAlpha = .22; drawBuilding(o.i, o.j, o.t.id); V.ctx.restore(); }
+    if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost,placing.turned); V.ctx.restore(); return; }
+    if(placing?.object===o.t)return;
+    if (fadedBuildings()) { V.ctx.save(); V.ctx.globalAlpha = .22; drawBuilding(o.i, o.j, o.t.id); V.ctx.restore(); }
     else drawBuilding(o.i, o.j, o.t.id);
     const d = DEFS[o.t.id]; const sb = spriteBox(o.i, o.j, o.t.id);
-    if (sb) hulls.push({ i: o.i, j: o.j, x0: sb.x, x1: sb.x + sb.w, y0: sb.y, y1: sb.groundY, multi: true });
+    if (sb) hulls.push({ i: o.i, j: o.j, x0: sb.x, x1: sb.x + sb.w, y0: sb.y, y1: sb.groundY, box:sb, multi: true });
     else { const hgt = (d.h || 16) * hFac(o.t) * V.z; const dm = diamond(o.i, o.j); const xs = dm.map(q => q.x), ys = dm.map(q => q.y); hulls.push({ i: o.i, j: o.j, x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys) - hgt, y1: Math.max(...ys) }); }
   });
   lowOut.imageSmoothingEnabled = false; lowOut.clearRect(0, 0, lw, lh); lowOut.drawImage(mid, 0, 0, lw * 2, lh * 2, 0, 0, lw, lh);
@@ -4442,7 +4495,7 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   V.cx = camX; V.cy = camY;
   drawTutArrow();
-  badgeHits = []; const tnow = now(); const hideBadges = !!placing;
+  badgeHits = []; const tnow = now(); const hideBadges = !!placing||pickingMove||fadedBuildings();
   D.list.forEach(b => {
     const d = b.d, t = b.t; if (hideBadges || d.type === 'decor' || d.type === 'hall' || d.type === 'transport') return;
     const a = up(P(b.i + .5, b.j + .5), (d.h || 20) * hFac(t) * V.z + 10); let hit = null;
@@ -4489,12 +4542,28 @@ function clampCam() {
   if (c.y < H / 2 - limY) V.cy += (H / 2 - limY) - c.y; if (c.y > H / 2 + limY) V.cy -= c.y - (H / 2 + limY);
 }
 function pickTile(sx, sy) {
-  for (let k = hulls.length - 1; k >= 0; k--) { const h = hulls[k]; if (h.multi && sx >= h.x0 && sx <= h.x1 && sy >= h.y0 && sy <= h.y1) { const w = screenToWorld(sx, sy); const a = anchorOf(Math.floor(w.x), Math.floor(w.y)); if ((a.i === h.i && a.j === h.j) || sy < h.y1 - 4) return { i: h.i, j: h.j }; continue; } if (sx >= h.x0 && sx <= h.x1 && sy >= h.y0 && sy <= h.y1) { const w = screenToWorld(sx, sy); if ((Math.floor(w.x) === h.i && Math.floor(w.y) === h.j) || sy < P(h.i + .5, h.j + .5).y) return { i: h.i, j: h.j }; } }
+  if(!fadedBuildings())for(let n=hulls.length-1;n>=0;n--){
+    const h=hulls[n];
+    if(sx<h.x0||sx>=h.x1||sy<h.y0||sy>h.y1)continue;
+    if(h.box){
+      const {sp,s,mir}=h.box;
+      const u=Math.floor((sx-h.x0)/s),v=Math.floor((sy-h.y0)/s);
+      if(v<0||v>=sp.h||u<0||u>=sp.w)continue;
+      if(!sp.hitPixels)sp.hitPixels=sp.img.getContext('2d').getImageData(0,0,sp.w,sp.h).data;
+      if(sp.hitPixels[4*(v*sp.w+(mir?sp.w-1-u:u))+3]<32)continue;
+    }
+    return {i:h.i,j:h.j};
+  }
   const w = screenToWorld(sx, sy); const i = Math.floor(w.x), j = Math.floor(w.y);
   if (i < 0 || j < 0 || i >= N || j >= N) return null; return { i, j };
 }
 function onTap(x, y) {
-  if (placing) { const gw = screenToWorld(x, y); const gi = Math.floor(gw.x), gj = Math.floor(gw.y); const tl = gi >= 0 && gj >= 0 && gi < N && gj < N ? { i: gi, j: gj } : null; if (!tl) return; if (placing.id === 'road') { placeAt(tl.i, tl.j, 'road', false); } else placing.ghost = tl; renderCard(true); return; }
+  if(pickingMove){
+    const hit=pickTile(x,y);
+    if(!hit||!pickForMove(hit.i,hit.j))toast('Tap a building, road or decoration to move it.');
+    return;
+  }
+  if (placing) { const gw = screenToWorld(x, y); const gi = Math.floor(gw.x), gj = Math.floor(gw.y); const tl = gi >= 0 && gj >= 0 && gi < N && gj < N ? { i: gi, j: gj } : null; if (!tl) return; if (placing.id === 'road'&&!placing.source) { placeAt(tl.i, tl.j, 'road', false); } else placing.ghost = tl; renderCard(true); return; }
   for (let k = badgeHits.length - 1; k >= 0; k--) {
     const b = badgeHits[k];
     if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
@@ -4587,7 +4656,8 @@ const card = $('#card');
 let cardKey = '', demoArm = false;
 function select(i, j) { if (i === null || i === undefined) { sel = null; demoArm = false; renderCard(true); return; } { const a = anchorOf(i, j); i = a.i; j = a.j; } { } sel = { i, j }; demoArm = false; renderCard(true); }
 function cardState() {
-  if (placing) return 'place|' + placing.id + '|' + (placing.ghost ? placing.ghost.i + ',' + placing.ghost.j : '') + '|' + (S.cash >= (placing.fromItem ? 0 : costOf(placing.id))) + '|' + (placing.fromItem ? S.items[placing.id] : '');
+  if(pickingMove)return 'pickMove';
+  if (placing) return 'place|' + !!placing.source + '|' + !!placing.turned + '|' + placing.id + '|' + (placing.ghost ? placing.ghost.i + ',' + placing.ghost.j : '') + '|' + (S.cash >= (placing.fromItem ? 0 : costOf(placing.id))) + '|' + (placing.fromItem ? S.items[placing.id] : '');
   if (!sel) return 'none';
   const t = tileAt(sel.i, sel.j); if (!t) return 'empty|' + sel.i + ',' + sel.j + '|' + inB(sel.i, sel.j) + '|' + roadNear(sel.i, sel.j);
   const b = t._ || {};
@@ -4603,18 +4673,23 @@ function statusTags(b) {
 }
 function coverageTags(i, j) { const m = D.svc[j * N + i]; return `<div class="tags">${SVC_NAMES.map((n, k) => `<span class="tag ${m & (1 << k) ? 'ok' : ''}">${n}</span>`).join('')}${D.poll[j * N + i] > 0 ? '<span class="tag bad">Pollution</span>' : ''}</div>`; }
 function renderCard(force) {
+  syncMapTools();
   const k = cardState();
   if (!force && k === cardKey) { liveCard(); return; }
   cardKey = k;
   if (sheet || mg) { card.classList.remove('show'); return; }
   let html = '';
-  if (placing) {
-    const d = DEFS[placing.id];
-    if (placing.id === 'road') html = head('Laying roads', 'Tap tiles to place road, 20 Coins each.') + `<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>`;
-    else {
-      const g = placing.ghost; const ok = g && fpFree(g.i, g.j, placing.id); const cost = placing.fromItem ? 0 : costOf(placing.id);
-      const msg = isStop(placing.id)?(ok?'Ready for BinLink service.':'Choose an empty plot beside the middle of a straight road.'):!g ? 'Tap an empty tile inside the dotted border.' : (ok ? (d.type === 'decor' || roadNearFP(g.i, g.j, placing.id) ? 'Good spot.' : 'No road next to this spot yet. It won’t work until you add one.') : 'You can’t build there.');
-      html = head('Place ' + d.name, msg + (d.rad ? (d.poll ? ' The red square shows where it pollutes.' : ' The blue square shows who it helps.') : '')) + `<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok && S.cash >= cost ? '' : 'disabled'}>${cost ? 'Build · ' + fmt(cost) : 'Place'}</button></div>`;
+  if(pickingMove){
+    html=head('Move a building','Tap a building, road or decoration on the map.')+
+      '<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button></div>';
+  }else if (placing) {
+    const d=DEFS[placing.id],moving=!!placing.source;
+    if (placing.id==='road'&&!moving) html=head('Laying roads','Tap tiles to place road, 20 Coins each.')+'<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>';
+    else{
+      const g=placing.ghost,ok=fitsEdit(g),cost=moving||placing.fromItem?0:costOf(placing.id);
+      const msg=!g?'Tap a tile to preview the footprint.':!ok?(isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.') :
+        moving?'Tap a new spot, or confirm here.':d.type==='decor'||roadNearFP(g.i,g.j,placing.id,placing.turned)?'Ready to place.':'This spot has no adjacent road.';
+      html=head((moving?'Move ':'Place ')+d.name,msg)+`<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button>${canTurn(placing.id)?'<button class="pixel-btn pb" data-act="turnBuilding">Rotate</button>':''}<button class="pixel-btn pb green" data-act="confirmPlace" ${ok&&(moving||S.cash>=cost)?'':'disabled'}>${moving?'Confirm':cost?'Build · '+fmt(cost):'Place'}</button></div>`;
     }
   } else if (sel) {
     const t = tileAt(sel.i, sel.j);
@@ -4673,9 +4748,14 @@ function liveCard() {
 }
 card.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
-  if (a === 'closeCard') { snd('back'); placing = null; select(null); return; }
-  if (a === 'cancelPlace' || a === 'donePlace') { placing = null; renderCard(true); return; }
-  if (a === 'confirmPlace') { const g = placing.ghost; if (g && placeAt(g.i, g.j, placing.id, placing.fromItem)) { placing = null; select(g.i, g.j); } return; }
+  if (a === 'closeCard') { snd('back'); pickingMove=false;placing = null; select(null); return; }
+  if (a === 'cancelPlace' || a === 'donePlace') { pickingMove=false;placing = null; renderCard(true); return; }
+  if(a==='turnBuilding'&&placing&&canTurn(placing.id)){placing.turned=!placing.turned;renderCard(true);return;}
+  if(a==='confirmPlace'&&placing){
+    const g=placing.ghost;if(!g)return;
+    const ok=placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
+    if(ok){placing=null;select(g.i,g.j);}return;
+  }
   if (!sel) return;
   if(a==='shelterUpgrade')upgradeStop(sel.i,sel.j);
   else if (a === 'collect') collectShop(sel.i, sel.j);
@@ -4701,7 +4781,7 @@ function animateTo(wx, wy) { const r = rotXY(wx, wy); camAnim = { sx: V.cx, sy: 
 /* ================= sheets: build + tasks ================= */
 let sheet = null, sheetKeyVal = '', buildTab = 'homes', buildTarget = null, resetArm = false, taskTab = 'tasks';
 const sheetEl = $('#sheet'), sheetBody = $('#sheetBody'), scrim = $('#scrim');
-function openSheet(name) { snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); }
+function openSheet(name) { pickingMove=false; snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); }
 function closeSheet() { snd('close'); document.body.classList.remove('sheet-open'); sheet = null; buildTarget = null; sheetEl.classList.remove('open'); scrim.classList.remove('open'); renderCard(true); }
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
@@ -4823,7 +4903,7 @@ sheetEl.addEventListener('click', e => {
 /* ================= mini-games ================= */
 const mgEl = $('#mg'), mgPanel = $('#mgPanel');
 let mg = null;
-function openMg(name) { if (name !== 'crates') snd('open');
+function openMg(name) { pickingMove=false; if (name !== 'crates') snd('open');
   $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null);
   if (sheet) closeSheet(); mg = name; card.classList.remove('show');
   mgPanel.className = 'mgp ' + (name === 'dice' ? 'tan' : 'purple') + ' mg-' + name;
@@ -5725,6 +5805,15 @@ $('#clock').style.cursor = 'pointer';
 $('#clock').addEventListener('click', () => { const tm = SK.times || {}; const f = x => x ? new Date(x).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; toast('Sunrise ' + f(tm.rise) + ' · Sunset ' + f(tm.set) + (LOC.src === 'gps' ? ' · your location' : ' · tap Tasks to use your location')); });
 $('#coachSkip').addEventListener('click', skipTut);
 $('#rsAll').addEventListener('click', () => restockAll());
+$('#moveTool').addEventListener('click',()=>{
+  const active=pickingMove||!!placing?.source;
+  placing=null;pickingMove=!active;
+  if(pickingMove&&sel&&pickForMove(sel.i,sel.j))return;
+  sel=null;renderCard(true);
+});
+$('#eyeTool').addEventListener('click',()=>{
+  transparency=!fadedBuildings();syncMapTools();
+});
 $('#zin').addEventListener('click', () => snapZoom(W / 2, mapMidY(), 1));
 $('#zout').addEventListener('click', () => snapZoom(W / 2, mapMidY(), -1));
 
@@ -5771,7 +5860,7 @@ function makeWalkingGraph() {
     if(!d || !['home','shop','svc','hall'].includes(d.type))continue;
     const entrances=spriteOf(tile.id)?.entrances;
     if(!entrances?.length)continue;
-    const [w,h]=fpOf(tile.id), L=i+.035,R=i+w-.035,T=j+.035,B=j+h-.035;
+    const [w,h]=fpOf(tile.id,tile.turned), L=i+.035,R=i+w-.035,T=j+.035,B=j+h-.035;
     // Clockwise distance around this lot. Follow its boundary even if the road
     // runs along the rear of the building.
     const width=R-L,height=B-T,perimeter=2*(width+height);
@@ -5794,8 +5883,9 @@ function makeWalkingGraph() {
     }
     let best=null;
     for(const door of entrances) {
-      const x=i+door.x,y=j+door.y;
-      const gate=door.side==='front'?{x,y:B,s:width+height+R-x}:{x:R,y,s:width+y-T};
+      const x=i+(tile.turned?door.y:door.x),y=j+(tile.turned?door.x:door.y);
+      const front=(door.side==='front')!==!!tile.turned;
+      const gate=front?{x,y:B,s:width+height+R-x}:{x:R,y,s:width+y-T};
       for(const a of access){
         const cw=(a.s-gate.s+perimeter)%perimeter,forward=cw<=perimeter/2;
         const span=Math.min(cw,perimeter-cw), distance=Math.hypot(x-gate.x,y-gate.y)+span;

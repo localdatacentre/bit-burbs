@@ -1043,3 +1043,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
  margin-left:3px!important;
  image-rendering:pixelated!important;
 }
+
+#mapctl button.pixel-btn.sq[aria-pressed="true"]{
+ --bb-face:#328c79;--bb-top:#68b8a0;--bb-bottom:#246d64;--bb-edge:#184f49;
+}
