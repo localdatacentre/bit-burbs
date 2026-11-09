@@ -1134,6 +1134,70 @@ body.tut-on #coach{border-color:#FFC93C!important}
 #hud .chip canvas{width:22px!important;height:22px!important;flex:0 0 22px!important;image-rendering:pixelated}
 @media(max-width:380px){#hud .chips{gap:5px!important}#hud .chip{gap:4px!important;font-size:18px!important}#hud .chip canvas{width:21px!important;height:21px!important;flex-basis:21px!important}}
 
+
+/* ===== approved flat pixel button skin v1 ===== */
+:root{
+ --flat-cut:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px));
+}
+/* Each colour is one flat face plus a darker edge and two subtle pixel accents.
+   Do not touch canvases / currency icon assets. */
+.pb,.pb.green,.pb.purple,.pb.teal,.pb.cream,.pb.red,.pb.gold,
+#nav .pb,#mapctl .pb.sq,#mapctl #zmkt,
+#sheetBody .task .pb,.shead .pb[data-act="closeSheet"],
+.mgp .pb,.mg-crates #openBtn,.mg-crates .ctier,.tier,
+.rsall,.daily-claim,.streak-claim,.coach-skip{
+ --face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;
+ appearance:none!important;position:relative;
+ border:2px solid var(--edge)!important;border-radius:0!important;
+ background:var(--face)!important;background-image:none!important;
+ clip-path:var(--flat-cut)!important;
+ box-shadow:inset 0 3px 0 var(--light),inset 0 -4px 0 var(--shade)!important;
+ outline:0!important;filter:none!important;
+ color:#FFFFFF!important;font-family:'VT323',monospace!important;
+ font-weight:400!important;text-shadow:none!important;
+ animation:none!important;
+}
+.pb::before,.pb::after,#nav .pb::before,#nav .pb::after,
+#mapctl .pb::before,#mapctl .pb::after,
+.shead .pb[data-act="closeSheet"]::before,
+.shead .pb[data-act="closeSheet"]::after,
+#sheetBody .task .pb::before,#sheetBody .task .pb::after{
+ display:none!important;content:none!important;
+}
+.pb.green,.daily-claim,.streak-claim,.rsall{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
+.pb.purple,.pb.teal,.pb.cream{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
+.pb.red,.shead .pb[data-act="closeSheet"],.mgp .mgx,.chead .x{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
+.pb.gold{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
+.pb.sq,.pb.sq.purple{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
+#nav .pb{min-width:0!important;min-height:56px!important;padding:4px 2px!important;gap:3px!important;font-size:18px!important}
+#nav .pb[data-open="build"]{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
+#nav .pb[data-open="wheel"]{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
+#nav .pb[data-open="crates"]{--face:#E95B9C;--edge:#AC3975;--light:#FF87BA;--shade:#C84686}
+#nav .pb[data-open="tasks"]{--face:#F28D2B;--edge:#AF5D16;--light:#FFB75E;--shade:#D8731F}
+#nav .pb[data-open="settings"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86}
+#nav .pb[data-open]{background:var(--face)!important;color:#FFFFFF!important;border-color:var(--edge)!important;box-shadow:inset 0 3px 0 var(--light),inset 0 -4px 0 var(--shade)!important}
+#mapctl .pb.sq{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
+#mapctl #zmkt{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
+#mapctl .pb.sq,#mapctl #zmkt{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;border:2px solid var(--edge)!important;clip-path:var(--flat-cut)!important;background:var(--face)!important;box-shadow:inset 0 3px 0 var(--light),inset 0 -4px 0 var(--shade)!important}
+#sheetBody .tabs .pb[aria-pressed="false"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86;color:#FFFFFF!important}
+#sheetBody .tabs .pb[aria-pressed="true"]{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;color:#FFFFFF!important}
+#sheetBody .tabs .pb[data-tab="items"]{--face:#3B8D68;--edge:#20583F;--light:#62B98C;--shade:#27734F;color:#FFFFFF!important}
+#sheetBody .tabs .pb[data-tab="items"][aria-pressed="true"]{--face:#57B77E;--edge:#20583F;--light:#81D59E;--shade:#33955C;color:#FFFFFF!important}
+.shead .pb[data-act="closeSheet"],.mgp .pb.mgx,.chead .pb.x{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843;background:var(--face)!important;border-color:var(--edge)!important;width:36px!important;height:36px!important;min-height:36px!important}
+.shead .pb.infob,.mgp .pb.infob{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;background:var(--face)!important;border-color:var(--edge)!important}
+#sheetBody .task .pb{background:var(--face)!important;border-color:var(--edge)!important}
+#rollBtn,#spinBtn,#openBtn{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843;border-color:var(--edge)!important}
+.mg-crates #openBtn{background:var(--face)!important;border-color:var(--edge)!important}
+.mg-crates .ctier{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985;background:var(--face)!important;border-color:var(--edge)!important}
+.mg-crates .ctier[aria-pressed="true"]{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12;background:var(--face)!important;border-color:var(--edge)!important;color:#33210D!important}
+.mgp .pb[data-act="buy"],.mgp .pb[data-act="buy"].green,.mgp .pb[data-act="buy"].cream{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;background:var(--face)!important;border-color:var(--edge)!important}
+.pb:active:not(:disabled),#nav .pb:active:not(:disabled),#mapctl .pb:active:not(:disabled),.mg-crates .ctier:active:not(:disabled){
+ transform:translateY(2px)!important;box-shadow:inset 0 1px 0 var(--light),inset 0 -2px 0 var(--shade)!important;
+}
+.pb[disabled],.pb:disabled,.daily-claim:disabled,.streak-claim:disabled{opacity:.56!important;filter:grayscale(.4)!important}
+.pb:focus-visible,#nav .pb:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
+@media(prefers-reduced-motion:reduce){.pb{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -3452,6 +3516,30 @@ function unlockAudio() {
 }
 document.addEventListener('pointerdown', unlockAudio, { capture: true, passive: true });
 document.addEventListener('keydown', unlockAudio, { capture: true });
+
+/* Universal tactile UI press: works for dynamically generated buttons too.
+   Action SFX (coins, crates, wins) remain independently controlled by S.sound. */
+function pixelButtonPress(){
+  if (S.sound === false) return;
+  try{
+    audio();
+    sNoise(.009,{f:1950,q:2.5,vol:.105});
+    sTone(540,.038,{type:'square',vol:.042,to:360,att:.002});
+    sTone(900,.019,{type:'triangle',vol:.025,to:710,att:.001,at:.008});
+  }catch(e){/* audio unavailable or blocked */}
+}
+let lastPixelPress=0;
+function handlePixelPress(e){
+  const target=e.target instanceof Element ? e.target.closest('button') : null;
+  if(!target || target.disabled || target.getAttribute('aria-disabled')==='true')return;
+  const t=performance.now();
+  if(t-lastPixelPress<65)return;
+  lastPixelPress=t;
+  pixelButtonPress();
+}
+document.addEventListener('pointerdown',handlePixelPress,{capture:true,passive:true});
+document.addEventListener('click',e=>{if(e.detail===0)handlePixelPress(e);},{capture:true});
+
 function sTone(f, dur, o) {
   o = o || {}; const t = actx.currentTime + (o.at || 0); const os = actx.createOscillator(), g = actx.createGain();
   os.type = o.type || 'sine'; os.frequency.setValueAtTime(f, t); if (o.to) os.frequency.exponentialRampToValueAtTime(o.to, t + dur);
@@ -4173,21 +4261,3 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) { wind
 </body>
 </html>
 
-
-/* ===== button borders: darker shade of each button's own colour ===== */
-.pb{--btn-edge:#08758F!important}
-.pb::before{background:var(--btn-edge)!important}
-.pb.green{--btn-edge:#087F58!important}
-.pb.purple,.pb.teal,.pb.cream{--btn-edge:#403A91!important}
-.pb.red{--btn-edge:#A52C3B!important}
-.pb.gold{--btn-edge:#A96B12!important}
-.pb.sq{--btn-edge:#294765!important}
-#rollBtn,#spinBtn,#openBtn,.mcard .pb.green{--btn-edge:#A52C3B!important}
-#zmkt{--btn-edge:#A96B12!important}
-#nav .pb{--btn-edge:#294765!important}
-#nav .pb[data-open="build"]{--btn-edge:#B84E38!important}
-#nav .pb[data-open="dice"]{--btn-edge:#176F9B!important}
-#nav .pb[data-open="wheel"]{--btn-edge:#A92D64!important}
-#nav .pb[data-open="crates"]{--btn-edge:#9A6410!important}
-#nav .pb[data-open="tasks"]{--btn-edge:#237A50!important}
-#nav .pb::before,#zmkt::before{background:var(--btn-edge)!important}
