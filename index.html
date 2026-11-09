@@ -1863,10 +1863,12 @@ M.skytower={fx:1,fy:1,H:92,name:'Sky Tower',d(k){
   k.box(3.6,3.6,48,12.4,12.4,50,{top:'#E2ECF4',L:'#E2ECF4',R:'#B8C6D4'});
   const t2=k.box(5.5,5.5,50,10.5,10.5,78,{Lfn:gl(true),Rfn:gl(false),top:'#B8C6D4'});officeWindows(k,t2,(front,u,v)=>gl(front)(u,v),4,6);
   k.box(5.25,5.25,78,10.75,10.75,79,{top:'#DBE6EE',L:'#DEE8F0',R:'#A5BAC9',noRim:true});
-  const foot=k.sc(8,8,79),tip=k.sc(8,8,84);
-  k.line(foot.x,foot.y,tip.x,tip.y,'#697D8D');
-  edgeW(k,[6.5,8,84],[9.5,8,84],'#566D80');
-  for(const x of [6.75,8,9.25])edgeW(k,[x,7.25,84],[x,8.75,84],'#778B99');
+  // The two visible faces meet at a single tip above the roof centre.
+  const tip=[8,8,92],front=[8.65,8.65,79];
+  polyW(k,[[7.35,8.65,79],front,tip],'#93A9B9');
+  polyW(k,[front,[8.65,7.35,79],tip],'#617B90');
+  const peak=k.sc(...tip);
+  k.px(R(peak.x),R(peak.y),'#728899');
  });
  k.planter(1.8,4,2.6,12,'banksia');k.planter(13.8,13.6,14.4,14.2);k.tree(2.2,13.8,.75);
  k.planter(2,12,6,14,'pilly'); k.lamp(13.8,13.5);k.flush();}};
