@@ -2232,7 +2232,7 @@ function glassFence(k,x0,y0,x1,y1){
 function paling(k,x0,y0,x1,y1){k.add(x0,y0,x1,y1,()=>k.box(x0,y0,0,x1,y1,4,{top:'#7A5E3E',Lfn:(u)=>u%2?'#8A6A44':'#7A5E3E',Rfn:(u)=>u%2?'#6E5436':'#5E4630',noRim:true}));}
 const modernLot=(k,drive,extra)=>k.ground((wx,wy)=>{if(drive(wx,wy))return((R(wx)+R(wy))%2)?'#BDB8AE':'#B5B0A6';if(extra){const e=extra(wx,wy);if(e)return e;}return k.grass(wx,wy);});
 // The faces run clockwise from the driveway around the house.
-function modernHouse(k,turn){
+function houseView(k,turn){
  const point=(x,y,t=turn)=>[[x,y],[16-y,x],[16-x,16-y],[y,16-x]][t];
  function bounds(x0,y0,x1,y1){
   const [a,b]=point(x0,y0),[c,d]=point(x1,y1);
@@ -2240,6 +2240,10 @@ function modernHouse(k,turn){
  }
  const groundKit=Object.create(k);
  groundKit.ground=paint=>k.ground((x,y)=>paint(...point(x,y,(4-turn)%4)));
+ return {point,bounds,groundKit};
+}
+function modernHouse(k,turn){
+ const {point,bounds,groundKit}=houseView(k,turn);
  modernLot(groundKit,()=>false,(x,y)=>{
   if(x>=2&&x<5.6&&y>=10){
    const hash=Math.imul(R(x*2)+19,73856093)^Math.imul(R(y*2)+7,19349663);
@@ -2297,15 +2301,47 @@ function modernHouse(k,turn){
 for(let turn=0;turn<4;turn++){
  Q[turn?'m1-turn'+turn:'m1']={fx:1,fy:1,H:30,name:'Modern House',d:k=>modernHouse(k,turn)};
 }
-Q.m2={fx:1,fy:1,H:34,name:'Parkside House',d(k){
- modernLot(k,(wx,wy)=>wx>=7.6&&wx<10.4&&wy>=8);
- k.add(2,2,7.4,10.4,()=>{const b=k.box(2,2,0,7.4,10.4,10,{Lfn:k.siding('#2E3A40'),Rfn:k.siding('#26323A'),top:'#3A3F4A'});
-  k.win(k.L,b,1,1,4,8,{glass:'#9CCCE8',frame:'#E8E4DC'});k.door(k.L,b,7,3,8,'#C9A87A',{frame:'#E8E4DC'});
-  skillionRoof(k,2,2,7.4,10.4,10,16,'#AEB8C4','#26323A');});
- k.add(7.4,4,10.6,10.6,()=>{for(const [x,y] of [[10,5.8],[10,10]])k.box(x,y,0,x+.4,y+.4,9,{top:'#2A2440',L:'#3A3550',R:'#2A2440'});
-  k.box(7.4,5.6,9,10.6,10.6,9.6,{top:'#AEB8C4',L:'#8E99A8',R:'#7A8698'});});
- k.planting(11,11.6,14.8,12.4,'pilly',0,.74);
- k.tree(13.4,13.2,.69,0,'wattle');k.bush(1.8,12.6,1.6);tank(k,13.4,4,'#759490'); k.planter(2,13.2,5,14,'banksia');k.flush();}};
+function parksideHouse(k,turn){
+ const {point,bounds,groundKit}=houseView(k,turn);
+ modernLot(groundKit,(x,y)=>x>=7.6&&x<10.4&&y>=8);
+ const roofKit=Object.create(k);
+ roofKit.sc=(x,y,z)=>k.sc(...point(x,y),z);
+ function box(x,y,z,X,Y,Z,material){
+  const [a,b,c,d]=bounds(x,y,X,Y);
+  return k.box(a,b,z,c,d,Z,material);
+ }
+ const glass={glass:'#9CCCE8',frame:'#E8E4DC'};
+ function facade(face,b,side){
+  if(side===0){k.win(face,b,1,1,4,8,glass);k.door(face,b,7,3,8,'#C9A87A',{frame:'#E8E4DC'});}
+  if(side===2)k.win(face,b,2,3,7,5,{...glass,mullion:true});
+  if(side===3)k.win(face,b,5,4,7,4,glass);
+ }
+ k.add(...bounds(2,2,7.4,10.4),()=>{
+  const b=box(2,2,0,7.4,10.4,10,{Lfn:k.siding('#2E3A40'),Rfn:k.siding('#26323A'),top:'#3A3F4A'});
+  facade(k.L,b,turn);facade(k.Rf,b,(turn+1)%4);
+  if(turn===0){skillionRoof(k,2,2,7.4,10.4,10,16,'#AEB8C4','#26323A');return;}
+  const sides=[[[2,10.4,10],[7.4,10.4,10]],[[7.4,10.4,10],[7.4,2,16]],[[7.4,2,16],[2,2,16]],[[2,2,16],[2,10.4,10]]];
+  for(const side of [turn,(turn+1)%4]){
+   const [a,b]=sides[side];
+   polyW(roofKit,[[a[0],a[1],10],[b[0],b[1],10],b,a],'#26323A');
+  }
+  const rim=[[1.5,10.9,9.6],[7.9,10.9,9.6],[7.9,1.5,16.4],[1.5,1.5,16.4]];
+  polyW(roofKit,rim,'#AEB8C4');
+  for(const side of [turn,(turn+1)%4]){
+   const a=rim[side],b=rim[(side+1)%4];
+   polyW(roofKit,[a,b,[b[0],b[1],b[2]-1],[a[0],a[1],a[2]-1]],'#85909D');
+  }
+  for(let x=3;x<7.4;x+=2)edgeW(roofKit,[x,1.5,16.4],[x,10.9,9.6],'#9EA7B2');
+ });
+ k.add(...bounds(7.4,4,10.6,10.6),()=>{
+  for(const y of [5.8,10])box(10,y,0,10.4,y+.4,9,{top:'#2A2440',L:'#3A3550',R:'#2A2440'});
+  box(7.4,5.6,9,10.6,10.6,9.6,{top:'#AEB8C4',L:'#8E99A8',R:'#7A8698'});
+ });
+ k.planting(...bounds(11,11.6,14.8,12.4),'pilly',0,.74);
+ k.tree(...point(13.4,13.2),.69,0,'wattle');k.bush(...point(1.8,12.6),1.6);
+ tank(k,...point(13.4,4),'#759490');k.planter(...bounds(2,13.2,5,14),'banksia');k.flush();
+}
+for(let turn=0;turn<4;turn++)Q[turn?'m2-turn'+turn:'m2']={fx:1,fy:1,H:34,name:'Parkside House',d:k=>parksideHouse(k,turn)};
 Q.m3={fx:1,fy:1,H:30,name:'Coastal House',d(k){
  modernLot(k,(x,y)=>x>=2&&x<6.6&&y>=10.4);
  k.add(2,2,10,10.2,()=>{const b=k.box(2,2,0,10,10.2,10,{Lfn:k.siding('#F6F4EE'),Rfn:k.siding('#DCD8CE'),top:'#6E7888'});
@@ -4142,7 +4178,7 @@ const SPR_KEY = {
 };
 const SPR = new Map();
 function spriteOf(id, turn=0) {
- if(id==='house' && turn){const key='m1-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
+ if((id==='house'||id==='house2') && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
  if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
 // Draw only the moving rotor over the cached tower.
 function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
@@ -4203,7 +4239,7 @@ function spriteBox(i, j, id, turned=tileAt(i,j)?.turned) {
   const transport=isStop(id);
   const orientation=transport?(stopKerb(i,j,stop?.stopDir)?.dir??stop?.stopDir??1):0;
   const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id,(ROT+(turned?1:0))%4); if (!sp) return null; const [fx, fy] = fpOf(id,turned); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
-  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = id!=='house' && !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
+  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = id!=='house' && id!=='house2' && !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
   return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
 // Frames are rendered from the approved models at the same metres-per-tile scale.
 const streetArt = new Image();
