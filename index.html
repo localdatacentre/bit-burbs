@@ -2961,7 +2961,7 @@ M.banksiaDuplex={fx:2,fy:1,H:34,name:'Banksia Court Duplex',d(k){
    // Both ridges meet on the party wall. The deeper unit has a longer front slope.
    const join=15.95,left=reverse?join:x-.45,right=reverse?x+13.55:join;
    const ridge=6.05,back=1.55,front=deep+.45,peak=17.5,eave=12.5;
-   const colour=reverse?'#345D46':'#56646F';
+   const colour=reverse?'#598268':'#56646F';
    polyW(k,[[left,back,eave],[right,back,eave],[right,ridge,peak],[left,ridge,peak]],sh(colour,.84));
    if(reverse)polyW(k,[[right,back,eave],[right,front,eave],[right,ridge,peak]],'#C3CCBE');
    polyW(k,[[left,ridge,peak],[right,ridge,peak],[right,front,eave],[left,front,eave]],colour);
