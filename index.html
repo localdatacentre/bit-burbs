@@ -2231,10 +2231,18 @@ function modernHouse(k,turn){
  }
  const groundKit=Object.create(k);
  groundKit.ground=paint=>k.ground((x,y)=>paint(...point(x,y,(4-turn)%4)));
- modernLot(groundKit,(wx,wy)=>wx>=2&&wx<5.6&&wy>=10,(x,y)=>{
+ modernLot(groundKit,()=>false,(x,y)=>{
+  if(x>=2&&x<5.6&&y>=10){
+   const hash=Math.imul(R(x*2)+19,73856093)^Math.imul(R(y*2)+7,19349663);
+   return ((hash^(hash>>>13))>>>0)%5===0?'#ADA99F':'#BDB8AE';
+  }
   if(x<10.5||x>=16||y<1||y>=12.5)return null;
   const inset=Math.min(x-10.5,16-x,y-1,12.5-y);
-  if(inset<1.25)return ((R(x*2)+R(y*2))%4===0)?'#C9A87A':'#D6B88A';
+  if(inset<1.25){
+   const col=R(x*2),row=R(y*2);
+   const hash=Math.imul(col+19,73856093)^Math.imul(row+7,19349663);
+   return ((hash^(hash>>>13))>>>0)%5===0?'#C9A87A':'#D6B88A';
+  }
   if(inset<1.75)return '#ECEAE4';
   return (R(x)+R(y))%2?'#3EB4E8':'#36A6DC';
  });
