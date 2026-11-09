@@ -1868,7 +1868,7 @@ M.skytower={fx:1,fy:1,H:92,name:'Sky Tower',d(k){
   polyW(k,[[7.35,8.65,79],front,tip],'#93A9B9');
   polyW(k,[front,[8.65,7.35,79],tip],'#617B90');
   const peak=k.sc(...tip);
-  k.px(R(peak.x),R(peak.y),'#728899');
+  k.ctx.fillStyle='#728899';k.ctx.fillRect(R(peak.x),R(peak.y),1,4);
  });
  k.planter(1.8,4,2.6,12,'banksia');k.planter(13.8,13.6,14.4,14.2);k.tree(2.2,13.8,.75);
  k.planter(2,12,6,14,'pilly'); k.lamp(13.8,13.5);k.flush();}};
