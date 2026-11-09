@@ -1210,7 +1210,11 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=86">
+<link rel="stylesheet" href="pocket-ui.css?v=87">
+<style>
+.binlink-brand{display:flex;align-items:center;gap:8px;background:#16575c;color:#fff1d5;padding:6px 12px;margin:8px 0;font-size:24px}
+.binlink-brand canvas{width:39px;height:21px;image-rendering:pixelated}
+</style>
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -1520,7 +1524,12 @@ function K(ctx){
   f(b,u+1,v+h-2,sh(o.lit?'#FFE3A0':gl,1.15));
   if(o.mullion&&w>4)k.rect(f,b,u+Math.floor(w/2),v+1,u+Math.floor(w/2),v+h-2,fr);
   if(o.sill)k.rect(f,b,u-1,v-1,u+w,v-1,o.sill);};
- k.door=(f,b,u,w,h,col,o={})=>{k.rect(f,b,u,0,u+w-1,h-1,o.frame||INK);k.rect(f,b,u+1,0,u+w-2,h-2,col);if(o.glass)k.rect(f,b,u+1,Math.floor(h/2),u+w-2,h-3,o.glass);f(b,u+w-2,Math.floor(h/2)-1,'#FFD23F');};
+ k.door=(f,b,u,w,h,col,o={})=>{
+ if(b.z0<=2){
+   const front=f===k.L, mid=(u+w/2)/2;
+   (k.entrances ||= []).push({x:(front?b.x0+mid:b.x1)/16,y:(front?b.y1:b.y1-mid)/16,side:front?'front':'right'});
+ }
+ k.rect(f,b,u,0,u+w-1,h-1,o.frame||INK);k.rect(f,b,u+1,0,u+w-2,h-2,col);if(o.glass)k.rect(f,b,u+1,Math.floor(h/2),u+w-2,h-3,o.glass);f(b,u+w-2,Math.floor(h/2)-1,'#FFD23F');};
  /* textures */
  k.brick=(base)=>(u,v)=>{const row=Math.floor(v/3);if(v%3===2)return sh(base,1.07);if((u+(row%2)*3)%6===0)return sh(base,1.04);return base;};
  k.siding=(base)=>(u,v)=>v%2===0?sh(base,.93):base;
@@ -1765,6 +1774,7 @@ M.warehouse={fx:3,fy:2,H:36,name:'Logistics Warehouse',d(k){
   for(let x=7;x<44;x+=8)k.box(x,7,24,x+3,10,25,{top:'#9FD0EE',L:'#7AA8C8',R:'#5E8AA8'});});
  for(const d of [1,3,5]){const x=3+(6+d*13)/2;k.add(x-.2,19.2,x+4.8,27.2,()=>{k.box(x,19.4,.8,x+4.6,25.4,8.5,{top:'#FFFFFF',L:'#F2F4F8',R:'#C8D2E0'});k.box(x+.2,25.4,.8,x+4.4,27.2,6,{top:'#E53B3B',L:'#D63434',R:'#A82424'});k.box(x+.6,25.6,6,x+4,27,7,{top:'#9CCCE8',L:'#9CCCE8',R:'#6E9CBC'});});}
  k.tree(46.2,2.2,.8);k.lamp(46.4,28.4);k.flush();}};
+M.binlinkGrass={fx:1,fy:1,H:5,d(k){k.ground(k.lot(k.grass));}};
 M.wind={fx:1,fy:1,H:84,name:'Wind Turbine',d(k){
  k.ground(k.lot(k.grass));
  k.add(5,5,11,11,()=>{k.cyl(8,8,0,2,3,(t,u,z)=>z===1?'#C8D2E0':k.lit('#9AA6B8',t));k.cyl(8,8,2,66,z=>1.4-z*.006,(t)=>k.lit('#F4F6FA',t));
@@ -2827,10 +2837,10 @@ function render(key,mirrorSigns=false){const it=M[key]||Q[key];if(!it)return nul
  if(d[i+3]===0&&d[i-1]===255&&d[i+7]===255&&d[i-4*cw+3]===255&&d[i+4*cw+3]===255)
  d.set(d.slice(i-4,i),i);}
  context.putImageData(frame,0,0);let top=ch;for(let y=0;y<ch&&top===ch;y++)for(let x=0;x<cw;x++)if(d[(y*cw+x)*4+3]>0){top=y;break;}
- if(kit.rotor) top=Math.min(top,Math.floor(kit.rotor.y)-40);
+ if(kit.rotor) top=Math.min(top,Math.floor(kit.rotor.y)-46);
  const c2=document.createElement('canvas');c2.width=cw;c2.height=ch-top;c2.getContext('2d').drawImage(c,0,-top);
  const rotor=kit.rotor && {x:Math.round(kit.rotor.x),y:Math.round(kit.rotor.y)-top};
- return {rotor,key,hasFascia:!!kit.hasFascia,img:c2,w:cw,h:ch-top,gMinX:OX-32*FY*SC,gMaxX:OX+32*FX*SC,gMinY:OY-top,fx:FX,fy:FY,sc:SC};}
+ return {rotor,entrances:kit.entrances||[],key,hasFascia:!!kit.hasFascia,img:c2,w:cw,h:ch-top,gMinX:OX-32*FY*SC,gMaxX:OX+32*FX*SC,gMinY:OY-top,fx:FX,fy:FY,sc:SC};}
 return {render};})();
 
 </script>
@@ -2852,6 +2862,8 @@ const CHEST = {
 const KEYCOL = { steel: '#D6DEE8', gold: '#FFC93C', diamond: '#7FE3FF' };
 
 const DEFS = {
+  hailStop: {name:'BinLink Hail Stop',type:'transport',cost:600,fare:25,lvl:1},
+  busShelter: {name:'BinLink Shelter',type:'transport',cost:1800,fare:75,lvl:1},
   road:     { name: 'Road', type: 'road', cost: 20, lvl: 1 },
   house:    { name: 'Modern House', type: 'home', cost: 800, lvl: 1, cap: 3, h: 18, wall: '#E8E1D4', side: '#C9C1B3', roof: '#6B5A52', pw: 1, wa: 1 },
   aptS:     { name: 'Apartments', type: 'home', cost: 4000, lvl: 3, cap: 8, h: 46, wall: '#CFC9BF', side: '#ABA59B', roof: '#62656C', pw: 2, wa: 2 },
@@ -2910,6 +2922,7 @@ const BUILD_TABS = [
   ['businesses', 'Businesses', ['bakery', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'spindleCycles', 'gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'plant', 'solar2', 'nuclear']],
   ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'police', 'fire', 'clinic', 'school', 'ferris', 'tidalBaths', 'civicClock', 'needle', 'space']],
+  ['transport', 'Transport', ['hailStop','busShelter']],
   ['items', 'My items', ['sakura', 'fountain', 'statue', 'sundrop', 'sunhouse', 'pelicanLight']]
 ];
 const EXPAND = [];
@@ -3135,7 +3148,9 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) cloud
 function load() { try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { const d = JSON.parse(raw); if (d && Array.isArray(d.tiles) && (d.v === 1 || d.v === 2)) return migrate(d); } } catch (e) { /* ignore */ } return null; }
 
 const tileAt = (i, j) => (i < 0 || j < 0 || i >= N || j >= N) ? null : S.tiles[j * N + i];
-const setTile = (i, j, t) => { S.tiles[j * N + i] = t; };
+const setTile = (i, j, t) => { S.tiles[j * N + i] = t;
+  walkingGraph=null;streetNetwork=null;
+  for(const w of walkers)if(w.routeTiles.has(j*N+i))w.retire=true; };
 const inB = (i, j) => isLand(i, j) && !ISL.beach[j * N + i];
 const ISL = (() => { const land = new Uint8Array(N * N), beach = new Uint8Array(N * N), shallow = new Uint8Array(N * N), ed = new Float32Array(N * N);
   const terms = []; for (let q = 0; q < 12; q++) terms.push([Math.sin(1 * 13.1 + q * 7.3) * .5 + .5, Math.sin(1 * 3.7 + q * 2.1) * 3.14, 1 + q % 6]);
@@ -3152,7 +3167,7 @@ const roadNear = (i, j) => isRoad(i + 1, j) || isRoad(i - 1, j) || isRoad(i, j +
 const fpOf = id => { const d = DEFS[id]; return [(d && d.fx) || 1, (d && d.fy) || 1]; };
 const anchorOf = (i, j) => { const t = tileAt(i, j); return t && t.id === '_occ' ? { i: t.ref[0], j: t.ref[1] } : { i, j }; };
 function roadNearFP(i, j, id) { const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) { if (isRoad(i + a, j - 1) || isRoad(i + a, j + fy)) return true; } for (let b = 0; b < fy; b++) { if (isRoad(i - 1, j + b) || isRoad(i + fx, j + b)) return true; } return false; }
-function fpFree(i, j, id) { const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) { if (!inB(i + a, j + b) || tileAt(i + a, j + b)) return false; } return true; }
+function fpFree(i, j, id) { if(isStop(id)&&!stopKerb(i,j))return false; const [fx, fy] = fpOf(id); for (let a = 0; a < fx; a++) for (let b = 0; b < fy; b++) { if (!inB(i + a, j + b) || tileAt(i + a, j + b)) return false; } return true; }
 const boostOn = () => S.boostUntil > now();
 const boostMul = () => boostOn() ? 2 : 1;
 
@@ -3322,6 +3337,7 @@ function placeAt(i, j, id, fromItem) {
   const d = DEFS[id];
   if (!d || Boolean(MARKET[id]) !== Boolean(fromItem)) return false;
   if (!inB(i, j)) { snd('error'); toast('That land is locked. Expand from the Town Hall.'); return false; }
+  if(isStop(id)&&!stopKerb(i,j)){toast('Choose a clear plot beside the middle of a straight road.');return false;}
   if (!fpFree(i, j, id)) { snd('error'); const [fx, fy] = fpOf(id); toast(fx * fy > 1 ? 'This needs a clear ' + fx + '×' + fy + ' space here.' : 'Something is already built there.'); return false; }
   const cost = fromItem ? 0 : costOf(id);
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
@@ -3609,25 +3625,88 @@ function drawGround(i, j) {
   else if (t) poly(diamond(i, j, .04), T('#A8A59C'));
 }
 function drawRoad(i,j) {
-  // One continuous asphalt surface per tile: no bright tile outline/seams.
-  const m=.035, asph=T('#414B59'), edge=T('#343E4B');
-  poly(diamond(i,j),edge); poly(diamond(i,j,m),asph);
-  const con=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>isRoad(i+dx,j+dy));
-  con.forEach(([dx,dy])=>{
-    let q;
-    if(dx===1) q=[P(i+1-m,j+m),P(i+1,j+m),P(i+1,j+1-m),P(i+1-m,j+1-m)];
-    else if(dx===-1) q=[P(i,j+m),P(i+m,j+m),P(i+m,j+1-m),P(i,j+1-m)];
-    else if(dy===1) q=[P(i+m,j+1-m),P(i+1-m,j+1-m),P(i+1-m,j+1),P(i+m,j+1)];
-    else q=[P(i+m,j),P(i+1-m,j),P(i+1-m,j+m),P(i+m,j+m)];
-    poly(q,asph);
-  });
-  const c=V.ctx,C=P(i+.5,j+.5); c.save(); c.lineCap='butt';
-  c.strokeStyle='rgba(255,255,255,.88)'; c.lineWidth=Math.max(.8,.95*V.z); c.setLineDash([3.5*V.z,4.5*V.z]);
-  // Keep the existing broken white centre markings on straight road runs.
-  if(con.length<=2) con.forEach(([dx,dy])=>{const e=P(i+.5+dx*.5,j+.5+dy*.5);c.beginPath();c.moveTo(C.x,C.y);c.lineTo(e.x,e.y);c.stroke();});
-  else {
-    c.setLineDash([]); c.strokeStyle='rgba(255,255,255,.72)'; c.lineWidth=Math.max(.8,.9*V.z);
-    for(let k=0;k<4;k++){const a=P(i+.34+k*.10,j+.27),b=P(i+.34+k*.10,j+.36);c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();}
+  const asphalt=T('#414B59'), pavement=T('#C8C5B8'), curb=T('#96998F');
+  const sides=[[1,0],[-1,0],[0,1],[0,-1]];
+  const con=sides.filter(([dx,dy])=>isRoad(i+dx,j+dy));
+  poly(diamond(i,j),asphalt);
+  // Joining edge strips share their corners; road openings stay clear.
+  for(const [dx,dy] of sides){
+    const point=(along,inset)=>P(i+.5+dx*(.5-inset)+dy*along,j+.5+dy*(.5-inset)+dx*along);
+    const strip=(start,end,outer,inner,color)=>poly([point(start,outer),point(end,outer),point(end,inner),point(start,inner)],color);
+    if(!isRoad(i+dx,j+dy)){
+      strip(-.5,.5,0,.12,pavement);
+      const start=isRoad(i-dy,j-dx)?-.5:-.38;
+      const end=isRoad(i+dy,j+dx)?.5:.38;
+      strip(start,end,.095,.12,curb);
+    } else {
+      // Carry the pavement tip around the grass corner between two arms.
+      for(const sign of [-1,1]){
+        if(isRoad(i+dy*sign,j+dx*sign)&&!isRoad(i+dx+dy*sign,j+dy+dx*sign)){
+          strip(sign*.5,sign*.38,0,.12,pavement);
+        }
+      }
+    }
+  }
+  const c=V.ctx, centre=P(i+.5,j+.5), paint=T('#EAE8DC');
+  c.save(); c.lineCap='butt'; c.strokeStyle=paint; c.lineWidth=Math.max(.8,1.15*V.z);
+  if(con.length===2){
+    const [[ax,ay],[bx,by]]=con;
+    const dashStart=P(i+.5+.23*ax,j+.5+.23*ay);
+    const dashEnd=P(i+.5+.23*bx,j+.5+.23*by);
+    c.beginPath(); c.moveTo(dashStart.x,dashStart.y);
+    c.quadraticCurveTo(centre.x,centre.y,dashEnd.x,dashEnd.y); c.stroke();
+  } else if(con.length>=3){
+    for(const [dx,dy] of con){
+      // Left-hand traffic: across points to the driver's left when approaching.
+      const point=(along,across)=>P(i+.5+dx*along-dy*across,j+.5+dy*along+dx*across);
+      poly([point(.425,0),point(.425,.375),point(.492,.375),point(.492,0)],paint);
+    }
+  } else if(con.length===1){
+    const [[dx,dy]]=con;
+    const a=P(i+.5+.15*dx,j+.5+.15*dy),b=P(i+.5+.38*dx,j+.5+.38*dy);
+    c.beginPath();c.moveTo(a.x,a.y);c.lineTo(b.x,b.y);c.stroke();
+  }
+  c.restore();
+}
+function addJunctionSignals(objects,i,j) {
+  const arms=[[1,0],[0,1],[-1,0],[0,-1]].filter(([x,y])=>isRoad(i+x,j+y));
+  if(arms.length<3)return;
+  for(const [dx,dy] of arms){
+    const x=i+.5+.44*(dx-dy), y=j+.5+.44*(dy+dx);
+    objects.push({signal:true,x,y,dx,dy,i,j,d:vdepth(x,y)});
+  }
+}
+function signalPhase(i,j,dx,seconds){return (seconds+i*3+j*5+(dx?0:10))%20;}
+function drawJunctionSignal(o,seconds){
+  const p=P(o.x,o.y), face=P(o.x+o.dx,o.y+o.dy), z=V.z, c=V.ctx;
+  const time=signalPhase(o.i,o.j,o.dx,seconds);
+  const active=time<7?2:time<9?1:0;
+  // Project the width across the lane and the visor out towards its driver.
+  const cross=P(o.x-o.dy,o.y+o.dx);
+  const across=[Math.sign(cross.x-p.x)*.9,Math.sign(cross.y-p.y)*.45];
+  const out=[Math.sign(face.x-p.x)*.9,Math.sign(face.y-p.y)*.45];
+  c.save(); c.translate(Math.round(p.x),Math.round(p.y)); c.scale(z,z);
+  function vertex(u,n,h){return [across[0]*u+out[0]*n,across[1]*u+out[1]*n-h];}
+  function panel(points,col){
+    c.fillStyle=T(col); c.beginPath();
+    points.forEach(([u,n,h],i)=>{const q=vertex(u,n,h);if(i)c.lineTo(...q);else c.moveTo(...q);});
+    c.closePath();c.fill();
+  }
+  c.fillStyle=T('#9DA9AC');c.fillRect(-.8,-22,1.6,22);
+  c.fillStyle=T('#738085');c.fillRect(-1.6,-2,3.2,2);
+  // Scale the lantern around its top so every approach keeps the same pole height.
+  c.translate(0,-27); c.scale(.76,.76); c.translate(0,27);
+  const front=face.y>p.y, n=front?1:-1, edge=across[1]>0?3:-3;
+  panel([[-3,n,13],[3,n,13],[3,n,27],[-3,n,27]],front?'#20292E':'#526066');
+  panel([[edge,-1,13],[edge,1,13],[edge,1,27],[edge,-1,27]],'#354247');
+  panel([[-3,-1,27],[3,-1,27],[3,1,27],[-3,1,27]],'#657074');
+  if(front){
+    const lamps=['#FF5B49','#FFC34A','#5CDF99'];
+    for(let k=0;k<3;k++){
+      const h=24-k*4;
+      panel([[-1.5,1,h-1.4],[1.5,1,h-1.4],[1.5,1,h+1.4],[-1.5,1,h+1.4]],k===active?lamps[k]:'#485558');
+      panel([[-2,1,h+1.5],[2,1,h+1.5],[2,2.3,h+1.5],[-2,2.3,h+1.5]],'#101C20');
+    }
   }
   c.restore();
 }
@@ -3771,7 +3850,7 @@ const SPR_KEY = {
   ferris: 'ferris'
 };
 const SPR = new Map();
-function spriteOf(id) { if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
+function spriteOf(id) { if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
 // Draw only the moving rotor over the cached tower.
 function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
   ctx.save();
@@ -3783,10 +3862,10 @@ function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
   for (let blade = 0; blade < 3; blade++) {
     const a = angle + blade * Math.PI * 2 / 3;
     const dx = Math.cos(a), dy = Math.sin(a);
-    for (let r = 2; r <= 38; r++) {
-      const w = r < 12 ? 2 : r < 30 ? 1 : 0;
+    for (let r = 2; r <= 44; r++) {
+      const w = r < 12 ? 2 : r < 35 ? 1 : 0;
       for (let t = -w; t <= w + 1; t++) {
-        ctx.fillStyle = r >= 34 ? tip : t === w + 1 ? edge : light;
+        ctx.fillStyle = r >= 40 ? tip : t === w + 1 ? edge : light;
         ctx.fillRect(Math.round(dx*r-dy*t), Math.round(dy*r+dx*t), 2, 2);
       }
     }
@@ -3804,9 +3883,209 @@ function spriteImg(sp, mir) { const q = Math.round(DARK * 6); const key = 'v' + 
   x.drawImage(img, 0, 0);
   if (q) { const im = x.getImageData(0, 0, sp.w, sp.h); const d = im.data; const f = q / 6 * .5; for (let k = 0; k < d.length; k += 4) { d[k] = d[k] * (1 - f) + 22 * f; d[k + 1] = d[k + 1] * (1 - f) + 32 * f; d[k + 2] = d[k + 2] * (1 - f) + 74 * f; } x.putImageData(im, 0, 0); }
   sp[key] = c; return c; }
-function spriteBox(i, j, id) { const sp = spriteOf(id); if (!sp) return null; const [fx, fy] = fpOf(id); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
-  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = ROT % 2 === 1; const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
+function spriteBox(i, j, id) {
+  const stop=tileAt(i,j);
+  const transport=isStop(id);
+  const orientation=transport?(stopKerb(i,j,stop?.stopDir)?.dir??stop?.stopDir??1):0;
+  const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id); if (!sp) return null; const [fx, fy] = fpOf(id); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
+  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !transport && ROT % 2 === 1; const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
   return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
+// Frames are rendered from the approved models at the same metres-per-tile scale.
+const streetArt = new Image();
+const stopSprites = new Map();
+const directions = [[1,0],[0,1],[-1,0],[0,-1]];
+const stopInterval = 600;
+let streetNetwork = null, traffic = [], buses = [], serviceClock = null, nextCar = 0;
+function isStop(id){return id==='hailStop'||id==='busShelter';}
+function stampStreetFrame(c,frame,x,y,scale){
+  if(!streetArt.naturalWidth)return;
+  c.drawImage(streetArt,(frame%8)*224,Math.floor(frame/8)*144,224,144,x-112*scale,y-88*scale,224*scale,144*scale);
+}
+streetArt.onload=()=>{stopSprites.clear();if(sheet==='build')drawPreviews();};
+streetArt.src='binlink-streets.png?v=87';
+
+// A stop owns a grass tile and faces an uninterrupted straight kerb.
+function stopKerb(i,j,preferred){
+  for(let n=0;n<4;n++){
+    const dir=((preferred??0)+n)%4,[dx,dy]=directions[dir],sx=dy,sy=-dx;
+    const x=i-sx,y=j-sy;
+    const clearApproach=sign=>!isRoad(x+sign*dx+sx,y+sign*dy+sy)&&!isRoad(x+sign*dx-sx,y+sign*dy-sy);
+    if(isRoad(x,y)&&(clearApproach(-1)||clearApproach(1))&&isRoad(x-dx,y-dy)&&isRoad(x+dx,y+dy)
+      &&!isRoad(x+sx,y+sy)&&!isRoad(x-sx,y-sy))return {x,y,dx,dy,sx,sy,dir};
+  }
+  return null;
+}
+function stopSprite(id,dir){
+  const key=id+dir;
+  if(stopSprites.has(key))return stopSprites.get(key);
+  const base=SPRK.render('binlinkGrass'),img=document.createElement('canvas');
+  img.width=base.w;img.height=base.h+52;
+  const c=img.getContext('2d');c.drawImage(base.img,0,52);
+  const [dx,dy]=directions[dir],x=.5-.35*dy,y=.5+.35*dx;
+  stampStreetFrame(c,(id==='hailStop'?72:76)+dir,base.gMinX+64+(x-y)*64,52+base.gMinY+(x+y)*32,1);
+  const sp={...base,img,h:img.height,gMinY:base.gMinY+52};
+  stopSprites.set(key,sp);return sp;
+}
+function streetMap(){
+  if(streetNetwork)return streetNetwork;
+  const roads=new Map(),stops=[];
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+    const t=tileAt(i,j);if(!t)continue;
+    if(t.id==='road'){
+      const arms=[];
+      directions.forEach(([x,y],d)=>{if(isRoad(i+x,j+y))arms.push(d);});
+      roads.set(j*N+i,{i,j,arms});
+    }else if(isStop(t.id)){
+      const kerb=stopKerb(i,j,t.stopDir);
+      if(kerb){t.stopDir=kerb.dir;stops.push({i,j,t,...kerb});}
+    }
+  }
+  streetNetwork={roads,stops,starts:[...roads.values()].filter(r=>r.arms.length===2)};
+  return streetNetwork;
+}
+function dropPassengers(stop){
+  // Start at the kerb, and use only the continuous footpath on this side.
+  const x=stop.x+.5+stop.sx*.44,y=stop.y+.5+stop.sy*.44;
+  const boarding=walkingKerbs?.get(Math.round(x*1000)+','+Math.round(y*1000));
+  const destinations=boarding?walkingDestinations.filter(s=>s.kerb.component===boarding.component):[];
+  for(let n=0;n<2 && walkers.length<24;n++){
+    const side=n?1:-1,origin={x:x+stop.dx*side*.035,y:y+stop.dy*side*.035};
+    let path;
+    if(destinations.length){
+      const dest=destinations[Math.floor(Math.random()*destinations.length)];
+      path=walkRoute({path:[origin,boarding],kerb:boarding},dest);
+    }else{
+      // Even a standalone stop has a landing pad on its own lot.
+      path=[origin,{x:x+stop.sx*.12,y:y+stop.sy*.12},
+        {x:x+stop.sx*.26+stop.dx*side*.23,y:y+stop.sy*.26+stop.dy*side*.23}];
+    }
+    if(path.length>1)startWalker(path);
+  }
+}
+function upgradeStop(i,j){
+  const t=tileAt(i,j);if(t?.id!=='hailStop'||S.cash<1200)return false;
+  S.cash-=1200;t.id='busShelter';streetNetwork=null;changed();save();return true;
+}
+function serviceBuses(dt){
+  buses=[];
+  for(const stop of streetMap().stops){
+    const t=stop.t;
+    let elapsed=(t.serviceElapsed||0)+dt;
+    if(elapsed>=stopInterval){
+      const visits=Math.floor(elapsed/stopInterval);
+      elapsed%=stopInterval;t.visits=(t.visits||0)+visits;
+      const fare=visits*DEFS[t.id].fare;S.cash+=fare;
+      dropPassengers(stop);popup(stop.i,stop.j,'BinLink +'+fmt(fare),'#FFDB78');changed();
+    }
+    t.serviceElapsed=elapsed;
+    const time=elapsed>=stopInterval-4?elapsed-stopInterval:elapsed;
+    if(time>9 || (time>=0&&!t.visits))continue;
+    function clearRun(sign){
+      let tiles=0;
+      for(let n=1;n<=5;n++){
+        const r=streetMap().roads.get((stop.y+sign*n*stop.dy)*N+stop.x+sign*n*stop.dx);
+        if(!r || r.arms.length>2)break;
+        tiles++;
+        if(!r.arms.includes(sign>0?stop.dir:(stop.dir+2)%4))break;
+      }
+      return tiles+.48;
+    }
+    const rear=clearRun(-1),front=clearRun(1);
+    const metro=t.id==='busShelter'&&rear>=2.4&&front>=2.4;
+    const half=metro?1.45:.72,door=metro?0:.42;
+    // Stay within the straight and stop short of any intersecting traffic.
+    if(rear+front<half*2)continue;
+    const dock=Math.max(-rear+half,Math.min(front-half,-door));
+    const entry=Math.max(0,Math.min(2,rear+dock-half)),exit=Math.max(0,Math.min(2,front-dock-half));
+    const along=time<0?dock-entry*(time/4)**2:time<=5?dock:dock+exit*((time-5)/4)**2;
+    buses.push({x:stop.x+.5+stop.sx*.19+stop.dx*along,y:stop.y+.5+stop.sy*.19+stop.dy*along,
+      dir:stop.dir,half,angle:stop.dir*Math.PI/2,base:metro?68:64,frames:4,alpha:Math.min(1,time+4,9-time)});
+  }
+}
+function carSegment(road,inDir,outDir){
+  const [ax,ay]=directions[inDir],[bx,by]=directions[outDir],cx=road.i+.5,cy=road.j+.5;
+  const x0=cx-ax*.5+ay*.19,y0=cy-ay*.5-ax*.19;
+  const x1=cx+bx*.5+by*.19,y1=cy+by*.5-bx*.19;
+  // The control point is the intersection of both offset lane tangents.
+  const kx=ax?x1:x0,ky=ay?y1:y0;
+  function point(t){
+    if(inDir===outDir)return {x:x0+(x1-x0)*t,y:y0+(y1-y0)*t,angle:Math.atan2(ay,ax)};
+    const s=1-t;
+    return {x:s*s*x0+2*s*t*kx+t*t*x1,y:s*s*y0+2*s*t*ky+t*t*y1,
+      angle:Math.atan2(s*(ky-y0)+t*(y1-ky),s*(kx-x0)+t*(x1-kx))};
+  }
+  const lengths=[0];let prev=point(0);
+  for(let n=1;n<=8;n++){const p=point(n/8);lengths.push(lengths[n-1]+Math.hypot(p.x-prev.x,p.y-prev.y));prev=p;}
+  return {road,inDir,outDir,point,lengths,length:lengths[8]};
+}
+function carPosition(car){
+  const s=car.seg;let k=1;while(k<8&&s.lengths[k]<car.travel)k++;
+  return s.point(Math.min(1,(k-1+(car.travel-s.lengths[k-1])/(s.lengths[k]-s.lengths[k-1]))/8));
+}
+function nextSegment(road,inDir){
+  const exits=road.arms.filter(d=>d!==(inDir+2)%4);
+  if(!exits.length)return null;
+  return carSegment(road,inDir,exits[Math.floor(Math.random()*exits.length)]);
+}
+function updateCars(dt,seconds){
+  const map=streetMap(),target=Math.min(12,Math.ceil(S.pop/5));
+  nextCar-=dt;
+  if(traffic.length<target && nextCar<=0 && map.starts.length){
+    nextCar=2+Math.random()*3;
+    const r=map.starts[Math.floor(Math.random()*map.starts.length)];
+    const seg=nextSegment(r,(r.arms[Math.floor(Math.random()*r.arms.length)]+2)%4);
+    // Enter through a connected arm.
+    if(seg && r.arms.includes((seg.inDir+2)%4)){
+      const p=seg.point(0);
+      if(!traffic.concat(buses).some(v=>Math.hypot(p.x-v.x,p.y-v.y)<(v.half||.32)+.55))
+        traffic.push({...p,seg,travel:0,speed:0,cruise:.63+Math.random()*.13,half:.31,
+          frames:16,base:16*Math.floor(Math.random()*4),alpha:0});
+    }
+  }
+  for(let n=traffic.length-1;n>=0;n--){
+    const car=traffic[n],s=car.seg,[dx,dy]=directions[s.outDir];
+    const next=map.roads.get((s.road.j+dy)*N+s.road.i+dx);
+    if(!next || !isRoad(s.road.i,s.road.j)){traffic.splice(n,1);continue;}
+    const left=s.length-car.travel;
+    let room=Infinity;
+    if(next.arms.length>=3){
+      const green=signalPhase(next.i,next.j,dx,seconds)<7;
+      const occupied=traffic.some(v=>v!==car&&v.seg.road.i===next.i&&v.seg.road.j===next.j);
+      if(car.committed==null && left<=.48 && green && !occupied){
+        const reserved=traffic.some(v=>v!==car&&v.committed===next.j*N+next.i);
+        if(!reserved)car.committed=next.j*N+next.i;
+      }
+      if(car.committed==null)room=Math.max(0,left-.34);
+    }
+    const fx=Math.cos(car.angle),fy=Math.sin(car.angle);
+    for(const other of traffic.concat(buses)){
+      if(other===car)continue;
+      const x=other.x-car.x,y=other.y-car.y,ahead=x*fx+y*fy;
+      if(ahead>0 && Math.abs(x*fy-y*fx)<.25 && Math.cos(other.angle-car.angle)>.45)
+        room=Math.min(room,Math.max(0,ahead-car.half-other.half-.07));
+    }
+    const desired=Math.min(car.cruise,Math.sqrt(2*1.5*room));
+    car.speed+=Math.max(-1.5*dt,Math.min(.9*dt,desired-car.speed));
+    car.travel+=Math.min(room,Math.max(0,car.speed)*dt);
+    car.alpha=Math.min(1,car.alpha+dt*1.8);
+    if(next.arms.length===1)car.alpha=Math.min(car.alpha,Math.max(0,left/.45));
+    if(car.travel>=s.length){
+      const seg=nextSegment(next,s.outDir);
+      if(!seg){traffic.splice(n,1);continue;}
+      car.travel-=s.length;car.seg=seg;car.committed=null;
+    }
+    Object.assign(car,carPosition(car));
+  }
+}
+function drawVehicle(v){
+  const c=V.ctx,p=P(v.x,v.y),frames=v.frames;
+  const index=(Math.round((v.angle+ROT*Math.PI/2)*frames/(2*Math.PI))%frames+frames)%frames;
+  c.save();c.globalAlpha*=v.alpha;
+  stampStreetFrame(c,v.base+index,p.x,p.y,V.z/2);
+  c.restore();
+}
+document.addEventListener('visibilitychange',()=>{serviceClock=null;});
+
 function drawBuilding(i, j, id) {
   { const b = spriteBox(i, j, id); if (b) { const c = V.ctx; const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(spriteImg(b.sp, b.mir), b.x, b.y, b.w, b.h);
     if (b.sp.rotor) {
@@ -3963,14 +4242,20 @@ function render() {
     if (ok && d.rad) poly([P(gi.i - d.rad, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j + d.rad + 1), P(gi.i - d.rad, gi.j + d.rad + 1)], d.poll ? 'rgba(229,59,59,.15)' : 'rgba(62,123,250,.15)', d.poll ? '#E53B3B' : '#7FB2FF', 2);
   }
   const objs = [];
-  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const t = S.tiles[j * N + i]; if (t && t.id !== 'road' && t.id !== '_occ' && DEFS[t.id]) { const [fx, fy] = fpOf(t.id); objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, t }); } }
+  for(const vehicle of [...traffic,...buses])objs.push({vehicle,d:vdepth(vehicle.x,vehicle.y)+.04});
+  for(const walker of walkers)objs.push({walker,d:vdepth(walker.x,walker.y)+.015});
+  for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const t = S.tiles[j * N + i]; if(t && t.id==='road') addJunctionSignals(objs,i,j); if (t && t.id !== 'road' && t.id !== '_occ' && DEFS[t.id]) { const [fx, fy] = fpOf(t.id); objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, t }); } }
   if (placing && placing.ghost && placing.id !== 'road' && fpFree(placing.ghost.i, placing.ghost.j, placing.id)) {
     const { i, j } = placing.ghost, [fx, fy] = fpOf(placing.id);
     objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id });
   }
   objs.sort((a, b) => a.d - b.d);
   hulls = [];
+  const signalSeconds=performance.now()/1000;
   objs.forEach(o => {
+    if(o.vehicle){drawVehicle(o.vehicle);return;}
+    if(o.walker){drawWalker(o.walker);return;}
+    if(o.signal){drawJunctionSignal(o,signalSeconds);return;}
     if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost); V.ctx.restore(); return; }
     if (placing) { V.ctx.save(); V.ctx.globalAlpha = .22; drawBuilding(o.i, o.j, o.t.id); V.ctx.restore(); }
     else drawBuilding(o.i, o.j, o.t.id);
@@ -3986,7 +4271,7 @@ function render() {
   drawTutArrow();
   badgeHits = []; const tnow = now(); const hideBadges = !!placing;
   D.list.forEach(b => {
-    const d = b.d, t = b.t; if (hideBadges || d.type === 'decor' || d.type === 'hall') return;
+    const d = b.d, t = b.t; if (hideBadges || d.type === 'decor' || d.type === 'hall' || d.type === 'transport') return;
     const a = up(P(b.i + .5, b.j + .5), (d.h || 20) * hFac(t) * V.z + 10); let hit = null;
     if (canUp(d) && lvlOf(t) > 1) { const lp = P(b.i + .5, b.j + 1); const lc = V.ctx; const tx = 'L' + lvlOf(t); lc.font = "400 11px 'VT323', monospace"; const lw = lc.measureText(tx).width + 8; lc.fillStyle = lvlOf(t) >= UP_MAX ? '#FFC93C' : '#15122E'; lc.fillRect(Math.round(lp.x - lw / 2), Math.round(lp.y - 10), Math.round(lw), 14); lc.fillStyle = lvlOf(t) >= UP_MAX ? '#15122E' : '#FFFFFF'; lc.textAlign = 'center'; lc.textBaseline = 'middle'; lc.fillText(tx, Math.round(lp.x), Math.round(lp.y - 3)); }
     if (!b.ok) hit = badge(a.x, a.y, 'NO ROAD', '#C9434A', '#FFFFFF');
@@ -4155,7 +4440,7 @@ function renderCard(force) {
     if (placing.id === 'road') html = head('Laying roads', 'Tap tiles to place road, 20 Coins each.') + `<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>`;
     else {
       const g = placing.ghost; const ok = g && fpFree(g.i, g.j, placing.id); const cost = placing.fromItem ? 0 : costOf(placing.id);
-      const msg = !g ? 'Tap an empty tile inside the dotted border.' : (ok ? (d.type === 'decor' || roadNearFP(g.i, g.j, placing.id) ? 'Good spot.' : 'No road next to this spot yet. It won’t work until you add one.') : 'You can’t build there.');
+      const msg = isStop(placing.id)?(ok?'Ready for BinLink service.':'Choose an empty plot beside the middle of a straight road.'):!g ? 'Tap an empty tile inside the dotted border.' : (ok ? (d.type === 'decor' || roadNearFP(g.i, g.j, placing.id) ? 'Good spot.' : 'No road next to this spot yet. It won’t work until you add one.') : 'You can’t build there.');
       html = head('Place ' + d.name, msg + (d.rad ? (d.poll ? ' The red square shows where it pollutes.' : ' The blue square shows who it helps.') : '')) + `<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok && S.cash >= cost ? '' : 'disabled'}>${cost ? 'Build · ' + fmt(cost) : 'Place'}</button></div>`;
     }
   } else if (sel) {
@@ -4181,6 +4466,10 @@ function renderCard(force) {
         html = head(d.name, `Level ${lvlOf(t)} · makes ${(d.rate * upMul(t) * 60).toFixed(0)} Coins a minute while staffed`) + statusTags(b) + `<p class="note" id="liveStock"></p><div class="row"><button class="pixel-btn pb" data-act="ind">Collect</button></div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'util') {
         html = head(d.name, `Level ${lvlOf(t)} · ` + (d.supP ? `+${Math.round(d.supP * upMul(t))} power` : `+${Math.round(d.supW * upMul(t))} water`) + ` · city power ${D.useP}/${D.supP}, water ${D.useW}/${D.supW}`) + statusTags(b) + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
+      } else if(d.type==='transport'){
+        const upgrade=t.id==='hailStop'?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(S.cash<1200?'disabled':'')+'>Upgrade to shelter · 1,200 Coins</button>':'';
+        html=head(d.name,d.fare+' Coins per visit · every 10 active minutes')
+          +'<p class="note" id="stopTime"></p><div class="row">'+upgrade+demoBtn()+'</div>';
       } else if (d.type === 'svc') {
         html = head(d.name, 'An old service building. It no longer does anything, so you can demolish it for a refund.') + statusTags(b) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'hall') {
@@ -4206,6 +4495,7 @@ function liveCard() {
   if (!sel || placing) return; const t = tileAt(sel.i, sel.j); if (!t) return; const d = DEFS[t.id];
   if (d.type === 'shop' && t.st === 'sell') { const bar = $('#liveBar'), tm = $('#liveTime'); const el = now() - t.t; if (bar) bar.style.width = Math.min(100, el / stime(t, d) * 100) + '%'; if (tm) setText(tm, mmss(stime(t, d) - el) + ' left'); }
   if (d.type === 'home') setText($('#liveRent'), 'Rent waiting: ' + fmt(t.rent || 0) + ' Coins');
+  if(d.type==='transport')setText($('#stopTime'),stopKerb(sel.i,sel.j,t.stopDir)?'Next bus in '+mmss((stopInterval-(t.serviceElapsed||0))*1000)+' · '+(t.visits||0)+' visits':'Service paused · reconnect a straight road beside the stop.');
   if (d.type === 'ind') setText($('#liveStock'), 'Ready to collect: ' + fmt(t.stock || 0) + ' Coins');
 }
 card.addEventListener('click', e => {
@@ -4214,7 +4504,8 @@ card.addEventListener('click', e => {
   if (a === 'cancelPlace' || a === 'donePlace') { placing = null; renderCard(true); return; }
   if (a === 'confirmPlace') { const g = placing.ghost; if (g && placeAt(g.i, g.j, placing.id, placing.fromItem)) { placing = null; select(g.i, g.j); } return; }
   if (!sel) return;
-  if (a === 'collect') collectShop(sel.i, sel.j);
+  if(a==='shelterUpgrade')upgradeStop(sel.i,sel.j);
+  else if (a === 'collect') collectShop(sel.i, sel.j);
   else if (a === 'upgrade') upgrade(sel.i, sel.j);
   else if (a === 'order') orderProd(sel.i, sel.j, +b.dataset.k);
   else if (a === 'rush') rushProd(sel.i, sel.j, +b.dataset.k);
@@ -4266,6 +4557,7 @@ function buildHTML() {
   if (!findHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="pixel-btn bcard" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>The heart of your city. Every city needs one.</span><span class="price">Free</span></button></div>`;
   if (buildTarget) h += `<p class="note">Building on the plot you picked.</p>`;
   const tab0 = BUILD_TABS.find(t => t[0] === buildTab) || BUILD_TABS[0]; const tab = tab0;
+  if(buildTab==='transport') h+='<h3 class="binlink-brand"><canvas data-ibis width="13" height="7" aria-hidden="true"></canvas> BinLink</h3>';
   h += '<div class="grid2">';
   const visibleIds = buildTab === 'items' ? tab[2].filter(id => (S.shopItems && S.shopItems[id] || 0) > 0) : tab[2];
   visibleIds.forEach(id => {
@@ -4273,7 +4565,8 @@ function buildHTML() {
     const locked = !item && d.lvl > S.level; const count = item ? (S.shopItems && S.shopItems[id] || 0) : 0;
     const cant = locked || (item ? count < 1 : S.cash < costOf(id));
     let sub = '';
-    if (d.type === 'shop') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
+    if(d.type==='transport') sub='BinLink · '+d.fare+' Coins per visit';
+    else if (d.type === 'shop') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
     else if (d.type === 'home') sub = `${d.cap} residents`;
     else if (d.type === 'ind') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
@@ -4287,11 +4580,20 @@ function buildHTML() {
   h += '</div>';
   if (buildTab === 'items') h += `<p class="note">Only cosmetic items purchased from the Dosh Shop appear here. Placing them is free.</p>`;
   if (buildTab === 'items' && !visibleIds.length) h += `<p class="note">You haven't purchased any cosmetic items yet. Visit the Dosh Shop to add one to your item bag.</p>`;
+  if(buildTab==='transport') h+='<p class="note">Build beside a straight road at least three tiles long. Each stop receives a bus every 10 minutes of active play. Longer shelter corridors also serve the M1 Riverline.</p>';
   if (buildTab === 'util') h += `<p class="note">City power ${D.useP}/${D.supP} · water ${D.useW}/${D.supW}. Buildings without power or water stop working.</p>`;
   return h;
 }
 function coinSvg() { return `<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD23F" stroke="#14202E" stroke-width="2.5"/><circle cx="12" cy="12" r="6" fill="none" stroke="#C98A0C" stroke-width="2"/></svg>`; }
-function drawPreviews() { sheetBody.querySelectorAll('canvas[data-prev]').forEach(cvs => previewInto(cvs, cvs.dataset.prev)); }
+function drawPreviews() {
+  const logo=sheetBody.querySelector('[data-ibis]');
+  if(logo){
+    const c=logo.getContext('2d');c.fillStyle='#ffcf59';
+    ['.......xx....','......xxxxxx.','......xx...xx','....xxx.....x','.xxxxxx......','..xxxx.......','...xx........'].forEach((row,y)=>{
+      [...row].forEach((p,x)=>{if(p==='x')c.fillRect(x,y,1,1);});
+    });
+  }
+  sheetBody.querySelectorAll('canvas[data-prev]').forEach(cvs => previewInto(cvs, cvs.dataset.prev)); }
 function previewInto(cvs, id) {
   { const sp = spriteOf(id); if (sp) { cvs.width = 110; cvs.height = 92; cvs.style.imageRendering = 'pixelated'; const pc = cvs.getContext('2d'); pc.clearRect(0, 0, 110, 92); pc.imageSmoothingEnabled = false; const k = Math.min(1, 104 / sp.w, 88 / sp.h); const w = sp.w * k, h = sp.h * k; pc.drawImage(sp.img, Math.round((110 - w) / 2), Math.round(90 - h), w, h);
     if (sp.rotor) drawRotor(pc, Math.round((110-w)/2)+sp.rotor.x*k, Math.round(90-h)+sp.rotor.y*k, k, -Math.PI/2, false, false);
@@ -4342,7 +4644,7 @@ sheetEl.addEventListener('click', e => {
   if (a === 'mclaim') claimMission();
   else if (a === 'dclaim') claimDaily(+b.dataset.k);
   else if (a === 'eclaim') claimEvent(+b.dataset.k);
-  else if (a === 'reset') { if (!resetArm) { resetArm = true; renderSheet(true); return; } S = newGame(); S.welcomeBonus = true; S.firstRun = false; sel = null; placing = null; save(); closeSheet(); derive(); centerOn(MID, MID); toast('A fresh city awaits.'); }
+  else if (a === 'reset') { if (!resetArm) { resetArm = true; renderSheet(true); return; } S = newGame(); streetNetwork=null;traffic=[];buses=[];serviceClock=null;walkingGraph=null; walkers.length=0; nextWalkerIn=.3; S.welcomeBonus = true; S.firstRun = false; sel = null; placing = null; save(); closeSheet(); derive(); centerOn(MID, MID); toast('A fresh city awaits.'); }
 });
 
 /* ================= mini-games ================= */
@@ -4967,7 +5269,7 @@ function ensureProds(t) { if (!t.pr) t.pr = [{ s: 0, o: 0 }, { s: 0, o: 0 }, { s
 function orderTime(k) { return S.tut ? 5000 : P_ORDER[k]; }
 function bizCpm(b) { const tn = now(); if (!b.workers) return 0; const pr = ensureProds(b.t); let c = 0; for (let k = 0; k < b.workers; k++) if (pr[k].s > tn) c += prodCpm(b, k); return c; }
 function countOf(id) { return S.tiles.filter(t => t && t.id === id).length; }
-function costOf(id) { const d = DEFS[id]; if (!d) return 0; if (id === 'road' || d.type === 'decor' || d.type === 'hall') return d.cost; return Math.round(d.cost * Math.pow(1.35, countOf(id)) / 10) * 10; }
+function costOf(id) { const d = DEFS[id]; if (!d) return 0; if (id === 'road' || d.type === 'decor' || d.type === 'transport' || d.type === 'hall') return d.cost; return Math.round(d.cost * Math.pow(1.35, countOf(id)) / 10) * 10; }
 function orderProd(i, j, k) { const t = tileAt(i, j); const b = t && t._; if (!b || !isBiz(b.d)) return; const w = whyNot(b); if (w) { snd('error'); toast(w); return; }
   if (k >= b.workers) { snd('error'); toast('Needs more workers. Build homes to bring in residents.'); return; }
   const p = ensureProds(t)[k]; if (p.o) return; p.o = now() + orderTime(k); track('restock'); snd('restock'); changed(); }
@@ -5257,11 +5559,218 @@ $('#zout').addEventListener('click', () => snapZoom(W / 2, mapMidY(), -1));
 let dirty = false;
 function changed() { dirty = true; }
 let last = performance.now(), uiAcc = 0, saveAcc = 0, skyAcc = 99;
+// Follow continuous footpaths from one doorway to another.
+let walkingGraph = null, walkingKerbs=null, nextWalkerIn = .3;
+let walkingDestinations=[];
+const walkers = [];
+function makeWalkingGraph() {
+  const nodes = new Map(), stops = [];
+  function node(x,y) {
+    const key = Math.round(x*1000)+','+Math.round(y*1000);
+    if (!nodes.has(key)) nodes.set(key,{key,x,y,links:[]});
+    return nodes.get(key);
+  }
+  function link(a,b) {
+    if (a===b || a.links.includes(b)) return;
+    a.links.push(b); b.links.push(a);
+  }
+  const sides=[[0,-1],[1,0],[0,1],[-1,0]];
+  function corners(i,j,dx,dy) {
+    return [-1,1].map(side=>node(i+.5+.44*(dx+side*dy),j+.5+.44*(dy-side*dx)));
+  }
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++) {
+    if(!isRoad(i,j)) continue;
+    for(const [dx,dy] of sides) {
+      const [a,b]=corners(i,j,dx,dy);
+      if(isRoad(i+dx,j+dy)) {
+        const [e,f]=corners(i+dx,j+dy,-dx,-dy);
+        // A corner surrounded by four road tiles contains asphalt instead of kerb.
+        if(!isRoad(i-dy,j+dx) || !isRoad(i+dx-dy,j+dy+dx)) link(a,f);
+        if(!isRoad(i+dy,j-dx) || !isRoad(i+dx+dy,j+dy-dx)) link(b,e);
+      } else {
+        const mid=node((a.x+b.x)/2,(a.y+b.y)/2);
+        link(a,mid);link(mid,b);
+      }
+    }
+  }
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++) {
+    const tile=tileAt(i,j), d=tile && DEFS[tile.id];
+    if(!d || !['home','shop','svc','hall'].includes(d.type))continue;
+    const entrances=spriteOf(tile.id)?.entrances;
+    if(!entrances?.length)continue;
+    const [w,h]=fpOf(tile.id), L=i+.035,R=i+w-.035,T=j+.035,B=j+h-.035;
+    // Clockwise distance around this lot. Follow its boundary even if the road
+    // runs along the rear of the building.
+    const width=R-L,height=B-T,perimeter=2*(width+height);
+    const rim=[{x:L,y:T,s:0},{x:R,y:T,s:width},{x:R,y:B,s:width+height},{x:L,y:B,s:2*width+height}];
+    const access=[];
+    function add(x,y,s,rx,ry,sideX,sideY){
+      if(!isRoad(rx,ry))return;
+      const kerb=node(rx+.5+.44*sideX,ry+.5+.44*sideY);
+      access.push({x,y,s,kerb});
+    }
+    for(let u=0;u<w;u++){
+      const x=i+u+.5;
+      add(x,T,x-L,i+u,j-1,0,1);
+      add(x,B,width+height+R-x,i+u,j+h,0,-1);
+    }
+    for(let v=0;v<h;v++){
+      const y=j+v+.5;
+      add(R,y,width+y-T,i+w,j+v,-1,0);
+      add(L,y,2*width+height+B-y,i-1,j+v,1,0);
+    }
+    let best=null;
+    for(const door of entrances) {
+      const x=i+door.x,y=j+door.y;
+      const gate=door.side==='front'?{x,y:B,s:width+height+R-x}:{x:R,y,s:width+y-T};
+      for(const a of access){
+        const cw=(a.s-gate.s+perimeter)%perimeter,forward=cw<=perimeter/2;
+        const span=Math.min(cw,perimeter-cw), distance=Math.hypot(x-gate.x,y-gate.y)+span;
+        if(best && distance>=best.distance)continue;
+        const along=s=>((forward?s-gate.s:gate.s-s)+perimeter)%perimeter;
+        const corners=rim.filter(c=>along(c.s)>.001 && along(c.s)<span-.001).sort((p,q)=>along(p.s)-along(q.s));
+        best={distance,kerb:a.kerb,path:[{x,y},gate,...corners,a,a.kerb]};
+      }
+    }
+    if(best)stops.push(best);
+  }
+  // Cache connected components, so a disconnected town never spawns a
+  // pedestrian with an unreachable destination.
+  let component=0;
+  for(const n of nodes.values()){
+    if(n.component)continue;
+    n.component=++component;const queue=[n];
+    for(let k=0;k<queue.length;k++)for(const to of queue[k].links)
+      if(!to.component){to.component=component;queue.push(to);}
+  }
+  const groups=new Map();
+  for(const stop of stops){
+    const c=stop.kerb.component;
+    if(!groups.has(c))groups.set(c,[]);
+    groups.get(c).push(stop);
+  }
+  walkingKerbs=nodes;
+  walkingDestinations=stops;
+  return [...groups.values()].filter(g=>g.length>1);
+}
+function walkRoute(from,to){
+  const queue=[from.kerb],parent=new Map([[from.kerb,null]]);
+  for(let k=0;k<queue.length && !parent.has(to.kerb);k++){
+    const n=queue[k];
+    for(const to of n.links)if(!parent.has(to)){
+      parent.set(to,n);queue.push(to);
+    }
+  }
+  if(!parent.has(to.kerb))return [];
+  const road=[];
+  for(let n=to.kerb;n!==from.kerb;){
+    road.push({x:n.x,y:n.y});n=parent.get(n);
+  }
+  const raw=[...from.path,...road.reverse(),...to.path.slice(0,-1).reverse()];
+  const pts=[];
+  for(const p of raw)if(!pts.length || Math.hypot(p.x-pts.at(-1).x,p.y-pts.at(-1).y)>.003)pts.push(p);
+  // Round small turns inside the footpath.
+  const rounded=[pts[0]];
+  for(let i=1;i<pts.length-1;i++){
+    const a=pts[i-1],b=pts[i],c=pts[i+1];
+    const m=Math.hypot(a.x-b.x,a.y-b.y),n=Math.hypot(c.x-b.x,c.y-b.y),r=Math.min(.035,m/3,n/3);
+    const p={x:b.x+(a.x-b.x)*r/m,y:b.y+(a.y-b.y)*r/m},q={x:b.x+(c.x-b.x)*r/n,y:b.y+(c.y-b.y)*r/n};
+    rounded.push(p,{x:(p.x+2*b.x+q.x)/4,y:(p.y+2*b.y+q.y)/4},q);
+  }
+  rounded.push(pts.at(-1));
+  return rounded;
+}
+function spawnWalker() {
+  const group=walkingGraph[Math.floor(Math.random()*walkingGraph.length)];
+  const start=Math.floor(Math.random()*group.length);
+  const end=(start+1+Math.floor(Math.random()*(group.length-1)))%group.length;
+  const path=walkRoute(group[start],group[end]);
+  startWalker(path);
+}
+function startWalker(path){
+  if(path.length<2)return;
+  const p=path[0], routeTiles=new Set();
+  for(let k=1;k<path.length;k++){
+    const a=path[k-1],b=path[k],steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)*4));
+    for(let n=0;n<=steps;n++){
+      const x=a.x+(b.x-a.x)*n/steps,y=a.y+(b.y-a.y)*n/steps;
+      // Include the adjoining kerb: building a connecting road can remove it.
+      for(const dx of [-.075,.075])for(const dy of [-.075,.075])
+        routeTiles.add(Math.floor(y+dy)*N+Math.floor(x+dx));
+    }
+  }
+  walkers.push({path,routeTiles,x:p.x,y:p.y,index:1,progress:0,travel:0,phase:0,
+    pace:.21+Math.random()*.065,skin:Math.floor(Math.random()*4),facing:1,alpha:0});
+}
+function updateWalkers(dt){
+  if(document.hidden || dt<=0)return;
+  if(!walkingGraph)walkingGraph=makeWalkingGraph();
+  const target=Math.min(16,Math.ceil(S.pop/3));
+  nextWalkerIn-=dt;
+  if(walkingGraph.length && walkers.length<target && nextWalkerIn<=0){
+    spawnWalker();nextWalkerIn=1.8+Math.random()*2.8;
+  }
+  for(let k=walkers.length-1;k>=0;k--){
+    const w=walkers[k];
+    if(w.retire){w.alpha=Math.max(0,w.alpha-dt*4);if(!w.alpha)walkers.splice(k,1);continue;}
+    const lastPoint=w.path.at(-1);
+    const nearEnd=w.index>=w.path.length-2?Math.hypot(w.x-lastPoint.x,w.y-lastPoint.y):1;
+    const ease=Math.min(1,.45+5*Math.min(w.travel,nearEnd));
+    let remaining=w.pace*dt*ease;
+    while(remaining>0 && w.index<w.path.length){
+      const a=w.path[w.index-1],b=w.path[w.index];
+      const length=Math.hypot(b.x-a.x,b.y-a.y);
+      const step=Math.min(remaining,length-w.progress);
+      w.progress+=step;w.travel+=step;remaining-=step;
+      const f=w.progress/length;
+      w.x=a.x+(b.x-a.x)*f;w.y=a.y+(b.y-a.y)*f;
+      const s=P(a.x,a.y),e=P(b.x,b.y);
+      if(Math.abs(e.x-s.x)>.001)w.facing=Math.sign(e.x-s.x);
+      w.phase=Math.sin(w.travel*42);
+      const end=w.path.at(-1);
+      const exit=w.index>=w.path.length-2?Math.hypot(end.x-w.x,end.y-w.y):1;
+      const opacity=Math.min(1,w.travel/.09,exit/.09);
+      w.alpha=opacity*opacity*(3-2*opacity);
+      if(w.progress>=length-.000001){w.index++;w.progress=0;}
+    }
+    if(w.index>=w.path.length)walkers.splice(k,1);
+  }
+}
+const walkerColours=[
+  ['#514643','#bf926e','#d99577','#b57765','#58616a'],
+  ['#806c56','#d0a481','#8caca1','#698f87','#505e63'],
+  ['#413d39','#916d56','#d7b372','#b49968','#535c68'],
+  ['#6b6060','#d5b59c','#91a7b8','#788b9e','#655d64']
+];
+function drawWalker(w){
+  const c=V.ctx,p=P(w.x,w.y),k=V.z*.5,gait=w.phase;
+  const [hair,skin,shirt,shadow,legs]=walkerColours[w.skin];
+  c.save();c.globalAlpha*=w.alpha;c.translate(p.x,p.y);c.scale(w.facing*k,k);
+  c.fillStyle='rgba(39,51,50,.18)';c.fillRect(-3,-.7,6,1.45);
+  c.translate(0,-.38*Math.abs(gait));
+  function limb(x,y,angle,len,width,col){
+    c.save();c.translate(x,y);c.rotate(angle);c.fillStyle=T(col);c.fillRect(-width/2,0,width,len);c.restore();
+  }
+  limb(.45,-5.4,-gait*.43,5.4,1.5,legs);
+  limb(-.5,-5.4,gait*.43,5.4,1.7,legs);
+  c.fillStyle=T(shirt);c.fillRect(-1.9,-10.5,3.8,5.7);
+  limb(-.9,-9.9,-gait*.47,3.9,1.2,shadow);
+  c.fillStyle=T(skin);c.fillRect(-1.5,-14.4,3,3.9);
+  c.fillStyle=T(hair);c.fillRect(-1.6,-15,3.15,1.7);
+  if(w.skin===2)c.fillRect(-1.8,-13.8,4.1,.8);
+  c.restore();
+}
+
 function frame(t) {
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (camAnim) { const e = Math.min(1, (t - camAnim.t0) / 450); const k = 1 - Math.pow(1 - e, 3); V.cx = camAnim.sx + (camAnim.tx - camAnim.sx) * k; V.cy = camAnim.sy + (camAnim.ty - camAnim.sy) * k; if (e >= 1) camAnim = null; }
   skyAcc += dt; if (skyAcc > 10) { skyAcc = 0; updateSky(); }
   tick(dt);
+  updateWalkers(dt);
+  if(!document.hidden){
+    const elapsed=serviceClock===null?0:Math.max(0,(t-serviceClock)/1000);
+    serviceClock=t;serviceBuses(elapsed);updateCars(dt,t/1000);
+  }
   pumpRewardPopup();
   render();
   // Keep the pixel focus ring attached to its button during resize and scroll.
