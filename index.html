@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=80">
+<link rel="stylesheet" href="pocket-ui.css?v=81">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -3343,6 +3343,7 @@ $('#advisor').addEventListener('click', () => { placing = null; buildTab = advTa
 function dot(el, n) { el.hidden = !(n > 0); if (n > 0) setText(el, n > 99 ? '99+' : n); }
 function layoutUI() {
   const hb = $('#hud').getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
   $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 10) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
   const nt = $('#nav').getBoundingClientRect().top; $('#card').style.bottom = (H - nt + 10) + 'px';
 }
