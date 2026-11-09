@@ -369,3 +369,29 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 }
 #hud .lvl #lvlNum{font:inherit!important;color:#FFFFFF!important}
 @media(max-width:380px){#hud .cname b.wm{font-size:19px!important;letter-spacing:-.07em!important}}
+
+
+/* Currency HUD: keep all four icons and numbers, pack groups to the left. */
+#hud .chips{
+ display:flex!important;
+ flex-direction:row!important;
+ flex-wrap:nowrap!important;
+ justify-content:flex-start!important;
+ align-items:center!important;
+ gap:clamp(8px,2.5vw,15px)!important;
+ width:100%!important;
+}
+#hud .chip,#hud .chip[aria-label="Coins"],#hud .chip[aria-label="Dosh"]{
+ flex:0 1 auto!important;
+ width:auto!important;
+ min-width:0!important;
+ justify-content:flex-start!important;
+ padding:4px 0!important;
+ gap:5px!important;
+ white-space:nowrap!important;
+}
+#hud .chip span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
+@media(max-width:380px){
+ #hud .chips{gap:8px!important}
+ #hud .chip{gap:4px!important}
+}
