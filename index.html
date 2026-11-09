@@ -2201,11 +2201,10 @@ function classicQueenslander(k,turn){
   else k.win(face,b,4,3,6,6,{...glass,mullion:true});
  }
  k.add(...bounds(1.8,2,12.2,10.4),()=>{
-  for(const x of [1.8,11.8])for(const y of [2,10])
-   block(x,y,0,x+.4,y+.4,6,{top:'#6E5A44',L:'#7A6650',R:'#5E4A36'});
-  const stump={top:'#83725F',L:'#897966',R:'#6D6052',noRim:true};
-  for(const x of [3.2,6.75,10.25])for(const y of [2,8.45])
-   block(x,y,0,x+.55,y+.55,6,stump);
+  const stump={top:'#89735B',L:'#826A51',R:'#65513F',noRim:true};
+  const postWidth=1;
+  for(const x of [3.2,10.8-postWidth])for(const y of [2,9-postWidth])
+   block(x,y,0,x+postWidth,y+postWidth,6,stump);
   block(1.8,9,5,12.2,10.4,6,timber);block(10.8,2,5,12.2,9,6,timber);
   function verandah(side){
    if(side===0){
