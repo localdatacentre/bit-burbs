@@ -543,7 +543,6 @@ body.tut-on.sheet-open .sbody{padding-bottom:190px}
 .mgp .pb[data-act="buy"]:active:not(:disabled)::after{box-shadow:inset 0 3px 0 rgba(0,0,0,.25)}
 .mgp .pb[data-act="buy"]:disabled{opacity:.55}
 #popLbl{font-size:11px;white-space:nowrap;color:#FFFFFF;font-weight:400;background:#244F78;padding:4px 7px;letter-spacing:.025em;border:1px solid #91B2D5}.rsall:disabled{opacity:.6}
-#zrot,#zhome,#zview{display:none}
 .ratebtn{margin-left:6px;font-family:'VT323',monospace;font-size:10px;background:#F2B21A;color:#0E3A44;border:2px solid #0E3A44;padding:1px 5px;cursor:pointer;vertical-align:middle}.rlist{display:flex;flex-direction:column;gap:4px;text-align:left}.rr{display:flex;align-items:center;gap:8px;background:#F2E4C2;border:2px solid #0E3A44;padding:4px 8px;font-family:'VT323',monospace;font-size:18px;color:#4E8A92}.rr span{font-family:'VT323',monospace;font-size:10px;color:#0E3A44;min-width:24px}.rr i{margin-left:auto;font-style:normal;color:#2E9E5E}.rr.ok{background:#CFF2DC;color:#0E3A44}
 
 #advisor small{display:none}
@@ -1240,9 +1239,6 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
   <button class="pixel-btn pb sq" id="zmkt" aria-label="Dosh Shop" style="position:relative"><canvas data-icon="shop" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas><span class="dot" id="dotMkt" hidden>!</span></button>
   <button class="pixel-btn pb purple sq" id="zin" aria-label="Zoom in"><canvas data-icon="plus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
   <button class="pixel-btn pb purple sq" id="zout" aria-label="Zoom out"><canvas data-icon="minus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
-  <button class="pixel-btn pb purple sq" id="zrot" aria-label="Rotate view"><canvas data-icon="rotate" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas><span id="rotLbl" class="rotlbl">N</span></button>
-  <button class="pixel-btn pb purple sq" id="zhome" aria-label="Centre on Town Hall"><canvas data-icon="cross" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
-  <button class="pixel-btn pb purple sq" id="zview" aria-label="Change data view"><canvas data-icon="chart" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
 </div>
 
 <section id="card" aria-live="polite"></section>
@@ -3248,9 +3244,6 @@ function layoutUI() {
   $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 10) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
   const nt = $('#nav').getBoundingClientRect().top; $('#card').style.bottom = (H - nt + 10) + 'px';
 }
-const VIEWS = ['normal', 'utility'];
-const VIEW_TEXT = { happy: 'Happiness: red low · green high', utility: 'Power & water: green served · red cut off', service: 'Services: blue covered · red pollution' };
-$('#zview').addEventListener('click', () => { view = VIEWS[(VIEWS.indexOf(view) + 1) % VIEWS.length]; const lg2 = $('#legend'); lg2.textContent = VIEW_TEXT[view] || ''; lg2.classList.toggle('show', view !== 'normal'); });
 
 /* ================= info card ================= */
 const card = $('#card');
@@ -4194,19 +4187,8 @@ $('#clock').style.cursor = 'pointer';
 $('#clock').addEventListener('click', () => { const tm = SK.times || {}; const f = x => x ? new Date(x).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; toast('Sunrise ' + f(tm.rise) + ' · Sunset ' + f(tm.set) + (LOC.src === 'gps' ? ' · your location' : ' · tap Tasks to use your location')); });
 $('#coachSkip').addEventListener('click', skipTut);
 $('#rsAll').addEventListener('click', () => restockAll());
-const COMPASS = ['N', 'E', 'S', 'W'];
-let rotBusy = false;
-$('#zrot').addEventListener('click', () => {
-  if (rotBusy) return; rotBusy = true; snd('tab');
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const doRot = () => { const mid = screenToWorld(W / 2, mapMidY()); ROT = (ROT + 1) % 4; centerOn(mid.x, mid.y); clampCam(); setText($('#rotLbl'), COMPASS[ROT]); };
-  if (reduce) { doRot(); rotBusy = false; return; }
-  cv.classList.remove('flip'); void cv.offsetWidth; cv.classList.add('flip');
-  setTimeout(doRot, 170); setTimeout(() => { cv.classList.remove('flip'); rotBusy = false; }, 360);
-});
 $('#zin').addEventListener('click', () => snapZoom(W / 2, mapMidY(), 1));
 $('#zout').addEventListener('click', () => snapZoom(W / 2, mapMidY(), -1));
-$('#zhome').addEventListener('click', () => { const h = findHall(); if (h) animateTo(h.i + .5, h.j + .5); });
 
 /* ================= loop ================= */
 let dirty = false;
