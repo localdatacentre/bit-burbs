@@ -1792,11 +1792,22 @@ M.pinkflats={fx:1,fy:1,H:66,name:'Pink Flats',d(k){
    for(const u of [2,9])k.win(k.Rf,b,u,v+2,5,7,{frame:'#F2F2F2',glass:'#7AB0D2'});}
   k.door(k.L,b,8,4,7,'#8A5E3A',{frame:'#FFFFFF'});
   k.box(6.5,11,8,10.5,12.6,9,{top:'#FFFFFF',L:'#F2F2F2',R:'#D9D9D9'});
-  for(let f=1;f<F;f++){const z=f*FH;k.box(5.5,11,z,10.5,13,z+1,{top:'#E8E2E4',L:'#FFFFFF',R:'#D9D9D9'});k.box(5.5,12.6,z+1,10.5,13,z+5,{top:'#FFFFFF',L:'#CFEAF6',R:'#AED8EC'});k.box(10.1,11,z+1,10.5,12.6,z+5,{top:'#FFFFFF',L:'#CFEAF6',R:'#AED8EC'});k.box(5.5,11,z+1,5.9,12.6,z+5,{top:'#FFFFFF',L:'#CFEAF6',R:'#AED8EC'});}
-  for(const s of [[3,3,13,3.5],[3,10.5,13,11],[3,3,3.5,11],[12.5,3,13,11]])k.box(s[0],s[1],H,s[2],s[3],H+2,{top:'#FFFFFF',L:'#F2F2F2',R:'#DCDCDC'});
-  k.box(4.5,4.5,H,7,7,H+4,{top:'#B4BCC6',L:'#C8D0DA',R:'#9AA3AE'});((x0,y0,x1,y1,z)=>{for(let x=x0;x<x1-.1;x+=1.8){k.box(x,y0,z,x+1.5,y1,z+.8,{top:'#7A8698',L:'#9AA6B8',R:'#7A8698',noRim:true});k.box(x,y0,z+.8,x+1.5,y1,z+1.4,{topFn:(wx,wy)=>((wy-y0)%1.2<.3)?'#5E7AB8':'#2E4A9A',L:'#C8D2E0',R:'#9AA6B8',noRim:true});}})(8.5,5,12.2,9.6,H);});
+  for(let floor=1;floor<F;floor++){
+   const z=floor*FH;
+   k.box(5.75,11,z,10.25,12.5,z+1,{top:'#EAE1DE',L:'#D9CCC9',R:'#C4B6B4',noRim:true});
+   const glass={under:'rgba(167,205,213,.16)',top:'#B5CACD',L:'rgba(167,205,213,.40)',R:'rgba(139,182,192,.46)',noRim:true};
+   k.box(5.75,11,z+1,6,12.25,z+4,glass);
+   k.box(10,11,z+1,10.25,12.25,z+4,glass);
+   k.box(5.75,12.25,z+1,10.25,12.5,z+4,glass);
+  }
+  const rim={top:'#F5EDEA',L:'#E5DBD7',R:'#CBC2BF'};
+  k.box(3,3,H,13,3.5,H+2,rim);k.box(3,3.5,H,3.5,10.5,H+2,rim);
+  for(const y of [4.25,7.5])for(const x of [4.25,6.5])apartmentPanel(k,0,H,x,y);
+  k.cyl(10.5,6.75,H,H+5.5,1.45,(t,u,z)=>z===H+5?'#ABC2B9':k.lit(z%2?'#91AAA1':'#829C94',t));
+  k.box(12.5,3.5,H,13,10.5,H+2,rim);k.box(3,10.5,H,13,11,H+2,rim);
+ });
  k.tree(2.2,13.4,.85);k.bush(13.6,13.4,2);k.bush(13.8,5,1.6);
- for(const z of [12,23,34]) balcony(k,6,12,12,z,'#F4C4BD');k.flush();}};
+ k.flush();}};
 // Light a few rooms per floor, following the existing curtain-wall mullions.
 function officeWindows(k,box,day,span,floor){
  for(const face of [k.L,k.Rf]){
@@ -2974,17 +2985,7 @@ Q.town={fx:3,fy:2,H:43,name:'Townhouses',d(k){
  const rail=(a,b,c,d)=>k.add(a,b,c,d,()=>k.box(a,b,0,c,d,3.4,{L:'rgba(174,213,215,.38)',R:'rgba(152,195,199,.43)',top:'#DDE9E8',noRim:true}));
  rail(13,18,36,18.16);rail(13,18.16,13.16,28);rail(35.84,18.16,36,28);rail(13.16,27.84,29,28);rail(30,27.84,35.84,28);k.flush();}};
 
-function apartmentView(k,turn){
- const {point,bounds,groundKit}=houseView(k,turn);
- groundKit.ground((x,y)=>x>=6.5&&x<9.5&&y>=11.5?'#D8CFBE':k.grass(x,y));
- const roof=Object.create(k);
- roof.sc=(x,y,z)=>k.sc(...point(x,y),z);
- const H=52;
- function box(x,y,z,X,Y,Z,material){
-  const [a,b,c,d]=bounds(x,y,X,Y);
-  return k.box(a,b,z,c,d,Z,material);
- }
- function panels(x,y){
+function apartmentPanel(roof,turn,H,x,y){
   const X=x+1.75,Y=y+2.25,high=H+2.1,low=H+.7;
   const sideX=turn<2?X:x;
   const sideY=turn===0||turn===3?Y:y;
@@ -2995,6 +2996,17 @@ function apartmentView(k,turn){
   edgeW(roof,[x,(y+Y)/2,(high+low)/2],[X,(y+Y)/2,(high+low)/2],'#6380A7');
   edgeW(roof,[x,y,high],[X,y,high],'#93A3B3');
  }
+function apartmentView(k,turn){
+ const {point,bounds,groundKit}=houseView(k,turn);
+ groundKit.ground((x,y)=>x>=6.5&&x<9.5&&y>=11.5?'#D8CFBE':k.grass(x,y));
+ const roof=Object.create(k);
+ roof.sc=(x,y,z)=>k.sc(...point(x,y),z);
+ const H=52;
+ function box(x,y,z,X,Y,Z,material){
+  const [a,b,c,d]=bounds(x,y,X,Y);
+  return k.box(a,b,z,c,d,Z,material);
+ }
+
  k.add(...bounds(3,3,13,11.5),()=>{
   const b=box(3,3,0,13,11.5,H,{Lfn:k.brick('#B85C40'),Rfn:k.brick('#9A4C34'),top:'#8C8478'});
   function facade(face,side,width,glass,trim){
@@ -3022,7 +3034,7 @@ function apartmentView(k,turn){
   const fixtures=[];
   function fixture(x,y,draw){const [a,b]=point(x,y);fixtures.push({depth:a+b,draw});}
   fixture(5.75,5.5,()=>box(4.5,4.5,H,7,6.5,H+4,{top:'#B4BCC6',L:'#C8D0DA',R:'#9AA3AE'}));
-  for(const y of [4.5,7.75])for(const x of [7.75,10])fixture(x+.875,y+1.125,()=>panels(x,y));
+  for(const y of [4.5,7.75])for(const x of [7.75,10])fixture(x+.875,y+1.125,()=>apartmentPanel(roof,turn,H,x,y));
   fixtures.sort((a,b)=>a.depth-b.depth).forEach(item=>item.draw());
   drawParapets(true);
  });
