@@ -4645,7 +4645,16 @@ function render() {
   D.list.forEach(b => {
     const d = b.d, t = b.t; if (hideBadges || d.type === 'decor' || d.type === 'hall' || d.type === 'transport') return;
     const a = up(P(b.i + .5, b.j + .5), (d.h || 20) * hFac(t) * V.z + 10); let hit = null;
-    if (canUp(d) && lvlOf(t) > 1) { const lp = P(b.i + .5, b.j + 1); const lc = V.ctx; const tx = 'L' + lvlOf(t); lc.font = "400 11px 'VT323', monospace"; const lw = lc.measureText(tx).width + 8; lc.fillStyle = lvlOf(t) >= UP_MAX ? '#FFC93C' : '#15122E'; lc.fillRect(Math.round(lp.x - lw / 2), Math.round(lp.y - 10), Math.round(lw), 14); lc.fillStyle = lvlOf(t) >= UP_MAX ? '#15122E' : '#FFFFFF'; lc.textAlign = 'center'; lc.textBaseline = 'middle'; lc.fillText(tx, Math.round(lp.x), Math.round(lp.y - 3)); }
+    const detailed = V.z >= 1.45;
+    if (detailed && canUp(d) && lvlOf(t) > 1) {
+      const foot = P(b.i + .5, b.j + 1), c = V.ctx;
+      const x = Math.round(foot.x)-10, y = Math.round(foot.y)-4;
+      c.fillStyle = '#302b50'; c.fillRect(x-1,y-1,21,5);
+      for (let n=0;n<UP_MAX;n++) {
+        c.fillStyle = n < lvlOf(t) ? '#ffdb79' : '#625b7c';
+        c.fillRect(x+n*4,y,3,3);
+      }
+    }
     if (!b.ok) hit = badge(a.x, a.y, 'NO ROAD', '#C9434A', '#FFFFFF');
     else if (d.type === 'util') return;
     else if (!b.pow) hit = badge(a.x, a.y, 'NO POWER', '#C9434A', '#FFFFFF');
@@ -4653,8 +4662,16 @@ function render() {
     else if (isBiz(d)) { const pr = ensureProds(t);
       if (!b.workers) hit = badge(a.x, a.y, 'NEED STAFF', '#C9434A', '#FFFFFF');
       else { let empty = false, soon = null; for (let k = 0; k < b.workers; k++) { const p = pr[k]; if (p.o) { if (!soon || p.o < soon.o) soon = { o: p.o, k }; } else if (p.s <= tnow) empty = true; }
-        if (empty) hit = badge(a.x, a.y, 'RESTOCK', '#2F6FEB', '#FFFFFF');
-        else if (soon) progressBadge(a.x, a.y, 1 - (soon.o - tnow) / orderTime(soon.k), mmss(soon.o - tnow)); }
+        if (empty && detailed) hit = badge(a.x, a.y, 'RESTOCK', '#329BD6', '#FFFFFF');
+        else if (empty) {
+          const x = Math.round(a.x), y = Math.round(a.y + 6);
+          const c = V.ctx, r = V.z < .5 ? 4 : 6;
+          pxBox(c,x-r,y-r,r*2,r*2,'#329BD6','#195881');
+          c.fillStyle = '#fff'; c.fillRect(x-1,y-r+2,2,r-1);
+          c.fillRect(x-1,y+1,2,1);
+          hit = {x:x-r-3,y:y-r-3,w:r*2+6,h:r*2+6};
+        }
+        else if (soon && detailed) progressBadge(a.x, a.y, 1 - (soon.o - tnow) / orderTime(soon.k), mmss(soon.o - tnow)); }
     } else if (d.type === 'svc') { if (!b.staffed) hit = badge(a.x, a.y, 'NEED STAFF', '#C9434A', '#FFFFFF'); }
     if (hit) badgeHits.push(Object.assign(hit, { i: b.i, j: b.j }));
   });
