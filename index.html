@@ -1782,32 +1782,65 @@ M.apartments={fx:1,fy:1,H:66,name:'Apartments',d(k){
   k.box(6.5,11.5,8,9.5,13,9,{top:'#E8E2D6',L:'#D8D2C6',R:'#C4BDB0'});});
  k.planter(2.4,12.4,5.8,13.4,'correa');k.planter(10.2,12.4,13.6,13.4,'banksia');k.tree(2.2,2.4,.7);
  for(const z of [12,23,34]) balcony(k,4,12,10,z);k.flush();}};
-M.pinkflats={fx:1,fy:1,H:66,name:'Pink Flats',d(k){
- k.ground(k.lot((wx,wy)=>wx>=7&&wx<9.5&&wy>=11?'#D8CFBE':k.grass(wx,wy)));
+function pinkFlatsView(k,turn){
+ const {point,bounds,groundKit}=houseView(k,turn);
+ groundKit.ground((x,y)=>x>=7&&x<9.5&&y>=11?'#D8CFBE':k.grass(x,y));
  const F=4,FH=11,H=F*FH+3;
- k.add(3,3,13,11,()=>{const b=k.box(3,3,0,13,11,H,{Lfn:(u,v)=>v<9?'#E08AA0':'#F4B2C2',Rfn:(u,v)=>v<9?'#C27488':'#D995A6',top:'#B8A4A6'});
-  for(let f=0;f<F;f++){const v=f*FH;if(f){k.rect(k.L,b,0,v-1,b.W-1,v-1,'#FFFFFF');k.rect(k.Rf,b,0,v-1,b.D-1,v-1,'#E6E2EA');}
-   for(const u of [1,16])k.win(k.L,b,u,v+2,3,7,{frame:'#FFFFFF',glass:'#A6D6F2'});
-   if(f)k.win(k.L,b,6,v+2,8,7,{frame:'#FFFFFF',glass:'#9FD0EE',mullion:true});
-   for(const u of [2,9])k.win(k.Rf,b,u,v+2,5,7,{frame:'#F2F2F2',glass:'#7AB0D2'});}
-  k.door(k.L,b,8,4,7,'#8A5E3A',{frame:'#FFFFFF'});
-  k.box(6.5,11,8,10.5,12.6,9,{top:'#FFFFFF',L:'#F2F2F2',R:'#D9D9D9'});
+ const roof=Object.create(k);
+ roof.sc=(x,y,z)=>k.sc(...point(x,y),z);
+ function box(x,y,z,X,Y,Z,material){
+  const [a,b,c,d]=bounds(x,y,X,Y);
+  return k.box(a,b,z,c,d,Z,material);
+ }
+ k.add(...bounds(3,3,13,11),()=>{
+  const b=box(3,3,0,13,11,H,{Lfn:(u,v)=>v<9?'#E08AA0':'#F4B2C2',Rfn:(u,v)=>v<9?'#C27488':'#D995A6',top:'#B8A4A6'});
+  function facade(face,side,width,glass,trim){
+   for(let floor=0;floor<F;floor++){
+    const v=floor*FH;
+    if(floor)k.rect(face,b,0,v-1,width-1,v-1,trim);
+    if(side===0){
+     for(const u of [1,16])k.win(face,b,u,v+2,3,7,{frame:trim,glass});
+     if(floor)k.win(face,b,6,v+2,8,7,{frame:trim,glass,mullion:true});
+    }else{
+     const positions=side===2?[3,12]:[2,9];
+     for(const u of positions)k.win(face,b,u,v+2,5,7,{frame:trim,glass});
+    }
+   }
+   if(side===0)k.door(face,b,8,4,7,'#8A5E3A',{frame:trim});
+  }
+  facade(k.L,turn,b.W,'#A6D6F2','#FFFFFF');
+  facade(k.Rf,(turn+1)%4,b.D,'#7AB0D2','#F2F2F2');
+  const rim={top:'#F5EDEA',L:'#E5DBD7',R:'#CBC2BF'};
+  const edges=[[3,10.5,13,11],[12.5,3.5,13,10.5],[3,3,13,3.5],[3,3.5,3.5,10.5]];
+  function parapets(near){
+   edges.forEach(([x,y,X,Y],side)=>{
+    if((side===turn||side===(turn+1)%4)===near)box(x,y,H,X,Y,H+2,rim);
+   });
+  }
+  parapets(false);
+  const fixtures=[];
+  function fixture(x,y,draw){const [a,b]=point(x,y);fixtures.push({depth:a+b,draw});}
+  for(const y of [4.25,7.5])for(const x of [4.25,6.5])
+   fixture(x+.875,y+1.125,()=>apartmentPanel(roof,turn,H,x,y));
+  fixture(10.5,6.75,()=>k.cyl(...point(10.5,6.75),H,H+5.5,1.45,(t,u,z)=>z===H+5?'#ABC2B9':k.lit(z%2?'#91AAA1':'#829C94',t)));
+  fixtures.sort((a,b)=>a.depth-b.depth).forEach(item=>item.draw());
+  parapets(true);
+ });
+ k.add(...bounds(5.75,11,10.5,12.6),()=>{
+  box(6.5,11,8,10.5,12.6,9,{top:'#FFFFFF',L:'#F2F2F2',R:'#D9D9D9'});
   for(let floor=1;floor<F;floor++){
    const z=floor*FH;
-   k.box(5.75,11,z,10.25,12.5,z+1,{top:'#EAE1DE',L:'#D9CCC9',R:'#C4B6B4',noRim:true});
+   box(5.75,11,z,10.25,12.5,z+1,{top:'#EAE1DE',L:'#D9CCC9',R:'#C4B6B4',noRim:true});
    const glass={under:'rgba(167,205,213,.16)',top:'#B5CACD',L:'rgba(167,205,213,.40)',R:'rgba(139,182,192,.46)',noRim:true};
-   k.box(5.75,11,z+1,6,12.25,z+4,glass);
-   k.box(10,11,z+1,10.25,12.25,z+4,glass);
-   k.box(5.75,12.25,z+1,10.25,12.5,z+4,glass);
+   box(5.75,11,z+1,6,12.25,z+4,glass);
+   box(10,11,z+1,10.25,12.25,z+4,glass);
+   box(5.75,12.25,z+1,10.25,12.5,z+4,glass);
   }
-  const rim={top:'#F5EDEA',L:'#E5DBD7',R:'#CBC2BF'};
-  k.box(3,3,H,13,3.5,H+2,rim);k.box(3,3.5,H,3.5,10.5,H+2,rim);
-  for(const y of [4.25,7.5])for(const x of [4.25,6.5])apartmentPanel(k,0,H,x,y);
-  k.cyl(10.5,6.75,H,H+5.5,1.45,(t,u,z)=>z===H+5?'#ABC2B9':k.lit(z%2?'#91AAA1':'#829C94',t));
-  k.box(12.5,3.5,H,13,10.5,H+2,rim);k.box(3,10.5,H,13,11,H+2,rim);
  });
- k.tree(2.2,13.4,.85);k.bush(13.6,13.4,2);k.bush(13.8,5,1.6);
- k.flush();}};
+ k.tree(...point(2.2,13.4),.85);k.bush(...point(13.6,13.4),2);k.bush(...point(13.8,5),1.6);
+ k.flush();
+}
+for(let turn=0;turn<4;turn++)M[turn?'pinkflats-turn'+turn:'pinkflats']={fx:1,fy:1,H:66,name:'Pink Flats',d:k=>pinkFlatsView(k,turn)};
 // Light a few rooms per floor, following the existing curtain-wall mullions.
 function officeWindows(k,box,day,span,floor){
  for(const face of [k.L,k.Rf]){
@@ -4368,7 +4401,7 @@ const SPR_KEY = {
   flowers: 'flowers',
 };
 const SPR = new Map();
-const fourSidedHomes=new Set(['house','house2','m3','banksiaDuplex','q1','aptS']);
+const fourSidedHomes=new Set(['house','house2','m3','banksiaDuplex','q1','aptS','aptP']);
 function spriteOf(id, turn=0) {
  if(fourSidedHomes.has(id) && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
  if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
