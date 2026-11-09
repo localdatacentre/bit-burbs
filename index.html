@@ -3591,13 +3591,10 @@ function expand() {
 const MOVE_IN_INTERVAL = 30000;
 function busArrive() {
   derive();
-  const space = D.cap - S.pop;
-  if (space <= 0) return;
-  const group = S.tut ? 3 : Math.min(8, Math.max(2, Math.ceil(space / 5)));
-  const count = Math.min(space, group);
-  S.pop += count;
-  track('rent', count);
-  toast(count === 1 ? 'A new resident moved in.' : count + ' new residents moved in.');
+  if (S.pop >= D.cap) return;
+  S.pop += 1;
+  track('rent', 1);
+  toast('A new resident moved in.');
 }
 
 /* ================= traffic removed ================= */
