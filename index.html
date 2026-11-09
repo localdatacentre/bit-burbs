@@ -4553,12 +4553,12 @@ function drawBuilding(i, j, id, turned=tileAt(i,j)?.turned) {
 /* ================= badges ================= */
 let badgeHits = [], hulls = [];
 function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
-const BADGE_STYLE = { 'NO POWER': ['#FF7A5A', 'bolt'], 'NO WATER': ['#2EB6E8', 'drop'], 'NO ROAD': ['#8A94A6', null], 'NEED STAFF': ['#F25AA0', 'people'], 'RESTOCK': ['#3EBE7A', null], 'TIP': ['#F2B21A', 'cash'] };
+const BADGE_STYLE = { 'NO POWER': ['#FF7A5A', 'bolt'], 'NO WATER': ['#2EB6E8', 'drop'], 'NO ROAD': ['#8A94A6', null], 'NEED STAFF': ['#F25AA0', 'people'], 'RESTOCK': ['#329BD6', null, '#195881'], 'TIP': ['#F2B21A', 'cash'] };
 function pxBox(c, x, y, w, h, fill, ink) { c.fillStyle = ink; c.fillRect(x + 2, y, w - 4, h); c.fillRect(x, y + 2, w, h - 4); c.fillRect(x + 1, y + 1, w - 2, h - 2); c.fillStyle = fill; c.fillRect(x + 2, y + 2, w - 4, h - 4); c.fillStyle = 'rgba(255,255,255,.28)'; c.fillRect(x + 2, y + 2, w - 4, 2); c.fillStyle = 'rgba(0,0,0,.16)'; c.fillRect(x + 2, y + h - 4, w - 4, 2); }
 function badge(x, y, text, bg, fg) {
   const c = V.ctx; text = String(text).toUpperCase(); const st = BADGE_STYLE[text] || [text[0] === '+' ? '#F2B21A' : bg, null];
   c.font = "400 10px 'VT323', monospace"; const tw = Math.ceil(c.measureText(text).width), ic = st[1] ? 13 : 0;
-  const w = tw + 14 + ic, h = 20, bx = Math.round(x - w / 2), by = Math.round(y - h); const ink = '#0E3A44';
+  const w = tw + 14 + ic, h = 20, bx = Math.round(x - w / 2), by = Math.round(y - h); const ink = st[2] || '#0E3A44';
   c.fillStyle = 'rgba(0,0,0,.22)'; c.fillRect(bx + 2, by + h, w - 4, 2);
   pxBox(c, bx, by, w, h, st[0], ink);
   const prev = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; if (st[1]) c.drawImage(pixImg(st[1]), bx + 5, by + 4, 12, 12); c.imageSmoothingEnabled = prev;
@@ -4714,9 +4714,6 @@ function onTap(x, y) {
   for (let k = badgeHits.length - 1; k >= 0; k--) {
     const b = badgeHits[k];
     if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
-      const bi = info(b.i, b.j); if (!bi) return; const d = bi.d;
-      if (whyNot(bi)) { select(b.i, b.j); return; }
-      if (isBiz(d) && restockBiz(bi)) { snd('restock'); popup(b.i, b.j, 'ORDERED', '#8AF0B0'); changed(); return; }
       select(b.i, b.j);
       return;
     }
