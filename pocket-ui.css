@@ -1,0 +1,339 @@
+
+/* BIT BURBS / Pocket Pixel UI
+   Dedicated presentation layer. Keep gameplay, sprite rendering, and saved cities in index.html.
+   Legacy visuals are isolated in @layer legacy, so this single file controls the new UI. */
+:root {
+ --p-ink:#11152D; --p-outline:#211E48;
+ --p-surface:#444070; --p-surface-raised:#524B82;
+ --p-panel:#3D396B; --p-card:#504B7C;
+ --p-card-alt:#494570; --p-header:#5B5590;
+ --p-light:#827CB6; --p-deep:#2B2853;
+ --p-text:#FFFFFF; --p-muted:#E1DDF6;
+ --p-accent:#B494FF; --p-gold:#FFE27C;
+ --p-gap:10px;
+ color-scheme:dark;
+}
+body,button,input,select,textarea {
+ font-family:'VT323',monospace;
+ font-smooth:never;
+ -webkit-font-smoothing:none;
+}
+body {font-size:19px;line-height:1.18;color:var(--p-text)}
+/* Keep game canvas and original HUD/currencies intact. */
+#game{image-rendering:pixelated}
+#nav {
+ background:var(--p-deep);border-top:3px solid var(--p-outline);
+ padding:8px 8px calc(env(safe-area-inset-bottom,0px) + 8px);
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;
+ box-shadow:0 -3px 0 rgba(11,12,35,.2);
+ backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+#mapctl{gap:7px}
+#advisor,#legend,#toast,#coach {
+ border:2px solid var(--p-outline);
+ border-radius:0;
+ background:var(--p-surface);
+ box-shadow:inset 0 3px 0 rgba(255,255,255,.08),0 3px 0 var(--p-deep);
+ backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+#advisor{color:var(--p-text);padding:6px;max-width:min(210px,54vw)}
+#advisor b{font-size:18px;line-height:1}
+#advisor small{font-size:15px;color:var(--p-muted)}
+#advisor.warn{background:#853E5A}
+#legend{color:var(--p-text);font-size:16px;max-width:80vw;white-space:normal}
+#toast{color:var(--p-text);max-width:min(440px,92vw);font-size:19px;padding:9px 12px}
+#scrim{background:rgba(9,8,27,.68)}
+/* Consistent pixel windows: same hierarchy on Build, Tasks and Settings */
+#sheet,#card,#modalBox,#mgPanel.mgp {
+ color:var(--p-text);
+ border:3px solid var(--p-outline);
+ border-radius:0;
+ background:var(--p-panel);
+ background-image:none;
+ box-shadow:inset 0 3px 0 var(--p-light),inset 0 -4px 0 var(--p-deep),0 6px 0 rgba(9,9,28,.24);
+ backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+#sheet{
+ max-width:560px;max-height:84%;
+ border-bottom:0;
+ padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.shead{
+ position:relative;display:flex;align-items:center;gap:8px;
+ padding:11px 10px;
+ border-bottom:3px solid var(--p-outline);
+ background:var(--p-header);
+}
+.shead h2{
+ flex:1;text-align:center;margin:0;
+ color:var(--p-text);font:16px/1.35 'Silkscreen',monospace;
+ letter-spacing:0;text-transform:uppercase;
+}
+.sbody{
+ display:flex;flex-direction:column;gap:10px;
+ padding:12px 10px 16px;
+ overflow-y:auto;overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:var(--p-light) var(--p-deep);
+}
+#sheetBody{font:19px/1.2 'VT323',monospace;color:var(--p-text)}
+#sheetBody h3,.sect h3 {
+ margin:0;color:var(--p-gold);
+ font:12px/1.45 'Silkscreen',monospace;
+ text-transform:uppercase;
+}
+#sheetBody p,#sheetBody small,#sheetBody label,.note{color:var(--p-muted);line-height:1.2}
+#card{padding:11px;gap:9px;max-width:520px}
+.chead{display:flex;gap:8px;align-items:flex-start}
+.chead>div{min-width:0;flex:1}
+.chead h2{font:15px/1.35 'Silkscreen',monospace;margin:0;color:var(--p-text)}
+.chead p{margin:4px 0 0;font:18px/1.15 'VT323',monospace;color:var(--p-muted)}
+.row{display:flex;gap:7px;flex-wrap:wrap;align-items:stretch}
+.row button.pixel-btn{flex:1 1 auto;min-width:0}
+/* One panel and one card treatment throughout all content pages. */
+.sect,#sheetBody .sect,.rank-card,.daily-task-card,.streak-card,
+.streak-hero,.streak-footer,.keysrow,.odds,.pity,.cstage,
+.wodds,.msection,.msection-head,.mcard,.bcard,.tier,.ptable,
+#modalBox .wl-row,.task-tabs,.pips {
+ border-radius:0;
+}
+.sect,#sheetBody .sect {
+ display:flex;flex-direction:column;gap:9px;
+ padding:11px;background:var(--p-card-alt);
+ border:2px solid var(--p-outline);
+ box-shadow:inset 0 2px 0 rgba(255,255,255,.08);
+}
+.task{display:flex;align-items:center;gap:9px;min-width:0}
+.task .info{flex:1;min-width:0;font:19px/1.16 'VT323',monospace}
+.task .info b{color:#fff;font-weight:400}
+.task .info small{font:16px/1.2 'VT323',monospace;color:var(--p-muted)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#sheetBody button.bcard,.bcard,.mcard {
+ color:var(--p-text);
+ background:var(--p-card);
+ border:2px solid var(--p-outline);
+ border-radius:0;
+ box-shadow:inset 0 3px 0 rgba(255,255,255,.1),inset 0 -3px 0 rgba(0,0,0,.14);
+}
+#sheetBody button.bcard b,.bcard b,.mcard b{font:21px/1.1 'VT323',monospace;color:#fff}
+#sheetBody button.bcard span,.bcard span,.mcard span {font:17px/1.14 'VT323',monospace;color:var(--p-muted)}
+#sheetBody button.bcard .price,.bcard .price{font-size:19px;color:var(--p-gold)}
+.bcard canvas{image-rendering:pixelated}
+.bcard[aria-disabled="true"]{opacity:.55}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;overflow:visible;padding:0}
+.tabs button.pixel-btn{flex:1 1 auto;min-width:60px}
+.tags{gap:5px}
+.tag{font:17px/1 'VT323',monospace;background:var(--p-deep);border:1px solid var(--p-light);color:#fff;padding:4px 6px;border-radius:0}
+.tag.ok{background:#267657}.tag.bad{background:#7A3653}
+.bar,.xp,.daily-progress,.pbar{
+ background:var(--p-deep);border:1px solid var(--p-outline);
+ border-radius:0;overflow:hidden;
+}
+.bar i,.xp i,.daily-progress i,.pbar i{border-radius:0}
+/* Modal layout stays full-height for mini-games, but same frame and spacing. */
+#mg{background:rgba(9,8,27,.74)}
+#mgPanel.mgp{
+ display:flex;flex-direction:column;align-items:center;
+ padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 16px);
+ gap:10px;overflow-x:hidden;overflow-y:auto;
+}
+#mgPanel .mgtitle{
+ width:calc(100% + 24px);flex:0 0 auto;
+ margin:-10px -12px 6px;padding:13px 50px 12px;
+ background:var(--p-header);
+ border-bottom:3px solid var(--p-outline);
+ color:var(--p-text);
+ font:17px/1.35 'Silkscreen',monospace;
+ letter-spacing:0;text-align:center;text-shadow:none;
+}
+#mgPanel .mgmsg,#mgPanel .grind,#mgPanel .cnt{font:19px/1.15 'VT323',monospace;color:var(--p-text)}
+#mgPanel .mgmsg{max-width:100%}
+#mgPanel .ptable{background:var(--p-card-alt);border:2px solid var(--p-outline);color:#fff}
+#mgPanel .ptable .ph{background:var(--p-header);color:#fff}
+#mgPanel .ptable .pr{background:var(--p-card-alt);color:#fff}
+#mgPanel .ptable .pr:nth-child(odd){background:var(--p-card)}
+#mgPanel .ctiers{gap:7px;width:100%}
+#mgPanel .ctier{min-width:0}
+#mgPanel .mcard,#mgPanel .mcard.feat{background:var(--p-card);border-color:var(--p-outline);color:#fff}
+#mgPanel .mcard em{color:var(--p-gold)}
+#mgPanel .mcard .mleft{color:var(--p-muted)}
+/* Preserve minigame-specific illustration, canvas, wheel, crate and reward FX. */
+.mgcanvas{max-width:100%;image-rendering:pixelated}
+#modal{background:rgba(9,8,27,.74)}
+#modalBox{
+ width:min(360px,100%);max-height:90dvh;overflow-y:auto;
+ padding:16px;gap:12px;text-align:center;
+}
+#modalBox h2{font:17px/1.35 'Silkscreen',monospace;color:#fff}
+#modalBox .note,#modalBox ul{font:19px/1.2 'VT323',monospace;color:var(--p-muted)}
+#coach{max-width:min(370px,94vw)}
+#coach p{font:17px/1.2 'VT323',monospace;color:var(--p-muted)}
+/* Touch sizing, compact portrait and landscape. */
+@media(max-width:390px){
+ #nav{gap:4px;padding-inline:5px}
+ #nav button.pixel-btn{font-size:16px}
+ .sbody{padding-inline:8px}
+ #sheetBody .grid2{gap:6px}
+ #mgPanel .mgtitle{font-size:15px}
+}
+@media(max-height:590px){
+ #sheet{max-height:90%}
+ #mgPanel.mgp{gap:7px}
+}
+@media(prefers-reduced-motion:reduce){
+ #sheet,#scrim,#toast{transition:none}
+}
+
+/* Approved shared button component — preserved from current game. */
+/* ===== Bit Burbs approved pixel button design system v65 =====
+   Shared style for ALL static and dynamically rendered button templates.
+   Hard pixel shading only; existing icon canvases and gameplay logic are unchanged. */
+:root{
+ --bb-cut:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,
+ calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,
+ calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),
+ calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),
+ calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,
+ 6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),
+ 3px calc(100% - 6px),0 calc(100% - 6px));
+}
+button.pixel-btn{
+ --bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192;
+ -webkit-appearance:none!important;appearance:none!important;
+ display:inline-flex;align-items:center;justify-content:center;
+ gap:6px;min-height:38px;box-sizing:border-box!important;
+ position:relative;isolation:isolate;
+ border:2px solid var(--bb-edge)!important;border-radius:0!important;
+ clip-path:var(--bb-cut)!important;
+ background-color:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,
+ var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),
+ var(--bb-bottom) calc(100% - 5px) 100%)!important;
+ box-shadow:none!important;outline:none!important;
+ color:#fff!important;text-shadow:none!important;
+ font-family:'VT323',monospace!important;font-weight:400!important;
+ letter-spacing:.025em!important;font-size:20px!important;line-height:1!important;
+ text-transform:uppercase!important;
+ cursor:pointer;-webkit-tap-highlight-color:transparent;
+ transition:transform 70ms steps(2,end)!important;
+}
+button.pixel-btn::before,button.pixel-btn::after{display:none!important;content:none!important}
+button.pixel-btn canvas,button.pixel-btn svg{image-rendering:pixelated}
+button.pixel-btn:active:not(:disabled):not([aria-disabled="true"]){
+ transform:translateY(2px)!important;filter:brightness(.94)!important;
+}
+button.pixel-btn:focus-visible{outline:2px solid #FFE28B!important;outline-offset:3px!important}
+button.pixel-btn:disabled,button.pixel-btn[aria-disabled="true"]{
+ opacity:.53!important;filter:grayscale(.35)!important;cursor:not-allowed!important;
+}
+/* Colour tokens copied from approved sheet: blue / magenta / orange / green / violet. */
+button.pixel-btn.purple,button.pixel-btn.teal,button.pixel-btn.cream{
+ --bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A;
+}
+button.pixel-btn.green,button.pixel-btn.rsall,button.pixel-btn.daily-claim,
+button.pixel-btn[data-act="confirmPlace"],button.pixel-btn[data-act="buildHere"]{
+ --bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817;
+}
+button.pixel-btn.red,button.pixel-btn[data-act="cancelPlace"],
+button.pixel-btn[data-act="reset"],button.pixel-btn[data-act="demolish"]{
+ --bb-face:#EB365E;--bb-top:#FF718F;--bb-bottom:#BF1D43;--bb-edge:#99203D;
+}
+button.pixel-btn.gold,button.pixel-btn[data-act="upgrade"],button.pixel-btn[data-act="rush"]{
+ --bb-face:#F2B629;--bb-top:#FFDF6B;--bb-bottom:#C88613;--bb-edge:#9C6310;
+}
+button.pixel-btn.sq{
+ --bb-face:#687CAC;--bb-top:#A0B1D5;--bb-bottom:#485B88;--bb-edge:#364569;
+ width:44px!important;height:44px!important;min-width:44px!important;
+ min-height:44px!important;padding:0!important;
+}
+/* The five navigation buttons each preserve a distinct colour. */
+#nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important}
+#nav button.pixel-btn{
+ width:100%!important;min-width:0!important;min-height:58px!important;
+ padding:5px 2px!important;display:flex!important;flex-direction:column!important;
+ font-size:18px!important;gap:3px!important;
+}
+#nav button.pixel-btn[data-open="build"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
+#nav button.pixel-btn[data-open="wheel"]{--bb-face:#EA386C;--bb-top:#FF77A0;--bb-bottom:#B91E4A;--bb-edge:#941B3D}
+#nav button.pixel-btn[data-open="crates"]{--bb-face:#F49A27;--bb-top:#FFC361;--bb-bottom:#C66F15;--bb-edge:#9C5012}
+#nav button.pixel-btn[data-open="tasks"]{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
+#nav button.pixel-btn[data-open="settings"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A}
+#nav button.pixel-btn[data-open]{background-color:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)!important;
+ border-color:var(--bb-edge)!important;color:#fff!important;
+}
+#nav button.pixel-btn canvas{width:25px!important;height:25px!important}
+#nav button.pixel-btn .nav-icon{font-size:25px!important;height:25px!important;line-height:25px!important}
+/* Map buttons / Dosh shop. */
+#mapctl button.pixel-btn.sq,#mapctl button.pixel-btn#zmkt{
+ width:44px!important;height:44px!important;min-width:44px!important;
+ min-height:44px!important;padding:0!important;
+ border:2px solid var(--bb-edge)!important;clip-path:var(--bb-cut)!important;
+ background-color:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)!important;
+}
+#mapctl button.pixel-btn#zmkt{--bb-face:#F2B629;--bb-top:#FFDF6B;--bb-bottom:#C88613;--bb-edge:#9C6310}
+/* Every X button is identical, no special glass or circular controls. */
+button.pixel-btn.pixel-close,#sheet button.pixel-btn.pixel-close,
+#card button.pixel-btn.pixel-close,#mg button.pixel-btn.pixel-close{
+ --bb-face:#E93954;--bb-top:#FF7180;--bb-bottom:#B51D36;--bb-edge:#922037;
+ flex:0 0 36px!important;width:36px!important;min-width:36px!important;
+ max-width:36px!important;height:36px!important;min-height:36px!important;
+ max-height:36px!important;padding:0!important;margin:0!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ font:24px/1 'VT323',monospace!important;color:#fff!important;
+ border:2px solid var(--bb-edge)!important;border-radius:0!important;
+ clip-path:var(--bb-cut)!important;background:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)!important;
+ box-shadow:none!important;text-shadow:none!important;
+}
+/* Small utility / information / setting buttons share normal controls. */
+.shead button.pixel-btn.infob,.mgp button.pixel-btn.infob,
+button.pixel-btn[data-act="info"]{
+ --bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192;
+}
+button.pixel-btn[data-act="sound"],button.pixel-btn[data-act="loc"]{min-width:65px!important}
+button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A}
+/* Build tabs, including distinct owned-items tab. */
+#sheetBody .tabs button.pixel-btn{min-height:40px!important;font-size:17px!important}
+#sheetBody .tabs button.pixel-btn[aria-pressed="false"]{
+ --bb-face:#7784A6;--bb-top:#A9B4CC;--bb-bottom:#55617E;--bb-edge:#404B64;
+}
+#sheetBody .tabs button.pixel-btn[aria-pressed="true"]{
+ --bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A;
+}
+#sheetBody .tabs button.pixel-btn[data-tab="items"]{
+ --bb-face:#389B71;--bb-top:#6BC99A;--bb-bottom:#226B4E;--bb-edge:#19533B;
+}
+#sheetBody .tabs button.pixel-btn[data-tab="items"][aria-pressed="true"]{
+ --bb-face:#4BCB81;--bb-top:#90E7B4;--bb-bottom:#2B9A5E;--bb-edge:#1F7449;
+}
+/* Cards remain usable and retain artwork/previews, but get same pixel frame. */
+#sheetBody button.pixel-btn.bcard{
+ --bb-face:#354E88;--bb-top:#5C74A9;--bb-bottom:#253966;--bb-edge:#1E2E51;
+ display:flex!important;flex-direction:column!important;gap:3px!important;
+ padding:9px 5px!important;min-height:0!important;
+ background-color:var(--bb-face)!important;color:#FFFFFF!important;
+}
+#sheetBody button.pixel-btn.bcard b,#sheetBody button.pixel-btn.bcard span{color:#FFFFFF!important}
+#sheetBody button.pixel-btn.bcard canvas{image-rendering:pixelated}
+/* Action buttons in every reward, game and shop. */
+#mg button.pixel-btn[data-act="spin"],#mg button.pixel-btn[data-act="roll"],
+#mg button.pixel-btn[data-act="openCrate"]{
+ --bb-face:#EA386C;--bb-top:#FF77A0;--bb-bottom:#B91E4A;--bb-edge:#941B3D;
+}
+#mg button.pixel-btn[data-act="buy"],#mg button.pixel-btn[data-act="buyDaily"]{
+ --bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817;
+}
+#mg button.pixel-btn.ctier{
+ --bb-face:#4A73AC;--bb-top:#7CA4D4;--bb-bottom:#315487;--bb-edge:#263F6B;
+ min-height:75px!important;
+}
+#mg button.pixel-btn.ctier[aria-pressed="true"]{
+ --bb-face:#F2B629;--bb-top:#FFDF6B;--bb-bottom:#C88613;--bb-edge:#9C6310;
+ color:#31210D!important;
+}
+#mg button.pixel-btn#openBtn{animation:none!important}
+#modalBox button.pixel-btn,#modal button.pixel-btn{min-height:46px!important}
+#modalBox button.pixel-btn.wl-r{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
+
+@media(prefers-reduced-motion:reduce){button.pixel-btn{transition:none!important}}
