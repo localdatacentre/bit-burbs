@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=79">
+<link rel="stylesheet" href="pocket-ui.css?v=80">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -3474,6 +3474,15 @@ function renderSheet(force) {
   setText($('#sheetTitle'), sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
   sheetBody.innerHTML = sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
   if (sheet === 'build') drawPreviews(); else paintNewIcons();
+  if(sheet==='build' && S.tut && !mg){
+    const st=tutStep();
+    if(st&&st.build){
+      const target=st.tab&&buildTab!==st.tab
+        ? '[data-act="tab"][data-tab="'+st.tab+'"]'
+        : '[data-act="choose"][data-id="'+st.build+'"]';
+      setHL(target);
+    }
+  }
 }
 function buildHTML() {
   let h = (S.tut && tutStep() && tutStep().build ? `<div class="tut-build-tip">TUTORIAL ${S.tut.step+1}/${TUT.length} · ${tutStep().t} — follow the yellow highlight</div>` : '') + `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pixel-btn pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
@@ -4145,7 +4154,7 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
- {t:'Build a home',d:'Welcome to Bit Burbs! Your Town Hall, street and starter home are ready. Add another home to the glowing plot.',build:'house',tab:'homes',done:()=>countOf('house')>=2},
+ {t:'Build a home',d:'TAP THE BLUE BUILD BUTTON BELOW! Then choose Homes, select the Cottage and place it on the yellow plot.',build:'house',tab:'homes',done:()=>countOf('house')>=2},
  {t:'Add electricity',d:'Place a Wind Turbine beside the road to power your town.',build:'wind',tab:'util',done:()=>hasB('wind')},
  {t:'Connect water',d:'Place a Water Tower so your buildings have fresh water.',build:'wtower',tab:'util',done:()=>hasB('wtower')},
  {t:'Open a bakery',d:'Build a Bakery beside the street to earn Coins.',build:'bakery',tab:'businesses',done:()=>hasB('bakery')},
@@ -4153,6 +4162,30 @@ const TUT = [
 ];
 const TUTORIAL_PLOTS={house:[25,24],wind:[26,24],wtower:[27,24],bakery:[28,24]};
 let tutHL = null;
+// A separate, non-interactive focus frame stays visible outside pixel button
+// clip-paths (which otherwise clip CSS outlines on iOS WebKit).
+const tutFocus = document.createElement('div');
+tutFocus.id = 'bb-tutorial-focus';
+tutFocus.setAttribute('aria-hidden', 'true');
+document.body.appendChild(tutFocus);
+function updateTutFocus(el) {
+  if (!el || !el.isConnected || !el.getClientRects().length) {
+    tutFocus.classList.remove('show','build-tip');
+    return;
+  }
+  const r=el.getBoundingClientRect();
+  if(r.width<2||r.height<2){
+    tutFocus.classList.remove('show','build-tip');
+    return;
+  }
+  const inset=4;
+  tutFocus.style.left=Math.round(r.left-inset)+'px';
+  tutFocus.style.top=Math.round(r.top-inset)+'px';
+  tutFocus.style.width=Math.round(r.width+inset*2)+'px';
+  tutFocus.style.height=Math.round(r.height+inset*2)+'px';
+  tutFocus.classList.add('show');
+  tutFocus.classList.toggle('build-tip',el.matches('#nav [data-open="build"]'));
+}
 function tutStep() { return S.tut && TUT[S.tut.step]; }
 function suggestRoad() {
   const h = findHall(); if (!h) return null;
@@ -4221,9 +4254,16 @@ function tutTick() {
   setHL(target);
 }
 function setHL(sel) {
-  const el = sel ? document.querySelector(sel) : null;
-  if (tutHL && tutHL !== el) tutHL.classList.remove('tut-hl');
-  if (el) {el.classList.add('tut-hl');if(el!==tutHL && el.matches('[data-act="choose"]'))el.scrollIntoView({block:'nearest',behavior:'instant'});} tutHL = el;
+  const el=sel?document.querySelector(sel):null;
+  if(tutHL&&tutHL!==el)tutHL.classList.remove('tut-hl');
+  if(el){
+    el.classList.add('tut-hl');
+    if(el!==tutHL&&el.matches('[data-act="choose"]')){
+      el.scrollIntoView({block:'nearest'});
+    }
+  }
+  tutHL=el;
+  updateTutFocus(el);
 }
 function tutMapTarget() {
   const st = tutStep(); if (!st || S.firstRun) return null;
@@ -4289,6 +4329,10 @@ function welcome(upgraded) {
     $('#modal').classList.remove('show'); S.firstRun = false; S.upgraded = false;
     if (bonus) { S.welcomeBonus = true; S.stars += 50; snd('coins'); toast('+50 Dosh added. Enjoy, Mayor!'); } else snd('confirm');
     changed(); save();
+    if(S.tut && S.tut.step===0) {
+      // First step is visible immediately after closing the welcome modal.
+      tutTick();
+    }
   };
 }
 
@@ -4313,6 +4357,8 @@ function frame(t) {
   tick(dt);
   pumpRewardPopup();
   render();
+  // Keep the pixel focus ring attached to its button during resize and scroll.
+  if(tutHL)updateTutFocus(tutHL);
   if (mg === 'dice') drawBoard(); else if (mg === 'wheel') drawWheel(); else if (mg === 'crates') drawChestScene();
   drawFx();
   uiAcc += dt;
