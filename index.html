@@ -1452,6 +1452,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
   <button class="pixel-btn pb purple sq" id="zin" aria-label="Zoom in"><canvas data-icon="plus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
   <button class="pixel-btn pb purple sq" id="zout" aria-label="Zoom out"><canvas data-icon="minus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
   <button class="pixel-btn pb sq" id="moveTool" aria-label="Move and rotate buildings" aria-pressed="false" title="Move and rotate buildings"><canvas data-icon="moveTurn" width="48" height="48" style="width:28px;height:28px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb sq" id="turnMap" aria-label="Rotate map clockwise"><canvas data-icon="rotate" width="48" height="48" style="width:24px;height:24px"></canvas></button>
   <button class="pixel-btn pb sq" id="eyeTool" aria-label="Transparent buildings" aria-pressed="false" title="Transparent buildings"><canvas data-icon="eye" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
 </div>
 
@@ -2225,7 +2226,7 @@ Q.m1={fx:1,fy:1,H:30,name:'Modern Box House',d(k){
   k.box(4.1,1.6,19,10.4,8.4,21,{top:'#9AA2AE',L:'#F4F2EC',R:'#DCD8D0',noRim:true});});
  pool(k,11.2,3,14.2,10.6);glassFence(k,10.8,11,14.6,11.2);
  k.tree(13.6,13,.6);fence(k,1,12.4,4.8,12.8); k.planter(1.2,13,4.6,14,'correa');k.flush();}};
-Q.m2={fx:1,fy:1,H:34,name:'Skillion House',d(k){
+Q.m2={fx:1,fy:1,H:34,name:'Parkside House',d(k){
  modernLot(k,(wx,wy)=>wx>=7.6&&wx<10.4&&wy>=8);
  k.add(2,2,7.4,10.4,()=>{const b=k.box(2,2,0,7.4,10.4,10,{Lfn:k.siding('#2E3A40'),Rfn:k.siding('#26323A'),top:'#3A3F4A'});
   k.win(k.L,b,1,1,4,8,{glass:'#9CCCE8',frame:'#E8E4DC'});k.door(k.L,b,7,3,8,'#C9A87A',{frame:'#E8E4DC'});
@@ -2684,7 +2685,6 @@ M.oldsolar={fx:1,fy:1,H:20,d(k){
  for(const x of [2,8])for(const y of [2,8])solarRack(k,x,y,5,5,2);
  cabinet(k,12,12,2,2,4,'#94A79D');k.flush();}};
 M.road={fx:1,fy:1,H:3,d(k){k.ground((x,y)=>y>=7.5&&y<8.5&&Math.floor(x/4)%2===0?'#DEDCCF':y<.35||y>15.65?'#3A454F':'#4A545D');}};
-M.ferris={fx:1,fy:1,H:58,d(k){k.ground(k.lot(k.walk));let cx=8,cy=8,z=24;for(const y of [6,10])for(const x of [2,14])edgeW(k,[x,y,1],[cx,y,z],'#6B8594');for(let n=0;n<48;n++){let a=n*Math.PI/24,b=(n+1)*Math.PI/24;let pt=t=>[cx+6.8*Math.cos(t),cy, z+16*Math.sin(t)];edgeW(k,pt(a),pt(b),n%3===0?k.light('#E78369',n%2?'#EFA983':'#E2CB95'):'#E78369');if(n%6===0){let [x,y,h]=pt(a);edgeW(k,[cx,cy,z],[x,y,h],'#819EAA');k.box(x-1,y-.8,h-3,x+1,y+.8,h,{L:['#E2B652','#599EA3','#CE7363','#899C72'][n/6%4],R:'#677C88',top:'#EEE3CD'});}}k.bench(2,13,'x');k.flush();}};
 
 // The balcony and its glazing share the same dimensions on every upper floor.
 function apartmentBay(k,x,y,width,depth,floors){
@@ -3045,8 +3045,7 @@ const DEFS = {
   fountain: { name: 'Grand Fountain', type: 'decor', crateOnly: true, cost: 4000, happy: 12, rad: 2 },
   statue:   { name: 'Golden Bull', type: 'decor', crateOnly: true, cost: 10000, happy: 18, rad: 3 },
   sakura:   { name: 'Flowering Gum', type: 'decor', crateOnly: true, cost: 300, happy: 3, rad: 1 },
-  ferris:   { name: 'Ferris Wheel', type: 'decor', lvl: 7, cost: 9000, happy: 15, rad: 4, h: 62 },
-  house2:   { name: 'Skillion House', type: 'home', cost: 2200, lvl: 2, cap: 5, h: 30, pw: 1, wa: 1 },
+  house2:   { name: 'Parkside House', type: 'home', cost: 2200, lvl: 2, cap: 5, h: 30, pw: 1, wa: 1 },
   town:     { name: 'Townhouses', type: 'home', cost: 24000, lvl: 9, cap: 30, h: 30, pw: 6, wa: 6, fx: 3, fy: 2 },
   gas:      { name: 'Zip Fuel', type: 'shop', cat: 'Services', cost: 12000, lvl: 6, staff: 3, rc: 600, earn: 1800, time: 100, h: 34, pw: 2, wa: 1, fx: 2, fy: 2 },
   warehouse:{ name: 'Parcel Logistics', type: 'ind', cost: 30000, lvl: 9, staff: 10, rate: 7, h: 30, pw: 4, wa: 1, fx: 3, fy: 2 },
@@ -3074,7 +3073,7 @@ const BUILD_TABS = [
   ['homes', 'Homes', ['house', 'house2', 'm3', 'banksiaDuplex', 'q1', 'aptS', 'aptP', 'tower', 'town']],
   ['businesses', 'Businesses', ['bakery', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'spindleCycles', 'gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'police', 'fire', 'clinic', 'school']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'plant', 'solar2', 'nuclear']],
-  ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'ferris', 'tidalBaths', 'civicClock', 'needle', 'space']],
+  ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'tidalBaths', 'civicClock', 'needle', 'space']],
   ['transport', 'Transport', ['hailStop','busShelter']],
   ['items', 'My items', ['sakura', 'fountain', 'statue', 'sundrop', 'sunhouse', 'pelicanLight']]
 ];
@@ -3286,7 +3285,7 @@ function hash(a, b, c) { let x = (a * 374761393 + b * 668265263 + (c || 0) * 214
 /* ================= state ================= */
 let S;
 function baseState() {
-  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), crates: { steel: 1, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
+  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), crates: { steel: 1, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
 }
 function newGame() {
   const s=baseState();
@@ -3981,22 +3980,6 @@ function drawDecor(i, j, id) {
   const z = V.z;
   if (id === 'tree') { tree(i + .5, j + .55, 1.15); return; }
   if (id === 'sakura') { tree(i + .5, j + .55, 1.2, true); const t = performance.now() / 1000; for (let k = 0; k < 3; k++) { const p = (t * .25 + k / 3) % 1; const q = P(i + .3 + k * .2, j + .5); V.ctx.globalAlpha = 1 - p; circle(q.x + Math.sin(p * 8 + k) * 4 * z, q.y - 22 * z + p * 22 * z, 1.6 * z, '#FFB3D4'); } V.ctx.globalAlpha = 1; return; }
-  if (id === 'ferris') {
-    const base = P(i + .5, j + .5), c = V.ctx, cy = base.y - 36 * z, R = 27 * z;
-    shadowFor(i, j, 30 * z);
-    prism(i + .2, j + .35, i + .8, j + .65, 4 * z, '#D9D2C6', '#B9B2A6', '#9A9488');
-    c.strokeStyle = T('#5A4E6A'); c.lineWidth = 3 * z; c.lineCap = 'round';
-    c.beginPath(); c.moveTo(base.x - 16 * z, base.y - 3 * z); c.lineTo(base.x, cy); c.lineTo(base.x + 16 * z, base.y - 3 * z); c.stroke();
-    const a0 = performance.now() / 4000;
-    c.lineWidth = 1.2 * z; c.strokeStyle = T('#D9D2E6');
-    for (let k = 0; k < 8; k++) { const a = a0 + k * Math.PI / 4; c.beginPath(); c.moveTo(base.x, cy); c.lineTo(base.x + Math.cos(a) * R, cy + Math.sin(a) * R); c.stroke(); }
-    c.beginPath(); c.arc(base.x, cy, R, 0, Math.PI * 2); c.lineWidth = 4.5 * z; c.strokeStyle = 'rgba(18,22,30,.3)'; c.stroke(); c.lineWidth = 2.8 * z; c.strokeStyle = T('#E53B3B'); c.stroke();
-    const cols = ['#FFC93C', '#36C9D2', '#4CCB3A', '#FF8A1F'];
-    for (let k = 0; k < 8; k++) { const a = a0 + k * Math.PI / 4 + Math.PI / 8; const px = base.x + Math.cos(a) * R, py = cy + Math.sin(a) * R; c.fillStyle = T(cols[k % 4]); c.strokeStyle = 'rgba(18,22,30,.3)'; c.lineWidth = Math.max(1, z); c.beginPath(); c.rect(px - 4 * z, py, 8 * z, 7 * z); c.fill(); c.stroke(); }
-    if (DARK > .35) { c.save(); c.globalCompositeOperation = 'lighter'; for (let k = 0; k < 16; k++) { const a = a0 * 2 + k * Math.PI / 8; if ((Math.floor(performance.now() / 300) + k) % 2) circle(base.x + Math.cos(a) * R, cy + Math.sin(a) * R, 2 * z, 'rgba(255,220,120,.9)'); } c.restore(); }
-    circle(base.x, cy, 4 * z, T('#FFC93C'), 'rgba(18,22,30,.3)', Math.max(1, z));
-    return;
-  }
   if (id === 'park') {
     poly(diamond(i, j, .06), T('#6FC15A'));
     poly([P(i + .45, j + .08), P(i + .55, j + .08), P(i + .55, j + .92), P(i + .45, j + .92)], T('#E8D2A6'));
@@ -4087,7 +4070,6 @@ const SPR_KEY = {
   clinic: 'clinic',
   school: 'school',
   flowers: 'flowers',
-  ferris: 'ferris'
 };
 const SPR = new Map();
 function spriteOf(id) { if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
@@ -6053,6 +6035,13 @@ $('#moveTool').addEventListener('click',()=>{
 $('#eyeTool').addEventListener('click',()=>{
   transparency=!fadedBuildings();syncMapTools();
 });
+$('#turnMap').addEventListener('click', () => {
+  const focus = screenToWorld(W / 2, mapMidY());
+  camAnim = null;
+  ROT = (ROT + 1) % 4;
+  centerOn(focus.x, focus.y);
+  clampCam();
+});
 $('#zin').addEventListener('click', () => snapZoom(W / 2, mapMidY(), 1));
 $('#zout').addEventListener('click', () => snapZoom(W / 2, mapMidY(), -1));
 
@@ -6288,6 +6277,13 @@ function frame(t) {
 
 /* ================= boot ================= */
 S = load() || newGame();
+S.tiles.forEach((tile, index) => {
+  if (tile?.id === 'ferris') {
+    S.tiles[index] = null;
+    S.cash += 9000;
+  }
+});
+if (S.items) delete S.items.ferris;
 const loadedSaveTime = S.saved || 0;
 if (S.tut && !S.tutDone && S.tut.version!==3) {
   // Convert old ten-step tutorial saves without replacing established towns.
@@ -6327,7 +6323,7 @@ if (receivedGoldGift) {
 if (!S.grind) S.grind = { d: 0, t: 0 };
 if (S.dice > 15) S.dice = 15;
 S.dicePos = (S.dicePos || 0) % 12;
-S.items = Object.assign({ fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, S.items || {});
+S.items = Object.assign({ fountain: 0, statue: 0, flowers: 0, sakura: 0 }, S.items || {});
 S.shopItems = Object.assign({}, S.shopItems || {});
 for (const id of Object.keys(S.shopItems)) if (!MARKET[id]) delete S.shopItems[id];
 if (!S.market) S.market = { week: 0, bought: {}, seen: 0 };
@@ -6353,6 +6349,28 @@ document.addEventListener('visibilitychange', () => {
   }
   updateSky();
 });
+const reviewId = new URLSearchParams(location.search).get('model');
+if (reviewId && Object.hasOwn(DEFS, reviewId)) {
+  const sprite = spriteOf(reviewId);
+  if (sprite) {
+    const panel = document.createElement('dialog');
+    panel.style.cssText = 'text-align:center;color:white;background:#233750;border:2px solid #546d87;width:min(85vw,360px)';
+    const title = document.createElement('h2');
+    title.textContent = DEFS[reviewId].name;
+    const art = document.createElement('canvas');
+    art.width = sprite.img.width;
+    art.height = sprite.img.height;
+    art.style.cssText = 'display:block;width:90%;margin:20px auto;image-rendering:pixelated';
+    art.getContext('2d').drawImage(sprite.img,0,0);
+    const close = document.createElement('button');
+    close.className = 'pixel-btn pb';
+    close.textContent = 'Back to town';
+    close.onclick = () => panel.close();
+    panel.append(title,art,close);
+    document.body.append(panel);
+    panel.showModal();
+  }
+}
 resize(); derive(); centerOn(MID, MID); paintStaticIcons(); updateHUD();
 if (S.upgraded || S.firstRun) {
   welcome(!!S.upgraded);
