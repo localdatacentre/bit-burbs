@@ -1218,7 +1218,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 <header id="hud">
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
-    <div class="cname"><b class="wm">BIT-BURBS<small id="stage">Village</small></b><div class="xp" aria-label="Progress to next level"><i id="xpFill"></i></div></div>
+    <div class="cname"><b class="wm">BIT-BURBS</b><div class="xp" aria-label="Progress to next level"><i id="xpFill"></i></div></div>
     <div id="boost" hidden>2× <span id="boostT"></span></div>
     <div style="display:flex;align-items:center;gap:6px"><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
   </div>
@@ -3201,12 +3201,12 @@ function txt(c, s, x, y, size, fill) {
 }
 
 /* ================= HUD ================= */
-const hud = { lvl: $('#lvlNum'), stage: $('#stage'), xp: $('#xpFill'), cash: $('#cash'), stars: $('#stars'), dice: $('#dice'), keys: $('#keys'), tix: $('#tix'), boost: $('#boost'), boostT: $('#boostT'), clockT: $('#clockT'), dotDice: $('#dotDice'), dotWheel: $('#dotWheel'), dotCrates: $('#dotCrates'), dotTasks: $('#dotTasks') };
+const hud = { lvl: $('#lvlNum'), xp: $('#xpFill'), cash: $('#cash'), stars: $('#stars'), dice: $('#dice'), keys: $('#keys'), tix: $('#tix'), boost: $('#boost'), boostT: $('#boostT'), clockT: $('#clockT'), dotDice: $('#dotDice'), dotWheel: $('#dotWheel'), dotCrates: $('#dotCrates'), dotTasks: $('#dotTasks') };
 function setText(el, v) { v = String(v); if (el && el.textContent !== v) el.textContent = v; }
 let lastClockKind = '', lastFace = -1;
 function updateHUD() {
   { const n = restockAllCount(); setText($('#rsAll'), n ? 'RESTOCK ALL · ' + restockAllCost(n) + ' DOSH' : 'ALL STOCKED'); $('#rsAll').disabled = !n; }
-  setText(hud.lvl, S.level); setText(hud.stage, stage(S.level)); setText($('#popLbl'), S.pop + ' / ' + (D.cap || 0) + ' RESIDENTS'); setText($('#cpmLbl'), fmt(D.cpm || 0) + ' COINS/MIN');
+  setText(hud.lvl, S.level); setText($('#popLbl'), S.pop + ' / ' + (D.cap || 0) + ' RESIDENTS'); setText($('#cpmLbl'), fmt(D.cpm || 0) + ' COINS/MIN');
   hud.xp.style.width = Math.min(100, S.xp / need(S.level) * 100) + '%';
   setText(hud.cash, S.cash >= 1000 && S.cash < 1e4 ? (S.cash / 1000).toFixed(1) + 'k' : fmt(S.cash)); setText(hud.stars, fmt(S.stars)); setText(hud.dice, S.dice);
   setText($('#deeds'), S.deeds || 0); setText(hud.tix, S.tickets);
