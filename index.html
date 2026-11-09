@@ -2964,12 +2964,21 @@ M.banksiaDuplex={fx:2,fy:1,H:34,name:'Banksia Court Duplex',d(k){
    const colour=reverse?'#598268':'#56646F';
    polyW(k,[[left,back,eave],[right,back,eave],[right,ridge,peak],[left,ridge,peak]],sh(colour,.84));
    if(reverse)polyW(k,[[right,back,eave],[right,front,eave],[right,ridge,peak]],'#C3CCBE');
-   polyW(k,[[left,ridge,peak],[right,ridge,peak],[right,front,eave],[left,front,eave]],colour);
-   for(let seam=left+1.25;seam<right;seam+=2.5){
-    edgeW(k,[seam,ridge,peak],[seam,front,eave],sh(colour,.92));
-   }
-   edgeW(k,[left,front,eave],[right,front,eave],sh(colour,.77));
-   edgeW(k,[left,ridge,peak],[right,ridge,peak],sh(colour,1.15));
+   // Sample ribs and trim inside the same pixel mask as the roof face.
+   const origin=k.sc(left,ridge,peak),along=k.sc(right,ridge,peak),down=k.sc(left,front,eave);
+   const ax=along.x-origin.x,ay=along.y-origin.y,bx=down.x-origin.x,by=down.y-origin.y;
+   const det=ax*by-ay*bx;
+   const rib=sh(colour,.92),lip=sh(colour,.77),cap=sh(colour,1.15);
+   polyW(k,[[left,ridge,peak],[right,ridge,peak],[right,front,eave],[left,front,eave]],(px,py)=>{
+    const dx=px+.5-origin.x,dy=py+.5-origin.y;
+    const u=(dx*by-dy*bx)/det,v=(ax*dy-ay*dx)/det;
+    const faceHeight=det/Math.hypot(ax,ay);
+    if(v*faceHeight<1)return cap;
+    if((1-v)*faceHeight<1)return lip;
+    const spacing=2.5,offset=u*(right-left)-spacing/2;
+    const fromRib=Math.abs(offset-spacing*Math.round(offset/spacing));
+    return fromRib<.12?rib:colour;
+   });
    const porch=reverse?x+8:x+.5;
    for(const post of [porch,porch+4.5])k.box(post,deep+1.4,0,post+.3,deep+1.7,8,{L:'#9F7552',R:'#755540',top:'#D1A77D'});
    k.box(porch-.2,deep,8,porch+5,deep+1.95,8.6,{L:'#B68C65',R:'#906D52',top:'#D5AE82'});
