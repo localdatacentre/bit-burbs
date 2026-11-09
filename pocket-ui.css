@@ -524,3 +524,148 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
  #nav button.pixel-btn[data-open]{font-size:14px!important;height:58px!important;min-height:58px!important;max-height:58px!important}
  #nav button.pixel-btn[data-open] canvas{width:23px!important;height:23px!important;min-width:23px!important;min-height:23px!important;flex-basis:23px!important}
 }
+
+
+/* v76 — Wheel and Crates: structural mobile layout, not floating header controls.
+   Uses a real three-column header so Info, title and Close never stack. */
+#mg.show{z-index:40!important;display:flex!important;align-items:stretch!important;justify-content:center!important;padding:0!important}
+#mgPanel.mgp.mg-wheel,#mgPanel.mgp.mg-crates{
+ position:relative!important;
+ display:flex!important;flex-direction:column!important;
+ align-items:center!important;justify-content:flex-start!important;
+ box-sizing:border-box!important;
+ width:100%!important;max-width:560px!important;
+ height:100%!important;max-height:100%!important;min-height:0!important;
+ margin:0 auto!important;
+ padding:0 12px calc(22px + env(safe-area-inset-bottom,0px))!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+ overscroll-behavior:contain!important;
+ gap:12px!important;
+ border:0!important;border-radius:0!important;
+ background:#393560!important;
+ box-shadow:none!important;
+}
+#mgPanel.mg-wheel .mg-screen-head,#mgPanel.mg-crates .mg-screen-head{
+ display:grid!important;grid-template-columns:38px minmax(0,1fr) 38px!important;
+ align-items:center!important;column-gap:9px!important;
+ width:calc(100% + 24px)!important;min-width:0!important;
+ flex:0 0 auto!important;
+ margin:0 -12px 4px!important;
+ padding:calc(9px + env(safe-area-inset-top,0px)) 12px 11px!important;
+ min-height:66px!important;
+ background:#575083!important;border-bottom:3px solid #201A42!important;
+}
+#mgPanel.mg-wheel .mg-screen-head .mgtitle,
+#mgPanel.mg-crates .mg-screen-head .mgtitle{
+ grid-column:2!important;grid-row:1!important;
+ display:block!important;position:static!important;
+ width:auto!important;min-width:0!important;max-width:100%!important;
+ margin:0!important;padding:0!important;
+ border:0!important;box-shadow:none!important;
+ background:transparent!important;background-image:none!important;
+ color:#FFFFFF!important;text-align:center!important;
+ font:400 clamp(12px,3.7vw,18px)/1.35 'Silkscreen',monospace!important;
+ text-shadow:none!important;letter-spacing:0!important;
+}
+#mgPanel.mg-wheel .mg-screen-head button.pixel-btn.infob,
+#mgPanel.mg-crates .mg-screen-head button.pixel-btn.infob{
+ grid-column:1!important;grid-row:1!important;
+ position:static!important;inset:auto!important;
+ transform:none!important;
+ display:inline-flex!important;align-self:center!important;
+ width:36px!important;min-width:36px!important;max-width:36px!important;
+ height:36px!important;min-height:36px!important;max-height:36px!important;
+ margin:0!important;padding:0!important;
+ --bb-face:#239ECF;--bb-top:#62C7EE;--bb-bottom:#1575A6;--bb-edge:#155C84;
+}
+#mgPanel.mg-wheel .mg-screen-head button.pixel-btn.mgx,
+#mgPanel.mg-crates .mg-screen-head button.pixel-btn.mgx{
+ grid-column:3!important;grid-row:1!important;
+ position:static!important;inset:auto!important;
+ transform:none!important;
+ display:inline-flex!important;align-self:center!important;
+ width:36px!important;min-width:36px!important;max-width:36px!important;
+ height:36px!important;min-height:36px!important;max-height:36px!important;
+ margin:0!important;padding:0!important;
+}
+#mgPanel.mg-wheel > :not(.mg-screen-head),#mgPanel.mg-crates > :not(.mg-screen-head){
+ flex-shrink:0!important;
+ max-width:100%!important;
+}
+#mgPanel.mg-wheel #wheel{
+ display:block!important;
+ width:min(300px,calc(100vw - 38px))!important;
+ height:auto!important;aspect-ratio:1!important;
+ max-width:100%!important;
+ margin:0 auto!important;
+ image-rendering:pixelated!important;
+}
+#mgPanel.mg-wheel #tixRow{
+ margin:0 auto!important;padding:5px 12px!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ min-height:36px!important;max-width:100%!important;
+ white-space:nowrap!important;
+}
+#mgPanel.mg-wheel #spinBtn,#mgPanel.mg-crates #openBtn{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:min(340px,100%)!important;min-width:0!important;
+ min-height:48px!important;margin:2px auto!important;
+ font-size:22px!important;
+}
+#mgPanel.mg-wheel .mgmsg,#mgPanel.mg-crates .mgmsg{
+ width:100%!important;margin:0!important;
+ text-align:center!important;line-height:1.2!important;
+}
+#mgPanel.mg-wheel #wheelMsg:empty,#mgPanel.mg-crates #crateMsg:empty{display:none!important}
+#mgPanel.mg-wheel .grind{
+ display:grid!important;
+ grid-template-columns:auto minmax(50px,1fr) auto!important;
+ width:100%!important;align-items:center!important;
+ column-gap:8px!important;
+}
+#mgPanel.mg-wheel .grind .bar{min-width:0!important}
+#mgPanel.mg-wheel .pips{width:100%!important;max-width:100%!important}
+#mgPanel.mg-crates .keysrow{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:8px!important;flex-wrap:wrap!important;
+ width:100%!important;max-width:100%!important;
+ padding:9px 8px!important;margin:0!important;
+ border:2px solid #6A80B5!important;
+}
+#mgPanel.mg-crates .crate-intro{
+ width:100%!important;max-width:100%!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ text-align:center!important;gap:5px!important;
+ margin:0!important;padding:3px 0!important;
+}
+#mgPanel.mg-crates .ctiers{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ align-items:stretch!important;
+ gap:7px!important;
+ width:100%!important;max-width:100%!important;margin:0!important;
+}
+#mgPanel.mg-crates button.pixel-btn.ctier{
+ min-width:0!important;max-width:100%!important;
+ width:100%!important;min-height:90px!important;
+ padding:8px 2px!important;
+}
+#mgPanel.mg-crates .cstage{
+ width:100%!important;max-width:100%!important;
+ min-height:0!important;
+ margin:2px 0!important;
+ padding:12px 4px!important;
+ overflow:hidden!important;
+ display:flex!important;justify-content:center!important;align-items:center!important;
+}
+#mgPanel.mg-crates #chest{
+ display:block!important;
+ width:min(320px,100%)!important;max-width:100%!important;
+ height:auto!important;
+ image-rendering:pixelated!important;
+}
+#mgPanel.mg-wheel .odds,#mgPanel.mg-crates .odds{width:100%!important}
+@media(max-width:375px){
+ #mgPanel.mg-wheel,#mgPanel.mg-crates{gap:9px!important;padding-left:9px!important;padding-right:9px!important}
+ #mgPanel.mg-wheel .mg-screen-head,#mgPanel.mg-crates .mg-screen-head{width:calc(100% + 18px)!important;margin-left:-9px!important;margin-right:-9px!important;padding-left:9px!important;padding-right:9px!important}
+ #mgPanel.mg-crates button.pixel-btn.ctier{font-size:16px!important}
+}
