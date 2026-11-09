@@ -2212,7 +2212,14 @@ Q.town={fx:3,fy:2,H:40,name:'Townhouse Complex',d(k){
 
 function pool(k,x0,y0,x1,y1){k.add(x0,y0,x1,y1,()=>{k.box(x0,y0,-2,x1,y1,0,{topFn:(wx,wy)=>{if(wx<x0+.5||wy<y0+.5||wx>=x1-.5||wy>=y1-.5)return'#ECEAE4';return ((R(wx)+R(wy))%2)?'#3EB4E8':'#36A6DC';},L:'#ECEAE4',R:'#C8C4BC',noRim:true});
 });}
-function glassFence(k,x0,y0,x1,y1){k.add(x0,y0,x1,y1,()=>k.box(x0,y0,0,x1,y1,3.5,{top:'#E8F4FA',Lfn:(u)=>u%5===0?'#9AA6B8':'#CFEAF6',Rfn:(u)=>u%5===0?'#7A8698':'#AED8EC',noRim:true}));}
+function glassFence(k,x0,y0,x1,y1){
+ const pane=(a,b,c,d)=>k.add(a,b,c,d,()=>k.box(a,b,0,c,d,3.4,{L:'rgba(174,213,215,.38)',R:'rgba(152,195,199,.43)',top:'#DDE9E8',noRim:true}));
+ const edge=.18;
+ pane(x0,y0,x1,y0+edge);
+ pane(x0,y0+edge,x0+edge,y1-edge);
+ pane(x1-edge,y0+edge,x1,y1-edge);
+ pane(x0,y1-edge,x1,y1);
+}
 function paling(k,x0,y0,x1,y1){k.add(x0,y0,x1,y1,()=>k.box(x0,y0,0,x1,y1,4,{top:'#7A5E3E',Lfn:(u)=>u%2?'#8A6A44':'#7A5E3E',Rfn:(u)=>u%2?'#6E5436':'#5E4630',noRim:true}));}
 const modernLot=(k,drive,extra)=>k.ground((wx,wy)=>{if(wy>=14.6||wx<1||wy<1)return k.walk(wx,wy);if(drive(wx,wy))return((R(wx)+R(wy))%2)?'#BDB8AE':'#B5B0A6';if(extra){const e=extra(wx,wy);if(e)return e;}return k.grass(wx,wy);});
 Q.m1={fx:1,fy:1,H:30,name:'Modern Box House',d(k){
@@ -2224,8 +2231,8 @@ Q.m1={fx:1,fy:1,H:30,name:'Modern Box House',d(k){
   k.box(1.6,1.6,10,10.4,10.4,12,{top:'#9AA2AE',L:'#F4F2EC',R:'#DCD8D0',noRim:true});
   const t=k.box(4.5,2,12,10,8,19,{Lfn:(u)=>u%2?'#B58A5A':'#A87C4E',Rfn:()=> '#F4F2EC',top:'#3A3F4A'});k.win(k.Rf,t,2,1,8,5,{glass:'#9CCCE8',mullion:true,frame:'#2A2440'});k.win(k.L,t,3,1,6,5,{glass:'#9CCCE8',frame:'#2A2440'});
   k.box(4.1,1.6,19,10.4,8.4,21,{top:'#9AA2AE',L:'#F4F2EC',R:'#DCD8D0',noRim:true});});
- pool(k,11.2,3,14.2,10.6);glassFence(k,10.8,11,14.6,11.2);
- k.tree(13.6,13,.6);fence(k,11,1.1,14.4,1.5); k.planter(11.2,1.7,14.2,2.7,'correa');k.flush();}};
+ pool(k,11.2,3,14.2,10.6);glassFence(k,10.6,2.75,14.8,11.3);
+ k.tree(7.8,13,.6);fence(k,11,1.1,14.4,1.5); k.planter(11.2,1.7,14.2,2.7,'correa');k.flush();}};
 Q.m2={fx:1,fy:1,H:34,name:'Parkside House',d(k){
  modernLot(k,(wx,wy)=>wx>=7.6&&wx<10.4&&wy>=8);
  k.add(2,2,7.4,10.4,()=>{const b=k.box(2,2,0,7.4,10.4,10,{Lfn:k.siding('#2E3A40'),Rfn:k.siding('#26323A'),top:'#3A3F4A'});
