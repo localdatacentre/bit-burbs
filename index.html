@@ -4875,7 +4875,7 @@ function renderCard(force) {
           if (k >= b.workers) st = `Locked · needs ${k + 1} staff`;
           else if (p.o) { const cost = rushCost(t,k,tn); st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pixel-btn pb rush sm" data-act="rush" data-k="${k}" data-cost="${cost}" ${cost && S.stars >= cost ? '' : 'disabled'}>Rush with ${cost} Dosh</button>`; }
           else if (p.s > tn) st = `+${fmt(prodCpm(b, k))}/min · ${mmss(p.s - tn)}`;
-          else { st = 'Empty'; btn = `<button class="pixel-btn pb sm" data-act="order" data-k="${k}" ${S.cash < RESTOCK_COINS[k] ? 'disabled' : ''}>Restock · ${RESTOCK_COINS[k]} coins · ${k === 0 ? '1m' : k === 1 ? '15m' : '1h'}</button>`; }
+          else { const cost = productRestockCost(t,k); st = 'Empty'; btn = `<button class="pixel-btn pb sm" data-act="order" data-k="${k}" ${S.cash < cost ? 'disabled' : ''}>Restock · ${cost} coins · ${k === 0 ? '1m' : k === 1 ? '15m' : '1h'}</button>`; }
           rows += `<div class="prod ${k >= b.workers ? 'lock' : ''}"><div><b>${names[k]}</b><span>${st}</span></div>${btn}</div>`; }
         html = head(d.name, `Lv ${lvlOf(t)} · ${fmt(bizCpm(b))}/min`) + statusTags(b) + (w ? `<p class="note">${w}</p>` : '') + `<div class="prods">${rows}</div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'home') {
@@ -5666,7 +5666,7 @@ function countOf(id) { return S.tiles.filter(t => t && t.id === id).length; }
 function costOf(id) { const d = DEFS[id]; if (!d) return 0; if (id === 'road' || d.type === 'decor' || d.type === 'transport' || d.type === 'hall') return d.cost; return Math.round(d.cost * Math.pow(1.35, countOf(id)) / 10) * 10; }
 function orderProd(i, j, k) { const t = tileAt(i, j); const b = t && t._; if (!b || !isBiz(b.d)) return; const w = whyNot(b); if (w) { snd('error'); toast(w); return; }
   if (k >= b.workers) { snd('error'); toast('Needs more workers. Build homes to bring in residents.'); return; }
-  const p = ensureProds(t)[k]; if (p.o || p.s > now() || S.cash < RESTOCK_COINS[k]) return; S.cash -= RESTOCK_COINS[k]; p.o = now() + orderTime(k); track('restock'); snd('restock'); changed(); }
+  const p = ensureProds(t)[k], cost = productRestockCost(t,k); if (p.o || p.s > now() || S.cash < cost) return; S.cash -= cost; p.o = now() + orderTime(k); track('restock'); snd('restock'); changed(); }
 function rushCost(t,k,tn){return Math.max(0,Math.ceil((t.pr[k].o-tn)/(12 * 60000)));}
 function pendingRush(tn) {
   const orders = [];
@@ -5741,9 +5741,14 @@ function businessesToRestock(tn=now()){
   return D.list.filter(b=>isBiz(b.d)&&b.workers&&!whyNot(b)&&
     ensureProds(b.t).some((p,k)=>k<b.workers&&!p.o&&p.s<=tn));
 }
-const RESTOCK_COINS = [30, 75, 150];
+function productRestockCost(t,k) {
+  const buildPrice = DEFS[t.id].cost;
+  const base = 190 + Math.floor(hash(buildPrice,1) * 20);
+  const step = 175 + Math.floor(hash(buildPrice,2) * 25);
+  return base + k * step + (Math.min(lvlOf(t),5) - 1) * 45;
+}
 function restockCost(businesses, tn = now()) {
-  return businesses.reduce((total,b) => total + ensureProds(b.t).reduce((sum,p,k) => sum + (k < b.workers && !p.o && p.s <= tn ? RESTOCK_COINS[k] : 0), 0), 0);
+  return businesses.reduce((total,b) => total + ensureProds(b.t).reduce((sum,p,k) => sum + (k < b.workers && !p.o && p.s <= tn ? productRestockCost(b.t,k) : 0), 0), 0);
 }
 function restockAll(quoted){
   const tn=now(), businesses=businessesToRestock(tn), cost=restockCost(businesses,tn);
