@@ -2305,8 +2305,6 @@ Q.m2={fx:1,fy:1,H:34,name:'Parkside House',d(k){
  k.add(7.4,4,10.6,10.6,()=>{for(const [x,y] of [[10,5.8],[10,10]])k.box(x,y,0,x+.4,y+.4,9,{top:'#2A2440',L:'#3A3550',R:'#2A2440'});
   k.box(7.4,5.6,9,10.6,10.6,9.6,{top:'#AEB8C4',L:'#8E99A8',R:'#7A8698'});});
  k.planting(11,11.6,14.8,12.4,'pilly',0,.74);
- k.add(12.2,2,14.6,4.6,()=>{const s=k.box(12.2,2,0,14.6,4.6,6,{Lfn:(u)=>u%2?'#8E99A8':'#9AA6B8',Rfn:(u,v)=>(u>1&&u<4&&v<4)?'#3A3550':(u%2?'#7A8698':'#6E7888'),top:'#B4BCC6'});});
- k.add(12,8.4,14.6,11,()=>{k.cyl(13.3,9.7,0,2,1.3,(t,u,z)=>z<1?'#3A3550':(u<0?'#2A2E36':'#1E2228'));const p=k.sc(13.3,9.7,2);for(let a=0;a<24;a++)k.px(p.x+Math.cos(a/24*Math.PI*2)*3.6,p.y+Math.sin(a/24*Math.PI*2)*1.8,'#3E7BFA');});
  k.tree(13.4,13.2,.69,0,'wattle');k.bush(1.8,12.6,1.6);tank(k,13.4,4,'#759490'); k.planter(2,13.2,5,14,'banksia');k.flush();}};
 Q.m3={fx:1,fy:1,H:30,name:'Coastal House',d(k){
  modernLot(k,(x,y)=>x>=2&&x<6.6&&y>=10.4);
