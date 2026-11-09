@@ -882,8 +882,8 @@ button.pixel-btn.tut-hl{
  box-sizing:border-box!important;
  position:fixed!important;
  left:9px!important;right:auto!important;
- top:auto!important;
- bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;
+ top:calc(var(--bb-hud-bottom, 112px) + 72px)!important;
+ bottom:auto!important;
  width:min(325px,calc(100vw - 18px))!important;
  max-width:min(325px,calc(100vw - 18px))!important;
  max-height:min(185px,32vh)!important;
@@ -904,7 +904,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
  display:none!important;pointer-events:none!important;
 }
 @media(max-width:380px){
- #coach{bottom:calc(85px + env(safe-area-inset-bottom,0px))!important;max-height:29vh!important}
+ #coach{top:calc(var(--bb-hud-bottom, 112px) + 62px)!important;bottom:auto!important;max-height:29vh!important}
  #sheet .tut-build-tip{font-size:16px!important;padding:8px!important}
 }
 @media(prefers-reduced-motion:reduce){button.pixel-btn.tut-hl{animation:none!important}}
@@ -946,4 +946,9 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 }
 @media(prefers-reduced-motion:reduce){
  #bb-tutorial-focus{animation:none!important}
+}
+
+/* v81 — Keep tutorial messages clear of the bottom Build controls/placement card. */
+@media(max-height:670px){
+ #coach{top:calc(var(--bb-hud-bottom, 112px) + 52px)!important;max-height:25vh!important}
 }
