@@ -4587,8 +4587,8 @@ function pickTile(sx, sy) {
   if (i < 0 || j < 0 || i >= N || j >= N) return null; return { i, j };
 }
 function onTap(x, y) {
-  if(placing?.action==='choose'||placing?.action==='rotate')return;
-  if(pickingMove){
+  if(placing?.action==='rotate')return;
+  if(pickingMove||placing?.action==='choose'){
     const hit=pickTile(x,y);
     if(!hit||!pickForMove(hit.i,hit.j))toast('Tap a building, road or decoration.');
     return;
@@ -4718,8 +4718,10 @@ function renderCard(force) {
     const d=DEFS[placing.id],g=placing.ghost,ok=fitsEdit(g);
     if(placing.action==='choose'){
       const rotatable=canTurn(placing.id);
-      html=head(d.name,rotatable?'Choose what to do.':'Facing follows the road automatically.')+
-        `<div class="row"><button class="pixel-btn pb" data-act="chooseMove">Move building</button><button class="pixel-btn pb" data-act="chooseRotate" ${rotatable?'':'disabled'}>Rotate building</button></div>`;
+      const road=placing.id==='road';
+      const hint=road?'Roads automatically connect to adjacent roads.':rotatable?'Choose an action or tap another building.':'Facing follows the road automatically.';
+      html=head(d.name,hint)+
+        `<div class="row"><button class="pixel-btn pb" data-act="chooseMove">Move ${road?'road':'building'}</button>${road?'':'<button class="pixel-btn pb" data-act="chooseRotate" '+(rotatable?'':'disabled')+'>Rotate building</button>'}</div>`;
     }else if(placing.source){
       const rotating=placing.action==='rotate';
       const message=rotating?(ok?'Confirm this facing.':'The rotated footprint needs clear land.') :
