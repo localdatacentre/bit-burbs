@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=74">
+<link rel="stylesheet" href="pocket-ui.css?v=75">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -1262,6 +1262,34 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
 @media(max-width:370px){
  #nav{gap:3px!important;padding-left:4px!important;padding-right:4px!important}
  #nav > button.pixel-btn[data-open]{font-size:15px!important}
+}
+</style>
+<style id="bb-sheet-dock-fix">
+/* v75: sheet must not appear on startup; the dock stays above regular sheets.
+   The existing JavaScript .open toggle is the only way to show this panel. */
+#sheet:not(.open){
+ display:none!important;visibility:hidden!important;
+ pointer-events:none!important;transform:none!important;
+}
+#sheet.open{
+ display:flex!important;visibility:visible!important;
+ pointer-events:auto!important;transform:none!important;
+ position:fixed!important;
+ top:0!important;left:0!important;right:0!important;
+ bottom:calc(79px + env(safe-area-inset-bottom,0px))!important;
+ height:auto!important;max-height:none!important;
+ max-width:none!important;margin:0!important;
+ overflow:hidden!important;z-index:31!important;
+}
+#sheet.open .sbody{min-height:0!important;flex:1 1 auto!important;overflow-y:auto!important}
+#nav{
+ display:grid!important;visibility:visible!important;opacity:1!important;
+ position:fixed!important;top:auto!important;bottom:0!important;
+ z-index:35!important;
+}
+#scrim{z-index:30!important}
+@media(max-width:375px){
+ #sheet.open{bottom:calc(75px + env(safe-area-inset-bottom,0px))!important}
 }
 </style>
 </head>
