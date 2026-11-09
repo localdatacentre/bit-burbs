@@ -1766,9 +1766,19 @@ M.apartments={fx:1,fy:1,H:66,name:'Apartments',d(k){
    for(const u of [2,8,14]){if(f===0&&u===8)continue;k.win(k.L,b,u,v+3,4,6,{frame:'#3A3550',glass:'#9CCCE8',lit:(u+f*3)%7===1,sill:'#E8E2D6'});}
    for(const u of [2,8,13])k.win(k.Rf,b,u,v+3,3,6,{frame:'#3A3550',glass:'#7EB2D4',sill:'#CFC8BA'});}
   k.door(k.L,b,8,4,7,'#5A4636',{glass:'#9CCCE8'});
-  for(const s of [[3,3,13,3.5],[3,11,13,11.5],[3,3,3.5,11.5],[12.5,3,13,11.5]])k.box(s[0],s[1],H,s[2],s[3],H+2,{top:'#D8D2C6',L:'#E2DCD0',R:'#C4BDB0'});
+  const parapet=(x,y,X,Y)=>k.box(x,y,H,X,Y,H+2,{top:'#D8D2C6',L:'#E2DCD0',R:'#C4BDB0'});
+  parapet(3,3,13,3.5);parapet(3,3.5,3.5,11);
   k.box(4.5,4.5,H,7,6.5,H+4,{top:'#B4BCC6',L:'#C8D0DA',R:'#9AA3AE'});
-  ((x0,y0,x1,y1,z)=>{for(let x=x0;x<x1-.1;x+=1.8){k.box(x,y0,z,x+1.5,y1,z+.8,{top:'#7A8698',L:'#9AA6B8',R:'#7A8698',noRim:true});k.box(x,y0,z+.8,x+1.5,y1,z+1.4,{topFn:(wx,wy)=>((wy-y0)%1.2<.3)?'#5E7AB8':'#2E4A9A',L:'#C8D2E0',R:'#9AA6B8',noRim:true});}})(8,5,12,10,H);
+  for(const y of [4.5,7.75])for(const x of [7.75,10]){
+   const X=x+1.75,Y=y+2.25,high=H+2.1,low=H+.7;
+   polyW(k,[[X,y,H],[X,Y,H],[X,Y,low],[X,y,high]],'#657381');
+   polyW(k,[[x,Y,H],[X,Y,H],[X,Y,low],[x,Y,low]],'#81909B');
+   polyW(k,[[x,y,high],[X,y,high],[X,Y,low],[x,Y,low]],'#354F85');
+   const midY=(y+Y)/2,midZ=(high+low)/2;
+   edgeW(k,[x,midY,midZ],[X,midY,midZ],'#6380A7');
+   edgeW(k,[x,y,high],[X,y,high],'#93A3B3');
+  }
+  parapet(12.5,3.5,13,11);parapet(3,11,13,11.5);
   k.box(6.5,11.5,8,9.5,13,9,{top:'#E8E2D6',L:'#D8D2C6',R:'#C4BDB0'});});
  k.planter(2.4,12.4,5.8,13.4,'correa');k.planter(10.2,12.4,13.6,13.4,'banksia');k.tree(2.2,2.4,.7);
  for(const z of [12,23,34]) balcony(k,4,12,10,z);k.flush();}};
