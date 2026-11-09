@@ -2189,6 +2189,7 @@ const TW = 64, TH = 32, N = 48, BEACH = 2, MID = N / 2;
 const SAVE_KEY = 'blocktown-save-v1';
 const INK = '#14202E';
 const TIER = { steel: 'Silver', gold: 'Gold', diamond: 'Diamond' };
+const CRATE_KEY_COST = { steel: 3, gold: 2, diamond: 1 };
 const CHEST = {
   steel:   { b: '#AEB9C9', d: '#66728A', s: '#3E4652', l: '#FFC21A' },
   gold:    { b: '#FFCB3A', d: '#C07A08', s: '#7A4E08', l: '#E53B3B' },
@@ -2282,8 +2283,8 @@ const MARKET = {
 };
 const DAILY_DEALS = {
   wheel:  { name: 'Lucky Wheel Spin', desc: 'One extra spin on the Lucky Wheel.', price: 16, icon: ['wheel'] },
-  silver: { name: 'Silver Crate Key', desc: 'Unlock one Silver crate.', price: 28, icon: ['key', 'steel'] },
-  gold:   { name: 'Gold Crate Key', desc: 'Unlock one Gold crate.', price: 58, icon: ['key', 'gold'] },
+  silver: { name: 'Silver Crate Key', desc: 'Collect 3 Silver keys to open a Silver crate.', price: 28, icon: ['key', 'steel'] },
+  gold:   { name: 'Gold Crate Key', desc: 'Collect 2 Gold keys to open a Gold crate.', price: 58, icon: ['key', 'gold'] },
   coins:  { name: 'Coin Bundle', desc: 'A handy bundle of 1,200 Coins.', price: 34, icon: ['cash'] }
 };
 
@@ -3339,7 +3340,7 @@ function updateHUD() {
   $('#advisor').setAttribute('aria-label', 'City advisor: ' + a[0] + '. ' + a[1] + '. Happiness ' + D.happy + ' percent.');
 
   dot(hud.dotWheel, S.tickets + (now() - S.wheelT >= WHEEL_CD ? 1 : 0));
-  dot(hud.dotCrates, (S.keys.steel || 0) + (S.keys.gold || 0) + (S.keys.diamond || 0));
+  dot(hud.dotCrates, Math.floor((S.keys.steel || 0) / CRATE_KEY_COST.steel) + Math.floor((S.keys.gold || 0) / CRATE_KEY_COST.gold) + Math.floor((S.keys.diamond || 0) / CRATE_KEY_COST.diamond));
   dot(hud.dotTasks, (S.daily || []).filter(t => !t.done && t.p >= t.n).length);
   $('#dotMkt').hidden = !(S.market && (S.market.seen !== weekInfo().seed || S.market.dailySeen !== brisbaneTaskCycle()));
 }
@@ -4001,21 +4002,21 @@ let crateSel = 'steel', crateAnim = null, crateReveal = null;
 function buildCrates() {
   const C = CRATES[crateSel];
   mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
-  const tiers = Object.keys(CRATES).map(k => { const kk = CRATES[k].key, n = S.keys[kk], ready = n > 0;
-    return `<button class="pixel-btn ctier" data-act="crsel" data-tier="${k}" aria-pressed="${crateSel === k}"><span data-tic="${k}"></span><b>${TIER[k]}</b><span class="ccount">×${n}</span>${ready ? '<i class="cready">READY</i>' : ''}</button>`; }).join('');
+  const tiers = Object.keys(CRATES).map(k => { const kk = CRATES[k].key, n = S.keys[kk] || 0, cost = CRATE_KEY_COST[k], ready = n >= cost;
+    return `<button class="pixel-btn ctier" data-act="crsel" data-tier="${k}" aria-pressed="${crateSel === k}"><span data-tic="${k}"></span><b>${TIER[k]}</b><span class="ccount">${n}/${cost} keys</span>${ready ? '<i class="cready">READY</i>' : ''}</button>`; }).join('');
   const odds = C.table.map(r => `<div class="orow"><span data-oic="${C.table.indexOf(r)}"></span><span class="oname">${r[1]}</span><b>${Math.round(r[0] / C.table.reduce((a, x) => a + x[0], 0) * 100)}%</b></div>`).join('');
   const pity = C.pity ? `<div class="pity"><span>Guaranteed ${DEFS[C.pity].name} in ${S.pity[crateSel]}</span><div class="pbar"><i style="width:${Math.round((1 - S.pity[crateSel] / C.pityN) * 100)}%"></i></div></div>` : '';
   const reveal = crateReveal ? `<div class="crate-reward-reveal"><div class="crate-reward-icon" data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></div><div class="crate-reward-copy"><span>CHEST OPENED</span><b>${crateReveal.label}</b><small>${TIER[crateSel]} chest reward</small></div></div>` : '';
   mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">CRATES</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
   <div class="keysrow"><span class="klab">YOUR CHEST KEYS</span>${['steel','gold','diamond'].map(k => `<span class="kchip"><span data-kic="${k}"></span>${S.keys[k] || 0}</span>`).join('')}</div>
-  <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Every key reveals a surprise. Better chests bring bigger rewards.</small></div>
+  <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Silver: 3 keys · Gold: 2 keys · Diamond: 1 key. Better chests bring bigger rewards.</small></div>
   <div class="ctiers">${tiers}</div>
   <div class="cstage"><div class="crate-stage-label">YOUR REWARD AWAITS</div>${hiCanvas('chest', 320, 210)}<div class="crate-stage-sparkle sparkle-a">✦</div><div class="crate-stage-sparkle sparkle-b">✧</div></div>
   ${reveal}
-  <button class="pixel-btn pb green" data-act="openCrate" id="openBtn" style="min-width:220px;font-size:20px">Open ${TIER[crateSel]}</button>
+  <button class="pixel-btn pb green" data-act="openCrate" id="openBtn" style="min-width:220px;font-size:20px">Open ${TIER[crateSel]} · ${CRATE_KEY_COST[crateSel]} ${CRATE_KEY_COST[crateSel] === 1 ? 'key' : 'keys'}</button>
   <p class="mgmsg" id="crateMsg"></p>${pity}
   <details class="odds"><summary>See the odds</summary>${odds}</details>
-  <p class="mgmsg cfoot">Silver, Gold and Diamond keys unlock one chest each. Diamond rewards are premium.</p>`;
+  <p class="mgmsg cfoot">Silver chests cost 3 Silver keys, Gold cost 2 Gold keys and Diamond cost 1 Diamond key. Diamond rewards are premium.</p>`;
   mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 44)));
   mgPanel.querySelectorAll('[data-kic]').forEach(el => el.replaceWith(iconCanvas('key', el.dataset.kic, 22)));
   mgPanel.querySelectorAll('[data-oic]').forEach(el => { const r = C.table[+el.dataset.oic][2]; el.replaceWith(iconCanvas(rewIconKind(r), r.tier, 22)); });
@@ -4024,10 +4025,10 @@ function buildCrates() {
 }
 function updateCrateUI() {
   if (mg !== 'crates') return; const C = CRATES[crateSel];
-  const can = S.keys[C.key] > 0;
+  const cost = CRATE_KEY_COST[crateSel], owned = S.keys[C.key] || 0, can = owned >= cost;
   const b = $('#openBtn'); if (b) b.disabled = !can || !!crateAnim;
   const m = $('#crateMsg');
-  if (m && !crateAnim && !crateReveal) setText(m, can ? '' : 'You need a ' + TIER[crateSel] + ' key');
+  if (m && !crateAnim && !crateReveal) setText(m, can ? '' : 'You need ' + cost + ' ' + TIER[crateSel] + ' keys (' + owned + '/' + cost + ')');
 }
 // A single time-based animation drives the chest; avoid competing CSS shakes,
 // repeated full-size canvas redraws, and duplicate timeout-driven reveals.
@@ -4148,8 +4149,9 @@ function drawChestSceneInner(cvs,t) {
 }
 function openCrate() {
   if (crateAnim) return; const tier = crateSel, C = CRATES[tier];
-  if (S.keys[C.key] < 1) return;
-  S.keys[C.key]--;
+  const cost = CRATE_KEY_COST[tier];
+  if ((S.keys[C.key] || 0) < cost) { snd('error'); updateCrateUI(); return; }
+  S.keys[C.key] -= cost;
   let row = null;
   if (C.pity && S.pity[tier] <= 1) row = C.table.find(r => r[2].k === 'item' && r[2].id === C.pity);
   if (!row) { const tot = C.table.reduce((a, r) => a + r[0], 0); let x = Math.random() * tot; row = C.table[C.table.length - 1]; for (const r of C.table) { if (x < r[0]) { row = r; break; } x -= r[0]; } }
@@ -4429,7 +4431,7 @@ function skipTut() { document.body.classList.remove('tut-on'); S.tut = null; S.t
 const INFO = {
   dice: ['City Dice', ['Tap ROLL to move around the board.', 'You win whatever tile you land on.', 'Green arrows jump you forward, red arrows push you back.', 'The ??? tile gives a mystery prize.', 'You get a free roll every 30 minutes, and you earn more by collecting from shops, homes and industry.']],
   wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'Fill the ticket bar by collecting from your buildings.', 'Every 10 spins wins a free Gold key.']],
-  crates: ['Chests', ['Silver, Gold and Diamond chests each need a matching key.', 'Gold and Diamond chests contain stronger rewards.', 'Odds are always shown, and nothing can be bought with real money.', 'Gold and Diamond chests have a guaranteed premium item after a set number of opens.']],
+  crates: ['Chests', ['Silver chests need 3 Silver keys, Gold need 2 Gold keys, and Diamond need 1 Diamond key.', 'Gold and Diamond chests contain stronger rewards.', 'Odds are always shown, and nothing can be bought with real money.', 'Gold and Diamond chests have a guaranteed premium item after a set number of opens.']],
   market: ['Dosh Shop', ['New stock every Monday.', 'Each item has limited stock for the week.', 'Spend Dosh, the green notes you earn from tasks, dice, the wheel and crates.', 'Buildings you buy go to Build, My items.']],
   build: ['Building', ['Everything needs a road next to it.', 'Most buildings need power and water too: build a Wind Turbine and a Water Tower.', 'Shops need workers, so build homes to bring people in.', 'Tap any building to upgrade it. Levels 4 and 5 need Deeds.']],
   tasks: ['Tasks', ['Finish tasks to win dice, tickets, keys, crates, Dosh and Deeds.', 'When you claim one, a new task appears.', 'Upgrading buildings, restocking and collecting all count.']],
