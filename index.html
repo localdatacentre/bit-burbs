@@ -1331,6 +1331,12 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
  .cpmbar .stat-unit{display:block;font-size:12px;line-height:1}
  #hud #rsAll{white-space:normal;height:auto}
 }
+#hud .cpmbar{padding:4px 0;justify-content:space-between}
+#hud .cpmbar .stat-unit{display:inline;font-size:14px}
+#hud .chips{justify-content:space-between!important;border-top:1px solid #7293b0;padding:4px 0 2px;box-sizing:border-box}
+#hud .coin-stack{display:flex;flex:none;flex-direction:column;align-items:flex-start}
+#hud .coin-stack .chip{padding-bottom:1px!important}
+#hud #cpmLbl{font:16px/1 'VT323',monospace;color:#fff2bd;white-space:nowrap}
 #card [data-act="rush"]{font-size:16px!important;white-space:normal}
 </style>
 </head>
@@ -1344,14 +1350,17 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
     <div id="boost" hidden>2× <span id="boostT"></span></div>
     <div style="display:flex;align-items:center;gap:6px"><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
   </div>
+  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity"><span class="stat-value" id="popValue">0 / 0</span> <span class="stat-unit">residents</span></span><button class="pixel-btn rsall" id="rsAll" disabled>All stocked</button></div>
   <div class="chips">
-    <div class="chip" aria-label="Coins"><canvas data-icon="cash" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="cash">0</span></div>
+    <div class="coin-stack">
+      <div class="chip" aria-label="Coins"><canvas data-icon="cash" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="cash">0</span></div>
+      <b id="cpmLbl"><span class="stat-value" id="cpmValue">0</span> <span class="stat-unit">coins/min</span></b>
+    </div>
     <div class="chip" aria-label="Dosh"><canvas data-icon="dosh" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="stars">0</span></div>
     <div class="chip" aria-label="Deeds"><canvas data-icon="deed" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="deeds">0</span></div>
 
     <div class="chip" aria-label="Wheel tickets"><canvas data-icon="ticket" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="tix">0</span></div>
   </div>
-  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity"><span class="stat-value" id="popValue">0 / 0</span> <span class="stat-unit">residents</span></span><button class="pixel-btn rsall" id="rsAll" disabled>All stocked</button><b id="cpmLbl"><span class="stat-value" id="cpmValue">0</span> <span class="stat-unit">coins/min</span></b></div>
 </header>
 
 <button class="pixel-btn" id="advisor" aria-label="City advisor"><canvas id="faceIcon" width="56" height="56" style="width:28px;height:28px"></canvas><span class="adv"><b id="advT">Looking good!</b><small id="advS">Happiness 50%</small></span></button>
