@@ -1348,6 +1348,26 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #hud #cpmLbl{font:16px/1 'VT323',monospace;color:#fff2bd;white-space:nowrap}
 #card [data-act="rush"]{font-size:16px!important;white-space:normal}
 </style>
+<style id="crate-collection">
+#mg #mgPanel.mg-crates{--crate-gold:#f3c14a;--crate-ink:#202a40;background:#25344b!important;color:#fff}
+#mgPanel.mg-crates .mg-screen-head{background:#30445b!important;border-bottom:2px solid var(--crate-gold)!important}
+#mgPanel.mg-crates .crate-shelf{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#mgPanel.mg-crates .crate-slot{display:grid;justify-items:center;gap:3px;min-width:0;padding:7px 2px!important;color:#eef4ff!important;background:#374b63!important;border:2px solid #4e6480!important}
+#mgPanel.mg-crates .crate-slot[aria-pressed=true]{border-color:var(--crate-gold)!important;background:#495367!important}
+.crate-slot b,.crate-feature h3{font:22px/1 'VT323',monospace;margin:0}
+.crate-count{font:16px/1 'VT323',monospace}
+#mgPanel.mg-crates .crate-feature{box-sizing:border-box;text-align:center;background:#1f2c41;padding:12px 8px 8px;border-top:2px solid #40526a}
+#mgPanel.mg-crates .crate-feature .cstage{min-height:0;margin:0 auto;width:100%;background:none!important}
+#mgPanel.mg-crates .crate-feature #chest{display:block;width:min(100%,270px)!important;height:auto!important;margin:auto}
+#mgPanel.mg-crates.diamond-chest .crate-feature{background:#264b64}
+#mgPanel.mg-crates #openBtn{--bb-face:#f3c14a;--bb-top:#ffdb83;--bb-bottom:#c89530;--bb-edge:#936920;color:#30270e!important;margin:4px auto!important;min-width:65%;font-size:20px!important}
+#mgPanel.mg-crates #crateMsg:empty{display:none}
+#mgPanel.mg-crates .crate-bonus{display:grid;grid-template-columns:1fr auto;gap:5px;text-align:left;font:18px/1.1 'VT323',monospace}
+.crate-bonus progress{grid-column:1/-1;width:100%;height:6px;appearance:none;border:0;background:#152235}
+.crate-bonus progress::-webkit-progress-bar{background:#152235}
+.crate-bonus progress::-webkit-progress-value{background:#f3c14a}
+.crate-bonus progress::-moz-progress-bar{background:#f3c14a}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -2937,7 +2957,7 @@ const TW = 64, TH = 32, N = 48, BEACH = 2, MID = N / 2;
 const SAVE_KEY = 'blocktown-save-v1';
 const INK = '#14202E';
 const TIER = { steel: 'Silver', gold: 'Gold', diamond: 'Diamond' };
-const CRATE_KEY_COST = { steel: 3, gold: 2, diamond: 1 };
+const SPINS_PER_GOLD_CRATE = 10;
 const CHEST = {
   steel:   { b: '#AEB9C9', d: '#66728A', s: '#3E4652', l: '#FFC21A' },
   gold:    { b: '#FFCB3A', d: '#C07A08', s: '#7A4E08', l: '#E53B3B' },
@@ -3013,28 +3033,28 @@ const EXPAND = [];
 const expIdx = () => 13 - S.lo;
 
 const CRATES = {
-  steel:   { key: 'steel', table: [[28, 'Silver coin bundle', { k: 'cash', m: 10 }], [15, '12 Dosh', { k: 'stars', n: 12 }], [10, '2 Wheel tickets', { k: 'ticket', n: 2 }], [5, 'Gold key', { k: 'key', tier: 'gold' }], [14, 'Bonus Coins', { k: 'cash', m: 18 }], [12, '2× boost 10 min', { k: 'boost', min: 10 }], [16, 'Bonus Coins', { k: 'cash', m: 18 }]] },
-  gold:    { key: 'gold', table: [[34, 'Big Coin bundle', { k: 'cash', m: 28 }], [22, '25 Dosh', { k: 'stars', n: 25 }], [14, '4 Wheel tickets', { k: 'ticket', n: 4 }], [4, 'Diamond key', { k: 'key', tier: 'diamond' }], [12, '2 Deeds', { k: 'deed', n: 2 }], [14, '2× boost 20 min', { k: 'boost', min: 20 }]] },
-  diamond: { key: 'diamond', table: [[36, 'Mega Coin vault', { k: 'cash', m: 90 }], [30, '50 Dosh', { k: 'stars', n: 50 }], [18, '5 Wheel tickets', { k: 'ticket', n: 5 }], [10, '3 Deeds', { k: 'deed', n: 3 }], [6, 'Diamond key', { k: 'key', tier: 'diamond' }]] }
+  steel:   { table: [[28, 'Silver coin bundle', { k: 'cash', m: 10 }], [15, '12 Dosh', { k: 'stars', n: 12 }], [10, '2 Wheel tickets', { k: 'ticket', n: 2 }], [5, 'Gold crate', { k: 'crate', tier: 'gold' }], [30, 'Bonus Coins', { k: 'cash', m: 18 }], [12, '2× boost 10 min', { k: 'boost', min: 10 }]] },
+  gold:    { table: [[34, 'Big Coin bundle', { k: 'cash', m: 28 }], [22, '25 Dosh', { k: 'stars', n: 25 }], [14, '4 Wheel tickets', { k: 'ticket', n: 4 }], [4, 'Diamond crate', { k: 'crate', tier: 'diamond' }], [12, '2 Deeds', { k: 'deed', n: 2 }], [14, '2× boost 20 min', { k: 'boost', min: 20 }]] },
+  diamond: { table: [[36, 'Mega Coin vault', { k: 'cash', m: 90 }], [30, '50 Dosh', { k: 'stars', n: 50 }], [18, '5 Wheel tickets', { k: 'ticket', n: 5 }], [10, '3 Deeds', { k: 'deed', n: 3 }], [6, 'Diamond crate', { k: 'crate', tier: 'diamond' }]] }
 };
 
 const BOARD = [
-  { k: 'start', col: '#F28C28' }, { k: 'cash', m: 2, col: '#22C8F0' }, { k: 'key', tier: 'steel', col: '#7B5CE0' }, { k: 'crate', tier: 'steel', col: '#3FB52E' },
+  { k: 'start', col: '#F28C28' }, { k: 'cash', m: 2, col: '#22C8F0' }, { k: 'crate', tier: 'steel', col: '#7B5CE0' }, { k: 'crate', tier: 'steel', col: '#3FB52E' },
   { k: 'fwd', col: '#C9CDD3' }, { k: 'stars', n: 5, col: '#7B5CE0' }, { k: 'mystery', col: '#E02BC8' },
   { k: 'cash', m: 5, col: '#22C8F0' }, { k: 'ticket', n: 1, col: '#7B5CE0' }, { k: 'crate', tier: 'steel', col: '#3FB52E' },
-  { k: 'back', col: '#C9CDD3' }, { k: 'key', tier: 'gold', col: '#7B5CE0' }
+  { k: 'back', col: '#C9CDD3' }, { k: 'crate', tier: 'gold', col: '#7B5CE0' }
 ];
-const MYSTERY = [[10, 'Deed', { k: 'deed', n: 1 }], [15, 'Gold key', { k: 'key', tier: 'gold' }], [15, '1 Wheel ticket', { k: 'ticket', n: 1 }], [20, '2 Wheel tickets', { k: 'ticket', n: 2 }], [30, 'Silver key', { k: 'key', tier: 'steel' }], [20, '15 Dosh', { k: 'stars', n: 15 }]];
+const MYSTERY = [[10, 'Deed', { k: 'deed', n: 1 }], [15, 'Gold crate', { k: 'crate', tier: 'gold' }], [15, '1 Wheel ticket', { k: 'ticket', n: 1 }], [20, '2 Wheel tickets', { k: 'ticket', n: 2 }], [30, 'Silver crate', { k: 'crate', tier: 'steel' }], [20, '15 Dosh', { k: 'stars', n: 15 }]];
 
 const WHEEL = [
   { c: '#FFC93C', w: 22, r: { k: 'cash', m: 8 } },
   { c: '#2EB6E8', w: 14, r: { k: 'stars', n: 12 } },
-  { c: '#9AA6B8', w: 5, r: { k: 'key', tier: 'steel' } },
+  { c: '#9AA6B8', w: 5, r: { k: 'crate', tier: 'steel' } },
   { c: '#3EBE7A', w: 12, r: { k: 'cash', m: 25 } },
   { c: '#8E5CF7', w: 10, r: { k: 'boost', min: 15 } },
-  { c: '#F2B21A', w: 3.2, r: { k: 'key', tier: 'gold' } },
+  { c: '#F2B21A', w: 3.2, r: { k: 'crate', tier: 'gold' } },
   { c: '#C9A86A', w: 4.2, r: { k: 'deed', n: 1 } },
-  { c: '#7FE3FF', w: .6, r: { k: 'key', tier: 'diamond' } }
+  { c: '#7FE3FF', w: .6, r: { k: 'crate', tier: 'diamond' } }
 ];
 const WTOT = WHEEL.reduce((a, sg) => a + sg.w, 0); WHEEL.forEach((sg, q) => { sg.span = Math.PI * 2 / WHEEL.length; sg.a = q * sg.span; });
 const WHEEL_CD = 12 * 3600 * 1000;
@@ -3049,8 +3069,8 @@ const MARKET = {
 };
 const DAILY_DEALS = {
   wheel:  { name: 'Lucky Wheel Spin', desc: 'One extra spin on the Lucky Wheel.', price: 16, icon: ['wheel'] },
-  silver: { name: 'Silver Crate Key', desc: 'Collect 3 Silver keys to open a Silver crate.', price: 28, icon: ['key', 'steel'] },
-  gold:   { name: 'Gold Crate Key', desc: 'Collect 2 Gold keys to open a Gold crate.', price: 58, icon: ['key', 'gold'] },
+  silver: { name: 'Silver Crate', desc: 'One Silver crate, ready to open.', price: 28, icon: ['crate', 'steel'] },
+  gold:   { name: 'Gold Crate', desc: 'One Gold crate, ready to open.', price: 58, icon: ['crate', 'gold'] },
   coins:  { name: 'Coin Bundle', desc: 'A handy bundle of 1,200 Coins.', price: 34, icon: ['cash'] }
 };
 
@@ -3090,9 +3110,6 @@ dosh:['..............','..kkkkkkkkkkkk','..kEEEEEEEEEEk','kkkkkkkkkkkkEk','kEEEE
 deed:['..............','.kkkkkkkkkkkk.','kTTTTTTTTTTTTk','kpkkkkkkkkkkpk','.kTTTTTTTTTTk.','.kTlllllllTTk.','.kTTTTTTTTTTk.','.kTllllllTTTk.','.kTTTTTTTTTTk.','.kTlllTTTXXTk.','.kTTTTTTXXXXk.','kpkkkkkkkXXkpk','kTTTTTTTTxTTTk','.kkkkkkkkxkkk.'],
 dice:['..............','.kkkkkkkkkkkk.','kWWWWWWWWWWWWk','kWkkWWWWWWkkWk','kWkkWWWWWWkkWk','kWWWWWWWWWWWWk','kWWWWWkkWWWWWk','kWWWWWkkWWWWWk','kWWWWWWWWWWWWk','kWkkWWWWWWkkWk','kWkkWWWWWWkkWk','kSSSSSSSSSSSSk','.kkkkkkkkkkkk.','..............'],
 ticket:['..............','kkkkkkkkkkkkkk','kUUUUUUUUkUUUk','kUttttUUUUUUUk','kUtUUtUUUkUUUk','.kUttUUUUUUUk.','..kUUUUUUkUUk.','..kUUUUUUUUUk.','.kUUUUUUUkUUUk','kUUUUUUUUUUUUk','kUuuuuuuukuuuk','kkkkkkkkkkkkkk','..............','..............'],
-steel:['..............','..............','..............','.kkkk.........','kSssSk........','ksk.kSk.......','ksk.kSkkkkkkk.','kSssSkssssssSk','.kkkk.kkkSkkSk','........kSk.k.','........kk....','..............','..............','..............'],
-gold:['..............','..............','..............','.kkkk.........','kHYYHk........','kYk.kHk.......','kYk.kHkkkkkkk.','kHYYHkYYYYYYHk','.kkkk.kkkHkkHk','........kHk.k.','........kk....','..............','..............','..............'],
-diamond:['..........q...','.........qqq..','..........q...','.kkkk.........','kcCCck........','kCk.kck.......','kCk.kckkkkkkk.','kcCCckCCCCCCck','.kkkk.kkkckkck','........kck.k.','........kk....','..............','..............','..............'],
 hammer:['..............','..kkkkkkk.....','.kSSSSSSSk....','.kssssssSSk...','..kkkkkkkk....','.....kNk......','.....kNk......','.....kNk......','.....kNk......','.....kNk......','.....kNk......','.....kkk......','..............','..............'],
 clip:['....kkkkkk....','.kkkSSSSSSkkk.','.kTTkkkkkkTTk.','.kTTTTTTTTTTk.','.kTGTlllllTTk.','.kTTTTTTTTTTk.','.kTGTlllllTTk.','.kTTTTTTTTTTk.','.kTGTlllllTTk.','.kTTTTTTTTTTk.','.kkkkkkkkkkkk.','..............','..............','..............'],
 shop:['..............','.kkkkkkkkkkkk.','kRWRWRWRWRWRWk','kRWRWRWRWRWRWk','.kkkkkkkkkkkk.','.kTTTTTTTTTTk.','.kTkkkTTkkkTk.','.kTkCkTTkCkTk.','.kTkkkTTkkkTk.','.kTTTTkkTTTTk.','.kTTTTkNkTTTk.','.kkkkkkkkkkkk.','..............','..............'],
@@ -3220,7 +3237,7 @@ function hash(a, b, c) { let x = (a * 374761393 + b * 668265263 + (c || 0) * 214
 /* ================= state ================= */
 let S;
 function baseState() {
-  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), keys: { steel: 1, gold: 0, diamond: 0 }, crates: { steel: 0, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
+  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), crates: { steel: 1, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
 }
 function newGame() {
   const s=baseState();
@@ -3409,15 +3426,24 @@ function addXP(n) {
   S.xp += Math.max(1, Math.round(n));
   while (S.xp >= need(S.level)) {
     S.xp -= need(S.level); S.level++;
-    const rew = [{ k: 'ticket', n: 1 }, { k: 'stars', n: 5 }, S.level % 5 === 0 ? { k: 'key', tier: 'steel' } : { k: 'crate', tier: 'steel' }];
+    const rew = [{ k: 'ticket', n: 1 }, { k: 'stars', n: 5 }, { k: 'crate', tier: 'steel' }];
     if (S.level % 2 === 0) rew.push({ k: 'ticket', n: 1 });
     if (S.level % 2 === 0) rew.push({ k: 'deed', n: 1 });
-    if (S.level % 3 === 0) rew.push({ k: 'key', tier: 'gold' }, { k: 'crate', tier: 'steel' });
-    if (S.level % 5 === 0) rew.push({ k: 'key', tier: 'gold' });
+    if (S.level % 3 === 0) rew.push({ k: 'crate', tier: 'gold' }, { k: 'crate', tier: 'steel' });
+    if (S.level % 5 === 0) rew.push({ k: 'crate', tier: 'gold' });
     const labels = rew.map(grant);
     const unlocks = Object.keys(DEFS).filter(k => DEFS[k].lvl === S.level).map(k => DEFS[k].name);
     pendingLevel = { level: S.level, labels, unlocks }; snd('levelup');
   }
+}
+function rollReward(table) {
+  const total = table.reduce((sum, row) => sum + row[0], 0);
+  let draw = Math.random() * total;
+  for (const [weight, , reward] of table) {
+    if (draw < weight) return reward;
+    draw -= weight;
+  }
+  return table[table.length - 1][2];
 }
 function resolveR(r) { if (r.k === 'cash' && r.m) return { k: 'cash', n: r.m * 20 * S.level }; return r; }
 function grant(r) {
@@ -3427,8 +3453,7 @@ function grant(r) {
     case 'stars': S.stars += r.n; return r.n + ' Dosh';
     case 'deed': S.deeds = (S.deeds || 0) + n; return n + ' Deed' + (n > 1 ? 's' : '');
     case 'dice': S.tickets += r.n; return r.n + ' Wheel ticket' + (r.n > 1 ? 's' : '');
-    case 'key': S.keys[r.tier] += n; return (n > 1 ? n + ' ' : '') + TIER[r.tier] + ' key' + (n > 1 ? 's' : '');
-    case 'crate': { const tier = r.tier === 'wood' ? 'steel' : r.tier; S.keys[tier] = (S.keys[tier] || 0) + n; return TIER[tier] + ' key' + (n > 1 ? 's' : ''); }
+    case 'crate': { const tier = r.tier === 'wood' ? 'steel' : r.tier; S.crates[tier] += n; return rewLabel(r); }
     case 'ticket': S.tickets += n; return n + ' Wheel ticket' + (n > 1 ? 's' : '');
     case 'boost': S.boostUntil = Math.max(now(), S.boostUntil) + r.min * 60000; return '2× earnings for ' + r.min + ' min';
     case 'item': return 'Cosmetic items are only available from the Dosh Shop';
@@ -3443,8 +3468,7 @@ function rewLabel(r) {
     case 'stars': return r.n + ' Dosh';
     case 'deed': return n + ' Deed' + (n > 1 ? 's' : '');
     case 'dice': return r.n + ' Wheel ticket' + (r.n > 1 ? 's' : '');
-    case 'key': return (n > 1 ? n + ' ' : '') + TIER[r.tier] + ' key' + (n > 1 ? 's' : '');
-    case 'crate': return TIER[r.tier === 'wood' ? 'steel' : r.tier] + ' key';
+    case 'crate': return (n > 1 ? n + ' ' : '') + TIER[r.tier === 'wood' ? 'steel' : r.tier] + (n > 1 ? ' crates' : ' crate');
     case 'ticket': return n + ' Wheel ticket' + (n > 1 ? 's' : '');
     case 'boost': return '2× for ' + r.min + ' min';
     case 'item': return DEFS[r.id].name;
@@ -4664,10 +4688,10 @@ function chest(c, x, y, w, tier, lid, shake) {
 function drawIcon(c, kind, x, y, s, tier) {
   if (kind === 'crate') { pixDraw(c, chestPix(tier || 'steel'), x - s * .55, y - s * .5, s * 1.1, s * 1.02); return; }
   const map = { cash: 'cash', stars: 'dosh', dosh: 'dosh', deed: 'deed', dice: 'dice', ticket: 'ticket', boost: 'boost', item: 'gift', wheel: 'wheel', sun: 'sun', moon: 'moon', face: 'info', info: 'info' };
-  let k = map[kind] || kind; if (kind === 'key') k = tier || 'gold';
+  const k = map[kind] || kind;
   pixDraw(c, pixImg(k), x - s / 2, y - s / 2, s, s);
 }
-function rewIconKind(r) { r = resolveR(r); return { cash: 'cash', stars: 'stars', deed: 'deed', dice: 'dice', key: 'key', crate: 'crate', ticket: 'ticket', boost: 'boost', item: 'item' }[r.k] || 'item'; }
+function rewIconKind(r) { r = resolveR(r); return { cash: 'cash', stars: 'stars', deed: 'deed', dice: 'dice', crate: 'crate', ticket: 'ticket', boost: 'boost', item: 'item' }[r.k] || 'item'; }
 function iconCanvas(kind, tier, px) { const cvs = document.createElement('canvas'); cvs.width = px * 2; cvs.height = px * 2; cvs.style.width = px + 'px'; cvs.style.height = px + 'px'; const c = cvs.getContext('2d'); c.scale(2, 2); drawIcon(c, kind, px / 2, px / 2, px, tier); cvs.setAttribute('aria-hidden', 'true'); return cvs; }
 function paintStaticIcons() {
   document.querySelectorAll('canvas[data-icon]').forEach(cvs => { const c = cvs.getContext('2d'); const s = cvs.width; c.clearRect(0, 0, s, cvs.height); drawIcon(c, cvs.dataset.icon, s / 2, cvs.height / 2, s * (cvs.dataset.icon === 'crate' ? .9 : 1), cvs.dataset.tier || 'steel'); });
@@ -4680,7 +4704,7 @@ function txt(c, s, x, y, size, fill) {
 }
 
 /* ================= HUD ================= */
-const hud = { lvl: $('#lvlNum'), xp: $('#xpFill'), xpCount: $('#xpCount'), cash: $('#cash'), stars: $('#stars'), dice: $('#dice'), keys: $('#keys'), tix: $('#tix'), boost: $('#boost'), boostT: $('#boostT'), clockT: $('#clockT'), dotDice: $('#dotDice'), dotWheel: $('#dotWheel'), dotCrates: $('#dotCrates'), dotTasks: $('#dotTasks') };
+const hud = { lvl: $('#lvlNum'), xp: $('#xpFill'), xpCount: $('#xpCount'), cash: $('#cash'), stars: $('#stars'), dice: $('#dice'), tix: $('#tix'), boost: $('#boost'), boostT: $('#boostT'), clockT: $('#clockT'), dotDice: $('#dotDice'), dotWheel: $('#dotWheel'), dotCrates: $('#dotCrates'), dotTasks: $('#dotTasks') };
 function setText(el, v) { v = String(v); if (el && el.textContent !== v) el.textContent = v; }
 let lastClockKind = '', lastFace = -1;
 function updateHUD() {
@@ -4705,7 +4729,7 @@ function updateHUD() {
   $('#advisor').setAttribute('aria-label', 'City advisor: ' + a[0] + '. ' + a[1] + '. Happiness ' + D.happy + ' percent.');
 
   dot(hud.dotWheel, S.tickets + (now() - S.wheelT >= WHEEL_CD ? 1 : 0));
-  dot(hud.dotCrates, Math.floor((S.keys.steel || 0) / CRATE_KEY_COST.steel) + Math.floor((S.keys.gold || 0) / CRATE_KEY_COST.gold) + Math.floor((S.keys.diamond || 0) / CRATE_KEY_COST.diamond));
+  dot(hud.dotCrates, S.crates.steel + S.crates.gold + S.crates.diamond);
   dot(hud.dotTasks, (S.daily || []).filter(t => !t.done && t.p >= t.n).length);
   $('#dotMkt').hidden = !(S.market && (S.market.seen !== weekInfo().seed || S.market.dailySeen !== brisbaneTaskCycle()));
 }
@@ -5147,7 +5171,7 @@ function snd(type) {
   try { audio(); SFX[type](); } catch (e) { /* audio unavailable */ }
 }
 function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* no haptics */ } }
-function isBig(r) { r = resolveR(r); return (r.k === 'cash' && r.n >= 1200 * S.level) || (r.k === 'crate' && (r.tier === 'gold' || r.tier === 'diamond')) || (r.k === 'key' && (r.tier === 'gold' || r.tier === 'diamond')) || r.k === 'item' || (r.k === 'dice' && r.n >= 5); }
+function isBig(r) { r = resolveR(r); return (r.k === 'cash' && r.n >= 1200 * S.level) || (r.k === 'crate' && (r.tier === 'gold' || r.tier === 'diamond')) || r.k === 'item' || (r.k === 'dice' && r.n >= 5); }
 function celebrate(r, sn) { if (isBig(r)) { confetti(160); bigWin = { text: 'BIG WIN!', t0: performance.now() }; snd(sn || 'big'); buzz([30, 50, 30, 50, 80]); } else { confetti(50); snd(sn || 'win'); buzz(20); } }
 
 /* ----- dice ----- */
@@ -5188,7 +5212,7 @@ function drawBoardInner(cvs) {
     } else if (t.k === 'mystery') txt(c, '???', ctr.x, ctr.y, 20);
     else if (t.k === 'start') { txt(c, 'GO', ctr.x, ctr.y - 7, 18, '#FFE066'); txt(c, '+' + fmt(100 * L), ctr.x, ctr.y + 11, 14); }
     else {
-      const r = t.k === 'cash' ? { k: 'cash', m: t.m } : t.k === 'stars' ? { k: 'stars', n: t.n } : t.k === 'key' ? { k: 'key', tier: t.tier } : t.k === 'crate' ? { k: 'crate', tier: t.tier } : t.k === 'ticket' ? { k: 'ticket', n: t.n } : t.k === 'dice' ? { k: 'dice', n: t.n } : { k: 'boost', min: t.min };
+      const r = t.k === 'cash' ? { k: 'cash', m: t.m } : t.k === 'stars' ? { k: 'stars', n: t.n } : t.k === 'crate' ? { k: 'crate', tier: t.tier } : t.k === 'ticket' ? { k: 'ticket', n: t.n } : t.k === 'dice' ? { k: 'dice', n: t.n } : { k: 'boost', min: t.min };
       drawIcon(c, rewIconKind(r), ctr.x, ctr.y - 9, 30, r.tier); amt = rewAmt(r); txt(c, amt, ctr.x, ctr.y + 12, 15);
     }
   });
@@ -5242,12 +5266,11 @@ function finishDice(msg) {
     case 'start': r = { k: 'cash', n: 100 * S.level }; break;
     case 'cash': r = { k: 'cash', m: t.m }; break;
     case 'stars': r = { k: 'stars', n: t.n }; break;
-    case 'key': r = { k: 'key', tier: t.tier }; break;
     case 'crate': r = { k: 'crate', tier: t.tier }; break;
     case 'ticket': r = { k: 'ticket', n: t.n }; break;
     case 'dice': r = { k: 'dice', n: t.n }; break;
     case 'boost': r = { k: 'boost', min: t.min }; break;
-    case 'mystery': { const tot = MYSTERY.reduce((a, x) => a + x[0], 0); let x = Math.random() * tot; let row = MYSTERY[MYSTERY.length - 1]; for (const m of MYSTERY) { if (x < m[0]) { row = m; break; } x -= m[0]; } r = row[2]; msg += 'Mystery tile! '; break; }
+    case 'mystery': r = rollReward(MYSTERY); msg += 'Mystery tile! '; break;
   }
   if (r) { const l = grant(r); msg += 'You won ' + l + '!'; boardFloat = { text: '+' + l, t0: performance.now() }; celebrate(r); }
   diceMsg = msg; setText($('#diceMsg'), msg); updateDiceUI(); changed();
@@ -5258,7 +5281,7 @@ let wheelAnim = null, wheelMsg = '';
 const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
-  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold key</p>`;
+  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold crate</p>`;
   { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${(w.w / WTOT * 100).toFixed(w.w / WTOT < .02 ? 1 : 0)}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
   const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
   updateWheelUI();
@@ -5270,7 +5293,7 @@ function updateWheelUI() {
   const b = $('#spinBtn'); if (b) { setText(b, ready ? 'Free spin' : 'Spin · 1 ticket'); b.disabled = !!wheelAnim || (!ready && S.tickets < 1); }
   const gt = (S.grind || { t: 0 }).t; const gtb = $('#gT'); if (gtb) gtb.style.width = Math.round(gt / GRIND_T * 100) + '%'; setText($('#gTt'), gt + '/' + GRIND_T);
   setText($('#wheelCd'), ready ? 'Your free spin is ready!' : 'Next free spin in ' + mmss(WHEEL_CD - (now() - S.wheelT)));
-  const pips = $('#pips'); if (pips && pips.dataset.v !== String(S.wheelPips)) { pips.dataset.v = S.wheelPips; pips.innerHTML = Array.from({ length: 10 }, (_, k) => `<i class="${k < S.wheelPips ? 'on' : ''}"></i>`).join(''); pips.appendChild(iconCanvas('crate', 'gold', 34)); }
+  const pips = $('#pips'); if (pips && pips.dataset.v !== String(S.wheelPips)) { pips.dataset.v = S.wheelPips; pips.innerHTML = Array.from({ length: SPINS_PER_GOLD_CRATE }, (_, k) => `<i class="${k < S.wheelPips ? 'on' : ''}"></i>`).join(''); pips.appendChild(iconCanvas('crate', 'gold', 34)); }
 }
 function drawWheel() { const cvs = $('#wheel'); if (!cvs) return; drawWheelInner(cvs); if (TXTQ) pxEnd(cvs); }
 let wheelFlap = 0, wheelLastPeg = null, wheelLastClick = 0;
@@ -5331,11 +5354,13 @@ function spin() {
   const to = from + TAU * 7 + ((want - from) % TAU + TAU) % TAU;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   wheelMsg = ''; setText($('#wheelMsg'), ''); snd('wheelStart'); buzz(10);
+  const wonLabel = grant(WHEEL[k].r); let msg = 'You won ' + wonLabel + '!';
+  S.wheelPips++; track('spin'); track('roll'); addXP(5);
+  let bonus = '';
+  if (S.wheelPips >= SPINS_PER_GOLD_CRATE) { S.wheelPips = 0; grant({ k: 'crate', tier: 'gold' }); msg += ' Bar full: +1 Gold crate!'; bonus = '10-spin bonus: +1 Gold crate'; }
+  save();
   wheelAnim = { from, to, t0: performance.now(), wind: reduce ? 1 : 380, dur: reduce ? 10 : 5400, settle: reduce ? 1 : 480, over: reduce ? 0 : .07, onDone: () => {
-    const wonLabel = grant(WHEEL[k].r); let msg = 'You won ' + wonLabel + '!'; snd('wheelStop'); celebrate(WHEEL[k].r);
-    S.wheelPips++; track('spin'); track('roll'); addXP(5);
-    let bonus = '';
-    if (S.wheelPips >= 10) { S.wheelPips = 0; S.keys.gold++; msg += ' Bar full: +1 Gold key!'; bonus = '10-spin bonus: +1 Gold key'; }
+    snd('wheelStop'); celebrate(WHEEL[k].r);
     wheelMsg = msg; setText($('#wheelMsg'), msg); updateWheelUI(); changed();
     queueRewardPopup({title:'WHEEL WIN!',subtitle:'The wheel landed on your prize.',reward:WHEEL[k].r,extra:bonus});
   } };
@@ -5406,8 +5431,8 @@ function buyDailyMarket(id) {
   if (S.stars < it.price) { snd('error'); toast('Not enough Dosh. Complete tasks and activities to earn more.'); return; }
   let msg='';
   if(id==='wheel'){ S.tickets=(S.tickets||0)+1; msg='One Lucky Wheel spin added!'; }
-  else if(id==='silver'){ S.keys.steel=(S.keys.steel||0)+1; msg='Silver crate key added!'; }
-  else if(id==='gold'){ S.keys.gold=(S.keys.gold||0)+1; msg='Gold crate key added!'; }
+  else if(id==='silver'){ grant({ k: 'crate', tier: 'steel' }); msg='Silver crate added!'; }
+  else if(id==='gold'){ grant({ k: 'crate', tier: 'gold' }); msg='Gold crate added!'; }
   else { S.cash=(S.cash||0)+1200; msg='1,200 Coins added!'; }
   S.stars-=it.price; S.market.dailyBought[id]=true; addXP(5); snd('confirm'); toast(msg); changed(); save(); buildMarket();
 }
@@ -5424,33 +5449,30 @@ let crateSel = 'steel', crateAnim = null, crateReveal = null;
 function buildCrates() {
   const C = CRATES[crateSel];
   mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
-  const tiers = Object.keys(CRATES).map(k => { const kk = CRATES[k].key, n = S.keys[kk] || 0, cost = CRATE_KEY_COST[k], ready = n >= cost;
-    return `<button class="pixel-btn ctier" data-act="crsel" data-tier="${k}" aria-pressed="${crateSel === k}"><span data-tic="${k}"></span><b>${TIER[k]}</b><span class="ccount">${n}/${cost} keys</span>${ready ? '<i class="cready">READY</i>' : ''}</button>`; }).join('');
-  const odds = C.table.map(r => `<div class="orow"><span data-oic="${C.table.indexOf(r)}"></span><span class="oname">${r[1]}</span><b>${Math.round(r[0] / C.table.reduce((a, x) => a + x[0], 0) * 100)}%</b></div>`).join('');
-  const pity = C.pity ? `<div class="pity"><span>Guaranteed ${DEFS[C.pity].name} in ${S.pity[crateSel]}</span><div class="pbar"><i style="width:${Math.round((1 - S.pity[crateSel] / C.pityN) * 100)}%"></i></div></div>` : '';
-  const reveal = crateReveal ? `<div class="crate-reward-reveal"><div class="crate-reward-icon" data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></div><div class="crate-reward-copy"><span>CHEST OPENED</span><b>${crateReveal.label}</b><small>${TIER[crateSel]} chest reward</small></div></div>` : '';
+  const tiers = Object.keys(CRATES).map(tier => `<button class="pixel-btn crate-slot" data-act="crsel" data-tier="${tier}" aria-pressed="${crateSel === tier}"><span data-tic="${tier}"></span><b>${TIER[tier]}</b><span class="crate-count">${S.crates[tier]} owned</span></button>`).join('');
+  const odds = C.table.map(([weight, label], i) => `<div class="orow"><span data-oic="${i}"></span><span class="oname">${label}</span><b>${weight}%</b></div>`).join('');
+  const reveal = crateReveal ? `<div class="crate-reward-reveal"><div class="crate-reward-icon" data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></div><div class="crate-reward-copy"><span>CRATE OPENED</span><b>${crateReveal.label}</b><small>${TIER[crateSel]} crate reward</small></div></div>` : '';
   mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">CRATES</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
-  <div class="keysrow"><span class="klab">YOUR CHEST KEYS</span>${['steel','gold','diamond'].map(k => `<span class="kchip"><span data-kic="${k}"></span>${S.keys[k] || 0}</span>`).join('')}</div>
-  <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Silver: 3 keys · Gold: 2 keys · Diamond: 1 key. Better chests bring bigger rewards.</small></div>
-  <div class="ctiers">${tiers}</div>
-  <div class="cstage"><div class="crate-stage-label">YOUR REWARD AWAITS</div>${hiCanvas('chest', 320, 210)}<div class="crate-stage-sparkle sparkle-a">✦</div><div class="crate-stage-sparkle sparkle-b">✧</div></div>
-  ${reveal}
-  <button class="pixel-btn pb green" data-act="openCrate" id="openBtn" style="min-width:220px;font-size:20px">Open ${TIER[crateSel]} · ${CRATE_KEY_COST[crateSel]} ${CRATE_KEY_COST[crateSel] === 1 ? 'key' : 'keys'}</button>
-  <p class="mgmsg" id="crateMsg"></p>${pity}
-  <details class="odds"><summary>See the odds</summary>${odds}</details>
-  <p class="mgmsg cfoot">Silver chests cost 3 Silver keys, Gold cost 2 Gold keys and Diamond cost 1 Diamond key. Diamond rewards are premium.</p>`;
-  mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 44)));
-  mgPanel.querySelectorAll('[data-kic]').forEach(el => el.replaceWith(iconCanvas('key', el.dataset.kic, 22)));
+  <div class="crate-shelf">${tiers}</div>
+  <div class="crate-feature">
+    <h3>${TIER[crateSel]} crate</h3>
+    <div class="cstage">${hiCanvas('chest', 320, 210)}</div>
+    ${reveal}
+    <button class="pixel-btn pb" data-act="openCrate" id="openBtn">Open ${TIER[crateSel]} crate</button>
+    <p class="mgmsg" id="crateMsg" role="status"></p>
+  </div>
+  <div class="crate-bonus"><span>Gold crate bonus</span><b>${S.wheelPips}/${SPINS_PER_GOLD_CRATE} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_GOLD_CRATE}" aria-label="Spins towards a Gold crate"></progress></div>
+  <details class="odds"><summary>${TIER[crateSel]} reward odds</summary>${odds}</details>`;
+  mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 36)));
   mgPanel.querySelectorAll('[data-oic]').forEach(el => { const r = C.table[+el.dataset.oic][2]; el.replaceWith(iconCanvas(rewIconKind(r), r.tier, 22)); });
   mgPanel.querySelectorAll('[data-reward-icon]').forEach(el => el.replaceWith(iconCanvas(el.dataset.rewardIcon, el.dataset.tier, 56)));
   updateCrateUI();
 }
 function updateCrateUI() {
-  if (mg !== 'crates') return; const C = CRATES[crateSel];
-  const cost = CRATE_KEY_COST[crateSel], owned = S.keys[C.key] || 0, can = owned >= cost;
-  const b = $('#openBtn'); if (b) b.disabled = !can || !!crateAnim;
-  const m = $('#crateMsg');
-  if (m && !crateAnim && !crateReveal) setText(m, can ? '' : 'You need ' + cost + ' ' + TIER[crateSel] + ' keys (' + owned + '/' + cost + ')');
+  if (mg !== 'crates') return;
+  const owned = S.crates[crateSel];
+  $('#openBtn').disabled = owned < 1 || !!crateAnim;
+  if (!crateAnim && !crateReveal) setText($('#crateMsg'), owned ? '' : 'No ' + TIER[crateSel] + ' crates owned. Try the Lucky Wheel.');
 }
 // A single time-based animation drives the chest; avoid competing CSS shakes,
 // repeated full-size canvas redraws, and duplicate timeout-driven reveals.
@@ -5571,21 +5593,18 @@ function drawChestSceneInner(cvs,t) {
 }
 function openCrate() {
   if (crateAnim) return; const tier = crateSel, C = CRATES[tier];
-  const cost = CRATE_KEY_COST[tier];
-  if ((S.keys[C.key] || 0) < cost) { snd('error'); updateCrateUI(); return; }
-  S.keys[C.key] -= cost;
-  let row = null;
-  if (C.pity && S.pity[tier] <= 1) row = C.table.find(r => r[2].k === 'item' && r[2].id === C.pity);
-  if (!row) { const tot = C.table.reduce((a, r) => a + r[0], 0); let x = Math.random() * tot; row = C.table[C.table.length - 1]; for (const r of C.table) { if (x < r[0]) { row = r; break; } x -= r[0]; } }
-  const rew = row[2];
-  if (C.pity) { if (rew.k === 'item' && rew.id === C.pity) S.pity[tier] = C.pityN; else S.pity[tier]--; }
+  if (S.crates[tier] < 1) { snd('error'); updateCrateUI(); return; }
+  const rew = rollReward(C.table);
+  S.crates[tier]--;
   const label = grant(rew); track('crate'); addXP(10);
   crateReveal = null;
   crateSceneFrame = -1;
   crateAnim = { t0: performance.now(), tier, reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, rew: { r: rew, label } };
   mgPanel.classList.add('crate-opening'); mgPanel.classList.remove('crate-revealed');
   snd('open'); buzz(12);
-  setText($('#crateMsg'), 'Unlocking chest…');
+  save();
+  mgPanel.querySelectorAll('.crate-slot').forEach(slot => setText(slot.querySelector('.crate-count'), S.crates[slot.dataset.tier] + ' owned'));
+  setText($('#crateMsg'), 'Opening crate…');
   updateCrateUI(); changed();
 }
 function buildCratesKeepScene() { const msg = $('#crateMsg') ? $('#crateMsg').textContent : ''; buildCrates(); setText($('#crateMsg'), msg); crateSceneFrame=-1; }
@@ -5677,18 +5696,18 @@ const MISSIONS = [
   ['Open for business', 'Build a Bakery.', () => countOf('bakery') > 0, { k: 'cash', m: 5 }],
   ['Growing town', 'Reach 15 residents.', () => S.pop >= 15, { k: 'crate', tier: 'steel' }],
   ['Coffee culture', 'Build a Coffee Shop.', () => countOf('coffee') > 0, { k: 'stars', n: 5 }],
-  ['Money maker', 'Earn 100 coins per minute.', () => (D.cpm || 0) >= 100, { k: 'key', tier: 'steel' }],
+  ['Money maker', 'Earn 100 coins per minute.', () => (D.cpm || 0) >= 100, { k: 'crate', tier: 'steel' }],
   ['Upgrade time', 'Upgrade any building to level 2.', () => S.tiles.some(t => t && t.lvl >= 2), { k: 'deed', n: 1 }],
   ['Neighbourhood', 'Reach 50 residents.', () => S.pop >= 50, { k: 'stars', n: 10 }],
   ['Green city', 'Place 3 parks, trees or gardens.', () => S.tiles.filter(t => t && ['park', 'tree', 'flowers', 'sakura', 'fountain'].includes(t.id)).length >= 3, { k: 'crate', tier: 'steel' }],
-  ['Busy streets', 'Run 5 businesses.', () => D.list.filter(b => isBiz(b.d)).length >= 5, { k: 'key', tier: 'steel' }],
-  ['Big earner', 'Earn 500 coins per minute.', () => (D.cpm || 0) >= 500, { k: 'key', tier: 'gold' }],
+  ['Busy streets', 'Run 5 businesses.', () => D.list.filter(b => isBiz(b.d)).length >= 5, { k: 'crate', tier: 'steel' }],
+  ['Big earner', 'Earn 500 coins per minute.', () => (D.cpm || 0) >= 500, { k: 'crate', tier: 'gold' }],
   ['Landmark', 'Build a landmark: Golden Bull, Observation Tower or Space Centre.', () => ['statue', 'needle', 'space'].some(id => countOf(id) > 0), { k: 'stars', n: 25 }],
-  ['Thriving city', 'Reach 200 residents.', () => S.pop >= 200, { k: 'key', tier: 'gold' }]
+  ['Thriving city', 'Reach 200 residents.', () => S.pop >= 200, { k: 'crate', tier: 'gold' }]
 ];
 function claimMission() { const m = MISSIONS[S.mission || 0]; if (!m || !m[2]()) return; const label = grant(m[3]); S.mission = (S.mission || 0) + 1; addXP(40); snd('levelup'); confetti(80); toast('Mission complete! ' + label); changed(); }
 const dayNum = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 864e5); };
-const STREAK_REW = [{ k: 'stars', n: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 8 }, { k: 'cash', m: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 10 }, { k: 'key', tier: 'steel' }];
+const STREAK_REW = [{ k: 'stars', n: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 8 }, { k: 'cash', m: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 10 }, { k: 'crate', tier: 'steel' }];
 const DAILY_POOL = [
  ['restock','Restock 6 businesses',6],['collect','Collect 4 shop deliveries',4],['upgrade','Upgrade a building',1],['spin','Spin the Lucky Wheel',1],['build','Build 2 new things',2],['road','Place 5 road tiles',5],['crate','Open a crate',1],['rent','Collect rent once',1],['industry','Collect from an industry',1],['collect','Collect 8 shop deliveries',8],['restock','Restock 3 businesses',3],['road','Place 8 road tiles',8]
 ];
@@ -5709,7 +5728,7 @@ function showDaily() { /* Login rewards are claimed independently in the Daily R
 function claimDaily(q) { const t = S.daily && S.daily[q]; if (!t || t.done || t.p < t.n) return; t.done = true; toast('Daily done! ' + grant(t.rew)); snd('task'); changed(); }
 /* seasonal events: configured and ready, switched off until EVENT.active is set to true */
 const EVENT = { id: 'xmas-july-2027', name: 'Christmas in July', active: false, start: '2027-07-01', end: '2027-07-31', currency: 'Snowflakes', perDelivery: 1,
-  track: [[10, { k: 'stars', n: 5 }], [25, { k: 'crate', tier: 'steel' }], [50, { k: 'key', tier: 'steel' }], [100, { k: 'deed', n: 1 }], [200, { k: 'key', tier: 'gold' }]] };
+  track: [[10, { k: 'stars', n: 5 }], [25, { k: 'crate', tier: 'steel' }], [50, { k: 'crate', tier: 'steel' }], [100, { k: 'deed', n: 1 }], [200, { k: 'crate', tier: 'gold' }]] };
 function eventLive() { if (!EVENT.active) return false; const t = Date.now(); return t >= Date.parse(EVENT.start) && t <= Date.parse(EVENT.end) + 864e5; }
 function eventPts(n) { if (!eventLive()) return; if (!S.ev || S.ev.id !== EVENT.id) S.ev = { id: EVENT.id, pts: 0, got: [] }; S.ev.pts += n; }
 function claimEvent(q) { if (!eventLive() || !S.ev) return; const [at, r] = EVENT.track[q]; if (S.ev.pts < at || S.ev.got.includes(q)) return; S.ev.got.push(q); toast(EVENT.name + ': ' + grant(r)); snd('rare'); changed(); }
@@ -5877,11 +5896,11 @@ function skipTut() { document.body.classList.remove('tut-on'); S.tut = null; S.t
 /* ================= info popups ================= */
 const INFO = {
   dice: ['City Dice', ['Tap ROLL to move around the board.', 'You win whatever tile you land on.', 'Green arrows jump you forward, red arrows push you back.', 'The ??? tile gives a mystery prize.', 'You get a free roll every 30 minutes, and you earn more by collecting from shops, homes and industry.']],
-  wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'Fill the ticket bar by collecting from your buildings.', 'Every 10 spins wins a free Gold key.']],
-  crates: ['Chests', ['Silver chests need 3 Silver keys, Gold need 2 Gold keys, and Diamond need 1 Diamond key.', 'Gold and Diamond chests contain stronger rewards.', 'Odds are always shown, and nothing can be bought with real money.', 'Gold and Diamond chests have a guaranteed premium item after a set number of opens.']],
+  wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'Fill the ticket bar by collecting from your buildings.', 'Every 10 spins wins a free Gold crate.']],
+  crates: ['Crates', ['Select a tier to see its rewards and odds.', 'Opening uses one crate from your collection.', 'Win crates on the Lucky Wheel. Every 10 completed spins also awards a Gold crate.']],
   market: ['Dosh Shop', ['New stock every Monday.', 'Each item has limited stock for the week.', 'Spend Dosh, the green notes you earn from tasks, dice, the wheel and crates.', 'Buildings you buy go to Build, My items.']],
   build: ['Building', ['Everything needs a road next to it.', 'Most buildings need power and water too: build a Wind Turbine and a Water Tower.', 'Shops need workers, so build homes to bring people in.', 'Tap any building to upgrade it. Levels 4 and 5 need Deeds.']],
-  tasks: ['Tasks', ['Finish tasks to win dice, tickets, keys, crates, Dosh and Deeds.', 'When you claim one, a new task appears.', 'Upgrading buildings, restocking and collecting all count.']],
+  tasks: ['Tasks', ['Finish tasks to win dice, tickets, crates, Dosh and Deeds.', 'When you claim one, a new task appears.', 'Upgrading buildings, restocking and collecting all count.']],
   hall: ['Town Hall', ['Expand your land here once you reach the right level.', 'Expanding costs Coins and Deeds.', 'Power and water show how much your city makes and uses.', 'Workers come from homes, and businesses need them to run.']]
 };
 function showInfo(k) {
@@ -6178,10 +6197,21 @@ if (S.tut && !S.tutDone && S.tut.version!==3) {
 }
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
 if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; }
-if (!S.crates) S.crates = { steel: 0, gold: 0, diamond: 0 };
-if (S.crates.wood > 0) { S.keys.steel = (S.keys.steel || 0) + S.crates.wood; S.crates.wood = 0; }
-for (const k of ['steel', 'gold', 'diamond']) { if (S.crates[k] > 0) { S.keys[k] = (S.keys[k] || 0) + S.crates[k]; S.crates[k] = 0; } }
-S.crates = { steel: 0, gold: 0, diamond: 0 };
+// Honour the old opening costs and keep partial sets by rounding up once.
+const legacyCrateCosts = { steel: 3, gold: 2, diamond: 1 };
+S.wheelPips = Math.max(0, Math.floor(Number(S.wheelPips) || 0)) % SPINS_PER_GOLD_CRATE;
+const ownedCrates = S.crates || {};
+for (const [tier, cost] of Object.entries(legacyCrateCosts)) {
+  const oldKeys = Math.max(0, Math.floor(Number(S.keys?.[tier]) || 0));
+  ownedCrates[tier] = Math.max(0, Math.floor(Number(ownedCrates[tier]) || 0)) + Math.ceil(oldKeys / cost);
+}
+ownedCrates.steel += Math.max(0, Math.floor(Number(ownedCrates.wood) || 0));
+delete ownedCrates.wood;
+S.crates = ownedCrates;
+for (const task of S.daily || []) {
+  if (task.rew?.k === 'key') task.rew.k = 'crate';
+}
+delete S.keys;
 if (!S.grind) S.grind = { d: 0, t: 0 };
 if (S.dice > 15) S.dice = 15;
 S.dicePos = (S.dicePos || 0) % 12;
