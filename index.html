@@ -5741,7 +5741,7 @@ function businessesToRestock(tn=now()){
   return D.list.filter(b=>isBiz(b.d)&&b.workers&&!whyNot(b)&&
     ensureProds(b.t).some((p,k)=>k<b.workers&&!p.o&&p.s<=tn));
 }
-const RESTOCK_COINS = [35, 250, 1000];
+const RESTOCK_COINS = [30, 75, 150];
 function restockCost(businesses, tn = now()) {
   return businesses.reduce((total,b) => total + ensureProds(b.t).reduce((sum,p,k) => sum + (k < b.workers && !p.o && p.s <= tn ? RESTOCK_COINS[k] : 0), 0), 0);
 }
