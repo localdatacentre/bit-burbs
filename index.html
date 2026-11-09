@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=75">
+<link rel="stylesheet" href="pocket-ui.css?v=76">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -3793,7 +3793,7 @@ let wheelAnim = null, wheelMsg = '';
 const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
-  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">LUCKY WHEEL</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold key</p>`;
+  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold key</p>`;
   { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${(w.w / WTOT * 100).toFixed(w.w / WTOT < .02 ? 1 : 0)}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
   const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
   updateWheelUI();
@@ -3959,7 +3959,7 @@ function buildCrates() {
   const odds = C.table.map(r => `<div class="orow"><span data-oic="${C.table.indexOf(r)}"></span><span class="oname">${r[1]}</span><b>${Math.round(r[0] / C.table.reduce((a, x) => a + x[0], 0) * 100)}%</b></div>`).join('');
   const pity = C.pity ? `<div class="pity"><span>Guaranteed ${DEFS[C.pity].name} in ${S.pity[crateSel]}</span><div class="pbar"><i style="width:${Math.round((1 - S.pity[crateSel] / C.pityN) * 100)}%"></i></div></div>` : '';
   const reveal = crateReveal ? `<div class="crate-reward-reveal"><div class="crate-reward-icon" data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></div><div class="crate-reward-copy"><span>CHEST OPENED</span><b>${crateReveal.label}</b><small>${TIER[crateSel]} chest reward</small></div></div>` : '';
-  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CRATES</h2>
+  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">CRATES</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
   <div class="keysrow"><span class="klab">YOUR CHEST KEYS</span>${['steel','gold','diamond'].map(k => `<span class="kchip"><span data-kic="${k}"></span>${S.keys[k] || 0}</span>`).join('')}</div>
   <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Every key reveals a surprise. Better chests bring bigger rewards.</small></div>
   <div class="ctiers">${tiers}</div>
