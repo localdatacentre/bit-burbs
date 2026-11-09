@@ -1601,7 +1601,8 @@ function placeNative(k,x,y,z,kind,scale,shadow=false){
  ctx.drawImage(s.tile,s.x0,s.y0,s.w,s.h,sx-Math.round(s.rootX*scale),sy-h,w,h);
 }
 
-function K(ctx){
+const unpavedLots=new Set(['park','tree','flowers','cherry','road']);
+function K(ctx,modelKey){
  const k={ctx,q:[],lightPixels:new Map()};
  // Record the material beneath each light. The final colour check also respects
  // roofs, signs and foliage drawn directly onto the model canvas.
@@ -1664,7 +1665,7 @@ function K(ctx){
    if(pick<0){left.sort((a,b)=>(a.x0+a.y0+a.x1+a.y1)-(b.x0+b.y0+b.x1+b.y1));pick=0;}out.push(left.splice(pick,1)[0]);}
   out.forEach(o=>o.fn());};
  /* ground */
- k.ground=(fn)=>{const GX=16*FX,GY=16*FY;fillW(0,0,GX,GY,0,fn);};
+ k.ground=(fn)=>{const GX=16*FX,GY=16*FY;const surface=unpavedLots.has(modelKey)?fn:k.lot(fn,.75);fillW(0,0,GX,GY,0,surface);};
  const hash=(a,b)=>{const n=Math.sin(a*127.1+b*311.7)*43758.5453;return n-Math.floor(n);};
  k.hash=hash;
  k.grass=(wx,wy)=>{const r=hash(Math.floor(wx*2),Math.floor(wy*2));return r<.12?'#76AC52':r>.9?'#8CBF62':'#82B65A';};
@@ -3031,7 +3032,7 @@ M.sundrop={fx:1,fy:1,H:53,name:'Sundrop Pineapple Kiosk',d(k){
 }};
 
 function render(key,mirrorSigns=false){const it=M[key]||Q[key];if(!it)return null;FX=it.fx;FY=it.fy;const H=it.H+8;const cw=(32*(FX+FY)+16)*SC,ch=(H+16*(FX+FY)+12)*SC;OX=(FY*32+8)*SC;OY=(H+4)*SC;
- const c=document.createElement('canvas');c.width=cw;c.height=ch;const kit=K(c.getContext('2d'));kit.mirrorSigns=mirrorSigns;
+ const c=document.createElement('canvas');c.width=cw;c.height=ch;const kit=K(c.getContext('2d'),key);kit.mirrorSigns=mirrorSigns;
  const pathLights={tree:[11.8,13.7],flowers:[8,12.8],cherry:[12.2,13.2],bull:[11.8,13.8]};
  if(pathLights[key]){
   const [x,y]=pathLights[key];
