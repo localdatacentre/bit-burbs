@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=85">
+<link rel="stylesheet" href="pocket-ui.css?v=86">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -1769,9 +1769,7 @@ M.wind={fx:1,fy:1,H:84,name:'Wind Turbine',d(k){
  k.ground(k.lot(k.grass));
  k.add(5,5,11,11,()=>{k.cyl(8,8,0,2,3,(t,u,z)=>z===1?'#C8D2E0':k.lit('#9AA6B8',t));k.cyl(8,8,2,66,z=>1.4-z*.006,(t)=>k.lit('#F4F6FA',t));
   k.box(7,7.3,65,10,8.7,69,{top:'#FFFFFF',L:'#EEF2F7',R:'#C8D2E0'});
-  const h=k.sc(10.4,8,67);const cx=Math.round(h.x),cy=Math.round(h.y);const ctx=k.ctx;
-  for(const ang of [-1.57,0.52,2.62]){for(let s=3;s<30;s++){const x=cx+Math.cos(ang)*s,y=cy+Math.sin(ang)*s;ctx.fillStyle=s>26?'#E53B3B':'#FFFFFF';ctx.fillRect(R(x),R(y),2,s<18?2:1);ctx.fillStyle='#C8D2E0';ctx.fillRect(R(x)+1,R(y)+(s<18?2:1),1,1);}}
-  for(let y=-2;y<=2;y++)for(let x=-2;x<=2;x++)if(x*x+y*y<=5)k.px(cx+x,cy+y,x+y<0?'#FFFFFF':'#C8D2E0');});
+  k.rotor=k.sc(10.4,8,67);});
  k.add(12,11,14,13,()=>k.box(12,11,0,14,13,4,{top:'#5E6878',L:'#C8D2E0',R:'#9AA6B8'}));
  cabinet(k,2,10,3,2,5,'#839A93');k.flush();}};
 M.watertower={fx:1,fy:1,H:66,name:'Water Tower',d(k){
@@ -2829,8 +2827,10 @@ function render(key,mirrorSigns=false){const it=M[key]||Q[key];if(!it)return nul
  if(d[i+3]===0&&d[i-1]===255&&d[i+7]===255&&d[i-4*cw+3]===255&&d[i+4*cw+3]===255)
  d.set(d.slice(i-4,i),i);}
  context.putImageData(frame,0,0);let top=ch;for(let y=0;y<ch&&top===ch;y++)for(let x=0;x<cw;x++)if(d[(y*cw+x)*4+3]>0){top=y;break;}
+ if(kit.rotor) top=Math.min(top,Math.floor(kit.rotor.y)-40);
  const c2=document.createElement('canvas');c2.width=cw;c2.height=ch-top;c2.getContext('2d').drawImage(c,0,-top);
- return {key,hasFascia:!!kit.hasFascia,img:c2,w:cw,h:ch-top,gMinX:OX-32*FY*SC,gMaxX:OX+32*FX*SC,gMinY:OY-top,fx:FX,fy:FY,sc:SC};}
+ const rotor=kit.rotor && {x:Math.round(kit.rotor.x),y:Math.round(kit.rotor.y)-top};
+ return {rotor,key,hasFascia:!!kit.hasFascia,img:c2,w:cw,h:ch-top,gMinX:OX-32*FY*SC,gMaxX:OX+32*FX*SC,gMinY:OY-top,fx:FX,fy:FY,sc:SC};}
 return {render};})();
 
 </script>
@@ -3772,6 +3772,29 @@ const SPR_KEY = {
 };
 const SPR = new Map();
 function spriteOf(id) { if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
+// Draw only the moving rotor over the cached tower.
+function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(mirror ? -scale : scale, scale);
+  const light = shade ? T('#FFFFFF') : '#FFFFFF';
+  const edge = shade ? T('#BAC6D4') : '#BAC6D4';
+  const tip = shade ? T('#E35349') : '#E35349';
+  for (let blade = 0; blade < 3; blade++) {
+    const a = angle + blade * Math.PI * 2 / 3;
+    const dx = Math.cos(a), dy = Math.sin(a);
+    for (let r = 2; r <= 38; r++) {
+      const w = r < 12 ? 2 : r < 30 ? 1 : 0;
+      for (let t = -w; t <= w + 1; t++) {
+        ctx.fillStyle = r >= 34 ? tip : t === w + 1 ? edge : light;
+        ctx.fillRect(Math.round(dx*r-dy*t), Math.round(dy*r+dx*t), 2, 2);
+      }
+    }
+  }
+  ctx.fillStyle = edge; ctx.fillRect(-3,-2,6,5);
+  ctx.fillStyle = light; ctx.fillRect(-2,-3,4,4);
+  ctx.restore();
+}
 function spriteImg(sp, mir) { const q = Math.round(DARK * 6); const key = 'v' + q + (mir ? 'm' : ''); if (sp[key]) return sp[key];
   const c = document.createElement('canvas'); c.width = sp.w; c.height = sp.h; const x = c.getContext('2d'); if (mir) { x.translate(sp.w, 0); x.scale(-1, 1); } let img = sp.img;
   if (mir && sp.hasFascia) {
@@ -3785,7 +3808,13 @@ function spriteBox(i, j, id) { const sp = spriteOf(id); if (!sp) return null; co
   const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = ROT % 2 === 1; const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
   return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
 function drawBuilding(i, j, id) {
-  { const b = spriteBox(i, j, id); if (b) { const c = V.ctx; const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(spriteImg(b.sp, b.mir), b.x, b.y, b.w, b.h); c.imageSmoothingEnabled = sm; return; } }
+  { const b = spriteBox(i, j, id); if (b) { const c = V.ctx; const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(spriteImg(b.sp, b.mir), b.x, b.y, b.w, b.h);
+    if (b.sp.rotor) {
+      const hub = b.sp.rotor;
+      drawRotor(c, b.x + (b.mir ? b.sp.w-hub.x : hub.x)*b.s, b.y+hub.y*b.s, b.s,
+        performance.now()*0.00075 + i*0.7 + j*0.3, b.mir, true);
+    }
+    c.imageSmoothingEnabled = sm; return; } }
   const d = DEFS[id]; const z = V.z;
   if (d.type === 'decor') { drawDecor(i, j, id); return; }
   if (id === 'wind') {
@@ -4264,7 +4293,9 @@ function buildHTML() {
 function coinSvg() { return `<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD23F" stroke="#14202E" stroke-width="2.5"/><circle cx="12" cy="12" r="6" fill="none" stroke="#C98A0C" stroke-width="2"/></svg>`; }
 function drawPreviews() { sheetBody.querySelectorAll('canvas[data-prev]').forEach(cvs => previewInto(cvs, cvs.dataset.prev)); }
 function previewInto(cvs, id) {
-  { const sp = spriteOf(id); if (sp) { cvs.width = 110; cvs.height = 92; cvs.style.imageRendering = 'pixelated'; const pc = cvs.getContext('2d'); pc.clearRect(0, 0, 110, 92); pc.imageSmoothingEnabled = false; const k = Math.min(1, 104 / sp.w, 88 / sp.h); const w = sp.w * k, h = sp.h * k; pc.drawImage(sp.img, Math.round((110 - w) / 2), Math.round(90 - h), w, h); return; } }
+  { const sp = spriteOf(id); if (sp) { cvs.width = 110; cvs.height = 92; cvs.style.imageRendering = 'pixelated'; const pc = cvs.getContext('2d'); pc.clearRect(0, 0, 110, 92); pc.imageSmoothingEnabled = false; const k = Math.min(1, 104 / sp.w, 88 / sp.h); const w = sp.w * k, h = sp.h * k; pc.drawImage(sp.img, Math.round((110 - w) / 2), Math.round(90 - h), w, h);
+    if (sp.rotor) drawRotor(pc, Math.round((110-w)/2)+sp.rotor.x*k, Math.round(90-h)+sp.rotor.y*k, k, -Math.PI/2, false, false);
+    return; } }
   {
     const pc = cvs.getContext('2d');
     const saved = { ctx: V.ctx, z: V.z, cx: V.cx, cy: V.cy, dark: DARK };
