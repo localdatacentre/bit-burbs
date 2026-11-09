@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=77">
+<link rel="stylesheet" href="pocket-ui.css?v=79">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -2404,11 +2404,25 @@ function baseState() {
   return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), keys: { steel: 1, gold: 0, diamond: 0 }, crates: { steel: 0, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0, ferris: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
 }
 function newGame() {
-  const s = baseState(); const tiles = s.tiles;
-  const set = (x, y, id) => { tiles[y * N + x] = newTile(id); };
-  void set; s.cash = 6000; s.pop = 0; s.tut = { step: 0, ev: {}, started: false };
+  const s=baseState();
+  s.cash=8000;
+  s.tut={ version:3, step:0, ev:{}, started:false };
+  seedTutorialTown(s);
   return s;
 }
+
+/* Only fresh tutorial towns get a prebuilt layout; existing cities are untouched. */
+function seedTutorialTown(s) {
+  const put=(x,y,id)=>{if(x>=s.lo&&x<N-s.lo&&y>=s.lo&&y<N-s.lo&&!s.tiles[y*N+x])s.tiles[y*N+x]=newTile(id);};
+  put(24,24,'hall');
+  for(let x=24;x<=28;x++)put(x,25,'road');
+  put(23,25,'house');
+  put(22,25,'tree');
+  s.pop=2;
+  s.busT=now()+5000;
+  s.tutorialTown=1;
+}
+
 function newTile(id) { const d = DEFS[id]; if (d.type === 'shop') return { id, st: 'idle' }; if (d.type === 'home') return { id, rent: 0 }; if (d.type === 'ind') return { id, stock: 0 }; return { id }; }
 function migrate(d) {
   if (d.v === 2) return d;
@@ -3462,7 +3476,7 @@ function renderSheet(force) {
   if (sheet === 'build') drawPreviews(); else paintNewIcons();
 }
 function buildHTML() {
-  let h = `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pixel-btn pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
+  let h = (S.tut && tutStep() && tutStep().build ? `<div class="tut-build-tip">TUTORIAL ${S.tut.step+1}/${TUT.length} · ${tutStep().t} — follow the yellow highlight</div>` : '') + `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pixel-btn pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
   if (!findHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="pixel-btn bcard" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>The heart of your city. Every city needs one.</span><span class="price">Free</span></button></div>`;
   if (buildTarget) h += `<p class="note">Building on the plot you picked.</p>`;
   const tab0 = BUILD_TABS.find(t => t[0] === buildTab) || BUILD_TABS[0]; const tab = tab0;
@@ -3532,7 +3546,7 @@ sheetEl.addEventListener('click', e => {
     const id = b.dataset.id, d = DEFS[id], fromItem = buildTab === 'items';
     if (b.getAttribute('aria-disabled') === 'true') { toast(fromItem ? 'Win this from crates.' : d.lvl > S.level ? 'Unlocks at Lv ' + d.lvl + '.' : 'You need ' + fmt(d.cost) + ' Coins.'); return; }
     if (buildTarget && id !== 'road') { const tg = buildTarget; if (placeAt(tg.i, tg.j, id, fromItem)) { closeSheet(); select(tg.i, tg.j); } return; }
-    placing = { id, fromItem, ghost: null }; closeSheet(); sel = null; renderCard(true); return;
+    placing = { id, fromItem, ghost: (S.tut && tutStep() && tutStep().build === id ? suggestTile(id) : null) }; closeSheet(); sel = null; if(placing.ghost)animateTo(placing.ghost.i+.5,placing.ghost.j+.5); renderCard(true); return;
   }
   if (a === 'loc') { askLocation(true); sheetKeyVal=''; renderSheet(true); return; }
   if (a === 'loginclaim') { const d=dayNum(); if (S.loginClaimDay!==d) { const day=Math.max(1,Math.min(7,((S.streak||1)-1)%7+1)); const label=grant(STREAK_REW[day-1]); S.loginClaimDay=d; snd('rare'); toast('Day '+day+' reward: '+label); changed(); renderSheet(true); } return; }
@@ -4131,17 +4145,13 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
-  { t: 'Place Town Hall', d: 'Your Town Hall is the heart of your city. Open BUILD and place it on the highlighted spot.', build: 'hall', done: () => !!findHall() },
-  { t: 'Connect your streets', d: 'Roads connect your buildings. Lay 2 road tiles beside Town Hall.', build: 'road', tab: 'city', done: () => roadCount() >= 2 },
-  { t: 'Build your first home', d: 'Place a Cottage beside the road. It will attract residents who can work in your businesses.', build: 'house', tab: 'homes', done: () => S.tiles.filter(t => t && t.id === 'house').length >= 1 },
-  { t: 'Set up electricity', d: 'Your buildings need power to operate. Place a Wind Turbine beside a road.', build: 'wind', tab: 'util', done: () => hasB('wind') },
-  { t: 'Connect the water supply', d: 'Homes and businesses need water too. Place a Water Tower beside a road.', build: 'wtower', tab: 'util', done: () => hasB('wtower') },
-  { t: 'Welcome your residents', d: 'Your Cottage is ready. Give your first 2 residents a moment to arrive; they’ll become the workforce for your Bakery.', done: () => S.pop >= 2, start: () => { S.busT = now() + 2500; } },
-  { t: 'Open your first business', d: 'Build a Bakery beside a road. Your residents will help keep it running.', build: 'bakery', tab: 'businesses', done: () => hasB('bakery') },
-  { t: 'Stock the Bakery', d: 'Tap your Bakery and order Bread. It will be ready in a few seconds during the tutorial.', target: 'bakery', act: 'order', done: () => tev('restock') },
-  { t: 'Collect your first earnings', d: 'Once the Bread is ready, collect the Bakery’s earnings to bring in Coins.', target: 'bakery', act: 'collect', done: () => tev('shopCollect') },
-  { t: 'Upgrade your business', d: 'Upgrade the Bakery to improve its earning potential. That covers the basics of running your city!', target: 'bakery', act: 'upgrade', done: () => tev('upgrade') }
+ {t:'Build a home',d:'Welcome to Bit Burbs! Your Town Hall, street and starter home are ready. Add another home to the glowing plot.',build:'house',tab:'homes',done:()=>countOf('house')>=2},
+ {t:'Add electricity',d:'Place a Wind Turbine beside the road to power your town.',build:'wind',tab:'util',done:()=>hasB('wind')},
+ {t:'Connect water',d:'Place a Water Tower so your buildings have fresh water.',build:'wtower',tab:'util',done:()=>hasB('wtower')},
+ {t:'Open a bakery',d:'Build a Bakery beside the street to earn Coins.',build:'bakery',tab:'businesses',done:()=>hasB('bakery')},
+ {t:'Stock your bakery',d:'Tap the Bakery and tap STOCK to start selling. Then your town is ready!',target:'bakery',act:'order',done:()=>tev('restock')}
 ];
+const TUTORIAL_PLOTS={house:[25,24],wind:[26,24],wtower:[27,24],bakery:[28,24]};
 let tutHL = null;
 function tutStep() { return S.tut && TUT[S.tut.step]; }
 function suggestRoad() {
@@ -4160,6 +4170,8 @@ function suggestRoad() {
   return null;
 }
 function suggestTile(id) {
+  const spot=S.tut && TUTORIAL_PLOTS[id];
+  if(spot && fpFree(spot[0],spot[1],id))return {i:spot[0],j:spot[1]};
   if (id === 'road') return suggestRoad();
   const lo = Math.max(S.lo, BEACH), hi = Math.min(N - 1 - S.lo, N - 1 - BEACH); const c = MID - .5; let best = null, bd = 1e9;
   for (let j = lo; j <= hi; j++) for (let i = lo; i <= hi; i++) {
@@ -4174,41 +4186,44 @@ function suggestTile(id) {
   return best;
 }
 function tutTick() {
-  // Keep the tutorial on the city map, never over Tasks or other menus.
-  // Pausing here preserves the current tutorial step and progress.
-  if (sheet || mg || $('#modal').classList.contains('show')) {
-    $('#coach').classList.remove('show');
-    document.body.classList.remove('tut-on');
-    setHL(null);
-    return;
+  const coach=$('#coach');
+  if(S.tut && S.tut.step>=TUT.length){finishTut();return;}
+  const st=tutStep();
+  if(!st||S.firstRun||mg||$('#modal').classList.contains('show')||(sheet&&sheet!=='build')){
+    coach.classList.remove('show');document.body.classList.remove('tut-on');setHL(null);return;
   }
-  if (S.tut && S.tut.step >= TUT.length) { finishTut(); return; }
-  const coach = $('#coach'); const st = tutStep();
-  if (!st || S.firstRun) { coach.classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); return; }
-  if (!S.tut.started) { S.tut.started = true; S.tut.ev = {}; if (st.start) st.start(); }
-  if (st.done()) {
-    S.tut.step++; S.tut.ev = {}; S.tut.started = false; snd('task');
-    if (S.tut.step >= TUT.length) { finishTut(); return; }
-    changed(); return;
+  if(!S.tut.started){S.tut.started=true;S.tut.ev={};if(st.start)st.start();}
+  if(st.done()){
+    S.tut.step++;S.tut.ev={};S.tut.started=false;snd('task');setHL(null);
+    if(S.tut.step>=TUT.length){finishTut();return;}
+    changed();return;
   }
-  coach.classList.add('show'); document.body.classList.add('tut-on'); document.documentElement.style.setProperty('--tutTop', Math.round(coach.getBoundingClientRect().bottom) + 'px');
-  let extra = '';
-  if (st.build && placing && placing.id === st.build) extra = ' Tap the glowing tile.';
-  setText($('#coachStep'), 'TUTORIAL ' + (S.tut.step + 1) + '/' + TUT.length); setText($('#coachT'), st.t); setText($('#coachD'), st.d + extra);
-  let sel = null;
-  if (st.build) {
-    if (placing && placing.id === st.build) sel = placing.ghost ? '[data-act="confirmPlace"]' : null;
-    else if (sheet === 'build') sel = st.tab && buildTab !== st.tab ? `[data-act="tab"][data-tab="${st.tab}"]` : `[data-act="choose"][data-id="${st.build}"]`;
-    else if (!sheet && !mg) sel = '[data-open="build"]';
-  } else if (st.act) {
-    if (card.classList.contains('show') && sel === null) sel = `#card [data-act="${st.act}"]`;
-  } else if (st.nav) sel = mg === st.nav ? (st.nav === 'wheel' ? '#spinBtn' : st.nav === 'dice' ? '#rollBtn' : null) : (mg ? '#mg .mgx' : !sheet ? (st.nav === 'market' ? '#zmkt' : `[data-open="${st.nav}"]`) : null);
-  setHL(sel);
+  // Keep menus clear of the floating coach, but highlight their actual controls.
+  if(sheet==='build'){
+    coach.classList.remove('show');document.body.classList.remove('tut-on');
+  } else {
+    coach.classList.add('show');document.body.classList.add('tut-on');
+    document.documentElement.style.setProperty('--tutTop',Math.round(coach.getBoundingClientRect().bottom)+'px');
+    let extra='';
+    if(st.build&&placing&&placing.id===st.build)extra=' Tap the yellow plot, then confirm.';
+    setText($('#coachStep'),'TUTORIAL '+(S.tut.step+1)+'/'+TUT.length);
+    setText($('#coachT'),st.t);setText($('#coachD'),st.d+extra);
+  }
+  let target=null;
+  if(st.build){
+    if(placing&&placing.id===st.build)target=placing.ghost?'[data-act="confirmPlace"]':null;
+    else if(sheet==='build')target=st.tab&&buildTab!==st.tab?`[data-act="tab"][data-tab="${st.tab}"]`:`[data-act="choose"][data-id="${st.build}"]`;
+    else target='[data-open="build"]';
+  } else if(st.act){
+    if(card.classList.contains('show'))target='#card [data-act="'+st.act+'"]';
+    if(!target&&card.classList.contains('show'))target='#card [data-act="restock"]';
+  }
+  setHL(target);
 }
 function setHL(sel) {
   const el = sel ? document.querySelector(sel) : null;
   if (tutHL && tutHL !== el) tutHL.classList.remove('tut-hl');
-  if (el) el.classList.add('tut-hl'); tutHL = el;
+  if (el) {el.classList.add('tut-hl');if(el.matches('[data-act="choose"]'))el.scrollIntoView({block:'nearest'});} tutHL = el;
 }
 function tutMapTarget() {
   const st = tutStep(); if (!st || S.firstRun) return null;
@@ -4226,13 +4241,14 @@ function drawTutArrow() {
   c.fillStyle = '#0E3A44'; c.fillRect(x - 9, y - 18, 18, 12); c.fillRect(x - 15, y - 6, 30, 3); c.fillRect(x - 12, y - 3, 24, 3); c.fillRect(x - 9, y, 18, 3); c.fillRect(x - 6, y + 3, 12, 3); c.fillRect(x - 3, y + 6, 6, 3);
   c.fillStyle = '#FFC93C'; c.fillRect(x - 6, y - 15, 12, 12); c.fillRect(x - 12, y - 6, 24, 3); c.fillRect(x - 9, y - 3, 18, 3); c.fillRect(x - 6, y, 12, 3); c.fillRect(x - 3, y + 3, 6, 3);
 }
-function finishTut() { document.body.classList.remove('tut-on');
-  S.tut = null; S.tutDone = true; setHL(null); $('#coach').classList.remove('show');
-  const reward = grant({ k: 'stars', n: 50 });
-  $('#modalBox').innerHTML = `<h2 class="wl-t">Tutorial complete!</h2><p class="wl-s">Your starter city has the essentials: roads, homes, power, water and a working business. You’re ready to grow!</p><ul style="text-align:center"><li>${reward} reward</li></ul><button class="pixel-btn pb wl-r" id="modalOk">Keep building</button>`;
-  $('#modal').classList.add('show'); snd('levelup'); confetti(120);
-  $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
-  changed();
+function finishTut() {
+  document.body.classList.remove('tut-on');
+  S.tut=null;S.tutDone=true;setHL(null);$('#coach').classList.remove('show');
+  S.cash+=500;S.stars+=2;S.tickets=(S.tickets||0)+1;
+  $('#modalBox').innerHTML='<h2 class="wl-t">TUTORIAL COMPLETE!</h2><p class="wl-s">Your tiny town is ready to grow!</p><p class="wl-s">🪙 500 Coins · 2 Dosh · 1 Wheel ticket</p><button class="pixel-btn pb wl-r" id="modalOk">Continue building</button>';
+  $('#modal').classList.add('show');snd('levelup');confetti(28);
+  $('#modalOk').onclick=()=>{snd('confirm');$('#modal').classList.remove('show');};
+  changed();save();
 }
 function skipTut() { document.body.classList.remove('tut-on'); S.tut = null; S.tutDone = true; setHL(null); $('#coach').classList.remove('show'); toast('Tutorial skipped. Tap the blue i buttons any time for help.'); changed(); }
 
@@ -4300,18 +4316,21 @@ function frame(t) {
   if (mg === 'dice') drawBoard(); else if (mg === 'wheel') drawWheel(); else if (mg === 'crates') drawChestScene();
   drawFx();
   uiAcc += dt;
-  if (uiAcc > .25 || dirty) { uiAcc = 0; paintNewIcons(); updateHUD(); tutTick(); checkDaily(); showDaily(); renderCard(false); renderSheet(false); updateDiceUI(); updateWheelUI(); updateCrateUI(); updateMarketUI(); if (pendingLevel && !$('#modal').classList.contains('show')) showLevel(); }
+  if (uiAcc > .25 || dirty) { uiAcc = 0; paintNewIcons(); updateHUD(); checkDaily(); showDaily(); renderCard(false); renderSheet(false); tutTick(); updateDiceUI(); updateWheelUI(); updateCrateUI(); updateMarketUI(); if (pendingLevel && !$('#modal').classList.contains('show')) showLevel(); }
   saveAcc += dt; if (saveAcc > 5 || (dirty && saveAcc > 1)) { saveAcc = 0; dirty = false; save(); }
   requestAnimationFrame(frame);
 }
 
 /* ================= boot ================= */
 S = load() || newGame();
-if (S.tut && !S.tutDone) {
-  const oldStep = Math.max(0, S.tut.step || 0);
-  const oldToNew = [0, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9];
-  S.tut.step = oldStep >= 11 ? TUT.length : (oldToNew[oldStep] ?? TUT.length);
-  S.tut.ev = {}; S.tut.started = false;
+if (S.tut && !S.tutDone && S.tut.version!==3) {
+  // Convert old ten-step tutorial saves without replacing established towns.
+  if(!findHall() && S.tiles.every(t=>!t||t.id==='road'))seedTutorialTown(S);
+  S.tut={version:3,step:0,ev:{},started:false};
+  if(countOf('house')>=2)S.tut.step=1;
+  if(S.tut.step>=1&&hasB('wind'))S.tut.step=2;
+  if(S.tut.step>=2&&hasB('wtower'))S.tut.step=3;
+  if(S.tut.step>=3&&hasB('bakery'))S.tut.step=4;
 }
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
 if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; }
