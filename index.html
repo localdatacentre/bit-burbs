@@ -1319,6 +1319,10 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
  display:none!important;
 }
 </style>
+<style>
+#hud #rsAll{min-height:24px;height:24px;padding:1px 5px;white-space:nowrap;font-size:12px!important;line-height:1!important}
+#card [data-act="rush"]{font-size:16px!important;white-space:normal}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -1337,7 +1341,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 
     <div class="chip" aria-label="Wheel tickets"><canvas data-icon="ticket" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="tix">0</span></div>
   </div>
-  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity">0 / 0 RESIDENTS</span><button class="pixel-btn rsall" id="rsAll">RESTOCK ALL</button><b id="cpmLbl">0 COINS/MIN</b></div>
+  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity">0 / 0 RESIDENTS</span><button class="pixel-btn rsall" id="rsAll" disabled>All stocked</button><b id="cpmLbl">0 COINS/MIN</b></div>
 </header>
 
 <button class="pixel-btn" id="advisor" aria-label="City advisor"><canvas id="faceIcon" width="56" height="56" style="width:28px;height:28px"></canvas><span class="adv"><b id="advT">Looking good!</b><small id="advS">Happiness 50%</small></span></button>
@@ -4640,7 +4644,10 @@ const hud = { lvl: $('#lvlNum'), xp: $('#xpFill'), cash: $('#cash'), stars: $('#
 function setText(el, v) { v = String(v); if (el && el.textContent !== v) el.textContent = v; }
 let lastClockKind = '', lastFace = -1;
 function updateHUD() {
-  { const n = restockAllCount(); setText($('#rsAll'), n ? 'RESTOCK ALL · ' + restockAllCost(n) + ' DOSH' : 'ALL STOCKED'); $('#rsAll').disabled = !n; }
+  const restockButton = $('#rsAll'), price = businessesToRestock().length;
+  restockButton.dataset.cost = price;
+  setText(restockButton, price ? 'Restock with ' + price + ' Dosh' : 'All stocked');
+  restockButton.disabled = !price || S.stars < price;
   setText(hud.lvl, S.level); setText($('#popLbl'), S.pop + ' / ' + (D.cap || 0) + ' RESIDENTS'); setText($('#cpmLbl'), fmt(D.cpm || 0) + ' COINS/MIN');
   hud.xp.style.width = Math.min(100, S.xp / need(S.level) * 100) + '%';
   setText(hud.cash, S.cash >= 1000 && S.cash < 1e4 ? (S.cash / 1000).toFixed(1) + 'k' : fmt(S.cash)); setText(hud.stars, fmt(S.stars)); setText(hud.dice, S.dice);
@@ -4748,7 +4755,7 @@ function renderCard(force) {
         const pr = ensureProds(t), names = prodNames(t.id), tn = now(), w = whyNot(b); let rows = '';
         for (let k = 0; k < 3; k++) { const p = pr[k]; let st, btn = '';
           if (k >= b.workers) st = `Locked · needs ${k + 1} staff`;
-          else if (p.o) { st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pixel-btn pb gold sm" data-act="rush" data-k="${k}" ${S.stars >= rushCost(t, k) ? '' : 'disabled'}>Rush ${rushCost(t, k)}</button>`; }
+          else if (p.o) { const cost = rushCost(t,k,tn); st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pixel-btn pb gold sm" data-act="rush" data-k="${k}" data-cost="${cost}" ${cost && S.stars >= cost ? '' : 'disabled'}>Rush with ${cost} Dosh</button>`; }
           else if (p.s > tn) st = `+${fmt(prodCpm(b, k))}/min · ${mmss(p.s - tn)}`;
           else { st = 'Empty'; btn = `<button class="pixel-btn pb sm" data-act="order" data-k="${k}">${k === 0 ? '1m' : k === 1 ? '15m' : '1h'}</button>`; }
           rows += `<div class="prod ${k >= b.workers ? 'lock' : ''}"><div><b>${names[k]}</b><span>${st}</span></div>${btn}</div>`; }
@@ -4813,7 +4820,7 @@ card.addEventListener('click', e => {
   else if (a === 'collect') collectShop(sel.i, sel.j);
   else if (a === 'upgrade') upgrade(sel.i, sel.j);
   else if (a === 'order') orderProd(sel.i, sel.j, +b.dataset.k);
-  else if (a === 'rush') rushProd(sel.i, sel.j, +b.dataset.k);
+  else if (a === 'rush') rushProd(sel.i, sel.j, +b.dataset.k, +b.dataset.cost);
   else if (a === 'finish') { const tt = tileAt(sel.i, sel.j); if (tt && tt.st === 'sell' && S.stars >= 2) { S.stars -= 2; tt.t = now() - stime(tt, DEFS[tt.id]); changed(); } }
   else if (a === 'info') { showInfo(b.dataset.k || 'hall'); return; }
   else if (a === 'restock') restock(sel.i, sel.j);
@@ -5577,12 +5584,25 @@ function costOf(id) { const d = DEFS[id]; if (!d) return 0; if (id === 'road' ||
 function orderProd(i, j, k) { const t = tileAt(i, j); const b = t && t._; if (!b || !isBiz(b.d)) return; const w = whyNot(b); if (w) { snd('error'); toast(w); return; }
   if (k >= b.workers) { snd('error'); toast('Needs more workers. Build homes to bring in residents.'); return; }
   const p = ensureProds(t)[k]; if (p.o) return; p.o = now() + orderTime(k); track('restock'); snd('restock'); changed(); }
-function rushCost(t, k) { const p = t.pr[k]; return Math.max(1, Math.ceil((p.o - now()) / 600000)); }
-function rushProd(i, j, k) { const t = tileAt(i, j); if (!t || !t.pr || !t.pr[k].o) return; const c = rushCost(t, k); if (S.stars < c) { snd('error'); toast('You need ' + c + ' Dosh to rush this.'); return; } S.stars -= c; t.pr[k].o = now(); snd('confirm'); changed(); }
+function rushCost(t,k,tn){return Math.max(0,Math.ceil((t.pr[k].o-tn)/600000));}
+function rushProd(i,j,k,quoted){
+  const t=tileAt(i,j), p=t?.pr?.[k], tn=now();
+  if(!p?.o)return;
+  const cost=rushCost(t,k,tn);
+  if(!cost || cost!==quoted || S.stars<cost)return;
+  S.stars-=cost;
+  deliverProduct(t,p,k,tn);
+  snd('confirm');changed();save();updateHUD();
+}
+function deliverProduct(t,p,k,tn){
+  p.s=Math.max(tn,p.s)+P_LAST[k];p.o=0;
+  eventPts(EVENT.perDelivery*(k+1));if(k>=1)grindAdd(1);
+  track(DEFS[t.id].type==='ind'?'industry':'collect',1);
+}
 const bizAcc = new Map(); let bizPopT = 0;
 function bizTick(dt) { const tn = now(); let cpm = 0;
   D.list.forEach(b => { if (!isBiz(b.d)) return; const pr = ensureProds(b.t);
-    pr.forEach((p, k) => { if (p.o && tn >= p.o) { p.s = Math.max(tn, p.s) + P_LAST[k]; p.o = 0; eventPts(EVENT.perDelivery * (k + 1)); if (k >= 1) grindAdd(1); track(b.d.type === 'ind' ? 'industry' : 'collect', 1); } });
+    pr.forEach((p, k) => { if (p.o && tn >= p.o) deliverProduct(b.t,p,k,tn); });
     const c = bizCpm(b) * boostMul(); cpm += c; if (c > 0) { const key = b.i + ',' + b.j; bizAcc.set(key, (bizAcc.get(key) || 0) + c / 60 * dt); } });
   D.cpm = cpm; S.cash += cpm / 60 * dt;
   bizPopT += dt; if (bizPopT >= 4) { bizPopT = 0; for (const [key, v] of bizAcc) { if (v >= 1) { const [i, j] = key.split(',').map(Number); popup(i, j, '+' + fmt(Math.floor(v)), '#FFE066'); bizAcc.set(key, v - Math.floor(v)); } } } }
@@ -5599,10 +5619,17 @@ function bizOffline(from, to) { derive(); let earned = 0; const mins = Math.max(
 
 /* ================= engagement: restock all, missions, daily, rating, events ================= */
 function restockBiz(b) { if (!b || !isBiz(b.d) || !b.workers || whyNot(b)) return 0; const pr = ensureProds(b.t), tn = now(); let n = 0; for (let k = 0; k < b.workers; k++) { const p = pr[k]; if (!p.o && p.s <= tn) { p.o = tn + orderTime(k); n++; } } if (n) track('restock', n); return n; }
-function restockAllCount() { const tn = now(); let n = 0; D.list.forEach(b => { if (!isBiz(b.d) || !b.workers || whyNot(b)) return; const pr = ensureProds(b.t); for (let k = 0; k < b.workers; k++) if (!pr[k].o && pr[k].s <= tn) n++; }); return n; }
-const restockAllCost = n => n ? Math.max(1, Math.ceil(n / 4)) : 0;
-function restockAll() { const want = restockAllCount(); if (!want) { snd('error'); toast('Nothing needs restocking right now.'); return; } const c = restockAllCost(want); if (S.stars < c) { snd('error'); toast('Restock All costs ' + c + ' Dosh. Tap RESTOCK on each business to do it free.'); return; }
-  S.stars -= c; let n = 0; D.list.forEach(b => { n += restockBiz(b); }); snd('restock'); toast('Ordered ' + n + ' product' + (n > 1 ? 's' : '') + ' for ' + c + ' Dosh.'); changed(); }
+function businessesToRestock(tn=now()){
+  return D.list.filter(b=>isBiz(b.d)&&b.workers&&!whyNot(b)&&
+    ensureProds(b.t).some((p,k)=>k<b.workers&&!p.o&&p.s<=tn));
+}
+function restockAll(quoted){
+  const businesses=businessesToRestock(),cost=businesses.length;
+  if(!cost || quoted!==cost || S.stars<cost){updateHUD();return;}
+  S.stars-=cost;
+  businesses.forEach(b=>restockBiz(b));
+  snd('restock');changed();save();updateHUD();renderCard(true);
+}
 const MISSIONS = [
   ['Found the city', 'Place your Town Hall.', () => !!findHall(), { k: 'stars', n: 5 }],
   ['Open for business', 'Build a Bakery.', () => countOf('bakery') > 0, { k: 'cash', m: 5 }],
@@ -5855,7 +5882,7 @@ document.querySelector('.chip[aria-label="Dosh"]').addEventListener('click', () 
 $('#clock').style.cursor = 'pointer';
 $('#clock').addEventListener('click', () => { const tm = SK.times || {}; const f = x => x ? new Date(x).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; toast('Sunrise ' + f(tm.rise) + ' · Sunset ' + f(tm.set) + (LOC.src === 'gps' ? ' · your location' : ' · tap Tasks to use your location')); });
 $('#coachSkip').addEventListener('click', skipTut);
-$('#rsAll').addEventListener('click', () => restockAll());
+$('#rsAll').addEventListener('click', e => restockAll(+e.currentTarget.dataset.cost));
 $('#moveTool').addEventListener('click',()=>{
   const active=pickingMove||!!placing?.source;
   placing=null;pickingMove=!active;
