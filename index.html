@@ -1637,9 +1637,11 @@ function K(ctx,modelKey){
  k.L=(b,u,v,c)=>{if(u<0||u>=b.W||v<0||v>=b.h||!c)return;for(let dx=0;dx<SC;dx++){const uf=u*SC+dx;const x=OX+(b.x0-b.y1)*2*SC+uf,y=R(OY+(b.x0+uf/(2*SC)+b.y1-b.z0)*SC);for(let dy=0;dy<SC;dy++)px(x,y-(v*SC+dy)-1,c);}};
  k.Rf=(b,u,v,c)=>{if(u<0||u>=b.D||v<0||v>=b.h||!c)return;for(let dx=0;dx<SC;dx++){const uf=u*SC+dx;const x=OX+(b.x1-b.y1)*2*SC+uf,y=R(OY+(b.x1+b.y1-uf/(2*SC)-b.z0)*SC);for(let dy=0;dy<SC;dy++)px(x,y-(v*SC+dy)-1,c);}};
  k.rect=(f,b,u0,v0,u1,v1,c)=>{for(let u=u0;u<=u1;u++)for(let v=v0;v<=v1;v++)f(b,u,v,c);};
+ // Preserve cool glass tints. Warm room colours belong to the night material.
+ const dayGlass=colour=>colour&&parseInt(colour.slice(1,3),16)<parseInt(colour.slice(5,7),16)?colour:'#8EC5E6';
  /* window: frame + glass with a single crisp highlight */
  k.win=(f,b,u,v,w,h,o={})=>{
-  const fr=o.frame||INK,gl=o.lit?'#FFE3A0':o.glass||'#8EC5E6';
+  const fr=o.frame||INK,gl=dayGlass(o.glass);
   const room=Math.floor(k.hash(b.x0*7+u+(f===k.L?0:3),b.z0+v+b.y1)*8);
   const colour=o.lit?'#F2CE93':['#C48F62','#E8BA83','#749196','#E5C6A0','#92A29A','#C49F77','#5B737D','#F1CC96'][room];
   k.rect(f,b,u,v,u+w-1,v+h-1,fr);
@@ -1652,7 +1654,7 @@ function K(ctx,modelKey){
    const front=f===k.L, mid=(u+w/2)/2;
    (k.entrances ||= []).push({x:(front?b.x0+mid:b.x1)/16,y:(front?b.y1:b.y1-mid)/16,side:front?'front':'right'});
  }
- k.rect(f,b,u,0,u+w-1,h-1,o.frame||INK);k.rect(f,b,u+1,0,u+w-2,h-2,col);if(o.glass)k.rect(f,b,u+1,Math.floor(h/2),u+w-2,h-3,k.light(o.glass,'#D4B58D'));
+ k.rect(f,b,u,0,u+w-1,h-1,o.frame||INK);k.rect(f,b,u+1,0,u+w-2,h-2,col);if(o.glass)k.rect(f,b,u+1,Math.floor(h/2),u+w-2,h-3,k.light(dayGlass(o.glass),'#D4B58D'));
  else if(w>=4&&h>=6)f(b,u+w-2,h-2,k.light(col,'#D5AE80'));f(b,u+w-2,Math.floor(h/2)-1,'#FFD23F');};
  /* textures */
  k.brick=(base)=>(u,v)=>{const row=Math.floor(v/3);if(v%3===2)return sh(base,1.07);if((u+(row%2)*3)%6===0)return sh(base,1.04);return base;};
@@ -1687,7 +1689,7 @@ function K(ctx,modelKey){
  k.bush=(x,y,radius=2.2,kind='brush')=>k.add(x-.8,y-.8,x+.8,y+.8,()=>{
   placeNative(k,x,y,0,kind,radius*.59*SC/2,true);
  });
- k.lamp=(wx,wy)=>k.add(wx-.3,wy-.3,wx+.3,wy+.3,()=>{const p=sc(wx,wy,0);const H=15*SC;ctx.fillStyle='#3A3550';ctx.fillRect(R(p.x),R(p.y)-H,SC,H);ctx.fillRect(R(p.x)-SC,R(p.y)-H-SC,3*SC,SC);const bulb=k.light('#FFE9A8','#FFDC9B');for(const side of [-1,1])for(let dx=0;dx<SC;dx++)for(let dy=0;dy<SC;dy++)px(p.x+side*SC+dx,p.y-H+dy,bulb);});
+ k.lamp=(wx,wy)=>k.add(wx-.3,wy-.3,wx+.3,wy+.3,()=>{const p=sc(wx,wy,0);const H=15*SC;ctx.fillStyle='#3A3550';ctx.fillRect(R(p.x),R(p.y)-H,SC,H);ctx.fillRect(R(p.x)-SC,R(p.y)-H-SC,3*SC,SC);const bulb=k.light('#ACCDDE','#FFDC9B');for(const side of [-1,1])for(let dx=0;dx<SC;dx++)for(let dy=0;dy<SC;dy++)px(p.x+side*SC+dx,p.y-H+dy,bulb);});
  k.bench=(wx,wy,dir)=>{const w=dir==='x'?[3,1]:[1,3];k.add(wx,wy,wx+w[0],wy+w[1],()=>{k.box(wx,wy,0,wx+w[0],wy+w[1],2,{top:'#B5763A',L:'#8A5A2A',R:'#6E4A2A'});if(dir==='x')k.box(wx,wy,2,wx+3,wy+.5,4,{top:'#C9965A',L:'#B5763A',R:'#8A5A2A'});else k.box(wx,wy,2,wx+.5,wy+3,4,{top:'#C9965A',L:'#B5763A',R:'#8A5A2A'});});};
  // Project each shrub from its own root so long hedges step neatly along the lot.
  k.planting=(x0,y0,x1,y1,kind='pilly',height=0,scale=.72)=>k.add(x0,y0,x1,y1,()=>{
@@ -1869,7 +1871,7 @@ function skyTowerView(k,turn){
  k.add(3,3,13,13,()=>{
   const podium=k.box(3,3,0,13,13,8,{Lfn:u=>u%5===0?'#D6DDE6':'#2E4A64',Rfn:u=>u%5===0?'#B0BAC6':'#22384E',top:'#9AA6B8'});
   for(const [face,side] of [[k.L,turn],[k.Rf,(turn+1)%4]]){
-   if(side===0)k.door(face,podium,8,4,6,'#FFE3A0',{frame:'#D6DDE6'});
+   if(side===0)k.door(face,podium,8,4,6,'#52697B',{frame:'#D6DDE6',glass:'#9CCCE8'});
    if(side===0||side===2)exteriorLamp(k,face,podium,side===0?13:7,5);
    if(side===2)k.door(face,podium,3,3,5,'#52697B',{frame:'#8195A3'});
   }
@@ -2395,8 +2397,8 @@ function houseView(k,turn,width=16,depth=16){
 }
 function exteriorLamp(k,face,wall,u,v){
  face(wall,u,v+1,'#646D71');
- face(wall,u,v,k.light('#D5D0BB','#FFE1A0'));
- face(wall,u,v-1,k.light('#B7AE97','#DFAB67'));
+ face(wall,u,v,k.light('#B3D1E0','#FFE1A0'));
+ face(wall,u,v-1,k.light('#87ACBD','#DFAB67'));
 }
 function modernHouse(k,turn){
  const {point,bounds,groundKit}=houseView(k,turn);
@@ -4464,7 +4466,9 @@ function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
   ctx.fillStyle = light; ctx.fillRect(-2,-3,4,4);
   ctx.restore();
 }
-function lampStrength(dark){return clamp((dark-.16)/.62,0,1);}
+// Model and street lights follow the player's local clock, independently of sky tint.
+function lightsOnAt(hour){return hour>=17||hour<6;}
+let lightsOn=lightsOnAt(new Date().getHours());
 function applyEmission(data,i,rgb,light){
   data[i]+=((rgb>>16)-data[i])*light;
   data[i+1]+=(((rgb>>8)&255)-data[i+1])*light;
@@ -4474,26 +4478,26 @@ function spriteImg(sp,mir){
   let art=sp;
   if(mir&&sp.hasFascia)art=(sp.mirroredSignArt ||= SPRK.render(sp.key,true));
   const stage=Math.round(DARK*20),key=mir?'shadeMirror':'shadeNormal';
-  if(!stage&&!mir)return art.img;
-  if(sp[key]?.stage===stage)return sp[key].img;
+  if(!stage&&!mir&&!lightsOn)return art.img;
+  if(sp[key]?.stage===stage&&sp[key].lightsOn===lightsOn)return sp[key].img;
   const c=document.createElement('canvas');c.width=sp.w;c.height=sp.h;
   const x=c.getContext('2d');
   if(mir){x.translate(sp.w,0);x.scale(-1,1);}
   x.drawImage(art.img,0,0);
-  if(stage){
+  if(stage||lightsOn){
     const frame=x.getImageData(0,0,c.width,c.height),data=frame.data,f=stage/20*.5;
     for(let i=0;i<data.length;i+=4){
       if(!data[i+3])continue;
       data[i]=data[i]*(1-f)+22*f;data[i+1]=data[i+1]*(1-f)+32*f;data[i+2]=data[i+2]*(1-f)+74*f;
     }
-    const lights=art.emission,amount=lampStrength(stage/20);
+    const lights=art.emission,amount=lightsOn?1:0;
     if(amount&&lights)for(let k=0;k<lights.length;k+=2){
       const pos=lights[k],col=pos%sp.w;
       applyEmission(data,4*(mir?pos+sp.w-1-2*col:pos),lights[k+1],amount);
     }
     x.putImageData(frame,0,0);
   }
-  sp[key]={stage,img:c};return c;
+  sp[key]={stage,lightsOn,img:c};return c;
 }
 function spriteBox(i, j, id, turned=tileAt(i,j)?.turned) {
   const stop=tileAt(i,j);
@@ -4519,11 +4523,12 @@ const stopLights=new Map([
 const shadedVehicles=new Map();
 let vehicleStage=-1;
 function vehicleFrame(frame,stage){
-  if(stage!==vehicleStage){vehicleStage=stage;shadedVehicles.clear();}
+  const lightingStage=stage*2+Number(lightsOn);
+  if(lightingStage!==vehicleStage){vehicleStage=lightingStage;shadedVehicles.clear();}
   if(shadedVehicles.has(frame))return shadedVehicles.get(frame);
   const c=document.createElement('canvas');c.width=224;c.height=144;
   const ctx=c.getContext('2d');ctx.drawImage(streetArt,(frame%8)*224,Math.floor(frame/8)*144,224,144,0,0,224,144);
-  const im=ctx.getImageData(0,0,224,144),d=im.data,f=stage/20*.62,light=lampStrength(stage/20);
+  const im=ctx.getImageData(0,0,224,144),d=im.data,f=stage/20*.62,light=Number(lightsOn);
   for(let i=0;i<d.length;i+=4){
     if(!d[i+3])continue;
     const rgb=(d[i]<<16)|(d[i+1]<<8)|d[i+2];
@@ -4644,7 +4649,7 @@ function drawStreetLamp(lamp,ground,strength){
   c.beginPath();c.moveTo(base.x,base.y);c.lineTo(base.x,base.y-20*z);
   c.lineTo(arm.x,head);c.stroke();
   c.fillStyle=T('#687373');c.fillRect(arm.x-2.3*z,head-z,4.6*z,1.6*z);
-  c.fillStyle=mix(T('#BEBC9A'),'#F9DAA5',strength);
+  c.fillStyle=mix(T('#95BBCD'),'#F9DAA5',strength);
   c.fillRect(arm.x-1.6*z,head+.5*z,3.2*z,1.15*z);
   if(strength){
     c.globalAlpha*=.12*strength;c.fillStyle='#FFDCA3';
@@ -4791,7 +4796,7 @@ function drawVehicle(v){
   const index=(Math.round((v.angle+ROT*Math.PI/2)*frames/(2*Math.PI))%frames+frames)%frames;
   c.save();c.globalAlpha*=v.alpha;
   const frame=v.base+index,stage=Math.round(DARK*20),scale=V.z/2;
-  if(stage&&streetArt.naturalWidth){
+  if((stage||lightsOn)&&streetArt.naturalWidth){
     c.drawImage(vehicleFrame(frame,stage),p.x-112*scale,p.y-88*scale,224*scale,144*scale);
   }else stampStreetFrame(c,frame,p.x,p.y,scale);
   c.restore();
@@ -4945,7 +4950,7 @@ function render() {
   V.ctx = lowCtx; lowCtx.setTransform(2 / PX, 0, 0, 2 / PX, 0, 0); lowCtx.imageSmoothingEnabled = false;
   drawSky(); drawSea(); drawIsland();
   for (let s = 0; s < 2 * N - 1; s++) for (let i = 0; i < N; i++) { const j = s - i; if (j < 0 || j >= N) continue; drawGround(i, j); }
-  const streetLamps=streetMap().lamps,strength=lampStrength(DARK);
+  const streetLamps=streetMap().lamps,strength=Number(lightsOn);
   if(strength)for(const lamp of streetLamps)drawStreetLamp(lamp,true,strength);
   drawOverlay();
   if (sel) poly(diamond(sel.i, sel.j), 'rgba(255,255,255,.25)', '#FFFFFF', 3);
@@ -6621,6 +6626,7 @@ function drawWalker(w){
 }
 
 function frame(t) {
+  lightsOn=lightsOnAt(new Date().getHours());
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (camAnim) { const e = Math.min(1, (t - camAnim.t0) / 450); const k = 1 - Math.pow(1 - e, 3); V.cx = camAnim.sx + (camAnim.tx - camAnim.sx) * k; V.cy = camAnim.sy + (camAnim.ty - camAnim.sy) * k; if (e >= 1) camAnim = null; }
   skyAcc += dt; if (skyAcc > 10) { skyAcc = 0; updateSky(); }
