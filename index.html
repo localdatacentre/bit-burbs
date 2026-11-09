@@ -4467,7 +4467,7 @@ function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
   ctx.restore();
 }
 // Model and street lights follow the player's local clock, independently of sky tint.
-function lightsOnAt(hour){return hour>=17||hour<6;}
+function lightsOnAt(hour){return hour>=18||hour<6;}
 let lightsOn=lightsOnAt(new Date().getHours());
 function applyEmission(data,i,rgb,light){
   data[i]+=((rgb>>16)-data[i])*light;
