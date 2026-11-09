@@ -2232,14 +2232,15 @@ function glassFence(k,x0,y0,x1,y1){
 function paling(k,x0,y0,x1,y1){k.add(x0,y0,x1,y1,()=>k.box(x0,y0,0,x1,y1,4,{top:'#7A5E3E',Lfn:(u)=>u%2?'#8A6A44':'#7A5E3E',Rfn:(u)=>u%2?'#6E5436':'#5E4630',noRim:true}));}
 const modernLot=(k,drive,extra)=>k.ground((wx,wy)=>{if(drive(wx,wy))return((R(wx)+R(wy))%2)?'#BDB8AE':'#B5B0A6';if(extra){const e=extra(wx,wy);if(e)return e;}return k.grass(wx,wy);});
 // The faces run clockwise from the driveway around the house.
-function houseView(k,turn){
- const point=(x,y,t=turn)=>[[x,y],[16-y,x],[16-x,16-y],[y,16-x]][t];
+function houseView(k,turn,width=16,depth=16){
+ const point=(x,y)=>[[x,y],[depth-y,x],[width-x,depth-y],[y,width-x]][turn];
+ const unproject=(x,y)=>[[x,y],[y,depth-x],[width-x,depth-y],[width-y,x]][turn];
  function bounds(x0,y0,x1,y1){
   const [a,b]=point(x0,y0),[c,d]=point(x1,y1);
   return [Math.min(a,c),Math.min(b,d),Math.max(a,c),Math.max(b,d)];
  }
  const groundKit=Object.create(k);
- groundKit.ground=paint=>k.ground((x,y)=>paint(...point(x,y,(4-turn)%4)));
+ groundKit.ground=paint=>k.ground((x,y)=>paint(...unproject(x,y)));
  return {point,bounds,groundKit};
 }
 function modernHouse(k,turn){
@@ -2950,42 +2951,63 @@ function hipCap(k,x0,y0,x1,y1,z,xm,ym,height,c){
  polyW(k,[d,e,peak],c);polyW(k,[b,e,peak],sh(c,.75));
  edgeW(k,d,peak,sh(c,1.15));edgeW(k,e,peak,sh(c,.88));
 }
-M.banksiaDuplex={fx:2,fy:1,H:34,name:'Banksia Court Duplex',d(k){
- k.ground(k.lot((x,y)=>y>10&&(x>3&&x<9||x>23&&x<29)?k.walk(x,y):k.grass(x,y),.65));
+function banksiaDuplex(k,turn){
+ const {point,bounds,groundKit}=houseView(k,turn,32,16);
+ groundKit.ground((x,y)=>y>10&&(x>3&&x<9||x>23&&x<29)?k.walk(x,y):k.grass(x,y));
+ const roof=Object.create(k);
+ roof.sc=(x,y,z)=>k.sc(...point(x,y),z);
+ function box(x,y,z,X,Y,Z,material){
+  const [a,b,c,d]=bounds(x,y,X,Y);
+  return k.box(a,b,z,c,d,Z,material);
+ }
  for(const [x,deep,reverse] of [[2.3,10.1,false],[16.5,11.4,true]]){
-  k.add(x,2,x+13.1,deep+.6,()=>{
-   const w=k.box(x,2,0,x+13.1,deep,13,{Lfn:reverse?k.siding('#D7DECF'):k.brick('#BC8E73'),Rfn:reverse?k.siding('#B5C1B3'):k.brick('#A77963'),top:'#939383'});
-   k.win(k.L,w,reverse?3:10,3,12,7,{glass:'#8FB2B1',frame:'#EDE5CD',mullion:true});
-   k.door(k.L,w,reverse?18:3,5,9,'#536B60',{frame:'#8D684E',glass:'#A8BFB2'});
-   k.win(k.Rf,w,4,4,8,5,{glass:'#82A5A2',frame:'#EEE4CB',mullion:true});
+  k.add(...bounds(x,2,x+13.1,deep),()=>{
+   const w=box(x,2,0,x+13.1,deep,13,{Lfn:reverse?k.siding('#D7DECF'):k.brick('#BC8E73'),Rfn:reverse?k.siding('#B5C1B3'):k.brick('#A77963'),top:'#939383'});
+   function wall(face,side){
+    const glass={glass:'#8FB2B1',frame:'#EDE5CD',mullion:true};
+    if(side===0){
+     k.win(face,w,reverse?3:10,3,12,7,glass);
+     k.door(face,w,reverse?18:3,5,9,'#536B60',{frame:'#8D684E',glass:'#A8BFB2'});
+    }else if(side===2){
+     k.win(face,w,reverse?12:3,4,9,6,glass);
+     k.door(face,w,reverse?4:17,4,8,'#536B60',{frame:'#EDE5CD'});
+    }else k.win(face,w,4,4,8,5,{glass:'#82A5A2',frame:'#EEE4CB',mullion:true});
+   }
+   wall(k.L,turn);wall(k.Rf,(turn+1)%4);
    // Both ridges meet on the party wall. The deeper unit has a longer front slope.
    const join=15.95,left=reverse?join:x-.45,right=reverse?x+13.55:join;
    const ridge=6.05,back=1.55,front=deep+.45,peak=17.5,eave=12.5;
    const colour=reverse?'#598268':'#56646F';
-   polyW(k,[[left,back,eave],[right,back,eave],[right,ridge,peak],[left,ridge,peak]],sh(colour,.84));
-   if(reverse)polyW(k,[[right,back,eave],[right,front,eave],[right,ridge,peak]],'#C3CCBE');
+   const rearView=turn===1||turn===2;
+   const far=rearView?front:back,near=rearView?back:front;
+   polyW(roof,[[left,far,eave],[right,far,eave],[right,ridge,peak],[left,ridge,peak]],sh(colour,.84));
+   const end=turn<2?right:left;
+   if(reverse===(turn<2))polyW(roof,[[end,back,eave],[end,front,eave],[end,ridge,peak]],reverse?'#C3CCBE':'#D7BEA7');
    // Sample ribs and trim inside the same pixel mask as the roof face.
-   const origin=k.sc(left,ridge,peak),along=k.sc(right,ridge,peak),down=k.sc(left,front,eave);
+   const origin=roof.sc(left,ridge,peak),along=roof.sc(right,ridge,peak),down=roof.sc(left,near,eave);
    const ax=along.x-origin.x,ay=along.y-origin.y,bx=down.x-origin.x,by=down.y-origin.y;
    const det=ax*by-ay*bx;
    const rib=sh(colour,.92),lip=sh(colour,.77),cap=sh(colour,1.15);
-   polyW(k,[[left,ridge,peak],[right,ridge,peak],[right,front,eave],[left,front,eave]],(px,py)=>{
+   polyW(roof,[[left,ridge,peak],[right,ridge,peak],[right,near,eave],[left,near,eave]],(px,py)=>{
     const dx=px+.5-origin.x,dy=py+.5-origin.y;
     const u=(dx*by-dy*bx)/det,v=(ax*dy-ay*dx)/det;
-    const faceHeight=det/Math.hypot(ax,ay);
+    const faceHeight=Math.abs(det)/Math.hypot(ax,ay);
     if(v*faceHeight<1)return cap;
     if((1-v)*faceHeight<1)return lip;
     const spacing=2.5,offset=u*(right-left)-spacing/2;
     const fromRib=Math.abs(offset-spacing*Math.round(offset/spacing));
     return fromRib<.12?rib:colour;
    });
-   const porch=reverse?x+8:x+.5;
-   for(const post of [porch,porch+4.5])k.box(post,deep+1.4,0,post+.3,deep+1.7,8,{L:'#9F7552',R:'#755540',top:'#D1A77D'});
-   k.box(porch-.2,deep,8,porch+5,deep+1.95,8.6,{L:'#B68C65',R:'#906D52',top:'#D5AE82'});
+  });
+  const porch=reverse?x+8:x+.5;
+  k.add(...bounds(porch-.2,deep,porch+5,deep+1.95),()=>{
+   for(const post of [porch,porch+4.5])box(post,deep+1.4,0,post+.3,deep+1.7,8,{L:'#9F7552',R:'#755540',top:'#D1A77D'});
+   box(porch-.2,deep,8,porch+5,deep+1.95,8.6,{L:'#B68C65',R:'#906D52',top:'#D5AE82'});
   });
  }
- k.planting(10.3,13,14.4,14,'correa',0,.85);k.tree(17.5,13.5,.65,0,'wattle');k.bush(2,12,1.4,'banksia');k.flush();
-}};
+ k.planting(...bounds(10.3,13,14.4,14),'correa',0,.85);k.tree(...point(17.5,13.5),.65,0,'wattle');k.bush(...point(2,12),1.4,'banksia');k.flush();
+}
+for(let turn=0;turn<4;turn++)M[turn?'banksiaDuplex-turn'+turn:'banksiaDuplex']={fx:turn%2?1:2,fy:turn%2?2:1,H:34,name:'Banksia Court Duplex',d:k=>banksiaDuplex(k,turn)};
 M.spindleCycles={fx:1,fy:1,H:38,name:'Spindle Cycles',d(k){
  shopLot(k,11);
  k.add(1.6,2,13.7,11,()=>{
@@ -4211,7 +4233,7 @@ const SPR_KEY = {
   flowers: 'flowers',
 };
 const SPR = new Map();
-const fourSidedHomes=new Set(['house','house2','m3']);
+const fourSidedHomes=new Set(['house','house2','m3','banksiaDuplex']);
 function spriteOf(id, turn=0) {
  if(fourSidedHomes.has(id) && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
  if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
