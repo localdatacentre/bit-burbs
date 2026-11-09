@@ -476,7 +476,7 @@ body.tut-on #sheet{max-height:none}
 body.sheet-open #coach{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);right:8px}
 body.tut-on.sheet-open .sbody{padding-bottom:190px}
 .prods{display:flex;flex-direction:column;gap:6px}.prod{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#2B2660;padding:6px 8px}.prod.lock{opacity:.55}.prod div{display:flex;flex-direction:column}.prod b{font-family:'VT323',monospace;font-size:12px;font-weight:400}.prod span{font-family:'VT323',monospace;font-size:17px;color:#E4E0FF}
-.cpmbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 10px 6px;font-family:'VT323',monospace;font-size:11px;color:#C9C4F5}.cpmbar b{font-weight:400;font-size:13px;color:#FFE066}
+.cpmbar{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:2px 4px;font:18px/1 'VT323',monospace;color:#fff}
 
 /* ===== Theme C: Beach Day ===== */
 :root{--ink:#0E3A44;--teal:#1E8A9E;--teal2:#156E7E;--sand:#FFF4DC;--sand2:#F2E4C2;--sub:#4E8A92;--coral:#FF7A5A}
@@ -486,7 +486,7 @@ body.tut-on.sheet-open .sbody{padding-bottom:190px}
 .lvl{background:var(--coral);color:#FFFFFF;border-color:var(--ink)}
 .chip,.chip span{color:var(--ink)}.xp{background:var(--ink);border-color:var(--ink)}
 #clock{background:var(--teal);color:#FFFFFF}
-.cpmbar{background:var(--teal2);color:var(--sand)}.cpmbar b{color:#FFD27A}
+.cpmbar b{font-weight:400;color:#FFF2BD;text-align:right}
 #nav{background:var(--teal);border-top:0}
 #nav .pb[data-open="build"]{background:#FF7A5A}#nav .pb[data-open="dice"]{background:#2EB6E8}#nav .pb[data-open="wheel"]{background:#F25AA0}#nav .pb[data-open="crates"]{background:#F2B21A}#nav .pb[data-open="tasks"]{background:#3EBE7A}
 #card,#sheet,#modalBox,#advisor,#toast,#legend,#coach{background:var(--sand);color:var(--ink)}
@@ -542,7 +542,7 @@ body.tut-on.sheet-open .sbody{padding-bottom:190px}
 .mgp .pb[data-act="buy"]:active:not(:disabled){background:#1E86B4;transform:translateY(3px) scale(.98)}
 .mgp .pb[data-act="buy"]:active:not(:disabled)::after{box-shadow:inset 0 3px 0 rgba(0,0,0,.25)}
 .mgp .pb[data-act="buy"]:disabled{opacity:.55}
-#popLbl{font-size:11px;white-space:nowrap;color:#FFFFFF;font-weight:400;background:#244F78;padding:4px 7px;letter-spacing:.025em;border:1px solid #91B2D5}.rsall:disabled{opacity:.6}
+.cpmbar .stat-value{white-space:nowrap}.cpmbar .stat-unit{font-size:14px;white-space:nowrap}.rsall:disabled{opacity:.6}
 .ratebtn{margin-left:6px;font-family:'VT323',monospace;font-size:10px;background:#F2B21A;color:#0E3A44;border:2px solid #0E3A44;padding:1px 5px;cursor:pointer;vertical-align:middle}.rlist{display:flex;flex-direction:column;gap:4px;text-align:left}.rr{display:flex;align-items:center;gap:8px;background:#F2E4C2;border:2px solid #0E3A44;padding:4px 8px;font-family:'VT323',monospace;font-size:18px;color:#4E8A92}.rr span{font-family:'VT323',monospace;font-size:10px;color:#0E3A44;min-width:24px}.rr i{margin-left:auto;font-style:normal;color:#2E9E5E}.rr.ok{background:#CFF2DC;color:#0E3A44}
 
 #advisor small{display:none}
@@ -1321,6 +1321,11 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 </style>
 <style>
 #hud #rsAll{min-height:24px;height:24px;padding:1px 5px;white-space:nowrap;font-size:12px!important;line-height:1!important}
+@media(max-width:440px){
+ .cpmbar{padding:1px 0}
+ .cpmbar .stat-unit{display:block;font-size:12px;line-height:1}
+ #hud #rsAll{white-space:normal;height:auto}
+}
 #card [data-act="rush"]{font-size:16px!important;white-space:normal}
 </style>
 </head>
@@ -1341,7 +1346,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 
     <div class="chip" aria-label="Wheel tickets"><canvas data-icon="ticket" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="tix">0</span></div>
   </div>
-  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity">0 / 0 RESIDENTS</span><button class="pixel-btn rsall" id="rsAll" disabled>All stocked</button><b id="cpmLbl">0 COINS/MIN</b></div>
+  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity"><span class="stat-value" id="popValue">0 / 0</span> <span class="stat-unit">residents</span></span><button class="pixel-btn rsall" id="rsAll" disabled>All stocked</button><b id="cpmLbl"><span class="stat-value" id="cpmValue">0</span> <span class="stat-unit">coins/min</span></b></div>
 </header>
 
 <button class="pixel-btn" id="advisor" aria-label="City advisor"><canvas id="faceIcon" width="56" height="56" style="width:28px;height:28px"></canvas><span class="adv"><b id="advT">Looking good!</b><small id="advS">Happiness 50%</small></span></button>
@@ -4648,7 +4653,7 @@ function updateHUD() {
   restockButton.dataset.cost = price;
   setText(restockButton, price ? 'Restock with ' + price + ' Dosh' : 'All stocked');
   restockButton.disabled = !price || S.stars < price;
-  setText(hud.lvl, S.level); setText($('#popLbl'), S.pop + ' / ' + (D.cap || 0) + ' RESIDENTS'); setText($('#cpmLbl'), fmt(D.cpm || 0) + ' COINS/MIN');
+  setText(hud.lvl, S.level); setText($('#popValue'), S.pop + ' / ' + (D.cap || 0)); setText($('#cpmValue'), fmt(D.cpm || 0));
   hud.xp.style.width = Math.min(100, S.xp / need(S.level) * 100) + '%';
   setText(hud.cash, S.cash >= 1000 && S.cash < 1e4 ? (S.cash / 1000).toFixed(1) + 'k' : fmt(S.cash)); setText(hud.stars, fmt(S.stars)); setText(hud.dice, S.dice);
   setText($('#deeds'), S.deeds || 0); setText(hud.tix, S.tickets);
