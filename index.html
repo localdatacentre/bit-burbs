@@ -1198,6 +1198,47 @@ body.tut-on #coach{border-color:#FFC93C!important}
 .pb:focus-visible,#nav .pb:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
 @media(prefers-reduced-motion:reduce){.pb{transition:none!important}}
 
+
+/* ===== VISUAL BUTTON ASSET IMPLEMENTATION v62 =====
+   The source-of-truth pixel facets are hard-edged colour blocks; no blur or glossy gradients. */
+:root{--bb-button-cut:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px))}
+#nav button.pb,#mapctl button.pb,#sheet button.pb,#card button.pb,
+#mg button.pb,#modal button.pb,#sheetBody button.pb,
+#sheetBody button.rsall,button.rsall,#sheetBody button.daily-claim,
+#sheetBody button.streak-claim,#mg button.ctier,#mg button.tier{
+ border-radius:0!important;border-style:solid!important;
+ border-width:2px!important;border-color:var(--edge,#08758F)!important;
+ background-color:var(--face,#159FCB)!important;
+ background-image:linear-gradient(to bottom,
+ var(--light,#40BEDD) 0px,var(--light,#40BEDD) 3px,
+ var(--face,#159FCB) 3px,var(--face,#159FCB) calc(100% - 4px),
+ var(--shade,#087CA0) calc(100% - 4px),var(--shade,#087CA0) 100%)!important;
+ clip-path:var(--bb-button-cut)!important;
+ box-shadow:none!important;
+ text-shadow:none!important;
+ color:#fff!important;
+}
+#nav button.pb[data-open="build"]{--face:#3EBE7A!important;--edge:#218653!important;--light:#69D99B!important;--shade:#2B9C63!important}
+#nav button.pb[data-open="wheel"]{--face:#8C4DD0!important;--edge:#603095!important;--light:#B17AE8!important;--shade:#7139B1!important}
+#nav button.pb[data-open="crates"]{--face:#E95B9C!important;--edge:#AC3975!important;--light:#FF87BA!important;--shade:#C84686!important}
+#nav button.pb[data-open="tasks"]{--face:#F28D2B!important;--edge:#AF5D16!important;--light:#FFB75E!important;--shade:#D8731F!important}
+#nav button.pb[data-open="settings"]{--face:#77839B!important;--edge:#4A566D!important;--light:#A6B0C3!important;--shade:#626D86!important}
+#mapctl button.pb.sq{--face:#5272A4!important;--edge:#294765!important;--light:#819DC6!important;--shade:#385985!important}
+#mapctl button#zmkt{--face:#F2B21A!important;--edge:#B77A0B!important;--light:#FFD35B!important;--shade:#D28B12!important}
+#sheet button.pb[data-act="closeSheet"],#mg button.pb.mgx,#card button.pb.x{--face:#E94C57!important;--edge:#A72D3A!important;--light:#FF8084!important;--shade:#C23843!important}
+#sheet button.pb.infob,#mg button.pb.infob{--face:#159FCB!important;--edge:#08758F!important;--light:#40BEDD!important;--shade:#087CA0!important}
+#nav button.pb{width:100%!important;min-height:58px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:3px!important;line-height:1!important;font:19px/1 'VT323',monospace!important}
+#nav button.pb canvas{flex-shrink:0!important;image-rendering:pixelated!important}
+#nav button.pb::before,#nav button.pb::after,
+#mapctl button.pb::before,#mapctl button.pb::after,
+#sheet button.pb::before,#sheet button.pb::after{content:none!important;display:none!important}
+#nav button.pb:active:not(:disabled),#mapctl button.pb:active:not(:disabled),
+#sheet button.pb:active:not(:disabled),#mg button.pb:active:not(:disabled){
+ transform:translateY(2px)!important;
+ filter:brightness(.93)!important;
+}
+#nav,#mapctl,#sheet,#mg{--pixel-skin-version:62}
+
 </style>
 </head>
 <body>
