@@ -2958,7 +2958,18 @@ M.banksiaDuplex={fx:2,fy:1,H:34,name:'Banksia Court Duplex',d(k){
    k.win(k.L,w,reverse?3:10,3,12,7,{glass:'#8FB2B1',frame:'#EDE5CD',mullion:true});
    k.door(k.L,w,reverse?18:3,5,9,'#536B60',{frame:'#8D684E',glass:'#A8BFB2'});
    k.win(k.Rf,w,4,4,8,5,{glass:'#82A5A2',frame:'#EEE4CB',mullion:true});
-   gableRoof(k,x,2,x+13.1,deep,13,4.5,'#536568',reverse?'#C3CCBE':'#D7BEA7',.45);
+   // Both ridges meet on the party wall. The deeper unit has a longer front slope.
+   const join=15.95,left=reverse?join:x-.45,right=reverse?x+13.55:join;
+   const ridge=6.05,back=1.55,front=deep+.45,peak=17.5,eave=12.5;
+   const colour=reverse?'#596B65':'#56646F';
+   polyW(k,[[left,back,eave],[right,back,eave],[right,ridge,peak],[left,ridge,peak]],sh(colour,.84));
+   if(reverse)polyW(k,[[right,back,eave],[right,front,eave],[right,ridge,peak]],'#C3CCBE');
+   polyW(k,[[left,ridge,peak],[right,ridge,peak],[right,front,eave],[left,front,eave]],colour);
+   for(let seam=left+1.25;seam<right;seam+=2.5){
+    edgeW(k,[seam,ridge,peak],[seam,front,eave],sh(colour,.92));
+   }
+   edgeW(k,[left,front,eave],[right,front,eave],sh(colour,.77));
+   edgeW(k,[left,ridge,peak],[right,ridge,peak],sh(colour,1.15));
    const porch=reverse?x+8:x+.5;
    for(const post of [porch,porch+4.5])k.box(post,deep+1.4,0,post+.3,deep+1.7,8,{L:'#9F7552',R:'#755540',top:'#D1A77D'});
    k.box(porch-.2,deep,8,porch+5,deep+1.95,8.6,{L:'#B68C65',R:'#906D52',top:'#D5AE82'});
