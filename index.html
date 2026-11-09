@@ -2342,14 +2342,31 @@ function parksideHouse(k,turn){
  tank(k,...point(13.4,4),'#759490');k.planter(...bounds(2,13.2,5,14),'banksia');k.flush();
 }
 for(let turn=0;turn<4;turn++)Q[turn?'m2-turn'+turn:'m2']={fx:1,fy:1,H:34,name:'Parkside House',d:k=>parksideHouse(k,turn)};
-Q.m3={fx:1,fy:1,H:30,name:'Coastal House',d(k){
- modernLot(k,(x,y)=>x>=2&&x<6.6&&y>=10.4);
- k.add(2,2,10,10.2,()=>{const b=k.box(2,2,0,10,10.2,10,{Lfn:k.siding('#F6F4EE'),Rfn:k.siding('#DCD8CE'),top:'#6E7888'});
-  k.rect(k.L,b,1,0,9,7,'#E2DED4');for(let v=1;v<7;v+=2)k.rect(k.L,b,2,v,8,v,'#C8C4BA');
-  k.door(k.L,b,11,3,8,'#3E6A8A',{frame:'#FFFFFF'});k.win(k.L,b,14,3,2,5,{glass:'#9CCCE8',frame:'#FFFFFF'});
-  k.win(k.Rf,b,2,1,6,7,{glass:'#9CCCE8',mullion:true,frame:'#FFFFFF'});k.win(k.Rf,b,10,3,4,5,{glass:'#9CCCE8',frame:'#FFFFFF'});
-  gableRoof(k,2,2,10,10.2,10,7,'#6E7A8C','#F0EDE6');});
-
+function coastalHouse(k,turn){
+ const {point,bounds,groundKit}=houseView(k,turn);
+ modernLot(groundKit,(x,y)=>x>=2&&x<6.6&&y>=10.4);
+ const [x0,y0,x1,y1]=bounds(2,2,10,10.2);
+ const glass={glass:'#9CCCE8',frame:'#FFFFFF'};
+ function facade(face,b,side){
+  if(side===0){
+   k.rect(face,b,1,0,9,7,'#E2DED4');
+   for(let v=1;v<7;v+=2)k.rect(face,b,2,v,8,v,'#C8C4BA');
+   k.door(face,b,11,3,8,'#3E6A8A',{frame:'#FFFFFF'});
+   k.win(face,b,14,3,2,5,glass);
+  }else if(side===1){
+   k.win(face,b,2,1,6,7,{...glass,mullion:true});k.win(face,b,10,3,4,5,glass);
+  }else if(side===2){
+   k.door(face,b,2,3,8,'#3E6A8A',{frame:'#FFFFFF'});k.win(face,b,8,3,6,5,glass);
+  }else k.win(face,b,5,4,7,4,{...glass,mullion:true});
+ }
+ k.add(x0,y0,x1,y1,()=>{
+  const b=k.box(x0,y0,0,x1,y1,10,{Lfn:k.siding('#F6F4EE'),Rfn:k.siding('#DCD8CE'),top:'#6E7888'});
+  facade(k.L,b,turn);facade(k.Rf,b,(turn+1)%4);
+  // Present the near roof slope and gable to the painter in each view.
+  const roof=Object.create(k);
+  roof.sc=(x,y,z)=>k.sc(...point(turn>=2?12-x:x,turn===1||turn===2?12.2-y:y),z);
+  gableRoof(roof,2,2,10,10.2,10,7,'#6E7A8C','#F0EDE6');
+ });
  // Edible planting along the sunny side of the house.
  const crops=[
   {y:2.5,kind:'tomato',shape:['...s....','..lsl...','.llsll..','..RlsRl.','.rRllRr.','..lsll..','...s....'],colors:{s:'#846345',l:'#468044',R:'#DD5741',r:'#A9362C'}},
@@ -2357,15 +2374,18 @@ Q.m3={fx:1,fy:1,H:30,name:'Coastal House',d(k){
  ];
  for(const crop of crops){
   const base=crop.y;
-  k.add(10.8,base,14.9,base+4.8,()=>{
-   k.box(10.8,base,0,14.9,base+4.8,.85,{topFn:(x,y)=>x<11.1||x>14.6||y<base+.3||y>base+4.5?'#BD996C':'#69503C',L:'#A17D53',R:'#806044'});
+  const [x0,y0,x1,y1]=bounds(10.8,base,14.9,base+4.8);
+  k.add(x0,y0,x1,y1,()=>{
+   k.box(x0,y0,0,x1,y1,.85,{topFn:(x,y)=>Math.min(x-x0,x1-x,y-y0,y1-y)<.3?'#BD996C':'#69503C',L:'#A17D53',R:'#806044'});
    for(const [dx,dy] of [[1.2,1.2],[2.9,1.2],[1.2,3.4],[2.9,3.4]]){
-    const p=k.sc(10.8+dx,base+dy,.85);screenSprite(k,p.x,p.y,crop.shape,crop.colors);
+    const p=k.sc(...point(10.8+dx,base+dy),.85);screenSprite(k,p.x,p.y,crop.shape,crop.colors);
    }
   });
  }
- k.tree(7.6,14,.93,0,'lime');
- k.flush();}};
+ k.tree(...point(7.6,14),.93,0,'lime');
+ k.flush();
+}
+for(let turn=0;turn<4;turn++)Q[turn?'m3-turn'+turn:'m3']={fx:1,fy:1,H:30,name:'Coastal House',d:k=>coastalHouse(k,turn)};
 
 M.nuclear={fx:7,fy:5,H:150,name:'Nuclear Power Plant',d(k){const ctx=k.ctx;
  const fence=(wx,wy)=>wx<2.5||wy<2.5||wx>108.5||wy>76.5;
@@ -4177,8 +4197,9 @@ const SPR_KEY = {
   flowers: 'flowers',
 };
 const SPR = new Map();
+const fourSidedHomes=new Set(['house','house2','m3']);
 function spriteOf(id, turn=0) {
- if((id==='house'||id==='house2') && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
+ if(fourSidedHomes.has(id) && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
  if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
 // Draw only the moving rotor over the cached tower.
 function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
@@ -4239,7 +4260,7 @@ function spriteBox(i, j, id, turned=tileAt(i,j)?.turned) {
   const transport=isStop(id);
   const orientation=transport?(stopKerb(i,j,stop?.stopDir)?.dir??stop?.stopDir??1):0;
   const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id,(ROT+(turned?1:0))%4); if (!sp) return null; const [fx, fy] = fpOf(id,turned); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
-  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = id!=='house' && id!=='house2' && !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
+  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !fourSidedHomes.has(id) && !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
   return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
 // Frames are rendered from the approved models at the same metres-per-tile scale.
 const streetArt = new Image();
