@@ -1006,3 +1006,40 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 @media(prefers-reduced-motion:reduce){
  #mgPanel.mg-crates .crate-reward-reveal{animation:none!important}
 }
+
+/* v84 — Lucky Wheel milestone and header pixel polish. */
+#mgPanel.mg-wheel .mg-screen-head .mgtitle{
+ font-size:clamp(17px,4.7vw,22px)!important;
+ line-height:1.25!important;
+}
+#mgPanel.mg-wheel .pips{
+ display:flex!important;
+ align-items:center!important;
+ gap:5px!important;
+ width:100%!important;
+ padding:10px 9px!important;
+ border:3px solid #242044!important;
+ border-radius:0!important;
+ background:#4B4676!important;
+ box-shadow:inset 0 3px 0 #716B9D,0 4px 0 #282347!important;
+}
+#mgPanel.mg-wheel .pips i{
+ display:block!important;
+ flex:1 1 0!important;
+ min-width:0!important;
+ height:23px!important;
+ border:0!important;
+ border-radius:0!important;
+ background:#272341!important;
+ box-shadow:inset 0 0 0 3px #1D1936!important;
+ clip-path:polygon(4px 0,calc(100% - 4px) 0,calc(100% - 4px) 4px,100% 4px,100% calc(100% - 4px),calc(100% - 4px) calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,4px calc(100% - 4px),0 calc(100% - 4px),0 4px,4px 4px)!important;
+}
+#mgPanel.mg-wheel .pips i.on{
+ background:#FFC941!important;
+ box-shadow:inset 0 4px 0 #FFE783,inset 0 -4px 0 #D48B19!important;
+}
+#mgPanel.mg-wheel .pips canvas{
+ flex:0 0 auto!important;
+ margin-left:3px!important;
+ image-rendering:pixelated!important;
+}
