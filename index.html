@@ -2186,7 +2186,6 @@ function classicQueenslander(k,turn){
  for(const edge of [[1.5,1.4,14.6,1.7],[14.3,1.7,14.6,12.4],[11.2,12.1,14.3,12.4]])fence(k,...bounds(...edge));
  const timber={top:'#B58A5A',L:'#8A6A44',R:'#6E5436'};
  const post={top:'#FFFFFF',L:'#FFFFFF',R:'#D9D9D9'};
- const railing={top:'#FFFFFF',Lfn:rail('#FFFFFF'),Rfn:rail('#D9D9D9'),noRim:true};
  function block(x,y,z,X,Y,Z,mat){
   const [a,b,c,d]=bounds(x,y,X,Y);
   return k.box(a,b,z,c,d,Z,mat);
@@ -2205,31 +2204,48 @@ function classicQueenslander(k,turn){
   const postWidth=.8;
   for(const x of [3.2,10.8-postWidth])for(const y of [2,9-postWidth])
    block(x,y,0,x+postWidth,y+postWidth,6,stump);
-  // Align the lighter supports beneath the verandah posts and stair rails.
-  const deckPostWidth=.45;
-  for(const [x,y] of [[1.8,10],[5.55,10],[8,10],[11.75,10],[11.75,5.5],[11.75,2]])
-   block(x,y,0,x+deckPostWidth,y+deckPostWidth,5,stump);
-  block(1.8,9,5,12.2,10.4,6,timber);block(10.8,2,5,12.2,9,6,timber);
-  function verandah(side){
-   if(side===0){
-    for(const x of [1.8,5.7,8,11.9])block(x,10.1,6,x+.3,10.4,17,post);
-    block(1.8,10.1,6,6,10.4,9,railing);block(8,10.1,6,12.2,10.4,9,railing);
-   }else{
-    for(const y of [2,5.5])block(11.9,y,6,12.2,y+.3,17,post);
-    block(11.9,2,6,12.2,10.4,9,railing);
+  // A single open U runs from one rear wall corner, around the stairs, to the other.
+  const anchors=[[2,2.25],[2,6],[2,10.25],[5.75,10.25],[8.25,10.25],
+                 [12,10.25],[12,6],[12,2.25]];
+  const half=.25;
+  for(const [x,y] of anchors)block(x-half,y-half,0,x+half,y+half,5,stump);
+  // One floor under the house and all three verandah runs, including their corners.
+  block(1.75,2,5,12.25,10.5,6,timber);
+  const sides=[
+   [[2,10.25,5.75,10.25],[8.25,10.25,12,10.25]],
+   [[12,2.25,12,10.25]],
+   [[2,2.25,3.25,2.25],[10.75,2.25,12,2.25]],
+   [[2,2.25,2,10.25]]
+  ];
+  function drawRail(x,y,X,Y){
+   const r=.125;
+   block(x-r,y-r,8.75,X+r,Y+r,9.25,post);
+   const count=Math.ceil(Math.max(X-x,Y-y)/1.1);
+   for(let i=1;i<count;i++){
+    const u=x+(X-x)*i/count,v=y+(Y-y)*i/count;
+    block(u-r,v-r,6,u+r,v+r,9,post);
    }
   }
-  const visible=side=>side===turn||side===(turn+1)%4;
-  for(const side of [0,1])if(!visible(side))verandah(side);
+  function visible(side){return side===turn||side===(turn+1)%4;}
+  function drawPorch(near){
+   for(let side=0;side<4;side++)if(visible(side)===near)
+    for(const segment of sides[side])drawRail(...segment);
+   for(const [x,y] of anchors){
+    const inFront=(y===10.25&&visible(0))||(x===12&&visible(1))||
+                  (y===2.25&&visible(2))||(x===2&&visible(3));
+    if(inFront===near)block(x-half,y-half,6,x+half,y+half,18,post);
+   }
+  }
+  drawPorch(false);
   const b=block(3.2,2,6,10.8,9,18,{Lfn:k.siding('#F2E8D2'),Rfn:k.siding(sh('#F2E8D2',.86)),top:'#B8483A'});
   wall(b,k.L,turn);wall(b,k.Rf,(turn+1)%4);
-  for(const side of [0,1])if(visible(side))verandah(side);
+  drawPorch(true);
   const roof=Object.create(k);
   roof.sc=(x,y,z)=>k.sc(...point(x,y),z);
   dutchGableRoof(roof,1.2);
  });
  for(let step=0;step<4;step++){
-  const y=10.4+step*.7;
+  const y=10.5+step*.7;
   k.add(...bounds(6,y,8,y+.7),()=>block(6,y,0,8,y+.7,5-step*1.5,{top:'#C9A87A',L:'#9C7A50',R:'#7A5E3E'}));
  }
  tank(k,...point(12.5,10.2),'#9AB0A8');k.tree(...point(13,3.5),.75,0,'gum');
