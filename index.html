@@ -1788,7 +1788,7 @@ M.pinkflats={fx:1,fy:1,H:66,name:'Pink Flats',d(k){
  k.add(3,3,13,11,()=>{const b=k.box(3,3,0,13,11,H,{Lfn:(u,v)=>v<9?'#E08AA0':'#F4B2C2',Rfn:(u,v)=>v<9?'#C27488':'#D995A6',top:'#B8A4A6'});
   for(let f=0;f<F;f++){const v=f*FH;if(f){k.rect(k.L,b,0,v-1,b.W-1,v-1,'#FFFFFF');k.rect(k.Rf,b,0,v-1,b.D-1,v-1,'#E6E2EA');}
    for(const u of [1,16])k.win(k.L,b,u,v+2,3,7,{frame:'#FFFFFF',glass:'#A6D6F2'});
-   if(f)k.win(k.L,b,6,v+2,8,7,{frame:'#FFFFFF',glass:'#9FD0EE',mullion:true,lit:f===2});
+   if(f)k.win(k.L,b,6,v+2,8,7,{frame:'#FFFFFF',glass:'#9FD0EE',mullion:true});
    for(const u of [2,9])k.win(k.Rf,b,u,v+2,5,7,{frame:'#F2F2F2',glass:'#7AB0D2'});}
   k.door(k.L,b,8,4,7,'#8A5E3A',{frame:'#FFFFFF'});
   k.box(6.5,11,8,10.5,12.6,9,{top:'#FFFFFF',L:'#F2F2F2',R:'#D9D9D9'});
