@@ -2954,23 +2954,17 @@ M.banksiaDuplex={fx:2,fy:1,H:34,name:'Banksia Court Duplex',d(k){
  k.ground(k.lot((x,y)=>y>10&&(x>3&&x<9||x>23&&x<29)?k.walk(x,y):k.grass(x,y),.65));
  for(const [x,deep,reverse] of [[2.3,10.1,false],[16.5,11.4,true]]){
   k.add(x,2,x+13.1,deep+.6,()=>{
-   const w=k.box(x,2,0,x+13.1,deep,13,{Lfn:k.brick('#C4A478'),Rfn:k.brick('#AA8767'),top:'#939383'});
+   const w=k.box(x,2,0,x+13.1,deep,13,{Lfn:reverse?k.siding('#D7DECF'):k.brick('#BC8E73'),Rfn:reverse?k.siding('#B5C1B3'):k.brick('#A77963'),top:'#939383'});
    k.win(k.L,w,reverse?3:10,3,12,7,{glass:'#8FB2B1',frame:'#EDE5CD',mullion:true});
    k.door(k.L,w,reverse?18:3,5,9,'#536B60',{frame:'#8D684E',glass:'#A8BFB2'});
    k.win(k.Rf,w,4,4,8,5,{glass:'#82A5A2',frame:'#EEE4CB',mullion:true});
-   const left=reverse?14.5:19,right=reverse?19:14.5,a=x-.5,b=x+13.6,back=1.5,front=deep+.45;
-   polyW(k,[[x,deep,13],[x+13.1,deep,13],[x+13.1,deep,right],[x,deep,left]],'#D9CEAD');
-   for(let n=1;n<9;n++){const xx=x+n*1.3,top=left+(right-left)*(xx-x)/13.1;if(top>15.5)polyW(k,[[xx,deep+.02,14],[xx+.88,deep+.02,14],[xx+.88,deep+.02,top-.5],[xx,deep+.02,top-.5]],'#749494');}
-   polyW(k,[[b,back,13],[b,front,13],[b,front,right],[b,back,right]],'#AFAC97');
-   polyW(k,[[a,back,left],[b,back,right],[b,front,right],[a,front,left]],reverse?'#667E79':'#81918B');
-   for(let n=1;n<13;n+=1.25){const z=left+(right-left)*n/(b-a);edgeW(k,[a+n,back,z],[a+n,front,z],reverse?'#758B82':'#91A096');}
-   polyW(k,[[a,front,left],[b,front,right],[b,front,right-.9],[a,front,left-.9]],'#EFE8D3');
+   gableRoof(k,x,2,x+13.1,deep,13,4.5,'#536568',reverse?'#C3CCBE':'#D7BEA7',.45);
    const porch=reverse?x+8:x+.5;
    for(const post of [porch,porch+4.5])k.box(post,deep+1.4,0,post+.3,deep+1.7,8,{L:'#9F7552',R:'#755540',top:'#D1A77D'});
    k.box(porch-.2,deep,8,porch+5,deep+1.95,8.6,{L:'#B68C65',R:'#906D52',top:'#D5AE82'});
   });
  }
- k.planting(10.3,13,14.4,14,'correa',0,.85);k.tree(28,13,.75,0,'wattle');k.bush(2,12,1.4,'banksia');k.flush();
+ k.planting(10.3,13,14.4,14,'correa',0,.85);k.tree(17.5,13.5,.65,0,'wattle');k.bush(2,12,1.4,'banksia');k.flush();
 }};
 M.spindleCycles={fx:1,fy:1,H:38,name:'Spindle Cycles',d(k){
  shopLot(k,11);
