@@ -2979,8 +2979,8 @@ M.apartments={fx:1,fy:1,H:66,name:'Apartments',d(k){
  const F=5,FH=10,H=F*FH+2;
  k.add(3,3,13,11.5,()=>{const b=k.box(3,3,0,13,11.5,H,{Lfn:k.brick('#B85C40'),Rfn:k.brick('#9A4C34'),top:'#8C8478'});
   for(let f=0;f<F;f++){const v=f*FH;if(f>0){k.rect(k.L,b,0,v,b.W-1,v,'#E8E2D6');k.rect(k.Rf,b,0,v,b.D-1,v,'#CFC8BA');}
-   for(const u of [2,8,14]){if(f===0&&u===8)continue;k.win(k.L,b,u,v+3,4,6,{frame:'#3A3550',glass:'#9CCCE8',lit:(u+f*3)%7===1,sill:'#E8E2D6'});}
-   for(const u of [2,8,13])k.win(k.Rf,b,u,v+3,3,6,{frame:'#3A3550',glass:'#7EB2D4',sill:'#CFC8BA'});}
+   for(const u of [2,8,14]){if(f===0&&u===8)continue;k.win(k.L,b,u,v+3,4,6,{frame:'#3A3550',glass:'#9CCCE8',sill:'#E8E2D6'});}
+   for(const u of [1,7,12])k.win(k.Rf,b,u,v+3,4,6,{frame:'#3A3550',glass:'#7EB2D4',sill:'#CFC8BA'});}
   k.door(k.L,b,8,4,7,'#5A4636',{glass:'#9CCCE8'});
   for(const s of [[3,3,13,3.5],[3,11,13,11.5],[3,3,3.5,11.5],[12.5,3,13,11.5]])k.box(s[0],s[1],H,s[2],s[3],H+2,{top:'#D8D2C6',L:'#E2DCD0',R:'#C4BDB0'});
   k.box(4.5,4.5,H,7,6.5,H+4,{top:'#B4BCC6',L:'#C8D0DA',R:'#9AA3AE'});
