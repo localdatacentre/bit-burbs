@@ -2252,7 +2252,7 @@ function classicQueenslander(k,turn){
   k.add(...bounds(6,y,8,y+.7),()=>block(6,y,0,8,y+.7,5-step*1.5,{top:'#C9A87A',L:'#9C7A50',R:'#7A5E3E'}));
  }
  tank(k,...point(12.5,10.2),'#9AB0A8');k.tree(...point(13,3.5),.75,0,'gum');
- k.bush(...point(2.6,13),1.6,'brush');k.flush();
+ k.bush(...point(4.2,12.1),1.6,'brush');k.flush();
 }
 for(let turn=0;turn<4;turn++)Q[turn?'q1-turn'+turn:'q1']={fx:1,fy:1,H:44,name:'Classic Queenslander',d:k=>classicQueenslander(k,turn)};
 Q.q2={fx:1,fy:1,H:44,name:'Blue Queenslander',d(k){
