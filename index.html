@@ -6205,10 +6205,19 @@ for (const [tier, cost] of Object.entries(legacyCrateCosts)) {
 ownedCrates.steel += Math.max(0, Math.floor(Number(ownedCrates.wood) || 0));
 delete ownedCrates.wood;
 S.crates = ownedCrates;
+const receivedGoldGift = !S.harbourGoldGiftClaimed;
+if (receivedGoldGift) {
+  S.crates.gold += 1;
+  S.harbourGoldGiftClaimed = true;
+}
 for (const task of S.daily || []) {
   if (task.rew?.k === 'key') task.rew.k = 'crate';
 }
 delete S.keys;
+if (receivedGoldGift) {
+  // Persist the gift with its receipt while preserving the cloud-restore timestamp.
+  try { localStorage.setItem(SAVE_KEY, saveJSON()); } catch { /* Regular saves retry. */ }
+}
 if (!S.grind) S.grind = { d: 0, t: 0 };
 if (S.dice > 15) S.dice = 15;
 S.dicePos = (S.dicePos || 0) % 12;
@@ -6230,7 +6239,17 @@ if (LOC.src !== 'gps') askLocation(false);
 addEventListener('resize', () => { resize(); clampCam(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); else updateSky(); });
 resize(); derive(); centerOn(MID, MID); paintStaticIcons(); updateHUD();
-if (S.upgraded) welcome(true); else if (S.firstRun) welcome(false);
+if (S.upgraded || S.firstRun) {
+  welcome(!!S.upgraded);
+  if (receivedGoldGift) {
+    const gift = document.createElement('p');
+    gift.className = 'wl-s';
+    gift.textContent = 'A free Gold crate is waiting in Harbour Freight.';
+    $('#modalBox .wl-s').after(gift);
+  }
+} else if (receivedGoldGift) {
+  toast('Login gift: +1 Gold crate in Harbour Freight.');
+}
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resize(); paintStaticIcons(); lastClockKind = ''; lastFace = -1; });
 requestAnimationFrame(frame);
 })();
