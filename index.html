@@ -2183,7 +2183,10 @@ const qGround=(k,drive)=>k.ground((wx,wy)=>{if(drive&&drive(wx,wy))return'#D6CDB
 function classicQueenslander(k,turn){
  const {point,bounds,groundKit}=houseView(k,turn);
  qGround(groundKit,(x,y)=>x>=6&&x<8&&y>=11.6);
- for(const edge of [[1.5,1.4,14.6,1.7],[14.3,1.7,14.6,12.4],[11.2,12.1,14.3,12.4]])fence(k,...bounds(...edge));
+ // Leave the driveway open between x=6 and x=8.
+ for(const edge of [[1.5,1.4,14.6,1.7],[1.5,1.7,1.8,14.5],
+                    [14.3,1.7,14.6,14.5],[1.8,14.2,6,14.5],
+                    [8,14.2,14.3,14.5]])fence(k,...bounds(...edge));
  const timber={top:'#B58A5A',L:'#8A6A44',R:'#6E5436'};
  const post={top:'#FFFFFF',L:'#FFFFFF',R:'#D9D9D9'};
  function block(x,y,z,X,Y,Z,mat){
