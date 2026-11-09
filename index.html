@@ -1402,6 +1402,14 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #mgPanel.mg-crates .crate-notice{display:flex;align-items:center;justify-content:center;gap:8px;min-height:32px;color:#fff2cd;font:22px/1.1 'VT323',monospace}
 #mgPanel.mg-crates .crate-notice:empty{display:flex}
 #mgPanel.mg-crates .crate-notice.reward-in{animation:crateRewardIn .18s ease-out}
+#mgPanel .wheel-rewards{box-sizing:border-box;width:100%;padding:0 12px;background:#343053;color:#fff5df;border:2px solid #665e84;text-align:left}
+.wheel-goal{--fill:#fa889f;display:grid;grid-template-columns:28px 1fr auto;gap:2px 9px;align-items:center;padding:8px 0;font:18px/1 'VT323',monospace}
+.wheel-goal + .wheel-goal{--fill:#f6c753;border-top:2px solid #524b70}
+.wheel-goal span{grid-row:span 3;justify-self:center}
+.wheel-goal strong{grid-column:2}.wheel-goal b{grid-column:3;grid-row:1;color:var(--fill)}
+.wheel-goal small{grid-column:2/-1;grid-row:2;font-size:15px;color:#ded8ec}
+.wheel-goal progress{grid-column:2/-1;grid-row:3;width:100%;appearance:none;height:6px;border:0;background:#201d38;margin-top:2px}
+.wheel-goal progress::-webkit-progress-bar{background:#201d38}.wheel-goal progress::-webkit-progress-value{background:var(--fill)}.wheel-goal progress::-moz-progress-bar{background:var(--fill)}
 </style>
 </head>
 <body>
@@ -5316,9 +5324,14 @@ let wheelAnim = null, wheelMsg = '';
 const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
-  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Next ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><p class="mgmsg" style="font-size:16px">Each rent collection adds 1 point.</p><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold crate</p>`;
+  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="wheel-rewards">
+    <div class="wheel-goal"><span id="ticketArt"></span><strong>Wheel ticket</strong><small>+1 point per rent collection</small><b id="gTt"></b><progress id="ticketMeter" aria-label="Points towards a ticket" max="${GRIND_T}"></progress></div>
+    <div class="wheel-goal"><span id="goldArt"></span><strong>Gold crate</strong><small>+1 per wheel spin</small><b id="spinCount"></b><progress id="spinMeter" aria-label="Spins towards a gold crate" max="${SPINS_PER_GOLD_CRATE}"></progress></div>
+  </div>`;
   { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${(w.w / WTOT * 100).toFixed(w.w / WTOT < .02 ? 1 : 0)}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
   const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
+  $('#ticketArt').appendChild(iconCanvas('ticket', null, 26));
+  $('#goldArt').appendChild(iconCanvas('crate', 'gold', 26));
   updateWheelUI();
 }
 function updateWheelUI() {
@@ -5326,9 +5339,12 @@ function updateWheelUI() {
   const ready = now() - S.wheelT >= WHEEL_CD;
   setText($('#tixN'), S.tickets + (S.tickets === 1 ? ' ticket' : ' tickets'));
   const b = $('#spinBtn'); if (b) { setText(b, ready ? 'Free spin' : 'Spin · 1 ticket'); b.disabled = !!wheelAnim || (!ready && S.tickets < 1); }
-  const gt = (S.grind || { t: 0 }).t; const gtb = $('#gT'); if (gtb) gtb.style.width = Math.round(gt / GRIND_T * 100) + '%'; setText($('#gTt'), gt + '/' + GRIND_T);
+  const gt = (S.grind || { t: 0 }).t;
+  if ($('#ticketMeter').value !== gt) $('#ticketMeter').value = gt;
+  setText($('#gTt'), gt + '/' + GRIND_T);
   setText($('#wheelCd'), ready ? 'Your free spin is ready!' : 'Next free spin in ' + mmss(WHEEL_CD - (now() - S.wheelT)));
-  const pips = $('#pips'); if (pips && pips.dataset.v !== String(S.wheelPips)) { pips.dataset.v = S.wheelPips; pips.innerHTML = Array.from({ length: SPINS_PER_GOLD_CRATE }, (_, k) => `<i class="${k < S.wheelPips ? 'on' : ''}"></i>`).join(''); pips.appendChild(iconCanvas('crate', 'gold', 34)); }
+  if ($('#spinMeter').value !== S.wheelPips) $('#spinMeter').value = S.wheelPips;
+  setText($('#spinCount'), S.wheelPips + '/' + SPINS_PER_GOLD_CRATE);
 }
 function drawWheel() { const cvs = $('#wheel'); if (!cvs) return; drawWheelInner(cvs); if (TXTQ) pxEnd(cvs); }
 let wheelFlap = 0, wheelLastPeg = null, wheelLastClick = 0;
