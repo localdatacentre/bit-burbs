@@ -2213,7 +2213,7 @@ Q.town={fx:3,fy:2,H:40,name:'Townhouse Complex',d(k){
 function pool(k,x0,y0,x1,y1){k.add(x0,y0,x1,y1,()=>{k.box(x0,y0,-2,x1,y1,0,{topFn:(wx,wy)=>{if(wx<x0+.5||wy<y0+.5||wx>=x1-.5||wy>=y1-.5)return'#ECEAE4';return ((R(wx)+R(wy))%2)?'#3EB4E8':'#36A6DC';},L:'#ECEAE4',R:'#C8C4BC',noRim:true});
 });}
 function glassFence(k,x0,y0,x1,y1){
- const pane=(a,b,c,d)=>k.add(a,b,c,d,()=>k.box(a,b,0,c,d,3.4,{L:'rgba(174,213,215,.38)',R:'rgba(152,195,199,.43)',top:'#DDE9E8',noRim:true}));
+ const pane=(a,b,c,d)=>k.add(a,b,c,d,()=>k.box(a,b,0,c,d,3.4,{L:'rgba(174,213,215,.48)',R:'rgba(152,195,199,.53)',top:'#DDE9E8',noRim:true}));
  const edge=.18;
  pane(x0,y0,x1,y0+edge);
  pane(x0,y0+edge,x0+edge,y1-edge);
