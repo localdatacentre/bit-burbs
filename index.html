@@ -1225,7 +1225,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  position:fixed!important;
  left:0!important;right:0!important;bottom:0!important;top:auto!important;
  width:100vw!important;max-width:100vw!important;min-width:0!important;
- height:auto!important;min-height:74px!important;max-height:none!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
  transform:none!important;translate:none!important;
  visibility:visible!important;opacity:1!important;
  pointer-events:auto!important;
@@ -1233,7 +1233,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  grid-template-columns:repeat(5,minmax(0,1fr))!important;
  align-items:stretch!important;justify-content:stretch!important;
  gap:5px!important;
- padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px))!important;
+ padding:4px 6px calc(4px + env(safe-area-inset-bottom,0px))!important;
  margin:0!important;
  background:#302B57!important;border-top:3px solid #211D3F!important;
  box-sizing:border-box!important;
@@ -1242,8 +1242,8 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  display:flex!important;flex-direction:column!important;position:relative!important;
  align-items:center!important;justify-content:center!important;
  width:100%!important;min-width:0!important;
- height:60px!important;min-height:60px!important;
- margin:0!important;padding:4px 2px!important;
+ height:48px!important;min-height:48px!important;
+ margin:0!important;padding:2px!important;gap:1px!important;
  visibility:visible!important;opacity:1!important;
  box-sizing:border-box!important;
  color:#fff!important;
@@ -1260,7 +1260,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
 #nav > button[data-open="crates"]{--bb-face:#F49A27;--bb-top:#FFC361;--bb-bottom:#C66F15;--bb-edge:#9C5012}
 #nav > button[data-open="tasks"]{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
 #nav > button[data-open="settings"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A}
-#nav > button[data-open] canvas{display:block!important;width:25px!important;height:25px!important;flex:0 0 25px!important}
+#nav > button[data-open] canvas{display:block!important;width:20px!important;height:20px!important;flex:0 0 20px!important}
 #nav > button[data-open] .nav-icon{display:block!important;font-size:24px!important;line-height:25px!important}
 #nav .dot[hidden]{display:none!important}
 @media(max-width:370px){
@@ -1280,7 +1280,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  pointer-events:auto!important;transform:none!important;
  position:fixed!important;
  top:0!important;left:0!important;right:0!important;
- bottom:calc(79px + env(safe-area-inset-bottom,0px))!important;
+ bottom:calc(59px + env(safe-area-inset-bottom,0px))!important;
  height:auto!important;max-height:none!important;
  max-width:none!important;margin:0!important;
  overflow:hidden!important;z-index:31!important;
@@ -1293,7 +1293,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
 }
 #scrim{z-index:30!important}
 @media(max-width:375px){
- #sheet.open{bottom:calc(75px + env(safe-area-inset-bottom,0px))!important}
+ #sheet.open{bottom:calc(59px + env(safe-area-inset-bottom,0px))!important}
 }
 </style>
 <style id="bb-tutorial-menu-isolation">
@@ -1320,6 +1320,12 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 }
 </style>
 <style>
+#advisor.pixel-btn{min-height:28px!important;height:auto!important;padding:3px 7px!important;gap:4px}
+#advisor #faceIcon{width:18px!important;height:18px!important}
+#advisor .adv b{font-size:16px;line-height:1}
+#mapctl{gap:5px}
+#mapctl button.pixel-btn.sq,#mapctl button.pixel-btn#zmkt{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}
+#mapctl button.pixel-btn canvas{max-width:24px;max-height:24px}
 #hud .xp-row{display:flex;align-items:center;gap:6px;min-width:0}
 #hud .xp{position:relative;flex:0 1 86px;min-width:0;height:6px;box-sizing:border-box;background:#343354;border:1px solid #252641}
 #hud .xp i{background:#68c85c;box-shadow:inset 0 1px #b3f08a}
@@ -1381,12 +1387,12 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <section id="card" aria-live="polite"></section>
 
 <nav id="nav" aria-label="Main">
-  <button class="pixel-btn pb" data-open="build"><canvas data-icon="hammer" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Build</button>
+  <button class="pixel-btn pb" data-open="build"><canvas data-icon="hardhat" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Build</button>
 
-  <button class="pixel-btn pb purple" data-open="wheel"><canvas data-icon="wheel" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Wheel<span class="dot" id="dotWheel" hidden></span></button>
+  <button class="pixel-btn pb purple" data-open="wheel"><canvas data-icon="prizeWheel" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Wheel<span class="dot" id="dotWheel" hidden></span></button>
   <button class="pixel-btn pb purple" data-open="crates"><canvas data-icon="crate" data-tier="steel" width="56" height="56" style="width:28px;height:28px" aria-hidden="true"></canvas>Crates<span class="dot" id="dotCrates" hidden></span></button>
-  <button class="pixel-btn pb purple" data-open="tasks"><canvas data-icon="clip" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Tasks<span class="dot" id="dotTasks" hidden></span></button>
-  <button class="pixel-btn pb purple" id="settingsBtn" data-open="settings" aria-label="Settings" title="Settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
+  <button class="pixel-btn pb purple" data-open="tasks"><canvas data-icon="taskBook" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Tasks<span class="dot" id="dotTasks" hidden></span></button>
+  <button class="pixel-btn pb purple" id="settingsBtn" data-open="settings" aria-label="Settings" title="Settings"><canvas data-icon="sliders" width="56" height="56" aria-hidden="true"></canvas>Settings</button>
 </nav>
 
 <div id="scrim"></div>
@@ -3105,6 +3111,70 @@ drop:['......kk......','.....kCCk.....','....kCCCCk....','...kCCCCCCk...','..kCW
 house:['......kk......','.....kRRk.....','....kRRRRk....','...kRRRRRRk...','..kRRRRRRRRk..','.kkkkkkkkkkkk.','..kTTTTTTTTk..','..kTCCTTNNTk..','..kTCCTTNNTk..','..kTTTTTNNTk..','..kkkkkkkkkk..','..............','..............','..............'],
 factory:['..kk..........','..kk..........','..kk..k...k...','..kk.kSk.kSk..','.kkkkSSSkSSSk.','.kSSSSSSSSSSk.','.kSCCSSCCSSSk.','.kSCCSSCCSNSk.','.kSSSSSSSSNSk.','.kkkkkkkkkkkk.','..............','..............','..............','..............'],
 tree:['.....kkkk.....','...kkGGGGkk...','..kGGGGGGGGk..','.kGGGgGGGGGGk.','.kGGGGGGgGGGk.','.kGgGGGGGGGGk.','..kGGGGGgGGk..','...kkkNNkkk...','......NN......','......NN......','.....kkkk.....','..............','..............','..............'],
+hardhat: [
+  '..............',
+  '..............',
+  '.....kkkk.....',
+  '...kkYwwYkk...',
+  '..kOYwYYwYOk..',
+  '.kOYwYYYYwYOk.',
+  '.kOYYYoYYYYOk.',
+  'kOYYwYoYYwYYOk',
+  'kOYYwYoYYwYYOk',
+  'kOYYYYoYYYYYOk',
+  'kOOOOOOOOOOOOk',
+  'kwwwwwwwwwwwwk',
+  'kyyyyyyyyyyyyk',
+  '.kkkkkkkkkkkk.'
+],
+prizeWheel: [
+  '.....kkkk.....',
+  '...kkYwwYkk...',
+  '..kCckYYkrRk..',
+  '.kCCcckkrrRRk.',
+  '.kCCcckkrRRRk.',
+  'kcCCckwwkRRrrk',
+  'kcccckwYkrrrrk',
+  'kbBBbkYYkyyyok',
+  '.kBBbbkkYYYYk.',
+  '.kbBBbkYYYYYk.',
+  '..kkbbkyyykk..',
+  '....kkSSkk....',
+  '.....kSSk.....',
+  '...kkkkkkkk...'
+],
+taskBook: [
+  '...kkkkkkkkk..',
+  '..kccTTTTTTTk.',
+  '.kkccwwwwwwTk.',
+  '.ksccwgwwggTk.',
+  '.kkccwwgggwTk.',
+  '.ksccwwgwwwTk.',
+  '.kkccwwwwwwTk.',
+  '.ksccwDDDDDTk.',
+  '.kkccwwwwwwTk.',
+  '.ksccwDDDwwTk.',
+  '.kkccwwwwwwTk.',
+  '..kccTTTTTTTk.',
+  '..kbbSSSSSSSk.',
+  '...kkkkkkkkk..'
+],
+sliders: [
+  '..............',
+  '..kkk.........',
+  '..kWkkkkkkkkk.',
+  '..kskSSSSSSSk.',
+  '..kkkkkkkkkkk.',
+  '..............',
+  '........kkk...',
+  '.kkkkkkkkWkkk.',
+  '.kSSSSSSkskSk.',
+  '.kkkkkkkkkkkk.',
+  '....kkk.......',
+  '.kkkkWkkkkkkk.',
+  '.kSSkskSSSSSk.',
+  '.kkkkkkkkkkkk.'
+],
 backpack:['....kkkkkk....','...kk....kk...','..kkkkkkkkkk..','.kOOOOOOOOOOk.','.kOOOOOOOOOOk.','.kOkkkkkkkkOk.','.kOkOOOOOOkOk.','.kOkOOYYOOkOk.','.kOkkkkkkkkOk.','.kOOOOOOOOOOk.','.kkkkkkkkkkkk.','..............','..............','..............'],
 lock:['....kkkkkk....','...kSSSSSSk...','..kSk....kSk..','..kSk....kSk..','.kkkkkkkkkkkk.','.kYYYYYYYYYYk.','.kYYYYkkYYYYk.','.kYYYYkkYYYYk.','.kYYYYYkYYYYk.','.kyyyyyyyyyyk.','.kkkkkkkkkkkk.','..............','..............','..............'],
 utility:['..............','..............','...kk....kk...','..kYk...kCCk..','.kYk...kCCCCk.','kYYYk..kCCCCk.','.kYk...kCCCCk.','kYk.....kkkk..','..............','..............','..............','..............','..............','..............'],
@@ -3127,35 +3197,44 @@ function pixImg(key) {
   }
   PX_CACHE.set(key, cv); return cv;
 }
-const CH_TIERS = {
-  steel: { b: '#9AA6B8', bh: '#C8D2E0', bd: '#5E6878', t: '#3E4652', th: '#6E7884', td: '#262C36', lock: '#E8B520' },
-  gold: { b: '#F2B32C', bh: '#FFE07A', bd: '#B07A10', t: '#8A3A10', th: '#C2602A', td: '#5A2008', lock: '#FFF2A8', gem: '#E5303F', glow: '#FFE07A' },
-  diamond: { b: '#5ED3F3', bh: '#BFF4FF', bd: '#2A8AB8', t: '#E8F4FF', th: '#FFFFFF', td: '#8ABCD8', lock: '#FFFFFF', gem: '#B57CFF', glow: '#9FEFFF' }
+// A reinforced transit case, a brass strongbox and a faceted crystal vault.
+const crateDesigns = {
+  steel: {
+    colours: ['#24344A','#65849C','#BCCFDC','#E9F6FF','#EB8438'],
+    lid: ['....kkkkkkkkkkkk....','...khhhhhhhhhhhhk...','..khlsssssssssslhk..','.khhllllllllllllhhk.','khhlsllsllsllslllhhk','ksslsllsllsllslllssk','khhhhhhhhhhhhhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
+    body: ['kssllllllllllllllssk','khhllllllllllllllhhk','khhlsllllllllslllhhk','khhlslllkaaklslllhhk','khhlslllkaaklslllhhk','khhlsllllllllslllhhk','kssllllllllllllllssk','.kssssssssssssssssk.','..kkkkkkkkkkkkkkkk..']
+  },
+  gold: {
+    colours: ['#422735','#98552D','#E6A52E','#FFE49A','#D94355'],
+    lid: ['......kkkkkkkk......','....kkhhhhhhhhkk....','...khhllllllllhhk...','..khlsslhhhhlsslhk..','.khllsslhhhhlssllhk.','khhllsslhhhhlssllhhk','khhhhhhhhhhhhhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
+    body: ['khhllllllllllllllhhk','khlhllllhhhhllllhlhk','khlshllhhaahlllhslhk','khlsslhhaaaahhlsslhk','khlshllhhaahlllhslhk','khlhllllhhhhllllhlhk','khhllllllllllllllhhk','.khhhhhhhhhhhhhhhhk.','..kkk..........kkk..']
+  },
+  diamond: {
+    colours: ['#23365B','#367FAF','#72DDF0','#DBFCFF','#AB86FA'],
+    lid: ['.........kk.........','.......kkhhkk.......','.....kkhhllhhkk.....','...kkhhllllllhhkk...','..khhllshhhhsllhhk..','.khllsshllllhssllhk.','khhhhhhhhhhhhhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
+    body: ['khllllllllllllllllhk','.khhlllllhhlllllhhk.','.klhhlllhaahlllhhlk.','..klhhlhaaaahlhhlk..','..kllhhlhaahlhhllk..','...kllhhlhhlhhllk...','...ksslhhllhhlssk...','....ksshhhhhhssk....','.....kkkkkkkkkk.....']
+  }
 };
-/* returns canvas 26x24; part: 'all' | 'lid' | 'body' */
-function chestPix(tier, f, part) {
-  const key = 'ch:' + tier + ':' + (f % 6) + ':' + (part || 'all'); if (PX_CACHE.has(key)) return PX_CACHE.get(key);
-  const t = CH_TIERS[tier] || CH_TIERS.steel, K2 = '#15122E';
-  const cv = document.createElement('canvas'); cv.width = 26; cv.height = 24; const x = cv.getContext('2d');
-  const ox = 2, oy = 3; const LIDMAX = oy + 9;
-  const inPart = (yy) => !part || part === 'all' || (part === 'lid' ? yy <= LIDMAX : yy > LIDMAX);
-  const P2 = (a, b, c) => { const X2 = a + ox, Y2 = b + oy; if (!inPart(Y2)) return; x.fillStyle = c; x.fillRect(X2, Y2, 1, 1); };
-  const Rr = (a0, b0, a1, b1, c) => { for (let b = b0; b <= b1; b++) for (let a = a0; a <= a1; a++) P2(a, b, c); };
-  Rr(3, 1, 18, 1, K2); Rr(2, 2, 19, 2, K2); Rr(1, 3, 1, 17, K2); Rr(20, 3, 20, 17, K2); Rr(1, 18, 20, 18, K2);
-  Rr(3, 2, 18, 2, t.bh); Rr(2, 3, 19, 8, t.b); Rr(2, 3, 19, 3, t.bh); Rr(2, 3, 2, 8, t.bh); Rr(19, 3, 19, 8, t.bd);
-  if (tier === 'diamond') for (let k = 0; k < 4; k++) { P2(4 + k * 4, 4, t.bh); P2(5 + k * 4, 5, t.bh); }
-  Rr(2, 9, 19, 9, t.td); Rr(2, 10, 19, 10, t.t);
-  Rr(2, 11, 19, 17, t.b); Rr(2, 11, 2, 17, t.bh); Rr(19, 11, 19, 17, t.bd); Rr(2, 17, 19, 17, t.bd);
-  if (tier === 'steel') for (let b = 12; b < 17; b += 2) for (let a = 4; a < 19; a += 4) P2(a, b, t.bh);
-  if (tier === 'gold') { Rr(3, 12, 18, 12, t.bh); Rr(3, 15, 18, 15, t.bd); }
-  if (tier === 'diamond') for (let a = 3; a < 19; a += 3) { P2(a, 13, t.bh); P2(a + 1, 14, t.bh); }
-  [[4, 5], [15, 16]].forEach(([a, b]) => { Rr(a, 2, b, 17, t.t); Rr(b, 2, b, 17, t.td); P2(a, 4, t.th); P2(a, 13, t.th); P2(a, 16, t.th); if (tier === 'diamond') { Rr(a, 6, b, 7, t.gem); P2(a, 6, '#E8D0FF'); } });
-  Rr(2, 15, 3, 17, t.t); Rr(18, 15, 19, 17, t.t); Rr(2, 3, 3, 4, t.t); Rr(18, 3, 19, 4, t.t);
-  Rr(8, 7, 13, 13, K2); Rr(9, 8, 12, 12, t.lock); Rr(9, 8, 12, 8, '#FFFFFF'); Rr(10, 10, 11, 11, K2); P2(10, 12, K2); P2(11, 12, K2);
-  if (tier === 'gold') { Rr(10, 9, 11, 10, t.gem); P2(10, 9, '#FF9AA6'); }
-  if (t.glow && (!part || part === 'all')) { [[0, 2], [23, 4], [1, 14], [24, 17], [11, 0], [20, 21]].forEach(([a, b], k) => { const on = ((f + k) % 6) < 3; x.fillStyle = on ? '#FFFFFF' : t.glow; x.fillRect(a, b, 1, 1); if (on) { x.fillStyle = t.glow; x.fillRect(a - 1, b, 1, 1); x.fillRect(a + 1, b, 1, 1); x.fillRect(a, b - 1, 1, 1); x.fillRect(a, b + 1, 1, 1); } }); }
-  if (!part || part === 'all' || part === 'body') { x.fillStyle = 'rgba(0,0,0,.3)'; x.fillRect(5, 22, 16, 1); }
-  PX_CACHE.set(key, cv); return cv;
+function chestPix(tier, part = 'all') {
+  const key = 'crate:' + tier + ':' + part;
+  if (PX_CACHE.has(key)) return PX_CACHE.get(key);
+  const design = crateDesigns[tier] || crateDesigns.steel;
+  const [outline, shadow, face, light, accent] = design.colours;
+  const palette = { k:outline, s:shadow, l:face, h:light, a:accent };
+  const canvas = document.createElement('canvas');
+  canvas.width = 26; canvas.height = 24;
+  const ctx = canvas.getContext('2d');
+  function paint(rows, top) {
+    rows.forEach((row, y) => [...row].forEach((pixel, x) => {
+      if (pixel === '.') return;
+      ctx.fillStyle = palette[pixel];
+      ctx.fillRect(3 + x, top + y, 1, 1);
+    }));
+  }
+  if (part !== 'body') paint(design.lid, 4);
+  if (part !== 'lid') paint(design.body, 12);
+  PX_CACHE.set(key, canvas);
+  return canvas;
 }
 function pixDraw(c, img, x, y, w, h) { const sm = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false; c.drawImage(img, Math.round(x), Math.round(y), Math.round(w), Math.round(h)); c.imageSmoothingEnabled = sm; }
 /* pixelated mini-game canvases */
@@ -4639,13 +4718,13 @@ function onTap(x, y) {
 /* ================= icons (shared) ================= */
 function star(c, x, y, r, fill) { c.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5; const rr2 = k % 2 ? r * .45 : r; c.lineTo(x + Math.cos(a) * rr2, y + Math.sin(a) * rr2); } c.closePath(); c.fillStyle = fill; c.fill(); c.lineWidth = Math.max(1, r / 10); c.strokeStyle = 'rgba(10,14,20,.35)'; c.stroke(); }
 function chest(c, x, y, w, tier, lid, shake) {
-  const f = Math.floor(performance.now() / 180), sc = w / 21;
+  const sc = w / 21;
   const ox = x - 13 * sc + (shake ? Math.round(Math.sin(performance.now() / 30) * shake) : 0), oy = y - 21 * sc;
-  if (lid > 0) { pixDraw(c, chestPix(tier, f, 'body'), ox, oy, 26 * sc, 24 * sc); pixDraw(c, chestPix(tier, f, 'lid'), ox - lid * 2 * sc, oy - Math.round(lid * 9) * sc, 26 * sc, 24 * sc); }
-  else pixDraw(c, chestPix(tier, f, 'all'), ox, oy - (shake ? 0 : Math.round(Math.sin(performance.now() / 400)) * sc), 26 * sc, 24 * sc);
+  if (lid > 0) { pixDraw(c, chestPix(tier, 'body'), ox, oy, 26 * sc, 24 * sc); pixDraw(c, chestPix(tier, 'lid'), ox - lid * 2 * sc, oy - Math.round(lid * 9) * sc, 26 * sc, 24 * sc); }
+  else pixDraw(c, chestPix(tier, 'all'), ox, oy - (shake ? 0 : Math.round(Math.sin(performance.now() / 400)) * sc), 26 * sc, 24 * sc);
 }
 function drawIcon(c, kind, x, y, s, tier) {
-  if (kind === 'crate') { pixDraw(c, chestPix(tier || 'steel', Math.floor(performance.now() / 180), 'all'), x - s * .55, y - s * .5, s * 1.1, s * 1.02); return; }
+  if (kind === 'crate') { pixDraw(c, chestPix(tier || 'steel'), x - s * .55, y - s * .5, s * 1.1, s * 1.02); return; }
   const map = { cash: 'cash', stars: 'dosh', dosh: 'dosh', deed: 'deed', dice: 'dice', ticket: 'ticket', boost: 'boost', item: 'gift', wheel: 'wheel', sun: 'sun', moon: 'moon', face: 'info', info: 'info' };
   let k = map[kind] || kind; if (kind === 'key') k = tier || 'gold';
   pixDraw(c, pixImg(k), x - s / 2, y - s / 2, s, s);
