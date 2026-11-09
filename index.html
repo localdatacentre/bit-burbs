@@ -1854,14 +1854,26 @@ function officeWindows(k,box,day,span,floor){
   }
  }
 }
-M.skytower={fx:1,fy:1,H:92,name:'Sky Tower',d(k){
- k.ground(k.lot((wx,wy)=>((Math.floor(wx/2)+Math.floor(wy/2))%2)?'#D6D2C8':'#CDC9BF'));
- const gl=(L)=>(u,v)=>u%4===0?(L?'#D6E4EE':'#A9BDCC'):((v%6===0)?(L?'#5E9CC8':'#3E7AA6'):(((u+v)%44<5)?(L?'#B4DCF2':'#82B6D8'):(L?'#7CB6DE':'#4E88B4')));
- k.add(3,3,13,13,()=>{const p=k.box(3,3,0,13,13,8,{Lfn:(u,v)=>u%5===0?'#D6DDE6':'#2E4A64',Rfn:(u,v)=>u%5===0?'#B0BAC6':'#22384E',top:'#9AA6B8'});
-  k.door(k.L,p,8,4,6,'#FFE3A0',{frame:'#D6DDE6'});k.box(6.5,13,6,10.5,14.4,7,{top:'#E8ECF4',L:'#C8D2E0',R:'#9AA6B8'});
-  const t1=k.box(4,4,8,12,12,48,{Lfn:gl(true),Rfn:gl(false),top:'#B8C6D4'});officeWindows(k,t1,(front,u,v)=>gl(front)(u,v),4,6);
-  k.box(3.6,3.6,48,12.4,12.4,50,{top:'#E2ECF4',L:'#E2ECF4',R:'#B8C6D4'});
-  const t2=k.box(5.5,5.5,50,10.5,10.5,78,{Lfn:gl(true),Rfn:gl(false),top:'#B8C6D4'});officeWindows(k,t2,(front,u,v)=>gl(front)(u,v),4,6);
+function skyTowerView(k,turn){
+ const {point,bounds,groundKit}=houseView(k,turn);
+ groundKit.ground((x,y)=>(Math.floor(x/2)+Math.floor(y/2))%2?'#D6D2C8':'#CDC9BF');
+ function glass(front,u,v){
+  const side=front?turn:(turn+1)%4;
+  if(u%4===0)return front?'#D6E4EE':'#A9BDCC';
+  if(v%6===0)return front?'#5E9CC8':'#3E7AA6';
+  const reflection=(u+v+side*5)%44<5;
+  return front?(reflection?'#B4DCF2':'#7CB6DE'):(reflection?'#82B6D8':'#4E88B4');
+ }
+ const glazing={Lfn:(u,v)=>glass(true,u,v),Rfn:(u,v)=>glass(false,u,v),top:'#B8C6D4'};
+ k.add(3,3,13,13,()=>{
+  const podium=k.box(3,3,0,13,13,8,{Lfn:u=>u%5===0?'#D6DDE6':'#2E4A64',Rfn:u=>u%5===0?'#B0BAC6':'#22384E',top:'#9AA6B8'});
+  for(const [face,side] of [[k.L,turn],[k.Rf,(turn+1)%4]]){
+   if(side===0)k.door(face,podium,8,4,6,'#FFE3A0',{frame:'#D6DDE6'});
+   if(side===2)k.door(face,podium,3,3,5,'#52697B',{frame:'#8195A3'});
+  }
+  const lower=k.box(4,4,8,12,12,48,glazing);officeWindows(k,lower,glass,4,6);
+  k.box(3.5,3.5,48,12.5,12.5,50,{top:'#E2ECF4',L:'#E2ECF4',R:'#B8C6D4',noRim:true});
+  const upper=k.box(5.5,5.5,50,10.5,10.5,78,glazing);officeWindows(k,upper,glass,4,6);
   k.box(5.25,5.25,78,10.75,10.75,79,{top:'#DBE6EE',L:'#DEE8F0',R:'#A5BAC9',noRim:true});
   // A low metal collar seats the slim, stepped mast on the roof.
   k.box(7.5,7.5,79,8.5,8.5,80,{top:'#BACBD5',L:'#9FB3C0',R:'#7993A5',noRim:true});
@@ -1870,8 +1882,13 @@ M.skytower={fx:1,fy:1,H:92,name:'Sky Tower',d(k){
   k.ctx.fillStyle='#A8BBC6';k.ctx.fillRect(mx-1,my-9,1,9);
   k.ctx.fillStyle='#728C9D';k.ctx.fillRect(mx,my-18,1,9);
  });
- k.planter(1.8,4,2.6,12,'banksia');k.planter(13.8,13.6,14.4,14.2);k.tree(2.2,13.8,.75);
- k.planter(2,12,6,14,'pilly'); k.lamp(13.8,13.5);k.flush();}};
+ const [x,y,X,Y]=bounds(6.5,13,10.5,14.5);
+ k.add(x,y,X,Y,()=>k.box(x,y,6,X,Y,7,{top:'#E8ECF4',L:'#C8D2E0',R:'#9AA6B8'}));
+ k.planter(...bounds(1.8,4,2.6,12),'banksia');
+ k.planter(...bounds(13.8,13.6,14.4,14.2));k.tree(...point(2.2,13.8),.75);
+ k.planter(...bounds(2,12,6,14),'pilly');k.lamp(...point(13.8,13.5));k.flush();
+}
+for(let turn=0;turn<4;turn++)M[turn?'skytower-turn'+turn:'skytower']={fx:1,fy:1,H:92,name:'Sky Tower',d:k=>skyTowerView(k,turn)};
 
 /* shop helpers: storefront faces the L side (front-left street); awning projects out over the pavement */
 function awning(k,x0,x1,y,z,cA,cB,depth=1.6){
@@ -4407,7 +4424,7 @@ const SPR_KEY = {
   flowers: 'flowers',
 };
 const SPR = new Map();
-const fourSidedHomes=new Set(['house','house2','m3','banksiaDuplex','q1','aptS','aptP']);
+const fourSidedHomes=new Set(['house','house2','m3','banksiaDuplex','q1','aptS','aptP','tower']);
 function spriteOf(id, turn=0) {
  if(fourSidedHomes.has(id) && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
  if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
