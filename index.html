@@ -1285,6 +1285,38 @@ button.pixel-btn::before,button.pixel-btn::after{content:none!important;display:
 /* Keep avatar/advisor widget appearance distinct; it isn't a menu button. */
 #advisor.pixel-btn{clip-path:none!important}
 
+
+/* Unified red X control across sheet, city card, Wheel, Crates, Dosh Shop and Dice.
+   One tokenized pixel face, shared geometry; placement rules remain page-specific. */
+button.pixel-btn.pixel-close,
+#sheet .shead button.pixel-btn.pixel-close,
+#card .chead button.pixel-btn.pixel-close,
+#mg .mgp button.pixel-btn.pixel-close{
+ --face:#E94C57!important;--edge:#A72D3A!important;
+ --light:#FF8084!important;--shade:#C23843!important;
+ appearance:none!important;box-sizing:border-box!important;
+ flex:0 0 36px!important;
+ width:36px!important;min-width:36px!important;max-width:36px!important;
+ height:36px!important;min-height:36px!important;max-height:36px!important;
+ margin:0!important;padding:0!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ border:2px solid #A72D3A!important;border-radius:0!important;
+ clip-path:var(--bb-button-cut)!important;
+ background:#E94C57!important;
+ background-image:linear-gradient(to bottom,#FF8084 0 3px,#E94C57 3px calc(100% - 4px),#C23843 calc(100% - 4px) 100%)!important;
+ box-shadow:none!important;outline:0!important;
+ color:#FFFFFF!important;font:24px/1 'VT323',monospace!important;
+ text-align:center!important;letter-spacing:0!important;text-shadow:none!important;
+ animation:none!important;filter:none!important;
+}
+button.pixel-btn.pixel-close::before,button.pixel-btn.pixel-close::after{
+ content:none!important;display:none!important;
+}
+button.pixel-btn.pixel-close:active:not(:disabled){
+ transform:translateY(2px)!important;filter:brightness(.93)!important;
+}
+button.pixel-btn.pixel-close:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
+
 </style>
 </head>
 <body>
@@ -1332,7 +1364,7 @@ button.pixel-btn::before,button.pixel-btn::after{content:none!important;display:
 
 <div id="scrim"></div>
 <section id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="shead"><button class="pixel-btn pb sq infob" data-act="info" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 id="sheetTitle">Build</h2><button class="pixel-btn pb red sq" data-act="closeSheet" aria-label="Close">✕</button></div>
+  <div class="shead"><button class="pixel-btn pb sq infob" data-act="info" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 id="sheetTitle">Build</h2><button class="pixel-btn pb red sq pixel-close" data-act="closeSheet" aria-label="Close">✕</button></div>
   <div class="sbody" id="sheetBody"></div>
 </section>
 
@@ -3402,7 +3434,7 @@ function upRow(t, d) {
   const c = upCost(d, L); const ok = S.cash >= c.coins && (S.deeds || 0) >= c.deeds;
   return `<div class="uprow"><div class="lvbars">${bars}</div><button class="pixel-btn pb gold" data-act="upgrade" ${ok ? '' : 'disabled'}>Upgrade · ${fmt(c.coins)}${c.deeds ? ' + ' + c.deeds + ' Deed' + (c.deeds > 1 ? 's' : '') : ''}</button></div>`;
 }
-function head(t, p) { return `<div class="chead"><div><h2>${t}</h2><p>${p}</p></div><button class="pixel-btn pb red sq x" data-act="closeCard" aria-label="Close">✕</button></div>`; }
+function head(t, p) { return `<div class="chead"><div><h2>${t}</h2><p>${p}</p></div><button class="pixel-btn pb red sq x pixel-close" data-act="closeCard" aria-label="Close">✕</button></div>`; }
 function demoBtn(label) { return `<button class="pixel-btn pb red sm" data-act="demolish">${demoArm ? 'Tap again to confirm' : (label || 'Demolish')}</button>`; }
 function liveCard() {
   if (!sel || placing) return; const t = tileAt(sel.i, sel.j); if (!t) return; const d = DEFS[t.id];
@@ -3692,7 +3724,7 @@ const BW = 340, BH = 250, BTW = 82, BTH = 41, BTK = 14;
 function bpt(ix, iy) { return { x: BW / 2 + (ix - iy) * BTW / 2, y: 58 + (ix + iy) * BTH / 2 }; }
 function pipsHTML(v) { const on = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }[v]; return Array.from({ length: 9 }, (_, k) => `<i class="${on.indexOf(k) >= 0 ? 'on' : ''}"></i>`).join(''); }
 function buildDice() {
-  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="dice" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CITY DICE</h2>${hiCanvas('board', BW, BH)}<div class="bigdie" id="bigdie" aria-label="Die">${pipsHTML(S.lastDie || 1)}</div><span class="cnt" id="rollsLeft">${S.dice}</span><button class="pixel-btn pb" data-act="roll" id="rollBtn" style="min-width:170px;font-size:20px">Roll</button><p class="mgmsg" id="diceNext"></p><div class="grind"><span>Earn a roll</span><div class="bar"><i id="gD"></i></div><b id="gDt"></b></div><p class="mgmsg" style="font-size:13px;font-weight:500">Collecting from shops (2 pts), homes, industry and the bus (1 pt) fills the bar.</p><p class="mgmsg" id="diceMsg">${diceMsg}</p>` + tableHTML('??? MYSTERY REWARDS', MYSTERY);
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="dice" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CITY DICE</h2>${hiCanvas('board', BW, BH)}<div class="bigdie" id="bigdie" aria-label="Die">${pipsHTML(S.lastDie || 1)}</div><span class="cnt" id="rollsLeft">${S.dice}</span><button class="pixel-btn pb" data-act="roll" id="rollBtn" style="min-width:170px;font-size:20px">Roll</button><p class="mgmsg" id="diceNext"></p><div class="grind"><span>Earn a roll</span><div class="bar"><i id="gD"></i></div><b id="gDt"></b></div><p class="mgmsg" style="font-size:13px;font-weight:500">Collecting from shops (2 pts), homes, industry and the bus (1 pt) fills the bar.</p><p class="mgmsg" id="diceMsg">${diceMsg}</p>` + tableHTML('??? MYSTERY REWARDS', MYSTERY);
   fillTableIcons(MYSTERY); updateDiceUI();
 }
 function updateDiceUI() {
@@ -3793,7 +3825,7 @@ let wheelAnim = null, wheelMsg = '';
 const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
-  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">LUCKY WHEEL</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold key</p>`;
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">LUCKY WHEEL</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold key</p>`;
   { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${(w.w / WTOT * 100).toFixed(w.w / WTOT < .02 ? 1 : 0)}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
   const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
   updateWheelUI();
@@ -3910,7 +3942,7 @@ function buildMarket() {
   const m = marketStock(), daily = dailyDealIds(m.day);
   if (S.market.seen !== m.week) { snd('shop'); S.market.seen = m.week; }
   S.market.dailySeen = m.day; S.market.renderedDay = m.day; S.market.renderedWeek = m.week;
-  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button>
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button>
   <h2 class="mgtitle">DOSH SHOP</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
   <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pixel-btn pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
   <section class="msection weekly"><div class="msection-head"><b>WEEKLY EXCLUSIVE</b><span>Premium · changes every 7 days</span></div><p class="mgmsg" id="mktCd"></p>${(() => { const id=m.featured,it=MARKET[id],bought=!!S.market.bought[id]; return `<div class="mcard feat"><span data-mic="${id}"></span><div class="minfo"><em>THIS WEEK ONLY</em><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Owned · sold out for this week':'Limited to one per Mayor'}</span><button class="pixel-btn pb" data-act="buy" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; })()}</section>
@@ -3959,7 +3991,7 @@ function buildCrates() {
   const odds = C.table.map(r => `<div class="orow"><span data-oic="${C.table.indexOf(r)}"></span><span class="oname">${r[1]}</span><b>${Math.round(r[0] / C.table.reduce((a, x) => a + x[0], 0) * 100)}%</b></div>`).join('');
   const pity = C.pity ? `<div class="pity"><span>Guaranteed ${DEFS[C.pity].name} in ${S.pity[crateSel]}</span><div class="pbar"><i style="width:${Math.round((1 - S.pity[crateSel] / C.pityN) * 100)}%"></i></div></div>` : '';
   const reveal = crateReveal ? `<div class="crate-reward-reveal"><div class="crate-reward-icon" data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></div><div class="crate-reward-copy"><span>CHEST OPENED</span><b>${crateReveal.label}</b><small>${TIER[crateSel]} chest reward</small></div></div>` : '';
-  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CRATES</h2>
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CRATES</h2>
   <div class="keysrow"><span class="klab">YOUR CHEST KEYS</span>${['steel','gold','diamond'].map(k => `<span class="kchip"><span data-kic="${k}"></span>${S.keys[k] || 0}</span>`).join('')}</div>
   <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Every key reveals a surprise. Better chests bring bigger rewards.</small></div>
   <div class="ctiers">${tiers}</div>
