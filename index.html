@@ -1807,7 +1807,8 @@ function pinkFlatsView(k,turn){
     }
    }
    if(side===0)k.door(face,b,8,4,7,'#8A5E3A',{frame:trim});
-  }
+   if(side===0||side===2)exteriorLamp(k,face,b,side===0?13:9,6);
+ }
   facade(k.L,turn,b.W,'#A6D6F2','#FFFFFF');
   facade(k.Rf,(turn+1)%4,b.D,'#7AB0D2','#F2F2F2');
   const rim={top:'#F5EDEA',L:'#E5DBD7',R:'#CBC2BF'};
@@ -1869,6 +1870,7 @@ function skyTowerView(k,turn){
   const podium=k.box(3,3,0,13,13,8,{Lfn:u=>u%5===0?'#D6DDE6':'#2E4A64',Rfn:u=>u%5===0?'#B0BAC6':'#22384E',top:'#9AA6B8'});
   for(const [face,side] of [[k.L,turn],[k.Rf,(turn+1)%4]]){
    if(side===0)k.door(face,podium,8,4,6,'#FFE3A0',{frame:'#D6DDE6'});
+   if(side===0||side===2)exteriorLamp(k,face,podium,side===0?13:7,5);
    if(side===2)k.door(face,podium,3,3,5,'#52697B',{frame:'#8195A3'});
   }
   const lower=k.box(4,4,8,12,12,48,glazing);officeWindows(k,lower,glass,4,6);
@@ -2278,6 +2280,7 @@ function classicQueenslander(k,turn){
   }else if(side===1){k.win(face,b,2,3,4,6,glass);k.win(face,b,8,3,4,6,glass);}
   else if(side===2){k.win(face,b,2,4,4,5,glass);k.win(face,b,9,4,4,5,glass);}
   else k.win(face,b,4,3,6,6,{...glass,mullion:true});
+  if(side===0||side===2)exteriorLamp(k,face,b,side===0?10:7,6);
  }
  k.add(...bounds(1.8,2,12.2,10.4),()=>{
   const stump={top:'#89735B',L:'#826A51',R:'#65513F',noRim:true};
@@ -2390,6 +2393,11 @@ function houseView(k,turn,width=16,depth=16){
  groundKit.ground=paint=>k.ground((x,y)=>paint(...unproject(x,y)));
  return {point,bounds,groundKit};
 }
+function exteriorLamp(k,face,wall,u,v){
+ face(wall,u,v+1,'#646D71');
+ face(wall,u,v,k.light('#D5D0BB','#FFE1A0'));
+ face(wall,u,v-1,k.light('#B7AE97','#DFAB67'));
+}
 function modernHouse(k,turn){
  const {point,bounds,groundKit}=houseView(k,turn);
  modernLot(groundKit,()=>false,(x,y)=>{
@@ -2423,6 +2431,7 @@ function modernHouse(k,turn){
    k.door(face,b,2,4,8,'#A87C4E',{frame:'#514842'});
    k.win(face,b,8,3,6,5,glass);
   }else k.win(face,b,5,5,6,3,glass);
+  if(side===0||side===2)exteriorLamp(k,face,b,7,6);
  }
  const wall=[
   (u)=>u<7?(u%2?'#5A5A62':'#4E4E56'):'#F4F2EC',
@@ -2463,6 +2472,7 @@ function parksideHouse(k,turn){
   if(side===0){k.win(face,b,1,1,4,8,glass);k.door(face,b,7,3,8,'#C9A87A',{frame:'#E8E4DC'});}
   if(side===2)k.win(face,b,2,3,7,5,{...glass,mullion:true});
   if(side===3)k.win(face,b,5,4,7,4,glass);
+  if(side===0||side===2)exteriorLamp(k,face,b,side===0?6:1,6);
  }
  k.add(...bounds(2,2,7.4,10.4),()=>{
   const b=box(2,2,0,7.4,10.4,10,{Lfn:k.siding('#2E3A40'),Rfn:k.siding('#26323A'),top:'#3A3F4A'});
@@ -2506,6 +2516,7 @@ function coastalHouse(k,turn){
   }else if(side===2){
    k.door(face,b,2,3,8,'#3E6A8A',{frame:'#FFFFFF'});k.win(face,b,8,3,6,5,glass);
   }else k.win(face,b,5,4,7,4,{...glass,mullion:true});
+  if(side===0||side===2)exteriorLamp(k,face,b,side===0?10:7,6);
  }
  k.add(x0,y0,x1,y1,()=>{
   const b=k.box(x0,y0,0,x1,y1,10,{Lfn:k.siding('#F6F4EE'),Rfn:k.siding('#DCD8CE'),top:'#6E7888'});
@@ -3076,7 +3087,8 @@ function apartmentView(k,turn){
     }
    }
    if(side===0)k.door(face,b,8,4,7,'#5A4636',{glass:'#9CCCE8'});
-  }
+   if(side===0||side===2)exteriorLamp(k,face,b,side===0?13:7,6);
+ }
   facade(k.L,turn,b.W,'#9CCCE8','#E8E2D6');
   facade(k.Rf,(turn+1)%4,b.D,'#7EB2D4','#CFC8BA');
   const parapets=[[3,11,13,11.5],[12.5,3.5,13,11],[3,3,13,3.5],[3,3.5,3.5,11]];
@@ -3163,7 +3175,8 @@ function banksiaDuplex(k,turn){
      k.win(face,w,reverse?12:3,4,9,6,glass);
      k.door(face,w,reverse?4:17,4,8,'#536B60',{frame:'#EDE5CD'});
     }else k.win(face,w,4,4,8,5,{glass:'#82A5A2',frame:'#EEE4CB',mullion:true});
-   }
+    if(side===0||side===2)exteriorLamp(k,face,w,side===0?(reverse?17:8):(reverse?9:16),6);
+ }
    wall(k.L,turn);wall(k.Rf,(turn+1)%4);
    // Both ridges meet on the party wall. The deeper unit has a longer front slope.
    const join=15.95,left=reverse?join:x-.45,right=reverse?x+13.55:join;
