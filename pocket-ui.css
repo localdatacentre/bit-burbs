@@ -952,3 +952,57 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 @media(max-height:670px){
  #coach{top:calc(var(--bb-hud-bottom, 112px) + 52px)!important;max-height:25vh!important}
 }
+
+
+/* v83 — smooth, low-overhead crate reveal. Canvas owns movement and rays.
+   Never layer the old CSS rattles, blur filters and flashing stage on top. */
+#mgPanel.mg-crates #chest{
+ animation:none!important;
+ filter:none!important;
+ transform:none!important;
+ transition:none!important;
+ will-change:auto!important;
+ image-rendering:pixelated!important;
+}
+#mgPanel.mg-crates.crate-opening #chest,
+#mgPanel.mg-crates.crate-revealed #chest{
+ animation:none!important;
+ filter:none!important;
+ transform:none!important;
+}
+#mgPanel.mg-crates .cstage,
+#mgPanel.mg-crates.crate-opening .cstage,
+#mgPanel.mg-crates.crate-revealed .cstage{
+ animation:none!important;
+ filter:none!important;
+ transition:none!important;
+ border-color:transparent!important;
+ box-shadow:none!important;
+ background:transparent!important;
+}
+#mgPanel.mg-crates .cstage::before,
+#mgPanel.mg-crates .cstage::after{
+ content:none!important;display:none!important;animation:none!important;filter:none!important;
+}
+#mgPanel.mg-crates .crate-stage-sparkle,
+#mgPanel.mg-crates.crate-opening .crate-stage-sparkle,
+#mgPanel.mg-crates.crate-revealed .crate-stage-sparkle{
+ display:none!important;animation:none!important;filter:none!important;
+}
+#mgPanel.mg-crates .crate-reward-reveal{
+ background:#494572!important;
+ border:2px solid #7471AA!important;
+ box-shadow:0 3px 0 #27234D!important;
+ color:#FFFFFF!important;
+ animation:bbCrateRewardSlide .28s ease-out both!important;
+}
+#mgPanel.mg-crates .crate-reward-copy span{color:#FFE485!important}
+#mgPanel.mg-crates .crate-reward-copy b{color:#FFFFFF!important}
+#mgPanel.mg-crates .crate-reward-copy small{color:#DCD8F8!important}
+@keyframes bbCrateRewardSlide{
+ from{opacity:0;transform:translateY(10px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+ #mgPanel.mg-crates .crate-reward-reveal{animation:none!important}
+}
