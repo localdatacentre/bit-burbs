@@ -371,27 +371,63 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 @media(max-width:380px){#hud .cname b.wm{font-size:19px!important;letter-spacing:-.07em!important}}
 
 
-/* Currency HUD: keep all four icons and numbers, pack groups to the left. */
+/* Currency HUD: left-aligned groups without flex shrink/number collisions.
+   Keep each icon and amount together. On extremely narrow screens the bar scrolls
+   horizontally instead of squeezing text into the next currency. */
 #hud .chips{
  display:flex!important;
- flex-direction:row!important;
- flex-wrap:nowrap!important;
- justify-content:flex-start!important;
+ flex-flow:row nowrap!important;
  align-items:center!important;
- gap:clamp(8px,2.5vw,15px)!important;
+ justify-content:flex-start!important;
+ column-gap:clamp(7px,2vw,12px)!important;
  width:100%!important;
-}
-#hud .chip,#hud .chip[aria-label="Coins"],#hud .chip[aria-label="Dosh"]{
- flex:0 1 auto!important;
- width:auto!important;
+ max-width:100%!important;
  min-width:0!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ overscroll-behavior-x:contain;
+ -webkit-overflow-scrolling:touch;
+ scrollbar-width:none;
+}
+#hud .chips::-webkit-scrollbar{display:none}
+#hud .chip,
+#hud .chip[aria-label="Coins"],
+#hud .chip[aria-label="Dosh"],
+#hud .chip[aria-label="Deeds"],
+#hud .chip[aria-label="Wheel tickets"]{
+ display:inline-flex!important;
+ flex:0 0 auto!important;
+ width:max-content!important;
+ min-width:max-content!important;
+ max-width:none!important;
+ align-items:center!important;
  justify-content:flex-start!important;
  padding:4px 0!important;
- gap:5px!important;
+ margin:0!important;
+ gap:4px!important;
  white-space:nowrap!important;
+ overflow:visible!important;
 }
-#hud .chip span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#hud .chip canvas{
+ flex:0 0 22px!important;
+ width:22px!important;
+ height:22px!important;
+}
+#hud .chip span{
+ display:inline-block!important;
+ flex:0 0 auto!important;
+ width:auto!important;
+ min-width:max-content!important;
+ max-width:none!important;
+ white-space:nowrap!important;
+ overflow:visible!important;
+ text-overflow:clip!important;
+ font-size:20px!important;
+ font-variant-numeric:tabular-nums;
+}
 @media(max-width:380px){
- #hud .chips{gap:8px!important}
- #hud .chip{gap:4px!important}
+ #hud .chips{column-gap:7px!important}
+ #hud .chip{gap:3px!important}
+ #hud .chip canvas{width:20px!important;height:20px!important;flex-basis:20px!important}
+ #hud .chip span{font-size:18px!important}
 }
