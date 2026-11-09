@@ -337,3 +337,35 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 #modalBox button.pixel-btn.wl-r{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
 
 @media(prefers-reduced-motion:reduce){button.pixel-btn{transition:none!important}}
+
+
+/* Top HUD branding: larger wordmark, distinct rounded-pixel level badge.
+   Currency bar and currency icon rules remain untouched. */
+#hud .cname{min-width:0!important;flex:1 1 auto!important;gap:4px!important}
+#hud .cname b.wm{
+ display:block!important;
+ font:400 22px/1.15 'Silkscreen',monospace!important;
+ letter-spacing:-.06em!important;
+ color:#FFFFFF!important;text-transform:uppercase!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;
+ text-shadow:none!important;
+}
+#hud .lvl{
+ width:42px!important;height:42px!important;min-width:42px!important;flex:0 0 42px!important;
+ border:2px solid #322A68!important;
+ border-radius:0!important;
+ clip-path:polygon(0 5px,2px 5px,2px 2px,5px 2px,5px 0,
+ calc(100% - 5px) 0,calc(100% - 5px) 2px,calc(100% - 2px) 2px,
+ calc(100% - 2px) 5px,100% 5px,100% calc(100% - 5px),
+ calc(100% - 2px) calc(100% - 5px),calc(100% - 2px) calc(100% - 2px),
+ calc(100% - 5px) calc(100% - 2px),calc(100% - 5px) 100%,
+ 5px 100%,5px calc(100% - 2px),2px calc(100% - 2px),
+ 2px calc(100% - 5px),0 calc(100% - 5px))!important;
+ background:#7666B6!important;
+ background-image:linear-gradient(to bottom,#9B8CD4 0 3px,#7666B6 3px calc(100% - 4px),#55468F calc(100% - 4px) 100%)!important;
+ box-shadow:none!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ color:#fff!important;font:26px/1 'VT323',monospace!important;
+}
+#hud .lvl #lvlNum{font:inherit!important;color:#FFFFFF!important}
+@media(max-width:380px){#hud .cname b.wm{font-size:19px!important;letter-spacing:-.07em!important}}
