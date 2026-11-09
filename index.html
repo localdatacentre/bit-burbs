@@ -1255,19 +1255,19 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  background-image:linear-gradient(to bottom,var(--bb-top,#54D4F5) 0 2px,var(--bb-face,#1CA8DB) 2px calc(100% - 5px),var(--bb-bottom,#137EB5) calc(100% - 5px) 100%)!important;
  box-shadow:none!important;
 }
-#nav > button.pixel-btn[data-open="build"]{--bb-face:#337582;--bb-top:#5594A1;--bb-bottom:#285E69;--bb-edge:#234F5B}
+#nav > button.pixel-btn[data-open="build"]{--bb-face:var(--coast-build);--bb-top:#8fbaed;--bb-bottom:#477ab9;--bb-edge:#3a6292}
 #card button[data-act="buildHere"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
-#nav > button.pixel-btn[data-open="wheel"]{--bb-face:#9B5367;--bb-top:#BC7183;--bb-bottom:#804254;--bb-edge:#653746}
-#nav > button.pixel-btn[data-open="crates"]{--bb-face:#966336;--bb-top:#B78550;--bb-bottom:#80522C;--bb-edge:#674226}
-#nav > button.pixel-btn[data-open="tasks"]{--bb-face:#527857;--bb-top:#729873;--bb-bottom:#426448;--bb-edge:#354F3B}
-#nav > button.pixel-btn[data-open="settings"]{--bb-face:#706287;--bb-top:#9181A5;--bb-bottom:#5E5073;--bb-edge:#4B405E}
-#nav > button[data-open] canvas{display:block!important;width:17px!important;height:17px!important;flex:0 0 17px!important}
+#nav > button.pixel-btn[data-open="wheel"]{--bb-face:var(--coast-wheel);--bb-top:#ffa798;--bb-bottom:#cb6455;--bb-edge:#9c5148}
+#nav > button.pixel-btn[data-open="crates"]{--bb-face:var(--coast-crates);--bb-top:#f7d688;--bb-bottom:#c29c41;--bb-edge:#957a39}
+#nav > button.pixel-btn[data-open="tasks"]{--bb-face:var(--coast-tasks);--bb-top:#67d3cf;--bb-bottom:#179995;--bb-edge:#167878}
+#nav > button.pixel-btn[data-open="settings"]{--bb-face:var(--coast-settings);--bb-top:#b6babf;--bb-bottom:#757a83;--bb-edge:#5c626a}
+#nav .dock-icon{display:block;width:24px;height:24px;flex:none;image-rendering:pixelated;pointer-events:none}
 #nav > button[data-open] .nav-icon{display:block!important;font-size:24px!important;line-height:25px!important}
 #nav .dot[hidden]{display:none!important}
 @media(max-width:540px){
  #nav{gap:3px!important;padding-left:4px!important;padding-right:4px!important}
  #nav > button.pixel-btn[data-open]{flex-direction:column!important;gap:1px!important;font-size:14px!important;padding:0!important}
- #nav > button[data-open] canvas{width:15px!important;height:15px!important;flex-basis:15px!important}
+
 }
 @media(max-width:350px){#nav > button.pixel-btn[data-open]{font-size:12px!important}}
 </style>
@@ -1349,6 +1349,22 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #hud #cpmLbl{font:16px/1 'VT323',monospace;color:#fff2bd;white-space:nowrap}
 #card [data-act="rush"]{font-size:16px!important;white-space:normal}
 </style>
+<style id="coast-menu-accents">
+:root{--coast-build:#5596e3;--coast-wheel:#ff7963;--coast-crates:#f3c14a;--coast-tasks:#18bdb6;--coast-settings:#90969e}
+#sheet[data-menu="build"]{--menu-accent:var(--coast-build)}
+#sheet[data-menu="tasks"]{--menu-accent:var(--coast-tasks)}
+#sheet[data-menu="settings"]{--menu-accent:var(--coast-settings)}
+#mgPanel.mg-wheel{--menu-accent:var(--coast-wheel)}
+#mgPanel.mg-crates{--menu-accent:var(--coast-crates)}
+#sheet[data-menu] .shead,#mgPanel.mg-wheel .mg-screen-head,#mgPanel.mg-crates .mg-screen-head{background:#30445b!important;border-bottom:2px solid var(--menu-accent)!important}
+#sheet[data-menu="build"] .tabs button[aria-pressed="true"]{background:#3e6594!important;border-color:var(--menu-accent)!important;color:white!important}
+#mgPanel.mg-crates .ctier[aria-pressed="true"]{border-color:var(--menu-accent)!important}
+#sheet[data-menu="tasks"] .daily-progress i,#mgPanel.mg-wheel #pips i.on{background:var(--menu-accent)!important}
+#sheet[data-menu="tasks"] .daily-count{background:#224a53!important;color:#c3f7f0!important;border:1px solid var(--menu-accent)!important}
+#sheet[data-menu="settings"] .sect h3{border-left:3px solid var(--menu-accent);padding-left:6px}
+#sheet[data-menu="settings"] [data-act="sound"]{--bb-face:#66717c;--bb-top:var(--menu-accent);--bb-edge:#4a525d}
+#mgPanel.mg-wheel #spinBtn{--bb-face:#bf594c;--bb-top:var(--menu-accent);--bb-edge:#8e413a}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -1390,12 +1406,12 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <section id="card" aria-live="polite"></section>
 
 <nav id="nav" aria-label="Main">
-  <button class="pixel-btn pb" data-open="build"><canvas data-icon="hardhat" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Build</button>
+  <button class="pixel-btn pb" data-open="build" aria-label="Build" title="Build"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA+0lEQVR4nGMMnfaYgZaAiaamDwsLWAgpOD8v/T8+ecOkmYwUWcDAwMDQaXWDISjHDUVs3ZRdDOXHNAjqxWkBhssl3BgYXuzCqQ6XT7DGAUzT7Z4fDLd7fuB0HbI8rqDEsADZcGIBPkuw+gBuuGYkyZYQZQHc8OvLiTL80umXOOVQLDg/L/3/7Z4fJBnOwMDAoGcqznDp9EuG2z0/MIJpEOVkLEmUGEBURmNggGQs6lmAFv5BQQpkGc7AwMDAGDrtMcHyhlxgmDSTEe6D28sJlyukANXIGwwMDEhBpBp5g+FIHu70TAqwmSQOZzPCqkxqBxOs8GMcrZMH3AIAXediLJwSHdkAAAAASUVORK5CYII="></button>
 
-  <button class="pixel-btn pb purple" data-open="wheel"><canvas data-icon="prizeWheel" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Wheel<span class="dot" id="dotWheel" hidden></span></button>
-  <button class="pixel-btn pb purple" data-open="crates"><canvas data-icon="crate" data-tier="steel" width="56" height="56" style="width:28px;height:28px" aria-hidden="true"></canvas>Crates<span class="dot" id="dotCrates" hidden></span></button>
-  <button class="pixel-btn pb purple" data-open="tasks"><canvas data-icon="taskBook" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Tasks<span class="dot" id="dotTasks" hidden></span></button>
-  <button class="pixel-btn pb purple" id="settingsBtn" data-open="settings" aria-label="Settings" title="Settings"><canvas data-icon="sliders" width="56" height="56" aria-hidden="true"></canvas>Settings</button>
+  <button class="pixel-btn pb purple" data-open="wheel" aria-label="Wheel" title="Wheel"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAB0klEQVR4nLVVMUvDUBD+IiIigWKlQ1HBweyC4BDaIaWldHAqdKqIiIubi1ChDXVooYOCq4P4CzoKTWkKlg6C4OYQN5EMxYoQrAVtHMKLTfNeE4v9IPDe3b377i5373Fmbh/TxKxfQ0HRTbLWEmHuXwkERTc19fR3LxVMvyQzfiOZFGMJBEU3BUU32zIPQSpYMqmAtszbuokJBEU3tWYebZnHd2/Oofu8WURb5qE18/Ai4WhdRKIedRytdNHYWnXI5lNvEIsG88e7MmA5Z4Fkw8rEQUCcs3B7HHTsg9kBgtkBADBJqG16/3RgrzeWrwFY5bFglYk4BoCFpQA+Xt+pQblKFJKOHPuHl11EK11o9T37i909uxyNnmMSdNRzqqEXWOf8XxXxK8c+Z8RQ5hue56hzsLl+CQCoBUKoBULYPiw59KnSjk0CgFl/gDIHpJPKnRPqga+VR5cs368yZ8GVgZYIc2LRQC5UGlVRMc45lWCY5CzTYxLl+1VciGtjnQOMq4KADA5t+MSiYQfDdAAfXRSJSxCLKlXeqrvlvglI9Jl0Epl0kmrTqqvWrfvXEgmKbkbikmd0w0QsEmoGWiLMCYrq+ZgM27N0zBL95WEfh6m/yT+ZZsr6TYtJowAAAABJRU5ErkJggg=="><span class="dot" id="dotWheel" hidden></span></button>
+  <button class="pixel-btn pb purple" data-open="crates" aria-label="Crates" title="Crates"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABGElEQVR4nGP8fNCLgZaAiaam08MCFmyChsUM/0k16HwvAyNRFhgWM/w/emgrqeYzGNp5/8dmCYoFMMMv37zLsHLrAaIND/d2YDh6aCtWSxhhqQjZ5Zdv3iXZB7rqygwMDAwM1nbeKMHFhM1wZNej+wSXHMxRRw9tRYlDeBDV9M1lYGCAeJdcADMDGTB+PuhFdsTiAsjBxIIsSAsAt8AxIIiBgYGyIILFyf4N6zAtaClKZmBgIC8FoZthjWQB1qKC2DxAjDqsRQU6yEjNYzge8A7Ot9wgxDBj9iSiHDEwhR06mDF7EsNFZD4JCQ5rRiM2JaGrw5nRGBggxQUsqVIC9m9Yh1kW0RIwItfJ5FQ06ABncU0rMPQrfQC8X3ebVE7otQAAAABJRU5ErkJggg=="><span class="dot" id="dotCrates" hidden></span></button>
+  <button class="pixel-btn pb purple" data-open="tasks" aria-label="Tasks" title="Tasks"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA30lEQVR4nGOU2LuNgZaAhZACnvIp//HJf+nMYcQnz4juA2wGZpflMIS4WqGIrdl9jGFq1xSCFmL1Qa4Nwo7JRxjhBhKrlqAFDAwMDHkNTRBNLvW4lKCom9RQh1WeYBwwMDBgDQpiAUELbu9pxCv/6tkDvPJMJDmHDEC0BSpTF5BlAd4gUpm6gOFOdgKchoHk9h1wdnu8BvkWYDOcgYGBYW6lB5xNcRygG04qGI2DIRQH5AK8QbRrOyKs3Tw9MMSRxciyAJcBxBgMAwMXRLjKd6pYgK1mIhdg1MnUBjSPAwCQ81q30BOVeQAAAABJRU5ErkJggg=="><span class="dot" id="dotTasks" hidden></span></button>
+  <button class="pixel-btn pb purple" id="settingsBtn" data-open="settings" aria-label="Settings" title="Settings"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAsklEQVR4nGOcMG0eAy0BE01NZ2BgYMEmuHLx7P/oYuGxqYxkW4DNwK1bt8LZ3t7eWNXgAzAHwX1QWFgIl+zv72d48uQJigZkeUKgv78fzmbBJkhIEymAEVsqonocUMswbGBgkikhQEoQ4kymhAChZIw3mRIChJIxWcmUGEuxAazJlBAgOQ5IBaQk44FPppTmaqKSKTklK9HJlJySleJkSopagsmUKnGAD1BastI8mdLcAgBVxWRtJt/S/AAAAABJRU5ErkJggg=="></button>
 </nav>
 
 <div id="scrim"></div>
@@ -3114,70 +3130,6 @@ drop:['......kk......','.....kCCk.....','....kCCCCk....','...kCCCCCCk...','..kCW
 house:['......kk......','.....kRRk.....','....kRRRRk....','...kRRRRRRk...','..kRRRRRRRRk..','.kkkkkkkkkkkk.','..kTTTTTTTTk..','..kTCCTTNNTk..','..kTCCTTNNTk..','..kTTTTTNNTk..','..kkkkkkkkkk..','..............','..............','..............'],
 factory:['..kk..........','..kk..........','..kk..k...k...','..kk.kSk.kSk..','.kkkkSSSkSSSk.','.kSSSSSSSSSSk.','.kSCCSSCCSSSk.','.kSCCSSCCSNSk.','.kSSSSSSSSNSk.','.kkkkkkkkkkkk.','..............','..............','..............','..............'],
 tree:['.....kkkk.....','...kkGGGGkk...','..kGGGGGGGGk..','.kGGGgGGGGGGk.','.kGGGGGGgGGGk.','.kGgGGGGGGGGk.','..kGGGGGgGGk..','...kkkNNkkk...','......NN......','......NN......','.....kkkk.....','..............','..............','..............'],
-hardhat: [
-  '..............',
-  '..............',
-  '.....kkkk.....',
-  '...kkYwwYkk...',
-  '..kOYwYYwYOk..',
-  '.kOYwYYYYwYOk.',
-  '.kOYYYoYYYYOk.',
-  'kOYYwYoYYwYYOk',
-  'kOYYwYoYYwYYOk',
-  'kOYYYYoYYYYYOk',
-  'kOOOOOOOOOOOOk',
-  'kwwwwwwwwwwwwk',
-  'kyyyyyyyyyyyyk',
-  '.kkkkkkkkkkkk.'
-],
-prizeWheel: [
-  '.....kkkk.....',
-  '...kkYwwYkk...',
-  '..kCckYYkrRk..',
-  '.kCCcckkrrRRk.',
-  '.kCCcckkrRRRk.',
-  'kcCCckwwkRRrrk',
-  'kcccckwYkrrrrk',
-  'kbBBbkYYkyyyok',
-  '.kBBbbkkYYYYk.',
-  '.kbBBbkYYYYYk.',
-  '..kkbbkyyykk..',
-  '....kkSSkk....',
-  '.....kSSk.....',
-  '...kkkkkkkk...'
-],
-taskBook: [
-  '...kkkkkkkkk..',
-  '..kccTTTTTTTk.',
-  '.kkccwwwwwwTk.',
-  '.ksccwgwwggTk.',
-  '.kkccwwgggwTk.',
-  '.ksccwwgwwwTk.',
-  '.kkccwwwwwwTk.',
-  '.ksccwDDDDDTk.',
-  '.kkccwwwwwwTk.',
-  '.ksccwDDDwwTk.',
-  '.kkccwwwwwwTk.',
-  '..kccTTTTTTTk.',
-  '..kbbSSSSSSSk.',
-  '...kkkkkkkkk..'
-],
-sliders: [
-  '..............',
-  '..kkk.........',
-  '..kWkkkkkkkkk.',
-  '..kskSSSSSSSk.',
-  '..kkkkkkkkkkk.',
-  '..............',
-  '........kkk...',
-  '.kkkkkkkkWkkk.',
-  '.kSSSSSSkskSk.',
-  '.kkkkkkkkkkkk.',
-  '....kkk.......',
-  '.kkkkWkkkkkkk.',
-  '.kSSkskSSSSSk.',
-  '.kkkkkkkkkkkk.'
-],
 backpack:['....kkkkkk....','...kk....kk...','..kkkkkkkkkk..','.kOOOOOOOOOOk.','.kOOOOOOOOOOk.','.kOkkkkkkkkOk.','.kOkOOOOOOkOk.','.kOkOOYYOOkOk.','.kOkkkkkkkkOk.','.kOOOOOOOOOOk.','.kkkkkkkkkkkk.','..............','..............','..............'],
 lock:['....kkkkkk....','...kSSSSSSk...','..kSk....kSk..','..kSk....kSk..','.kkkkkkkkkkkk.','.kYYYYYYYYYYk.','.kYYYYkkYYYYk.','.kYYYYkkYYYYk.','.kYYYYYkYYYYk.','.kyyyyyyyyyyk.','.kkkkkkkkkkkk.','..............','..............','..............'],
 utility:['..............','..............','...kk....kk...','..kYk...kCCk..','.kYk...kCCCCk.','kYYYk..kCCCCk.','.kYk...kCCCCk.','kYk.....kkkk..','..............','..............','..............','..............','..............','..............'],
@@ -4957,6 +4909,7 @@ function sheetKey() {
 }
 function renderSheet(force) {
   if (!sheet) return; const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
+  sheetEl.dataset.menu = sheet;
   setText($('#sheetTitle'), sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
   sheetBody.innerHTML = sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
   if (sheet === 'build') drawPreviews(); else paintNewIcons();
