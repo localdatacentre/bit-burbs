@@ -1255,7 +1255,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  background-image:linear-gradient(to bottom,var(--bb-top,#54D4F5) 0 3px,var(--bb-face,#1CA8DB) 3px calc(100% - 5px),var(--bb-bottom,#137EB5) calc(100% - 5px) 100%)!important;
  box-shadow:none!important;
 }
-#nav > button[data-open="build"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
+#nav > button[data-open="build"],#card button[data-act="buildHere"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
 #nav > button[data-open="wheel"]{--bb-face:#EA386C;--bb-top:#FF77A0;--bb-bottom:#B91E4A;--bb-edge:#941B3D}
 #nav > button[data-open="crates"]{--bb-face:#F49A27;--bb-top:#FFC361;--bb-bottom:#C66F15;--bb-edge:#9C5012}
 #nav > button[data-open="tasks"]{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
@@ -4740,7 +4740,7 @@ function renderCard(force) {
     const t = tileAt(sel.i, sel.j);
     if (!t) {
       if (!inB(sel.i, sel.j)) html = head('Locked land', 'Expand your city from the Town Hall to build here.') + `<div class="row"><button class="pixel-btn pb" data-act="gotoHall">Go to Town Hall</button></div>`;
-      else html = head('Empty plot', roadNear(sel.i, sel.j) ? 'Next to a road, ready to build.' : 'No road here yet.') + `<div class="row"><button class="pixel-btn pb green" data-act="buildHere">Build here</button></div>`;
+      else html = head('Empty plot', 'Nothing here yet.') + `<div class="row"><button class="pixel-btn pb" data-act="buildHere">Build</button></div>`;
     } else {
       const b = t._; const d = DEFS[t.id];
       if (!b) html = head(d.name, '');
