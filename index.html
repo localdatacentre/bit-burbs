@@ -1233,40 +1233,43 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  grid-template-columns:repeat(5,minmax(0,1fr))!important;
  align-items:stretch!important;justify-content:stretch!important;
  gap:5px!important;
- padding:4px 6px calc(4px + env(safe-area-inset-bottom,0px))!important;
+ padding:2px 5px calc(2px + env(safe-area-inset-bottom,0px))!important;
  margin:0!important;
- background:#302B57!important;border-top:3px solid #211D3F!important;
+ background:#27394E!important;border-top:1px solid #425B73!important;
  box-sizing:border-box!important;
 }
 #nav > button.pixel-btn[data-open]{
- display:flex!important;flex-direction:column!important;position:relative!important;
+ display:flex!important;flex-direction:row!important;position:relative!important;
  align-items:center!important;justify-content:center!important;
  width:100%!important;min-width:0!important;
- height:48px!important;min-height:48px!important;
- margin:0!important;padding:2px!important;gap:1px!important;
+ height:36px!important;min-height:36px!important;
+ margin:0!important;padding:2px!important;gap:4px!important;
  visibility:visible!important;opacity:1!important;
  box-sizing:border-box!important;
  color:#fff!important;
- font:18px/1 'VT323',monospace!important;
+ font:16px/1 'VT323',monospace!important;
  border-radius:0!important;
  border:2px solid var(--bb-edge,#0E6192)!important;
  clip-path:var(--bb-cut,polygon(0 5px,5px 5px,5px 0,calc(100% - 5px) 0,calc(100% - 5px) 5px,100% 5px,100% calc(100% - 5px),calc(100% - 5px) calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,5px calc(100% - 5px),0 calc(100% - 5px)))!important;
  background:var(--bb-face,#1CA8DB)!important;
- background-image:linear-gradient(to bottom,var(--bb-top,#54D4F5) 0 3px,var(--bb-face,#1CA8DB) 3px calc(100% - 5px),var(--bb-bottom,#137EB5) calc(100% - 5px) 100%)!important;
+ background-image:linear-gradient(to bottom,var(--bb-top,#54D4F5) 0 2px,var(--bb-face,#1CA8DB) 2px calc(100% - 5px),var(--bb-bottom,#137EB5) calc(100% - 5px) 100%)!important;
  box-shadow:none!important;
 }
-#nav > button[data-open="build"],#card button[data-act="buildHere"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
-#nav > button[data-open="wheel"]{--bb-face:#EA386C;--bb-top:#FF77A0;--bb-bottom:#B91E4A;--bb-edge:#941B3D}
-#nav > button[data-open="crates"]{--bb-face:#F49A27;--bb-top:#FFC361;--bb-bottom:#C66F15;--bb-edge:#9C5012}
-#nav > button[data-open="tasks"]{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
-#nav > button[data-open="settings"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A}
-#nav > button[data-open] canvas{display:block!important;width:20px!important;height:20px!important;flex:0 0 20px!important}
+#nav > button.pixel-btn[data-open="build"]{--bb-face:#337582;--bb-top:#5594A1;--bb-bottom:#285E69;--bb-edge:#234F5B}
+#card button[data-act="buildHere"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
+#nav > button.pixel-btn[data-open="wheel"]{--bb-face:#9B5367;--bb-top:#BC7183;--bb-bottom:#804254;--bb-edge:#653746}
+#nav > button.pixel-btn[data-open="crates"]{--bb-face:#966336;--bb-top:#B78550;--bb-bottom:#80522C;--bb-edge:#674226}
+#nav > button.pixel-btn[data-open="tasks"]{--bb-face:#527857;--bb-top:#729873;--bb-bottom:#426448;--bb-edge:#354F3B}
+#nav > button.pixel-btn[data-open="settings"]{--bb-face:#706287;--bb-top:#9181A5;--bb-bottom:#5E5073;--bb-edge:#4B405E}
+#nav > button[data-open] canvas{display:block!important;width:17px!important;height:17px!important;flex:0 0 17px!important}
 #nav > button[data-open] .nav-icon{display:block!important;font-size:24px!important;line-height:25px!important}
 #nav .dot[hidden]{display:none!important}
-@media(max-width:370px){
+@media(max-width:540px){
  #nav{gap:3px!important;padding-left:4px!important;padding-right:4px!important}
- #nav > button.pixel-btn[data-open]{font-size:15px!important}
+ #nav > button.pixel-btn[data-open]{flex-direction:column!important;gap:1px!important;font-size:14px!important;padding:0!important}
+ #nav > button[data-open] canvas{width:15px!important;height:15px!important;flex-basis:15px!important}
 }
+@media(max-width:350px){#nav > button.pixel-btn[data-open]{font-size:12px!important}}
 </style>
 <style id="bb-sheet-dock-fix">
 /* v75: sheet must not appear on startup; the dock stays above regular sheets.
@@ -1280,7 +1283,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  pointer-events:auto!important;transform:none!important;
  position:fixed!important;
  top:0!important;left:0!important;right:0!important;
- bottom:calc(59px + env(safe-area-inset-bottom,0px))!important;
+ bottom:calc(41px + env(safe-area-inset-bottom,0px))!important;
  height:auto!important;max-height:none!important;
  max-width:none!important;margin:0!important;
  overflow:hidden!important;z-index:31!important;
@@ -1293,7 +1296,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
 }
 #scrim{z-index:30!important}
 @media(max-width:375px){
- #sheet.open{bottom:calc(59px + env(safe-area-inset-bottom,0px))!important}
+ #sheet.open{bottom:calc(41px + env(safe-area-inset-bottom,0px))!important}
 }
 </style>
 <style id="bb-tutorial-menu-isolation">
