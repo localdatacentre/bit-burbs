@@ -1333,16 +1333,18 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #hud .xp i{background:#68c85c;box-shadow:inset 0 1px #b3f08a}
 #hud .xp::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 7px,#343354 7px 9px);pointer-events:none}
 #xpCount{flex:none;white-space:nowrap;font:16px/1 'VT323',monospace;color:white}
-#hud #rsAll{min-height:26px;height:26px;padding:1px 7px;white-space:nowrap;font-size:13px!important;line-height:1!important}
+#hud .stock-actions button{min-height:26px;height:26px;padding:1px 7px;white-space:nowrap;font-size:13px!important;line-height:1!important}
 @media(max-width:440px){
  .cpmbar{padding:1px 0}
  .cpmbar .stat-unit{display:block;font-size:12px;line-height:1}
- #hud #rsAll{white-space:normal;height:auto}
+ #hud .stock-actions button{white-space:normal;height:auto}
 }
 #hud .cpmbar{padding:2px 0;justify-content:space-between}
 #hud .cpmbar .stat-unit{display:inline;font-size:14px}
 #hud{padding-bottom:0}
 #hud .chips{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:0!important;justify-items:center;align-items:center!important;border-top:1px solid #7293b0;padding:4px 0!important;box-sizing:border-box}
+#hud .stock-actions{display:grid;gap:3px}
+#hud button.pixel-btn.rush,#card button.pixel-btn.rush{--bb-face:#329bd6;--bb-top:#73cefa;--bb-bottom:#207bad;--bb-edge:#195881}
 #hud .city-stats{display:grid;justify-items:start;gap:1px}
 #hud .chips .chip[aria-label]{padding:1px 0!important}
 #hud #cpmLbl{font:16px/1 'VT323',monospace;color:#fff2bd;white-space:nowrap}
@@ -1427,7 +1429,10 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
       <span id="popLbl" aria-label="Residents and housing capacity"><span class="stat-value" id="popValue">0 / 0</span> <span class="stat-unit">residents</span></span>
       <b id="cpmLbl"><span class="stat-value" id="cpmValue">0</span> <span class="stat-unit">coins/min</span></b>
     </div>
-    <button class="pixel-btn rsall" id="rsAll" disabled>All stocked</button>
+    <div class="stock-actions">
+      <button class="pixel-btn rsall" id="rsAll" disabled>All stocked</button>
+      <button class="pixel-btn rush" id="rushAll" disabled>No deliveries to rush</button>
+    </div>
   </div>
   <div class="chips">
     <div class="chip" aria-label="Coins"><canvas data-icon="cash" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="cash">0</span></div>
@@ -4755,6 +4760,10 @@ function updateHUD() {
   restockButton.dataset.cost = price;
   setText(restockButton, price ? 'Restock with ' + price + ' Dosh' : 'All stocked');
   restockButton.disabled = !price || S.stars < price;
+  const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
+  rushButton.dataset.cost = rushPrice;
+  setText(rushButton, rushPrice ? 'Rush with ' + rushPrice + ' Dosh' : 'No deliveries to rush');
+  rushButton.disabled = !rushPrice || S.stars < rushPrice;
   setText(hud.lvl, S.level); setText($('#popValue'), S.pop + ' / ' + (D.cap || 0)); setText($('#cpmValue'), fmt(D.cpm || 0));
   const targetXP = need(S.level);
   hud.xp.style.width = Math.min(100, S.xp / targetXP * 100) + '%';
@@ -4864,7 +4873,7 @@ function renderCard(force) {
         const pr = ensureProds(t), names = prodNames(t.id), tn = now(), w = whyNot(b); let rows = '';
         for (let k = 0; k < 3; k++) { const p = pr[k]; let st, btn = '';
           if (k >= b.workers) st = `Locked · needs ${k + 1} staff`;
-          else if (p.o) { const cost = rushCost(t,k,tn); st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pixel-btn pb gold sm" data-act="rush" data-k="${k}" data-cost="${cost}" ${cost && S.stars >= cost ? '' : 'disabled'}>Rush with ${cost} Dosh</button>`; }
+          else if (p.o) { const cost = rushCost(t,k,tn); st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pixel-btn pb rush sm" data-act="rush" data-k="${k}" data-cost="${cost}" ${cost && S.stars >= cost ? '' : 'disabled'}>Rush with ${cost} Dosh</button>`; }
           else if (p.s > tn) st = `+${fmt(prodCpm(b, k))}/min · ${mmss(p.s - tn)}`;
           else { st = 'Empty'; btn = `<button class="pixel-btn pb sm" data-act="order" data-k="${k}">${k === 0 ? '1m' : k === 1 ? '15m' : '1h'}</button>`; }
           rows += `<div class="prod ${k >= b.workers ? 'lock' : ''}"><div><b>${names[k]}</b><span>${st}</span></div>${btn}</div>`; }
@@ -5659,6 +5668,27 @@ function orderProd(i, j, k) { const t = tileAt(i, j); const b = t && t._; if (!b
   if (k >= b.workers) { snd('error'); toast('Needs more workers. Build homes to bring in residents.'); return; }
   const p = ensureProds(t)[k]; if (p.o) return; p.o = now() + orderTime(k); track('restock'); snd('restock'); changed(); }
 function rushCost(t,k,tn){return Math.max(0,Math.ceil((t.pr[k].o-tn)/600000));}
+function pendingRush(tn) {
+  const orders = [];
+  let cost = 0;
+  for (const b of D.list) {
+    if (!isBiz(b.d) || !b.t.pr) continue;
+    b.t.pr.forEach((p,k) => {
+      if (p.o > tn) {
+        orders.push([b.t,p,k]);
+        cost += rushCost(b.t,k,tn);
+      }
+    });
+  }
+  return { orders, cost };
+}
+function rushAll(quoted) {
+  const tn = now(), { orders, cost } = pendingRush(tn);
+  if (!cost || quoted !== cost || S.stars < cost) { updateHUD(); return; }
+  S.stars -= cost;
+  for (const [t,p,k] of orders) deliverProduct(t,p,k,tn);
+  snd('confirm'); changed(); save(); updateHUD(); renderCard(true);
+}
 function rushProd(i,j,k,quoted){
   const t=tileAt(i,j), p=t?.pr?.[k], tn=now();
   if(!p?.o)return;
@@ -5956,6 +5986,7 @@ document.querySelector('.chip[aria-label="Dosh"]').addEventListener('click', () 
 $('#clock').style.cursor = 'pointer';
 $('#clock').addEventListener('click', () => { const tm = SK.times || {}; const f = x => x ? new Date(x).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; toast('Sunrise ' + f(tm.rise) + ' · Sunset ' + f(tm.set) + (LOC.src === 'gps' ? ' · your location' : ' · tap Tasks to use your location')); });
 $('#coachSkip').addEventListener('click', skipTut);
+$('#rushAll').addEventListener('click', e => rushAll(+e.currentTarget.dataset.cost));
 $('#rsAll').addEventListener('click', e => restockAll(+e.currentTarget.dataset.cost));
 $('#moveTool').addEventListener('click',()=>{
   const active=pickingMove||!!placing?.source;
