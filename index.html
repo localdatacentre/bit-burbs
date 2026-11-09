@@ -1239,6 +1239,52 @@ body.tut-on #coach{border-color:#FFC93C!important}
 }
 #nav,#mapctl,#sheet,#mg{--pixel-skin-version:62}
 
+
+/* ===== all-page pixel button system v63 =====
+   Every button template receives pixel-btn; generated buttons retain their existing
+   data-act/data-open attributes, click handlers, aria state, and icon canvases. */
+button.pixel-btn:not(#advisor){
+ --face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;
+ appearance:none!important;border:2px solid var(--edge)!important;
+ border-radius:0!important;clip-path:var(--bb-button-cut)!important;
+ background:var(--face)!important;
+ background-image:linear-gradient(to bottom,var(--light) 0 3px,var(--face) 3px calc(100% - 4px),var(--shade) calc(100% - 4px) 100%)!important;
+ box-shadow:none!important;text-shadow:none!important;
+ font-family:'VT323',monospace!important;
+ color:#fff!important;
+}
+button.pixel-btn.green,button.pixel-btn.daily-claim,button.pixel-btn.streak-claim,button.pixel-btn.rsall{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
+button.pixel-btn.purple,button.pixel-btn.teal,button.pixel-btn.cream{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
+button.pixel-btn.red,button.pixel-btn.mgx,button.pixel-btn.x{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
+button.pixel-btn.gold{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
+button.pixel-btn.sq{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
+#nav button.pixel-btn[data-open="build"]{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
+#nav button.pixel-btn[data-open="wheel"]{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
+#nav button.pixel-btn[data-open="crates"]{--face:#E95B9C;--edge:#AC3975;--light:#FF87BA;--shade:#C84686}
+#nav button.pixel-btn[data-open="tasks"]{--face:#F28D2B;--edge:#AF5D16;--light:#FFB75E;--shade:#D8731F}
+#nav button.pixel-btn[data-open="settings"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86}
+#nav button.pixel-btn[data-open]{background:var(--face)!important;background-image:linear-gradient(to bottom,var(--light) 0 3px,var(--face) 3px calc(100% - 4px),var(--shade) calc(100% - 4px) 100%)!important;border-color:var(--edge)!important}
+#mapctl button.pixel-btn.sq{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
+#mapctl button.pixel-btn#zmkt{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
+.shead button.pixel-btn[data-act="closeSheet"],.mgp button.pixel-btn.mgx{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
+.shead button.pixel-btn.infob,.mgp button.pixel-btn.infob{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0}
+#sheetBody .tabs button.pixel-btn[aria-pressed="false"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86}
+#sheetBody .tabs button.pixel-btn[aria-pressed="true"]{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0}
+#sheetBody .tabs button.pixel-btn[data-tab="items"]{--face:#3B8D68;--edge:#20583F;--light:#62B98C;--shade:#27734F}
+#sheetBody .tabs button.pixel-btn[data-tab="items"][aria-pressed="true"]{--face:#57B77E;--edge:#20583F;--light:#81D59E;--shade:#33955C}
+#mg button.pixel-btn#rollBtn,#mg button.pixel-btn#spinBtn,#mg button.pixel-btn#openBtn{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
+#mg button.pixel-btn[data-act="buy"],#mg button.pixel-btn[data-act="buyDaily"]{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0}
+#mg button.pixel-btn.ctier{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
+#mg button.pixel-btn.ctier[aria-pressed="true"]{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12;color:#34220B!important}
+#sheetBody button.pixel-btn.bcard{--face:#283A64;--edge:#536C9A;--light:#374E7D;--shade:#1B2C52;color:#FFFFFF!important;min-height:unset!important}
+#sheetBody button.pixel-btn.bcard span,#sheetBody button.pixel-btn.bcard b{color:#FFFFFF!important}
+button.pixel-btn:disabled,button.pixel-btn[aria-disabled="true"]{opacity:.56!important;cursor:not-allowed}
+button.pixel-btn:active:not(:disabled):not([aria-disabled="true"]){transform:translateY(2px)!important;filter:brightness(.94)!important}
+button.pixel-btn:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
+button.pixel-btn::before,button.pixel-btn::after{content:none!important;display:none!important}
+/* Keep avatar/advisor widget appearance distinct; it isn't a menu button. */
+#advisor.pixel-btn{clip-path:none!important}
+
 </style>
 </head>
 <body>
@@ -1258,35 +1304,35 @@ body.tut-on #coach{border-color:#FFC93C!important}
 
     <div class="chip" aria-label="Wheel tickets"><canvas data-icon="ticket" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="tix">0</span></div>
   </div>
-  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity">0 / 0 RESIDENTS</span><button id="rsAll" class="rsall">RESTOCK ALL</button><b id="cpmLbl">0 COINS/MIN</b></div>
+  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity">0 / 0 RESIDENTS</span><button class="pixel-btn" id="rsAll" class="rsall">RESTOCK ALL</button><b id="cpmLbl">0 COINS/MIN</b></div>
 </header>
 
-<button id="advisor" aria-label="City advisor"><canvas id="faceIcon" width="56" height="56" style="width:28px;height:28px"></canvas><span class="adv"><b id="advT">Looking good!</b><small id="advS">Happiness 50%</small></span></button>
+<button class="pixel-btn" id="advisor" aria-label="City advisor"><canvas id="faceIcon" width="56" height="56" style="width:28px;height:28px"></canvas><span class="adv"><b id="advT">Looking good!</b><small id="advS">Happiness 50%</small></span></button>
 <div id="legend"></div>
-<div id="coach" role="status" aria-live="polite"><div class="coach-top"><span id="coachStep" class="coach-step">TUTORIAL</span><button class="coach-skip" id="coachSkip">Skip</button></div><b id="coachT"></b><p id="coachD"></p></div>
+<div id="coach" role="status" aria-live="polite"><div class="coach-top"><span id="coachStep" class="coach-step">TUTORIAL</span><button class="pixel-btn coach-skip" id="coachSkip">Skip</button></div><b id="coachT"></b><p id="coachD"></p></div>
 <div id="mapctl">
-  <button class="pb sq" id="zmkt" aria-label="Dosh Shop" style="position:relative"><canvas data-icon="shop" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas><span class="dot" id="dotMkt" hidden>!</span></button>
-  <button class="pb purple sq" id="zin" aria-label="Zoom in"><canvas data-icon="plus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
-  <button class="pb purple sq" id="zout" aria-label="Zoom out"><canvas data-icon="minus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
-  <button class="pb purple sq" id="zrot" aria-label="Rotate view"><canvas data-icon="rotate" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas><span id="rotLbl" class="rotlbl">N</span></button>
-  <button class="pb purple sq" id="zhome" aria-label="Centre on Town Hall"><canvas data-icon="cross" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
-  <button class="pb purple sq" id="zview" aria-label="Change data view"><canvas data-icon="chart" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb sq" id="zmkt" aria-label="Dosh Shop" style="position:relative"><canvas data-icon="shop" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas><span class="dot" id="dotMkt" hidden>!</span></button>
+  <button class="pixel-btn pb purple sq" id="zin" aria-label="Zoom in"><canvas data-icon="plus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb purple sq" id="zout" aria-label="Zoom out"><canvas data-icon="minus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb purple sq" id="zrot" aria-label="Rotate view"><canvas data-icon="rotate" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas><span id="rotLbl" class="rotlbl">N</span></button>
+  <button class="pixel-btn pb purple sq" id="zhome" aria-label="Centre on Town Hall"><canvas data-icon="cross" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb purple sq" id="zview" aria-label="Change data view"><canvas data-icon="chart" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
 </div>
 
 <section id="card" aria-live="polite"></section>
 
 <nav id="nav" aria-label="Main">
-  <button class="pb" data-open="build"><canvas data-icon="hammer" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Build</button>
+  <button class="pixel-btn pb" data-open="build"><canvas data-icon="hammer" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Build</button>
 
-  <button class="pb purple" data-open="wheel"><canvas data-icon="wheel" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Wheel<span class="dot" id="dotWheel" hidden></span></button>
-  <button class="pb purple" data-open="crates"><canvas data-icon="crate" data-tier="steel" width="56" height="56" style="width:28px;height:28px" aria-hidden="true"></canvas>Crates<span class="dot" id="dotCrates" hidden></span></button>
-  <button class="pb purple" data-open="tasks"><canvas data-icon="clip" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Tasks<span class="dot" id="dotTasks" hidden></span></button>
-  <button id="settingsBtn" class="pb purple" data-open="settings" aria-label="Settings" title="Settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
+  <button class="pixel-btn pb purple" data-open="wheel"><canvas data-icon="wheel" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Wheel<span class="dot" id="dotWheel" hidden></span></button>
+  <button class="pixel-btn pb purple" data-open="crates"><canvas data-icon="crate" data-tier="steel" width="56" height="56" style="width:28px;height:28px" aria-hidden="true"></canvas>Crates<span class="dot" id="dotCrates" hidden></span></button>
+  <button class="pixel-btn pb purple" data-open="tasks"><canvas data-icon="clip" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Tasks<span class="dot" id="dotTasks" hidden></span></button>
+  <button class="pixel-btn" id="settingsBtn" class="pb purple" data-open="settings" aria-label="Settings" title="Settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
 </nav>
 
 <div id="scrim"></div>
 <section id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="shead"><button class="pb sq infob" data-act="info" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 id="sheetTitle">Build</h2><button class="pb red sq" data-act="closeSheet" aria-label="Close">✕</button></div>
+  <div class="shead"><button class="pixel-btn pb sq infob" data-act="info" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 id="sheetTitle">Build</h2><button class="pixel-btn pb red sq" data-act="closeSheet" aria-label="Close">✕</button></div>
   <div class="sbody" id="sheetBody"></div>
 </section>
 
@@ -3097,7 +3143,7 @@ function rewardPopup(data) {
   const amount = r.k === 'item' ? 'UNLOCKED' : (r.k === 'boost' ? (r.min + ' MIN') : ('+' + rewAmt(r)));
   const name = rewLabel(r);
   const extra = data.extra ? `<div class="reward-extra">${data.extra}</div>` : '';
-  $('#modalBox').innerHTML = `<h2 class="wl-t">${data.title || 'REWARD UNLOCKED'}</h2><p class="wl-s">${data.subtitle || 'A little something for your city.'}</p><div class="reward-reveal"><div class="reward-icon"><canvas data-icon="${kind}" ${tier ? `data-tier="${tier}"` : ''} width="112" height="112" aria-hidden="true"></canvas></div><div class="reward-amount">${amount}</div><div class="reward-name">${name}</div></div>${extra}<button class="pb wl-r" id="rewardOk">Awesome!</button>`;
+  $('#modalBox').innerHTML = `<h2 class="wl-t">${data.title || 'REWARD UNLOCKED'}</h2><p class="wl-s">${data.subtitle || 'A little something for your city.'}</p><div class="reward-reveal"><div class="reward-icon"><canvas data-icon="${kind}" ${tier ? `data-tier="${tier}"` : ''} width="112" height="112" aria-hidden="true"></canvas></div><div class="reward-amount">${amount}</div><div class="reward-name">${name}</div></div>${extra}<button class="pixel-btn pb wl-r" id="rewardOk">Awesome!</button>`;
   $('#modal').classList.add('show'); paintNewIcons(); snd('big'); buzz([25,35,25]);
   $('#rewardOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
 }
@@ -3308,17 +3354,17 @@ function renderCard(force) {
   let html = '';
   if (placing) {
     const d = DEFS[placing.id];
-    if (placing.id === 'road') html = head('Laying roads', 'Tap tiles to place road, 20 Coins each.') + `<div class="row"><button class="pb" data-act="donePlace">Done</button></div>`;
+    if (placing.id === 'road') html = head('Laying roads', 'Tap tiles to place road, 20 Coins each.') + `<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>`;
     else {
       const g = placing.ghost; const ok = g && inB(g.i, g.j) && !tileAt(g.i, g.j); const cost = placing.fromItem ? 0 : d.cost;
       const msg = !g ? 'Tap an empty tile inside the dotted border.' : (ok ? (d.type === 'decor' || roadNear(g.i, g.j) ? 'Good spot.' : 'No road next to this spot yet. It won’t work until you add one.') : 'You can’t build there.');
-      html = head('Place ' + d.name, msg + (d.rad ? (d.poll ? ' The red square shows where it pollutes.' : ' The blue square shows who it helps.') : '')) + `<div class="row"><button class="pb cream" data-act="cancelPlace">Cancel</button><button class="pb green" data-act="confirmPlace" ${ok && S.cash >= cost ? '' : 'disabled'}>${cost ? 'Build · ' + fmt(cost) : 'Place'}</button></div>`;
+      html = head('Place ' + d.name, msg + (d.rad ? (d.poll ? ' The red square shows where it pollutes.' : ' The blue square shows who it helps.') : '')) + `<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok && S.cash >= cost ? '' : 'disabled'}>${cost ? 'Build · ' + fmt(cost) : 'Place'}</button></div>`;
     }
   } else if (sel) {
     const t = tileAt(sel.i, sel.j);
     if (!t) {
-      if (!inB(sel.i, sel.j)) html = head('Locked land', 'Expand your city from the Town Hall to build here.') + `<div class="row"><button class="pb" data-act="gotoHall">Go to Town Hall</button></div>`;
-      else html = head('Empty plot', roadNear(sel.i, sel.j) ? 'Next to a road, ready to build.' : 'No road here yet.') + `<div class="row"><button class="pb green" data-act="buildHere">Build here</button><button class="pb cream" data-act="roadHere">Road · 20</button></div>`;
+      if (!inB(sel.i, sel.j)) html = head('Locked land', 'Expand your city from the Town Hall to build here.') + `<div class="row"><button class="pixel-btn pb" data-act="gotoHall">Go to Town Hall</button></div>`;
+      else html = head('Empty plot', roadNear(sel.i, sel.j) ? 'Next to a road, ready to build.' : 'No road here yet.') + `<div class="row"><button class="pixel-btn pb green" data-act="buildHere">Build here</button><button class="pixel-btn pb cream" data-act="roadHere">Road · 20</button></div>`;
     } else {
       const b = t._; const d = DEFS[t.id];
       if (!b) html = head(d.name, '');
@@ -3326,27 +3372,27 @@ function renderCard(force) {
         const pr = ensureProds(t), names = prodNames(t.id), tn = now(), w = whyNot(b); let rows = '';
         for (let k = 0; k < 3; k++) { const p = pr[k]; let st, btn = '';
           if (k >= b.workers) st = `Locked · needs ${k + 1} staff`;
-          else if (p.o) { st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pb gold sm" data-act="rush" data-k="${k}" ${S.stars >= rushCost(t, k) ? '' : 'disabled'}>Rush ${rushCost(t, k)}</button>`; }
+          else if (p.o) { st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pixel-btn pb gold sm" data-act="rush" data-k="${k}" ${S.stars >= rushCost(t, k) ? '' : 'disabled'}>Rush ${rushCost(t, k)}</button>`; }
           else if (p.s > tn) st = `+${fmt(prodCpm(b, k))}/min · ${mmss(p.s - tn)}`;
-          else { st = 'Empty'; btn = `<button class="pb sm" data-act="order" data-k="${k}">${k === 0 ? '1m' : k === 1 ? '15m' : '1h'}</button>`; }
+          else { st = 'Empty'; btn = `<button class="pixel-btn pb sm" data-act="order" data-k="${k}">${k === 0 ? '1m' : k === 1 ? '15m' : '1h'}</button>`; }
           rows += `<div class="prod ${k >= b.workers ? 'lock' : ''}"><div><b>${names[k]}</b><span>${st}</span></div>${btn}</div>`; }
         html = head(d.name, `Lv ${lvlOf(t)} · ${fmt(bizCpm(b))}/min`) + statusTags(b) + (w ? `<p class="note">${w}</p>` : '') + `<div class="prods">${rows}</div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'home') {
         html = head(d.name, b.live ? `Lv ${lvlOf(t)} · ${b.res}/${hcap(t, d)} residents` : 'Needs road, power & water') + statusTags(b) + `` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'ind') {
-        html = head(d.name, `Level ${lvlOf(t)} · makes ${(d.rate * upMul(t) * 60).toFixed(0)} Coins a minute while staffed`) + statusTags(b) + `<p class="note" id="liveStock"></p><div class="row"><button class="pb" data-act="ind">Collect</button></div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
+        html = head(d.name, `Level ${lvlOf(t)} · makes ${(d.rate * upMul(t) * 60).toFixed(0)} Coins a minute while staffed`) + statusTags(b) + `<p class="note" id="liveStock"></p><div class="row"><button class="pixel-btn pb" data-act="ind">Collect</button></div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'util') {
         html = head(d.name, `Level ${lvlOf(t)} · ` + (d.supP ? `+${Math.round(d.supP * upMul(t))} power` : `+${Math.round(d.supW * upMul(t))} water`) + ` · city power ${D.useP}/${D.supP}, water ${D.useW}/${D.supW}`) + statusTags(b) + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'svc') {
         html = head(d.name, 'An old service building. It no longer does anything, so you can demolish it for a refund.') + statusTags(b) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'hall') {
         const e = EXPAND[expIdx()];
-        html = head('Town Hall', stage(S.level) + ' · Lv ' + S.level) + `<button class="pb purple sm" data-act="info" data-k="hall">How it works</button><div class="tags"><span class="tag">Residents ${S.pop}/${D.cap}</span><span class="tag">Jobs ${D.employed}/${D.jobs}</span><span class="tag ${D.useP <= D.supP ? 'ok' : 'bad'}">Power ${D.useP}/${D.supP}</span><span class="tag ${D.useW <= D.supW ? 'ok' : 'bad'}">Water ${D.useW}/${D.supW}</span></div>` + (e ? `<div class="row"><button class="pb" data-act="expand" ${S.level >= e.lvl && S.cash >= e.cost && (S.deeds || 0) >= e.deeds ? '' : 'disabled'}>Expand land · ${fmt(e.cost)} + ${e.deeds} Deed${e.deeds > 1 ? 's' : ''}${S.level < e.lvl ? ' (Lv ' + e.lvl + ')' : ''}</button></div>` : '<p class="note">Your city has all the land there is!</p>');
+        html = head('Town Hall', stage(S.level) + ' · Lv ' + S.level) + `<button class="pixel-btn pb purple sm" data-act="info" data-k="hall">How it works</button><div class="tags"><span class="tag">Residents ${S.pop}/${D.cap}</span><span class="tag">Jobs ${D.employed}/${D.jobs}</span><span class="tag ${D.useP <= D.supP ? 'ok' : 'bad'}">Power ${D.useP}/${D.supP}</span><span class="tag ${D.useW <= D.supW ? 'ok' : 'bad'}">Water ${D.useW}/${D.supW}</span></div>` + (e ? `<div class="row"><button class="pixel-btn pb" data-act="expand" ${S.level >= e.lvl && S.cash >= e.cost && (S.deeds || 0) >= e.deeds ? '' : 'disabled'}>Expand land · ${fmt(e.cost)} + ${e.deeds} Deed${e.deeds > 1 ? 's' : ''}${S.level < e.lvl ? ' (Lv ' + e.lvl + ')' : ''}</button></div>` : '<p class="note">Your city has all the land there is!</p>');
       } else if (d.type === 'decor') {
         html = head(d.name, 'Decoration that makes your city look great.') + `<div class="row">${demoBtn(d.crateOnly ? 'Pack up' : null)}</div>`;
       }
     }
-    if (t && t.id === 'road') html = head('Road', 'Shops, homes and services need a road next to them.') + `<div class="row"><button class="pb red" data-act="demolish">Remove road</button></div>`;
+    if (t && t.id === 'road') html = head('Road', 'Shops, homes and services need a road next to them.') + `<div class="row"><button class="pixel-btn pb red" data-act="demolish">Remove road</button></div>`;
   }
   card.innerHTML = html; card.classList.toggle('show', !!html); liveCard();
 }
@@ -3354,10 +3400,10 @@ function upRow(t, d) {
   const L = lvlOf(t); const bars = Array.from({ length: UP_MAX }, (_, k) => `<i class="${k < L ? 'on' : ''}"></i>`).join('');
   if (L >= UP_MAX) return `<div class="uprow"><div class="lvbars">${bars}</div><span class="note">Max level reached!</span></div>`;
   const c = upCost(d, L); const ok = S.cash >= c.coins && (S.deeds || 0) >= c.deeds;
-  return `<div class="uprow"><div class="lvbars">${bars}</div><button class="pb gold" data-act="upgrade" ${ok ? '' : 'disabled'}>Upgrade · ${fmt(c.coins)}${c.deeds ? ' + ' + c.deeds + ' Deed' + (c.deeds > 1 ? 's' : '') : ''}</button></div>`;
+  return `<div class="uprow"><div class="lvbars">${bars}</div><button class="pixel-btn pb gold" data-act="upgrade" ${ok ? '' : 'disabled'}>Upgrade · ${fmt(c.coins)}${c.deeds ? ' + ' + c.deeds + ' Deed' + (c.deeds > 1 ? 's' : '') : ''}</button></div>`;
 }
-function head(t, p) { return `<div class="chead"><div><h2>${t}</h2><p>${p}</p></div><button class="pb red sq x" data-act="closeCard" aria-label="Close">✕</button></div>`; }
-function demoBtn(label) { return `<button class="pb red sm" data-act="demolish">${demoArm ? 'Tap again to confirm' : (label || 'Demolish')}</button>`; }
+function head(t, p) { return `<div class="chead"><div><h2>${t}</h2><p>${p}</p></div><button class="pixel-btn pb red sq x" data-act="closeCard" aria-label="Close">✕</button></div>`; }
+function demoBtn(label) { return `<button class="pixel-btn pb red sm" data-act="demolish">${demoArm ? 'Tap again to confirm' : (label || 'Demolish')}</button>`; }
 function liveCard() {
   if (!sel || placing) return; const t = tileAt(sel.i, sel.j); if (!t) return; const d = DEFS[t.id];
   if (d.type === 'shop' && t.st === 'sell') { const bar = $('#liveBar'), tm = $('#liveTime'); const el = now() - t.t; if (bar) bar.style.width = Math.min(100, el / stime(t, d) * 100) + '%'; if (tm) setText(tm, mmss(stime(t, d) - el) + ' left'); }
@@ -3409,8 +3455,8 @@ function renderSheet(force) {
   if (sheet === 'build') drawPreviews(); else paintNewIcons();
 }
 function buildHTML() {
-  let h = `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
-  if (!findHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="bcard" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>The heart of your city. Every city needs one.</span><span class="price">Free</span></button></div>`;
+  let h = `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pixel-btn pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
+  if (!findHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="pixel-btn bcard" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>The heart of your city. Every city needs one.</span><span class="price">Free</span></button></div>`;
   if (buildTarget) h += `<p class="note">Building on the plot you picked.</p>`;
   const tab0 = BUILD_TABS.find(t => t[0] === buildTab) || BUILD_TABS[0]; const tab = tab0;
   h += '<div class="grid2">';
@@ -3429,7 +3475,7 @@ function buildHTML() {
     else if (d.type === 'hall') sub = 'Your city centre, free';
     else sub = 'Connects everything';
     const price = locked ? `Unlocks at Lv ${d.lvl}` : item ? `You have ${count}` : coinSvg() + fmt(costOf(id));
-    h += `<button class="bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
+    h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
   });
   h += '</div>';
   if (buildTab === 'items') h += `<p class="note">Only cosmetic items purchased from the Dosh Shop appear here. Placing them is free.</p>`;
@@ -3458,15 +3504,15 @@ function tasksHTML() {
   tasks.forEach((t,q) => {
     const done = t.p >= t.n;
     const pct = Math.max(0, Math.min(100, Math.round(t.p / t.n * 100)));
-    h += `<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} of ${fmt(t.n)} completed</small></div><span class="daily-reward"><canvas data-icon="${rewIconKind(t.rew)}" ${t.rew.tier ? `data-tier="${t.rew.tier}"` : ''} width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><b>${rewAmt(t.rew)}</b></span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done || !done ? 'disabled' : ''}>${t.done ? 'REWARD CLAIMED' : done ? 'COLLECT REWARD' : 'IN PROGRESS'}</button></div>`;
+    h += `<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} of ${fmt(t.n)} completed</small></div><span class="daily-reward"><canvas data-icon="${rewIconKind(t.rew)}" ${t.rew.tier ? `data-tier="${t.rew.tier}"` : ''} width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><b>${rewAmt(t.rew)}</b></span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pixel-btn pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done || !done ? 'disabled' : ''}>${t.done ? 'REWARD CLAIMED' : done ? 'COLLECT REWARD' : 'IN PROGRESS'}</button></div>`;
   });
   h += `</div>`;
   return h;
 }
 function settingsHTML() {
-  let h=`<div class="sect"><h3>Game settings</h3><div class="task"><div class="info"><b>Sound effects</b><small>Game sounds and reward effects</small></div><button class="pb sm" data-act="sound">${S.sound===false?'Off':'On'}</button></div>`;
-  h+=`<div class="task"><div class="info"><b>Local sky and daylight</b><small>${LOC.src==='gps'?'Using your location':'Using your device time zone'}</small></div><button class="pb teal sm" data-act="loc">${LOC.src==='gps'?'Refresh':'Set location'}</button></div>`;
-  h+=`</div><div class="sect"><h3>City data</h3><p class="note">Starting a new city permanently replaces your current city on this device.</p><button class="pb red" data-act="reset">${resetArm?'Tap again to erase your city':'Start a new city'}</button></div>`;
+  let h=`<div class="sect"><h3>Game settings</h3><div class="task"><div class="info"><b>Sound effects</b><small>Game sounds and reward effects</small></div><button class="pixel-btn pb sm" data-act="sound">${S.sound===false?'Off':'On'}</button></div>`;
+  h+=`<div class="task"><div class="info"><b>Local sky and daylight</b><small>${LOC.src==='gps'?'Using your location':'Using your device time zone'}</small></div><button class="pixel-btn pb teal sm" data-act="loc">${LOC.src==='gps'?'Refresh':'Set location'}</button></div>`;
+  h+=`</div><div class="sect"><h3>City data</h3><p class="note">Starting a new city permanently replaces your current city on this device.</p><button class="pixel-btn pb red" data-act="reset">${resetArm?'Tap again to erase your city':'Start a new city'}</button></div>`;
   return h;
 }
 sheetEl.addEventListener('click', e => {
@@ -3646,7 +3692,7 @@ const BW = 340, BH = 250, BTW = 82, BTH = 41, BTK = 14;
 function bpt(ix, iy) { return { x: BW / 2 + (ix - iy) * BTW / 2, y: 58 + (ix + iy) * BTH / 2 }; }
 function pipsHTML(v) { const on = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }[v]; return Array.from({ length: 9 }, (_, k) => `<i class="${on.indexOf(k) >= 0 ? 'on' : ''}"></i>`).join(''); }
 function buildDice() {
-  mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="dice" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CITY DICE</h2>${hiCanvas('board', BW, BH)}<div class="bigdie" id="bigdie" aria-label="Die">${pipsHTML(S.lastDie || 1)}</div><span class="cnt" id="rollsLeft">${S.dice}</span><button class="pb" data-act="roll" id="rollBtn" style="min-width:170px;font-size:20px">Roll</button><p class="mgmsg" id="diceNext"></p><div class="grind"><span>Earn a roll</span><div class="bar"><i id="gD"></i></div><b id="gDt"></b></div><p class="mgmsg" style="font-size:13px;font-weight:500">Collecting from shops (2 pts), homes, industry and the bus (1 pt) fills the bar.</p><p class="mgmsg" id="diceMsg">${diceMsg}</p>` + tableHTML('??? MYSTERY REWARDS', MYSTERY);
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="dice" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CITY DICE</h2>${hiCanvas('board', BW, BH)}<div class="bigdie" id="bigdie" aria-label="Die">${pipsHTML(S.lastDie || 1)}</div><span class="cnt" id="rollsLeft">${S.dice}</span><button class="pixel-btn pb" data-act="roll" id="rollBtn" style="min-width:170px;font-size:20px">Roll</button><p class="mgmsg" id="diceNext"></p><div class="grind"><span>Earn a roll</span><div class="bar"><i id="gD"></i></div><b id="gDt"></b></div><p class="mgmsg" style="font-size:13px;font-weight:500">Collecting from shops (2 pts), homes, industry and the bus (1 pt) fills the bar.</p><p class="mgmsg" id="diceMsg">${diceMsg}</p>` + tableHTML('??? MYSTERY REWARDS', MYSTERY);
   fillTableIcons(MYSTERY); updateDiceUI();
 }
 function updateDiceUI() {
@@ -3747,7 +3793,7 @@ let wheelAnim = null, wheelMsg = '';
 const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
-  mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">LUCKY WHEEL</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold key</p>`;
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">LUCKY WHEEL</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="grind" style="color:var(--cream)"><span>Earn a ticket</span><div class="bar"><i id="gT"></i></div><b id="gTt"></b></div><div class="pips" id="pips" aria-label="Spin milestone"></div><p class="mgmsg" style="font-size:13px;font-weight:500">10 spins = free Gold key</p>`;
   { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${(w.w / WTOT * 100).toFixed(w.w / WTOT < .02 ? 1 : 0)}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
   const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
   updateWheelUI();
@@ -3864,10 +3910,10 @@ function buildMarket() {
   const m = marketStock(), daily = dailyDealIds(m.day);
   if (S.market.seen !== m.week) { snd('shop'); S.market.seen = m.week; }
   S.market.dailySeen = m.day; S.market.renderedDay = m.day; S.market.renderedWeek = m.week;
-  mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button>
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button>
   <h2 class="mgtitle">DOSH SHOP</h2><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
-  <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
-  <section class="msection weekly"><div class="msection-head"><b>WEEKLY EXCLUSIVE</b><span>Premium · changes every 7 days</span></div><p class="mgmsg" id="mktCd"></p>${(() => { const id=m.featured,it=MARKET[id],bought=!!S.market.bought[id]; return `<div class="mcard feat"><span data-mic="${id}"></span><div class="minfo"><em>THIS WEEK ONLY</em><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Owned · sold out for this week':'Limited to one per Mayor'}</span><button class="pb" data-act="buy" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; })()}</section>
+  <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pixel-btn pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
+  <section class="msection weekly"><div class="msection-head"><b>WEEKLY EXCLUSIVE</b><span>Premium · changes every 7 days</span></div><p class="mgmsg" id="mktCd"></p>${(() => { const id=m.featured,it=MARKET[id],bought=!!S.market.bought[id]; return `<div class="mcard feat"><span data-mic="${id}"></span><div class="minfo"><em>THIS WEEK ONLY</em><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Owned · sold out for this week':'Limited to one per Mayor'}</span><button class="pixel-btn pb" data-act="buy" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; })()}</section>
   <p class="mgmsg" id="mktMsg"></p>`;
   const row = $('#starRow'); row.appendChild(iconCanvas('stars', null, 22)); const sp = document.createElement('span'); sp.id = 'starN'; row.appendChild(sp);
   mgPanel.querySelectorAll('[data-star]').forEach(el => el.replaceWith(iconCanvas('stars', null, 18)));
@@ -3909,17 +3955,17 @@ function buildCrates() {
   const C = CRATES[crateSel];
   mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
   const tiers = Object.keys(CRATES).map(k => { const kk = CRATES[k].key, n = S.keys[kk], ready = n > 0;
-    return `<button class="ctier" data-act="crsel" data-tier="${k}" aria-pressed="${crateSel === k}"><span data-tic="${k}"></span><b>${TIER[k]}</b><span class="ccount">×${n}</span>${ready ? '<i class="cready">READY</i>' : ''}</button>`; }).join('');
+    return `<button class="pixel-btn ctier" data-act="crsel" data-tier="${k}" aria-pressed="${crateSel === k}"><span data-tic="${k}"></span><b>${TIER[k]}</b><span class="ccount">×${n}</span>${ready ? '<i class="cready">READY</i>' : ''}</button>`; }).join('');
   const odds = C.table.map(r => `<div class="orow"><span data-oic="${C.table.indexOf(r)}"></span><span class="oname">${r[1]}</span><b>${Math.round(r[0] / C.table.reduce((a, x) => a + x[0], 0) * 100)}%</b></div>`).join('');
   const pity = C.pity ? `<div class="pity"><span>Guaranteed ${DEFS[C.pity].name} in ${S.pity[crateSel]}</span><div class="pbar"><i style="width:${Math.round((1 - S.pity[crateSel] / C.pityN) * 100)}%"></i></div></div>` : '';
   const reveal = crateReveal ? `<div class="crate-reward-reveal"><div class="crate-reward-icon" data-reward-icon="${rewIconKind(crateReveal.r)}" data-tier="${crateReveal.r.tier || ''}"></div><div class="crate-reward-copy"><span>CHEST OPENED</span><b>${crateReveal.label}</b><small>${TIER[crateSel]} chest reward</small></div></div>` : '';
-  mgPanel.innerHTML = `<button class="pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CRATES</h2>
+  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CRATES</h2>
   <div class="keysrow"><span class="klab">YOUR CHEST KEYS</span>${['steel','gold','diamond'].map(k => `<span class="kchip"><span data-kic="${k}"></span>${S.keys[k] || 0}</span>`).join('')}</div>
   <div class="crate-intro"><b>CHOOSE YOUR CHEST</b><small>Every key reveals a surprise. Better chests bring bigger rewards.</small></div>
   <div class="ctiers">${tiers}</div>
   <div class="cstage"><div class="crate-stage-label">YOUR REWARD AWAITS</div>${hiCanvas('chest', 320, 210)}<div class="crate-stage-sparkle sparkle-a">✦</div><div class="crate-stage-sparkle sparkle-b">✧</div></div>
   ${reveal}
-  <button class="pb green" data-act="openCrate" id="openBtn" style="min-width:220px;font-size:20px">Open ${TIER[crateSel]}</button>
+  <button class="pixel-btn pb green" data-act="openCrate" id="openBtn" style="min-width:220px;font-size:20px">Open ${TIER[crateSel]}</button>
   <p class="mgmsg" id="crateMsg"></p>${pity}
   <details class="odds"><summary>See the odds</summary>${odds}</details>
   <p class="mgmsg cfoot">Silver, Gold and Diamond keys unlock one chest each. Diamond rewards are premium.</p>`;
@@ -4168,7 +4214,7 @@ function drawTutArrow() {
 function finishTut() { document.body.classList.remove('tut-on');
   S.tut = null; S.tutDone = true; setHL(null); $('#coach').classList.remove('show');
   const reward = grant({ k: 'stars', n: 50 });
-  $('#modalBox').innerHTML = `<h2 class="wl-t">Tutorial complete!</h2><p class="wl-s">Your starter city has the essentials: roads, homes, power, water and a working business. You’re ready to grow!</p><ul style="text-align:center"><li>${reward} reward</li></ul><button class="pb wl-r" id="modalOk">Keep building</button>`;
+  $('#modalBox').innerHTML = `<h2 class="wl-t">Tutorial complete!</h2><p class="wl-s">Your starter city has the essentials: roads, homes, power, water and a working business. You’re ready to grow!</p><ul style="text-align:center"><li>${reward} reward</li></ul><button class="pixel-btn pb wl-r" id="modalOk">Keep building</button>`;
   $('#modal').classList.add('show'); snd('levelup'); confetti(120);
   $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
   changed();
@@ -4187,7 +4233,7 @@ const INFO = {
 };
 function showInfo(k) {
   const it = INFO[k]; if (!it) return;
-  $('#modalBox').innerHTML = `<h2>${it[0]}</h2><p class="note" style="color:#FFE066!important">How it works</p><ul style="text-align:left">${it[1].map((x, n) => `<li>${n + 1}. ${x}</li>`).join('')}</ul><button class="pb" id="modalOk">Got it</button>`;
+  $('#modalBox').innerHTML = `<h2>${it[0]}</h2><p class="note" style="color:#FFE066!important">How it works</p><ul style="text-align:left">${it[1].map((x, n) => `<li>${n + 1}. ${x}</li>`).join('')}</ul><button class="pixel-btn pb" id="modalOk">Got it</button>`;
   $('#modal').classList.add('show'); $('#modalOk').focus(); $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
 }
 document.addEventListener('click', e => {
@@ -4199,14 +4245,14 @@ let toastT = 0;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
 function showLevel() {
   if (!pendingLevel) return; const p = pendingLevel; pendingLevel = null;
-  $('#modalBox').innerHTML = `<h2>Level ${p.level}!</h2><p class="note">${stage(p.level)} · keep growing Bit-Burbs</p><ul>${p.labels.map(l => `<li>${l}</li>`).join('')}</ul>${p.unlocks.length ? `<p class="note" style="font-weight:700">New to build: ${p.unlocks.join(', ')}</p>` : ''}<button class="pb" id="modalOk">Nice!</button>`;
+  $('#modalBox').innerHTML = `<h2>Level ${p.level}!</h2><p class="note">${stage(p.level)} · keep growing Bit-Burbs</p><ul>${p.labels.map(l => `<li>${l}</li>`).join('')}</ul>${p.unlocks.length ? `<p class="note" style="font-weight:700">New to build: ${p.unlocks.join(', ')}</p>` : ''}<button class="pixel-btn pb" id="modalOk">Nice!</button>`;
   $('#modal').classList.add('show'); $('#modalOk').focus(); $('#modalOk').onclick = () => { snd('confirm'); $('#modal').classList.remove('show'); };
 }
 function welcome(upgraded) {
   const bonus = !S.welcomeBonus;
   $('#modalBox').innerHTML = `<h2 class="wl-t">${upgraded ? 'Bit-Burbs is here!' : 'Welcome to Bit-Burbs'}</h2><p class="wl-s">${upgraded ? 'A fresh new look, upgrades and Deeds.' : 'Your city is waiting, Mayor.'}</p>` + (bonus
-    ? `<p class="wl-s">Here’s a welcome gift to get you started.</p><div class="wl-row"><span class="px-r"><span class="wl-chip"><canvas data-icon="dosh" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><span>+50</span></span></span><button class="pb wl-r" id="modalOk">Redeem</button></div>`
-    : `<button class="pb" id="modalOk">Let’s build</button>`);
+    ? `<p class="wl-s">Here’s a welcome gift to get you started.</p><div class="wl-row"><span class="px-r"><span class="wl-chip"><canvas data-icon="dosh" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><span>+50</span></span></span><button class="pixel-btn pb wl-r" id="modalOk">Redeem</button></div>`
+    : `<button class="pixel-btn pb" id="modalOk">Let’s build</button>`);
   $('#modal').classList.add('show'); paintNewIcons();
   $('#modalOk').onclick = () => {
     $('#modal').classList.remove('show'); S.firstRun = false; S.upgraded = false;
