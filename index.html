@@ -2240,7 +2240,7 @@ function classicQueenslander(k,turn){
    }
   }
   drawPorch(false);
-  const b=block(3.2,2,6,10.8,9,18,{Lfn:k.siding('#F2E8D2'),Rfn:k.siding(sh('#F2E8D2',.86)),top:'#B8483A'});
+  const b=block(3.25,2,6,10.75,9,18,{Lfn:k.siding('#F2E8D2'),Rfn:k.siding(sh('#F2E8D2',.86)),top:'#B8483A'});
   wall(b,k.L,turn);wall(b,k.Rf,(turn+1)%4);
   drawPorch(true);
   const roof=Object.create(k);
