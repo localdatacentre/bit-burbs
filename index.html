@@ -4740,7 +4740,7 @@ function renderCard(force) {
     const t = tileAt(sel.i, sel.j);
     if (!t) {
       if (!inB(sel.i, sel.j)) html = head('Locked land', 'Expand your city from the Town Hall to build here.') + `<div class="row"><button class="pixel-btn pb" data-act="gotoHall">Go to Town Hall</button></div>`;
-      else html = head('Empty plot', roadNear(sel.i, sel.j) ? 'Next to a road, ready to build.' : 'No road here yet.') + `<div class="row"><button class="pixel-btn pb green" data-act="buildHere">Build here</button><button class="pixel-btn pb cream" data-act="roadHere">Road · 20</button></div>`;
+      else html = head('Empty plot', roadNear(sel.i, sel.j) ? 'Next to a road, ready to build.' : 'No road here yet.') + `<div class="row"><button class="pixel-btn pb green" data-act="buildHere">Build here</button></div>`;
     } else {
       const b = t._; const d = DEFS[t.id];
       if (!b) html = head(d.name, '');
@@ -4822,7 +4822,6 @@ card.addEventListener('click', e => {
   else if (a === 'expand') expand();
   else if (a === 'gotoHall') { const h = findHall(); if (h) { animateTo(h.i + .5, h.j + .5); select(h.i, h.j); } return; }
   else if (a === 'buildHere') { buildTarget = { i: sel.i, j: sel.j }; openSheet('build'); return; }
-  else if (a === 'roadHere') { placeAt(sel.i, sel.j, 'road', false); select(sel.i, sel.j); return; }
   else if (a === 'demolish') { if (!demoArm) { demoArm = true; renderCard(true); return; } demolish(sel.i, sel.j); }
   derive(); renderCard(true);
 });
