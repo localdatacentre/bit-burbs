@@ -1257,12 +1257,12 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  background-image:none!important;
  box-shadow:none!important;
 }
-#nav > button.pixel-btn[data-open="build"]{--bb-face:var(--coast-build);--bb-top:#8fbaed;--bb-bottom:#477ab9;--bb-edge:#3a6292}
+#nav > button.pixel-btn[data-open="build"]{--bb-face:#5596e3;--bb-top:#8fbaed;--bb-bottom:#477ab9;--bb-edge:#3a6292}
 #card button[data-act="buildHere"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
-#nav > button.pixel-btn[data-open="wheel"]{--bb-face:var(--coast-wheel);--bb-top:#ffa798;--bb-bottom:#cb6455;--bb-edge:#9c5148}
-#nav > button.pixel-btn[data-open="crates"]{--bb-face:var(--coast-crates);--bb-top:#f7d688;--bb-bottom:#c29c41;--bb-edge:#957a39}
-#nav > button.pixel-btn[data-open="tasks"]{--bb-face:var(--coast-tasks);--bb-top:#67d3cf;--bb-bottom:#179995;--bb-edge:#167878}
-#nav > button.pixel-btn[data-open="settings"]{--bb-face:var(--coast-settings);--bb-top:#b6babf;--bb-bottom:#757a83;--bb-edge:#5c626a}
+#nav > button.pixel-btn[data-open="wheel"]{--bb-face:#ff7963;--bb-top:#ffa798;--bb-bottom:#cb6455;--bb-edge:#9c5148}
+#nav > button.pixel-btn[data-open="crates"]{--bb-face:#f3c14a;--bb-top:#f7d688;--bb-bottom:#c29c41;--bb-edge:#957a39}
+#nav > button.pixel-btn[data-open="tasks"]{--bb-face:#18bdb6;--bb-top:#67d3cf;--bb-bottom:#179995;--bb-edge:#167878}
+#nav > button.pixel-btn[data-open="settings"]{--bb-face:#90969e;--bb-top:#b6babf;--bb-bottom:#757a83;--bb-edge:#5c626a}
 #nav .dock-icon{display:block;width:24px;height:24px;flex:none;image-rendering:pixelated;pointer-events:none}
 #nav > button[data-open] .nav-icon{display:block!important;font-size:24px!important;line-height:25px!important}
 #nav .dot[hidden]{display:none!important}
@@ -1350,22 +1350,6 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #hud .chips .chip[aria-label]{padding:1px 0!important}
 #hud #cpmLbl{font:16px/1 'VT323',monospace;color:#fff2bd;white-space:nowrap}
 #card [data-act="rush"]{font-size:16px!important;white-space:normal}
-</style>
-<style id="coast-menu-accents">
-:root{--coast-build:#5596e3;--coast-wheel:#ff7963;--coast-crates:#f3c14a;--coast-tasks:#18bdb6;--coast-settings:#90969e}
-#sheet[data-menu="build"]{--menu-accent:var(--coast-build)}
-#sheet[data-menu="tasks"]{--menu-accent:var(--coast-tasks)}
-#sheet[data-menu="settings"]{--menu-accent:var(--coast-settings)}
-#mgPanel.mg-wheel{--menu-accent:var(--coast-wheel)}
-#mgPanel.mg-crates{--menu-accent:var(--coast-crates)}
-#sheet[data-menu] .shead,#mgPanel.mg-wheel .mg-screen-head,#mgPanel.mg-crates .mg-screen-head{background:#30445b!important;border-bottom:2px solid var(--menu-accent)!important}
-#sheet[data-menu="build"] .tabs button[aria-pressed="true"]{background:#3e6594!important;border-color:var(--menu-accent)!important;color:white!important}
-#mgPanel.mg-crates .ctier[aria-pressed="true"]{border-color:var(--menu-accent)!important}
-#sheet[data-menu="tasks"] .daily-progress i,#mgPanel.mg-wheel #pips i.on{background:var(--menu-accent)!important}
-#sheet[data-menu="tasks"] .daily-count{background:#224a53!important;color:#c3f7f0!important;border:1px solid var(--menu-accent)!important}
-#sheet[data-menu="settings"] .sect h3{border-left:3px solid var(--menu-accent);padding-left:6px}
-#sheet[data-menu="settings"] [data-act="sound"]{--bb-face:#66717c;--bb-top:var(--menu-accent);--bb-edge:#4a525d}
-#mgPanel.mg-wheel #spinBtn{--bb-face:#bf594c;--bb-top:var(--menu-accent);--bb-edge:#8e413a}
 </style>
 </head>
 <body>
@@ -4911,7 +4895,6 @@ function sheetKey() {
 }
 function renderSheet(force) {
   if (!sheet) return; const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
-  sheetEl.dataset.menu = sheet;
   setText($('#sheetTitle'), sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
   sheetBody.innerHTML = sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
   if (sheet === 'build') drawPreviews(); else paintNewIcons();
