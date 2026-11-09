@@ -1,5 +1,5 @@
-const CACHE='bit-burbs-v72';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./bitburbs-icon.svg','./pocket-ui.css?v=72'];
+const CACHE='bit-burbs-v73';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./bitburbs-icon.svg','./pocket-ui.css?v=73'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
