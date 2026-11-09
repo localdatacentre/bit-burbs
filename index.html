@@ -1665,13 +1665,21 @@ function K(ctx,modelKey){
    if(pick<0){left.sort((a,b)=>(a.x0+a.y0+a.x1+a.y1)-(b.x0+b.y0+b.x1+b.y1));pick=0;}out.push(left.splice(pick,1)[0]);}
   out.forEach(o=>o.fn());};
  /* ground */
- k.ground=(fn)=>{const GX=16*FX,GY=16*FY;const surface=unpavedLots.has(modelKey)?fn:k.lot(fn,.75);fillW(0,0,GX,GY,0,surface);};
+ k.ground=paint=>{
+  const width=16*FX,depth=16*FY;
+  const paved=!unpavedLots.has(modelKey);
+  fillW(0,0,width,depth,0,(x,y)=>{
+   const inset=Math.min(x,y,width-x,depth-y);
+   if(paved && inset<1)return inset<.75?k.walk(x,y):'#AAA79F';
+   return paint(x,y);
+  });
+ };
  const hash=(a,b)=>{const n=Math.sin(a*127.1+b*311.7)*43758.5453;return n-Math.floor(n);};
  k.hash=hash;
  k.grass=(wx,wy)=>{const r=hash(Math.floor(wx*2),Math.floor(wy*2));return r<.12?'#76AC52':r>.9?'#8CBF62':'#82B65A';};
  k.walk=(wx,wy)=>((Math.floor(wx/2)+Math.floor(wy/2))%2)?'#CBC7BD':'#C3BFB5';
  k.asph=(wx,wy)=>hash(Math.floor(wx*2),Math.floor(wy*2))<.15?'#4E525A':'#555A62';
- k.lot=(inner,ring=1.5)=>(wx,wy)=>{const GX=16*FX,GY=16*FY;if(wx<ring||wy<ring||wx>=GX-ring||wy>=GY-ring)return k.walk(wx,wy);return inner(wx,wy);};
+ k.lot=(inner,ring=1.5)=>(wx,wy)=>{const GX=16*FX,GY=16*FY;if(unpavedLots.has(modelKey)&&(wx<ring||wy<ring||wx>=GX-ring||wy>=GY-ring))return k.walk(wx,wy);return inner(wx,wy);};
  /* props (all queue themselves) */
  k.tree=(x,y,size=1,z=0,kind='gum')=>k.add(x-.6,y-.6,x+.6,y+.6,()=>{
   placeNative(k,x,y,z,kind,size*.87*SC/2,true);
@@ -2170,7 +2178,7 @@ function tank(k,x,y,c='#9AA6B8'){k.add(x-1.6,y-1.6,x+1.6,y+1.6,()=>{k.box(x-1.7,
 function fence(k,x0,y0,x1,y1,col='#9C7A50'){k.add(x0,y0,x1,y1,()=>k.box(x0,y0,0,x1,y1,4,{top:sh(col,1.1),Lfn:(u)=>u%2?col:sh(col,.88),Rfn:(u)=>u%2?sh(col,.8):sh(col,.7),noRim:true}));}
 function bbq(k,x,y){k.add(x,y,x+1.6,y+1,()=>{k.box(x,y,0,x+1.6,y+1,3,{top:'#3A3550',L:'#5E6878',R:'#4A4E5A'});k.box(x+.1,y+.1,3,x+1.5,y+.9,4,{top:'#2A2440',L:'#E53B3B',R:'#A82424'});});}
 const Q={};
-const qGround=(k,drive)=>k.ground((wx,wy)=>{if(wx<1||wy<1)return k.walk(wx,wy);if(wy>=14.6)return k.walk(wx,wy);if(drive&&drive(wx,wy))return'#D6CDBA';return k.grass(wx,wy);});
+const qGround=(k,drive)=>k.ground((wx,wy)=>{if(drive&&drive(wx,wy))return'#D6CDBA';return k.grass(wx,wy);});
 Q.q1={fx:1,fy:1,H:44,name:'Classic Queenslander',d(k){
  qGround(k,(wx,wy)=>wx>=4.8&&wx<6.8&&wy>=11.6);
  fence(k,1,1,15,1.3);fence(k,14.7,1.3,15,12.4);fence(k,11.2,12.1,14.7,12.4);
@@ -2222,7 +2230,7 @@ function glassFence(k,x0,y0,x1,y1){
  pane(x0,y1-edge,x1,y1);
 }
 function paling(k,x0,y0,x1,y1){k.add(x0,y0,x1,y1,()=>k.box(x0,y0,0,x1,y1,4,{top:'#7A5E3E',Lfn:(u)=>u%2?'#8A6A44':'#7A5E3E',Rfn:(u)=>u%2?'#6E5436':'#5E4630',noRim:true}));}
-const modernLot=(k,drive,extra)=>k.ground((wx,wy)=>{if(wy>=14.6||wx<1||wy<1)return k.walk(wx,wy);if(drive(wx,wy))return((R(wx)+R(wy))%2)?'#BDB8AE':'#B5B0A6';if(extra){const e=extra(wx,wy);if(e)return e;}return k.grass(wx,wy);});
+const modernLot=(k,drive,extra)=>k.ground((wx,wy)=>{if(drive(wx,wy))return((R(wx)+R(wy))%2)?'#BDB8AE':'#B5B0A6';if(extra){const e=extra(wx,wy);if(e)return e;}return k.grass(wx,wy);});
 // The faces run clockwise from the driveway around the house.
 function modernHouse(k,turn){
  const point=(x,y,t=turn)=>[[x,y],[16-y,x],[16-x,16-y],[y,16-x]][t];
