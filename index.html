@@ -4223,7 +4223,7 @@ function tutTick() {
 function setHL(sel) {
   const el = sel ? document.querySelector(sel) : null;
   if (tutHL && tutHL !== el) tutHL.classList.remove('tut-hl');
-  if (el) {el.classList.add('tut-hl');if(el.matches('[data-act="choose"]'))el.scrollIntoView({block:'nearest'});} tutHL = el;
+  if (el) {el.classList.add('tut-hl');if(el!==tutHL && el.matches('[data-act="choose"]'))el.scrollIntoView({block:'nearest',behavior:'instant'});} tutHL = el;
 }
 function tutMapTarget() {
   const st = tutStep(); if (!st || S.firstRun) return null;
