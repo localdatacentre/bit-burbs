@@ -1035,287 +1035,175 @@ body.tut-on #coach{border-color:#FFC93C!important}
   content:none!important;display:none!important;
 }
 
-/* ===== unified pixel UI system: shared across all game pages ===== */
+
+/* ===== Bit Burbs approved pixel button design system v65 =====
+   Shared style for ALL static and dynamically rendered button templates.
+   Hard pixel shading only; existing icon canvases and gameplay logic are unchanged. */
 :root{
-  --pixel-corners:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px));
-  --page-panel:#24345F;--page-panel-edge:#516B9C;--page-card:#1B2850;--page-text:#FFFFFF;
+ --bb-cut:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,
+ calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,
+ calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),
+ calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),
+ calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,
+ 6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),
+ 3px calc(100% - 6px),0 calc(100% - 6px));
 }
-/* Single button component: the same cut corners, shallow inset and matching darker border. */
-.pb,.pb.green,.pb.purple,.pb.teal,.pb.cream,.pb.red,.pb.gold,
-#nav .pb,#mapctl .pb.sq,#mapctl #zmkt,#sheetBody .task .pb,
-.shead .pb[data-act="closeSheet"],.mgp .pb,.mg-crates #openBtn,
-.mg-crates .ctier,.tier,.rsall,.daily-claim,.streak-claim{
-  appearance:none!important;border-radius:0!important;
-  clip-path:var(--pixel-corners)!important;
-  border:2px solid var(--btn-edge,#0C879D)!important;
-  outline:0!important;
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.17),inset 0 -2px 0 rgba(0,0,0,.15)!important;
-  font-family:'VT323',monospace!important;
-  text-shadow:none!important;
-  -webkit-tap-highlight-color:transparent;
+button.pixel-btn{
+ --bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192;
+ -webkit-appearance:none!important;appearance:none!important;
+ display:inline-flex;align-items:center;justify-content:center;
+ gap:6px;min-height:38px;box-sizing:border-box!important;
+ position:relative;isolation:isolate;
+ border:2px solid var(--bb-edge)!important;border-radius:0!important;
+ clip-path:var(--bb-cut)!important;
+ background-color:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,
+ var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),
+ var(--bb-bottom) calc(100% - 5px) 100%)!important;
+ box-shadow:none!important;outline:none!important;
+ color:#fff!important;text-shadow:none!important;
+ font-family:'VT323',monospace!important;font-weight:400!important;
+ letter-spacing:.025em!important;font-size:20px!important;line-height:1!important;
+ text-transform:uppercase!important;
+ cursor:pointer;-webkit-tap-highlight-color:transparent;
+ transition:transform 70ms steps(2,end)!important;
 }
-.pb,.pb.green,.mgp .pb{--btn-edge:#0C879D}
-.pb.purple,.pb.teal,.pb.cream{--btn-edge:#574DB8}
-.pb.red,.shead .pb[data-act="closeSheet"],.mgp .pb.mgx,.chead .pb.x{--btn-edge:#A52C3B}
-.pb.gold{--btn-edge:#B77A0B}
-.pb::before,.pb::after,#nav .pb::before,#nav .pb::after,
-#mapctl .pb::before,#mapctl .pb::after,#sheetBody .task .pb::before,
-#sheetBody .task .pb::after,.shead .pb[data-act="closeSheet"]::before,
-.shead .pb[data-act="closeSheet"]::after{
-  display:none!important;content:none!important;
+button.pixel-btn::before,button.pixel-btn::after{display:none!important;content:none!important}
+button.pixel-btn canvas,button.pixel-btn svg{image-rendering:pixelated}
+button.pixel-btn:active:not(:disabled):not([aria-disabled="true"]){
+ transform:translateY(2px)!important;filter:brightness(.94)!important;
 }
-/* Main navigation keeps all five individual colours and the exact same shape. */
-#nav .pb{min-height:56px!important;min-width:0!important;padding:4px 2px!important;font-size:18px!important;line-height:1!important;gap:3px!important}
-#nav .pb[data-open="build"],#nav button.pb[data-open="build"]{--btn-edge:#0C879D;background:#20B8D2!important;border:2px solid #0C879D!important}
-#nav .pb[data-open="wheel"]{--btn-edge:#B93270;background:#F25AA0!important}
-#nav .pb[data-open="crates"]{--btn-edge:#B77A0B;background:#F2B21A!important}
-#nav .pb[data-open="tasks"]{--btn-edge:#218653;background:#3EBE7A!important}
-#nav .pb[data-open="settings"]{--btn-edge:#574DB8;background:#8D83EE!important}
-#nav .pb canvas{image-rendering:pixelated}
-#nav .pb[data-open="build"],#nav .pb[data-open="wheel"],
-#nav .pb[data-open="crates"],#nav .pb[data-open="tasks"]{color:#102C45!important}
-#nav .pb[data-open="settings"]{color:#FFFFFF!important}
-/* Pixel-rounded map buttons: no surrounding square or pseudo-element. */
-#mapctl .pb.sq,#mapctl #zmkt{
-  width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
-  padding:0!important;clip-path:var(--pixel-corners)!important;
-  border:2px solid var(--btn-edge)!important;
+button.pixel-btn:focus-visible{outline:2px solid #FFE28B!important;outline-offset:3px!important}
+button.pixel-btn:disabled,button.pixel-btn[aria-disabled="true"]{
+ opacity:.53!important;filter:grayscale(.35)!important;cursor:not-allowed!important;
 }
-#mapctl .pb.sq{--btn-edge:#294765!important;background:#3D5F87!important;color:#FFFFFF!important}
-#mapctl #zmkt{--btn-edge:#A96B12!important;background:#FFC93C!important;color:#2A1E10!important}
-#mapctl .pb.sq canvas,#mapctl #zmkt canvas{position:relative;z-index:1;image-rendering:pixelated}
-/* Standard close/info buttons, including the mini-game pages. */
-.shead .pb[data-act="closeSheet"],.mgp .pb.mgx,.chead .pb.x{
-  background:#E53B3B!important;color:#FFFFFF!important;
-  border:2px solid #A52C3B!important;
-  width:36px!important;height:36px!important;min-height:36px!important;
+/* Colour tokens copied from approved sheet: blue / magenta / orange / green / violet. */
+button.pixel-btn.purple,button.pixel-btn.teal,button.pixel-btn.cream{
+ --bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A;
 }
-.shead .pb.infob,.mgp .pb.infob{background:#3E7BFA!important;--btn-edge:#2454B9;border-color:#2454B9!important}
-#sheetBody .task .pb{border-color:var(--btn-edge)!important}
-#sheetBody .tabs .pb[aria-pressed="false"]{background:#354976!important;--btn-edge:#1D315A;color:#FFFFFF!important}
-#sheetBody .tabs .pb[aria-pressed="true"]{background:#F2B21A!important;--btn-edge:#B77A0B;color:#14253D!important}
-#sheetBody .tabs .pb[data-tab="items"]{background:#3B8D68!important;--btn-edge:#20583F;color:#FFFFFF!important;border-color:#20583F!important}
-#sheetBody .tabs .pb[data-tab="items"][aria-pressed="true"]{background:#57B77E!important;--btn-edge:#20583F;color:#102B20!important}
-/* Shared page typography, sheet/card surfaces, and header sizing. Game-specific artwork stays intact. */
-#sheet,.mgp,#modalBox{color:var(--page-text)!important;border:2px solid var(--page-panel-edge)!important}
-#sheet{background:var(--page-panel)!important}
-#modalBox{background:var(--page-panel)!important}
-#sheetBody .sect,.sect{border-radius:0!important;background:var(--page-card)!important;border:2px solid var(--page-panel-edge)!important}
-.shead{background:#365C91!important;border-bottom:2px solid #182C50!important}
-.shead h2,.mgtitle,.mgp.tan .mgtitle,#modalBox h2{
-  font-family:'Silkscreen',monospace!important;font-weight:400!important;
-  color:#FFFFFF!important;letter-spacing:0!important;
+button.pixel-btn.green,button.pixel-btn.rsall,button.pixel-btn.daily-claim,
+button.pixel-btn[data-act="confirmPlace"],button.pixel-btn[data-act="buildHere"]{
+ --bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817;
 }
-.shead h2{font-size:17px!important}
-.mgtitle,.mgp.tan .mgtitle{font-size:18px!important;line-height:1.25!important}
-#sheetBody,.mgp,.mgp p,.mgp small,.mgp .mgmsg,#modalBox{font-family:'VT323',monospace!important}
-.bcard,.mcard,.tier,.mg-crates .ctier,.daily-task-card,.streak-card{
-  border-radius:0!important;clip-path:var(--pixel-corners)!important;
+button.pixel-btn.red,button.pixel-btn[data-act="cancelPlace"],
+button.pixel-btn[data-act="reset"],button.pixel-btn[data-act="demolish"]{
+ --bb-face:#EB365E;--bb-top:#FF718F;--bb-bottom:#BF1D43;--bb-edge:#99203D;
 }
-.mg-crates .ctier{--btn-edge:#527CA7;border-color:#527CA7!important}
-.mg-crates .ctier[aria-pressed="true"]{--btn-edge:#B77A0B;border-color:#B77A0B!important}
-.mg-crates #openBtn{--btn-edge:#86253B;border-color:#86253B!important}
-#rollBtn,#spinBtn,#openBtn{--btn-edge:#86253B;border:2px solid #86253B!important}
-.rsall,.daily-claim,.streak-claim{--btn-edge:#218653;border-color:#218653!important}
-.pb:active:not(:disabled),#nav .pb:active:not(:disabled),#mapctl .pb:active:not(:disabled){
-  transform:translateY(2px)!important;
-  box-shadow:inset 0 2px 0 rgba(0,0,0,.2)!important;
+button.pixel-btn.gold,button.pixel-btn[data-act="upgrade"],button.pixel-btn[data-act="rush"]{
+ --bb-face:#F2B629;--bb-top:#FFDF6B;--bb-bottom:#C88613;--bb-edge:#9C6310;
 }
-.pb:focus-visible,#nav .pb:focus-visible,#mapctl .pb:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
-/* Four currencies: equal columns, white numbers, 22px pixel icons. */
+button.pixel-btn.sq{
+ --bb-face:#687CAC;--bb-top:#A0B1D5;--bb-bottom:#485B88;--bb-edge:#364569;
+ width:44px!important;height:44px!important;min-width:44px!important;
+ min-height:44px!important;padding:0!important;
+}
+/* The five navigation buttons each preserve a distinct colour. */
+#nav{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important}
+#nav button.pixel-btn{
+ width:100%!important;min-width:0!important;min-height:58px!important;
+ padding:5px 2px!important;display:flex!important;flex-direction:column!important;
+ font-size:18px!important;gap:3px!important;
+}
+#nav button.pixel-btn[data-open="build"]{--bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192}
+#nav button.pixel-btn[data-open="wheel"]{--bb-face:#EA386C;--bb-top:#FF77A0;--bb-bottom:#B91E4A;--bb-edge:#941B3D}
+#nav button.pixel-btn[data-open="crates"]{--bb-face:#F49A27;--bb-top:#FFC361;--bb-bottom:#C66F15;--bb-edge:#9C5012}
+#nav button.pixel-btn[data-open="tasks"]{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
+#nav button.pixel-btn[data-open="settings"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A}
+#nav button.pixel-btn[data-open]{background-color:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)!important;
+ border-color:var(--bb-edge)!important;color:#fff!important;
+}
+#nav button.pixel-btn canvas{width:25px!important;height:25px!important}
+#nav button.pixel-btn .nav-icon{font-size:25px!important;height:25px!important;line-height:25px!important}
+/* Map buttons / Dosh shop. */
+#mapctl button.pixel-btn.sq,#mapctl button.pixel-btn#zmkt{
+ width:44px!important;height:44px!important;min-width:44px!important;
+ min-height:44px!important;padding:0!important;
+ border:2px solid var(--bb-edge)!important;clip-path:var(--bb-cut)!important;
+ background-color:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)!important;
+}
+#mapctl button.pixel-btn#zmkt{--bb-face:#F2B629;--bb-top:#FFDF6B;--bb-bottom:#C88613;--bb-edge:#9C6310}
+/* Every X button is identical, no special glass or circular controls. */
+button.pixel-btn.pixel-close,#sheet button.pixel-btn.pixel-close,
+#card button.pixel-btn.pixel-close,#mg button.pixel-btn.pixel-close{
+ --bb-face:#E93954;--bb-top:#FF7180;--bb-bottom:#B51D36;--bb-edge:#922037;
+ flex:0 0 36px!important;width:36px!important;min-width:36px!important;
+ max-width:36px!important;height:36px!important;min-height:36px!important;
+ max-height:36px!important;padding:0!important;margin:0!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ font:24px/1 'VT323',monospace!important;color:#fff!important;
+ border:2px solid var(--bb-edge)!important;border-radius:0!important;
+ clip-path:var(--bb-cut)!important;background:var(--bb-face)!important;
+ background-image:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)!important;
+ box-shadow:none!important;text-shadow:none!important;
+}
+/* Small utility / information / setting buttons share normal controls. */
+.shead button.pixel-btn.infob,.mgp button.pixel-btn.infob,
+button.pixel-btn[data-act="info"]{
+ --bb-face:#1CA8DB;--bb-top:#54D4F5;--bb-bottom:#137EB5;--bb-edge:#0E6192;
+}
+button.pixel-btn[data-act="sound"],button.pixel-btn[data-act="loc"]{min-width:65px!important}
+button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A}
+/* Build tabs, including distinct owned-items tab. */
+#sheetBody .tabs button.pixel-btn{min-height:40px!important;font-size:17px!important}
+#sheetBody .tabs button.pixel-btn[aria-pressed="false"]{
+ --bb-face:#7784A6;--bb-top:#A9B4CC;--bb-bottom:#55617E;--bb-edge:#404B64;
+}
+#sheetBody .tabs button.pixel-btn[aria-pressed="true"]{
+ --bb-face:#9553D9;--bb-top:#BA84F5;--bb-bottom:#6F36B4;--bb-edge:#55258A;
+}
+#sheetBody .tabs button.pixel-btn[data-tab="items"]{
+ --bb-face:#389B71;--bb-top:#6BC99A;--bb-bottom:#226B4E;--bb-edge:#19533B;
+}
+#sheetBody .tabs button.pixel-btn[data-tab="items"][aria-pressed="true"]{
+ --bb-face:#4BCB81;--bb-top:#90E7B4;--bb-bottom:#2B9A5E;--bb-edge:#1F7449;
+}
+/* Cards remain usable and retain artwork/previews, but get same pixel frame. */
+#sheetBody button.pixel-btn.bcard{
+ --bb-face:#354E88;--bb-top:#5C74A9;--bb-bottom:#253966;--bb-edge:#1E2E51;
+ display:flex!important;flex-direction:column!important;gap:3px!important;
+ padding:9px 5px!important;min-height:0!important;
+ background-color:var(--bb-face)!important;color:#FFFFFF!important;
+}
+#sheetBody button.pixel-btn.bcard b,#sheetBody button.pixel-btn.bcard span{color:#FFFFFF!important}
+#sheetBody button.pixel-btn.bcard canvas{image-rendering:pixelated}
+/* Action buttons in every reward, game and shop. */
+#mg button.pixel-btn[data-act="spin"],#mg button.pixel-btn[data-act="roll"],
+#mg button.pixel-btn[data-act="openCrate"]{
+ --bb-face:#EA386C;--bb-top:#FF77A0;--bb-bottom:#B91E4A;--bb-edge:#941B3D;
+}
+#mg button.pixel-btn[data-act="buy"],#mg button.pixel-btn[data-act="buyDaily"]{
+ --bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817;
+}
+#mg button.pixel-btn.ctier{
+ --bb-face:#4A73AC;--bb-top:#7CA4D4;--bb-bottom:#315487;--bb-edge:#263F6B;
+ min-height:75px!important;
+}
+#mg button.pixel-btn.ctier[aria-pressed="true"]{
+ --bb-face:#F2B629;--bb-top:#FFDF6B;--bb-bottom:#C88613;--bb-edge:#9C6310;
+ color:#31210D!important;
+}
+#mg button.pixel-btn#openBtn{animation:none!important}
+#modalBox button.pixel-btn,#modal button.pixel-btn{min-height:46px!important}
+#modalBox button.pixel-btn.wl-r{--bb-face:#4BCB2B;--bb-top:#88EC5F;--bb-bottom:#2E9B19;--bb-edge:#247817}
+/* HUD currency is NOT a button: preserve existing icon art and evenly spaced bar. */
 #hud .chips{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;width:100%!important}
 #hud .chip,#hud .chip[aria-label="Coins"],#hud .chip[aria-label="Dosh"]{
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  min-width:0!important;gap:7px!important;padding:4px 2px!important;
-  color:#FFFFFF!important;font:20px/1 'VT323',monospace!important;
-  background:transparent!important;border:0!important;box-shadow:none!important;text-shadow:none!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;min-width:0!important;
+ gap:7px!important;padding:4px 2px!important;color:#FFFFFF!important;
+ font:20px/1 'VT323',monospace!important;background:transparent!important;
+ border:0!important;box-shadow:none!important;text-shadow:none!important;
 }
 #hud .chip span{min-width:0!important;color:#FFFFFF!important;overflow:hidden;text-overflow:ellipsis}
 #hud .chip canvas{width:22px!important;height:22px!important;flex:0 0 22px!important;image-rendering:pixelated}
-@media(max-width:380px){#hud .chips{gap:5px!important}#hud .chip{gap:4px!important;font-size:18px!important}#hud .chip canvas{width:21px!important;height:21px!important;flex-basis:21px!important}}
-
-
-/* ===== approved flat pixel button skin v1 ===== */
-:root{
- --flat-cut:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px));
+@media(max-width:380px){
+ #nav button.pixel-btn{font-size:16px!important}
+ #hud .chips{gap:5px!important}
+ #hud .chip{gap:4px!important;font-size:18px!important}
+ #hud .chip canvas{width:21px!important;height:21px!important;flex-basis:21px!important}
 }
-/* Each colour is one flat face plus a darker edge and two subtle pixel accents.
-   Do not touch canvases / currency icon assets. */
-.pb,.pb.green,.pb.purple,.pb.teal,.pb.cream,.pb.red,.pb.gold,
-#nav .pb,#mapctl .pb.sq,#mapctl #zmkt,
-#sheetBody .task .pb,.shead .pb[data-act="closeSheet"],
-.mgp .pb,.mg-crates #openBtn,.mg-crates .ctier,.tier,
-.rsall,.daily-claim,.streak-claim,.coach-skip{
- --face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;
- appearance:none!important;position:relative;
- border:2px solid var(--edge)!important;border-radius:0!important;
- background:var(--face)!important;background-image:none!important;
- clip-path:var(--flat-cut)!important;
- box-shadow:inset 0 3px 0 var(--light),inset 0 -4px 0 var(--shade)!important;
- outline:0!important;filter:none!important;
- color:#FFFFFF!important;font-family:'VT323',monospace!important;
- font-weight:400!important;text-shadow:none!important;
- animation:none!important;
-}
-.pb::before,.pb::after,#nav .pb::before,#nav .pb::after,
-#mapctl .pb::before,#mapctl .pb::after,
-.shead .pb[data-act="closeSheet"]::before,
-.shead .pb[data-act="closeSheet"]::after,
-#sheetBody .task .pb::before,#sheetBody .task .pb::after{
- display:none!important;content:none!important;
-}
-.pb.green,.daily-claim,.streak-claim,.rsall{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
-.pb.purple,.pb.teal,.pb.cream{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
-.pb.red,.shead .pb[data-act="closeSheet"],.mgp .mgx,.chead .x{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
-.pb.gold{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
-.pb.sq,.pb.sq.purple{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
-#nav .pb{min-width:0!important;min-height:56px!important;padding:4px 2px!important;gap:3px!important;font-size:18px!important}
-#nav .pb[data-open="build"]{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
-#nav .pb[data-open="wheel"]{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
-#nav .pb[data-open="crates"]{--face:#E95B9C;--edge:#AC3975;--light:#FF87BA;--shade:#C84686}
-#nav .pb[data-open="tasks"]{--face:#F28D2B;--edge:#AF5D16;--light:#FFB75E;--shade:#D8731F}
-#nav .pb[data-open="settings"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86}
-#nav .pb[data-open]{background:var(--face)!important;color:#FFFFFF!important;border-color:var(--edge)!important;box-shadow:inset 0 3px 0 var(--light),inset 0 -4px 0 var(--shade)!important}
-#mapctl .pb.sq{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
-#mapctl #zmkt{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
-#mapctl .pb.sq,#mapctl #zmkt{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;border:2px solid var(--edge)!important;clip-path:var(--flat-cut)!important;background:var(--face)!important;box-shadow:inset 0 3px 0 var(--light),inset 0 -4px 0 var(--shade)!important}
-#sheetBody .tabs .pb[aria-pressed="false"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86;color:#FFFFFF!important}
-#sheetBody .tabs .pb[aria-pressed="true"]{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;color:#FFFFFF!important}
-#sheetBody .tabs .pb[data-tab="items"]{--face:#3B8D68;--edge:#20583F;--light:#62B98C;--shade:#27734F;color:#FFFFFF!important}
-#sheetBody .tabs .pb[data-tab="items"][aria-pressed="true"]{--face:#57B77E;--edge:#20583F;--light:#81D59E;--shade:#33955C;color:#FFFFFF!important}
-.shead .pb[data-act="closeSheet"],.mgp .pb.mgx,.chead .pb.x{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843;background:var(--face)!important;border-color:var(--edge)!important;width:36px!important;height:36px!important;min-height:36px!important}
-.shead .pb.infob,.mgp .pb.infob{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;background:var(--face)!important;border-color:var(--edge)!important}
-#sheetBody .task .pb{background:var(--face)!important;border-color:var(--edge)!important}
-#rollBtn,#spinBtn,#openBtn{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843;border-color:var(--edge)!important}
-.mg-crates #openBtn{background:var(--face)!important;border-color:var(--edge)!important}
-.mg-crates .ctier{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985;background:var(--face)!important;border-color:var(--edge)!important}
-.mg-crates .ctier[aria-pressed="true"]{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12;background:var(--face)!important;border-color:var(--edge)!important;color:#33210D!important}
-.mgp .pb[data-act="buy"],.mgp .pb[data-act="buy"].green,.mgp .pb[data-act="buy"].cream{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;background:var(--face)!important;border-color:var(--edge)!important}
-.pb:active:not(:disabled),#nav .pb:active:not(:disabled),#mapctl .pb:active:not(:disabled),.mg-crates .ctier:active:not(:disabled){
- transform:translateY(2px)!important;box-shadow:inset 0 1px 0 var(--light),inset 0 -2px 0 var(--shade)!important;
-}
-.pb[disabled],.pb:disabled,.daily-claim:disabled,.streak-claim:disabled{opacity:.56!important;filter:grayscale(.4)!important}
-.pb:focus-visible,#nav .pb:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
-@media(prefers-reduced-motion:reduce){.pb{transition:none!important}}
-
-
-/* ===== VISUAL BUTTON ASSET IMPLEMENTATION v62 =====
-   The source-of-truth pixel facets are hard-edged colour blocks; no blur or glossy gradients. */
-:root{--bb-button-cut:polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px))}
-#nav button.pb,#mapctl button.pb,#sheet button.pb,#card button.pb,
-#mg button.pb,#modal button.pb,#sheetBody button.pb,
-#sheetBody button.rsall,button.rsall,#sheetBody button.daily-claim,
-#sheetBody button.streak-claim,#mg button.ctier,#mg button.tier{
- border-radius:0!important;border-style:solid!important;
- border-width:2px!important;border-color:var(--edge,#08758F)!important;
- background-color:var(--face,#159FCB)!important;
- background-image:linear-gradient(to bottom,
- var(--light,#40BEDD) 0px,var(--light,#40BEDD) 3px,
- var(--face,#159FCB) 3px,var(--face,#159FCB) calc(100% - 4px),
- var(--shade,#087CA0) calc(100% - 4px),var(--shade,#087CA0) 100%)!important;
- clip-path:var(--bb-button-cut)!important;
- box-shadow:none!important;
- text-shadow:none!important;
- color:#fff!important;
-}
-#nav button.pb[data-open="build"]{--face:#3EBE7A!important;--edge:#218653!important;--light:#69D99B!important;--shade:#2B9C63!important}
-#nav button.pb[data-open="wheel"]{--face:#8C4DD0!important;--edge:#603095!important;--light:#B17AE8!important;--shade:#7139B1!important}
-#nav button.pb[data-open="crates"]{--face:#E95B9C!important;--edge:#AC3975!important;--light:#FF87BA!important;--shade:#C84686!important}
-#nav button.pb[data-open="tasks"]{--face:#F28D2B!important;--edge:#AF5D16!important;--light:#FFB75E!important;--shade:#D8731F!important}
-#nav button.pb[data-open="settings"]{--face:#77839B!important;--edge:#4A566D!important;--light:#A6B0C3!important;--shade:#626D86!important}
-#mapctl button.pb.sq{--face:#5272A4!important;--edge:#294765!important;--light:#819DC6!important;--shade:#385985!important}
-#mapctl button#zmkt{--face:#F2B21A!important;--edge:#B77A0B!important;--light:#FFD35B!important;--shade:#D28B12!important}
-#sheet button.pb[data-act="closeSheet"],#mg button.pb.mgx,#card button.pb.x{--face:#E94C57!important;--edge:#A72D3A!important;--light:#FF8084!important;--shade:#C23843!important}
-#sheet button.pb.infob,#mg button.pb.infob{--face:#159FCB!important;--edge:#08758F!important;--light:#40BEDD!important;--shade:#087CA0!important}
-#nav button.pb{width:100%!important;min-height:58px!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:3px!important;line-height:1!important;font:19px/1 'VT323',monospace!important}
-#nav button.pb canvas{flex-shrink:0!important;image-rendering:pixelated!important}
-#nav button.pb::before,#nav button.pb::after,
-#mapctl button.pb::before,#mapctl button.pb::after,
-#sheet button.pb::before,#sheet button.pb::after{content:none!important;display:none!important}
-#nav button.pb:active:not(:disabled),#mapctl button.pb:active:not(:disabled),
-#sheet button.pb:active:not(:disabled),#mg button.pb:active:not(:disabled){
- transform:translateY(2px)!important;
- filter:brightness(.93)!important;
-}
-#nav,#mapctl,#sheet,#mg{--pixel-skin-version:62}
-
-
-/* ===== all-page pixel button system v63 =====
-   Every button template receives pixel-btn; generated buttons retain their existing
-   data-act/data-open attributes, click handlers, aria state, and icon canvases. */
-button.pixel-btn:not(#advisor){
- --face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0;
- appearance:none!important;border:2px solid var(--edge)!important;
- border-radius:0!important;clip-path:var(--bb-button-cut)!important;
- background:var(--face)!important;
- background-image:linear-gradient(to bottom,var(--light) 0 3px,var(--face) 3px calc(100% - 4px),var(--shade) calc(100% - 4px) 100%)!important;
- box-shadow:none!important;text-shadow:none!important;
- font-family:'VT323',monospace!important;
- color:#fff!important;
-}
-button.pixel-btn.green,button.pixel-btn.daily-claim,button.pixel-btn.streak-claim,button.pixel-btn.rsall{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
-button.pixel-btn.purple,button.pixel-btn.teal,button.pixel-btn.cream{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
-button.pixel-btn.red,button.pixel-btn.mgx,button.pixel-btn.x{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
-button.pixel-btn.gold{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
-button.pixel-btn.sq{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
-#nav button.pixel-btn[data-open="build"]{--face:#3EBE7A;--edge:#218653;--light:#69D99B;--shade:#2B9C63}
-#nav button.pixel-btn[data-open="wheel"]{--face:#8C4DD0;--edge:#603095;--light:#B17AE8;--shade:#7139B1}
-#nav button.pixel-btn[data-open="crates"]{--face:#E95B9C;--edge:#AC3975;--light:#FF87BA;--shade:#C84686}
-#nav button.pixel-btn[data-open="tasks"]{--face:#F28D2B;--edge:#AF5D16;--light:#FFB75E;--shade:#D8731F}
-#nav button.pixel-btn[data-open="settings"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86}
-#nav button.pixel-btn[data-open]{background:var(--face)!important;background-image:linear-gradient(to bottom,var(--light) 0 3px,var(--face) 3px calc(100% - 4px),var(--shade) calc(100% - 4px) 100%)!important;border-color:var(--edge)!important}
-#mapctl button.pixel-btn.sq{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
-#mapctl button.pixel-btn#zmkt{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12}
-.shead button.pixel-btn[data-act="closeSheet"],.mgp button.pixel-btn.mgx{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
-.shead button.pixel-btn.infob,.mgp button.pixel-btn.infob{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0}
-#sheetBody .tabs button.pixel-btn[aria-pressed="false"]{--face:#77839B;--edge:#4A566D;--light:#A6B0C3;--shade:#626D86}
-#sheetBody .tabs button.pixel-btn[aria-pressed="true"]{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0}
-#sheetBody .tabs button.pixel-btn[data-tab="items"]{--face:#3B8D68;--edge:#20583F;--light:#62B98C;--shade:#27734F}
-#sheetBody .tabs button.pixel-btn[data-tab="items"][aria-pressed="true"]{--face:#57B77E;--edge:#20583F;--light:#81D59E;--shade:#33955C}
-#mg button.pixel-btn#rollBtn,#mg button.pixel-btn#spinBtn,#mg button.pixel-btn#openBtn{--face:#E94C57;--edge:#A72D3A;--light:#FF8084;--shade:#C23843}
-#mg button.pixel-btn[data-act="buy"],#mg button.pixel-btn[data-act="buyDaily"]{--face:#159FCB;--edge:#08758F;--light:#40BEDD;--shade:#087CA0}
-#mg button.pixel-btn.ctier{--face:#5272A4;--edge:#294765;--light:#819DC6;--shade:#385985}
-#mg button.pixel-btn.ctier[aria-pressed="true"]{--face:#F2B21A;--edge:#B77A0B;--light:#FFD35B;--shade:#D28B12;color:#34220B!important}
-#sheetBody button.pixel-btn.bcard{--face:#283A64;--edge:#536C9A;--light:#374E7D;--shade:#1B2C52;color:#FFFFFF!important;min-height:unset!important}
-#sheetBody button.pixel-btn.bcard span,#sheetBody button.pixel-btn.bcard b{color:#FFFFFF!important}
-button.pixel-btn:disabled,button.pixel-btn[aria-disabled="true"]{opacity:.56!important;cursor:not-allowed}
-button.pixel-btn:active:not(:disabled):not([aria-disabled="true"]){transform:translateY(2px)!important;filter:brightness(.94)!important}
-button.pixel-btn:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
-button.pixel-btn::before,button.pixel-btn::after{content:none!important;display:none!important}
-/* Keep avatar/advisor widget appearance distinct; it isn't a menu button. */
-#advisor.pixel-btn{clip-path:none!important}
-
-
-/* Unified red X control across sheet, city card, Wheel, Crates, Dosh Shop and Dice.
-   One tokenized pixel face, shared geometry; placement rules remain page-specific. */
-button.pixel-btn.pixel-close,
-#sheet .shead button.pixel-btn.pixel-close,
-#card .chead button.pixel-btn.pixel-close,
-#mg .mgp button.pixel-btn.pixel-close{
- --face:#E94C57!important;--edge:#A72D3A!important;
- --light:#FF8084!important;--shade:#C23843!important;
- appearance:none!important;box-sizing:border-box!important;
- flex:0 0 36px!important;
- width:36px!important;min-width:36px!important;max-width:36px!important;
- height:36px!important;min-height:36px!important;max-height:36px!important;
- margin:0!important;padding:0!important;
- display:inline-flex!important;align-items:center!important;justify-content:center!important;
- border:2px solid #A72D3A!important;border-radius:0!important;
- clip-path:var(--bb-button-cut)!important;
- background:#E94C57!important;
- background-image:linear-gradient(to bottom,#FF8084 0 3px,#E94C57 3px calc(100% - 4px),#C23843 calc(100% - 4px) 100%)!important;
- box-shadow:none!important;outline:0!important;
- color:#FFFFFF!important;font:24px/1 'VT323',monospace!important;
- text-align:center!important;letter-spacing:0!important;text-shadow:none!important;
- animation:none!important;filter:none!important;
-}
-button.pixel-btn.pixel-close::before,button.pixel-btn.pixel-close::after{
- content:none!important;display:none!important;
-}
-button.pixel-btn.pixel-close:active:not(:disabled){
- transform:translateY(2px)!important;filter:brightness(.93)!important;
-}
-button.pixel-btn.pixel-close:focus-visible{outline:2px solid #FFE066!important;outline-offset:2px!important}
+@media(prefers-reduced-motion:reduce){button.pixel-btn{transition:none!important}}
 
 </style>
 </head>
@@ -1336,7 +1224,7 @@ button.pixel-btn.pixel-close:focus-visible{outline:2px solid #FFE066!important;o
 
     <div class="chip" aria-label="Wheel tickets"><canvas data-icon="ticket" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="tix">0</span></div>
   </div>
-  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity">0 / 0 RESIDENTS</span><button class="pixel-btn" id="rsAll" class="rsall">RESTOCK ALL</button><b id="cpmLbl">0 COINS/MIN</b></div>
+  <div class="cpmbar"><span id="popLbl" aria-label="Residents and housing capacity">0 / 0 RESIDENTS</span><button class="pixel-btn rsall" id="rsAll">RESTOCK ALL</button><b id="cpmLbl">0 COINS/MIN</b></div>
 </header>
 
 <button class="pixel-btn" id="advisor" aria-label="City advisor"><canvas id="faceIcon" width="56" height="56" style="width:28px;height:28px"></canvas><span class="adv"><b id="advT">Looking good!</b><small id="advS">Happiness 50%</small></span></button>
@@ -1359,7 +1247,7 @@ button.pixel-btn.pixel-close:focus-visible{outline:2px solid #FFE066!important;o
   <button class="pixel-btn pb purple" data-open="wheel"><canvas data-icon="wheel" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Wheel<span class="dot" id="dotWheel" hidden></span></button>
   <button class="pixel-btn pb purple" data-open="crates"><canvas data-icon="crate" data-tier="steel" width="56" height="56" style="width:28px;height:28px" aria-hidden="true"></canvas>Crates<span class="dot" id="dotCrates" hidden></span></button>
   <button class="pixel-btn pb purple" data-open="tasks"><canvas data-icon="clip" width="56" height="56" style="width:26px;height:26px" aria-hidden="true"></canvas>Tasks<span class="dot" id="dotTasks" hidden></span></button>
-  <button class="pixel-btn" id="settingsBtn" class="pb purple" data-open="settings" aria-label="Settings" title="Settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
+  <button class="pixel-btn pb purple" id="settingsBtn" data-open="settings" aria-label="Settings" title="Settings"><span class="nav-icon" aria-hidden="true">⚙</span>Settings</button>
 </nav>
 
 <div id="scrim"></div>
