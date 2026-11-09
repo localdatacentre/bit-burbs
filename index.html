@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=70">
+<link rel="stylesheet" href="pocket-ui.css?v=72">
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -1262,7 +1262,6 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 <div id="toast" role="status"></div>
 <div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
 
-<script src="model-pack.js?v=71"></script>
 <script>
 document.addEventListener('touchend',e=>{const now=Date.now();if(window.__bbLastTouchEnd&&now-window.__bbLastTouchEnd<320)e.preventDefault();window.__bbLastTouchEnd=now;},{passive:false});
 </script>
@@ -2132,40 +2131,15 @@ const DEFS = {
   nuclear:  { name: 'Nuclear Power Plant', type: 'util', cost: 120000, lvl: 12, supP: 400, h: 100, fx: 7, fy: 5 },
   needle:   { name: 'Observation Tower', type: 'decor', cost: 50000, lvl: 10, h: 150, fx: 2, fy: 2 },
   space:    { name: 'Space Centre', type: 'decor', cost: 150000, lvl: 15, h: 150, fx: 4, fy: 3 },
-  hall:     { name: 'Town Hall', type: 'hall', cost: 0, lvl: 1, h: 44, wall: '#F6EEE0', side: '#D9CDB8', roof: '#E53B3B' },
-  /* Flat model pack v71: additional placeable models */
-  luxuryVilla: {name:'Luxury Villa',type:'home',cost:36000,lvl:10,cap:12,h:24,pw:5,wa:5},
-  cornerShop: {name:'Corner Shop',type:'shop',cat:'Retail',cost:1100,lvl:1,staff:2,rc:90,earn:210,time:25,h:22,pw:1,wa:1},
-  restaurant: {name:'Restaurant',type:'shop',cat:'Food',cost:5700,lvl:4,staff:3,rc:360,earn:1050,time:75,h:25,pw:3,wa:2},
-  clothingStore: {name:'Clothing Store',type:'shop',cat:'Retail',cost:10500,lvl:6,staff:3,rc:650,earn:1850,time:95,h:26,pw:3,wa:1},
-  electronics: {name:'Electronics',type:'shop',cat:'Retail',cost:19500,lvl:8,staff:4,rc:1100,earn:2900,time:110,h:27,pw:5,wa:1},
-  arcade: {name:'Arcade',type:'shop',cat:'Leisure',cost:27000,lvl:9,staff:4,rc:1350,earn:3750,time:115,h:30,pw:6,wa:2},
-  bank: {name:'Bank',type:'shop',cat:'Services',cost:48000,lvl:11,staff:5,rc:2400,earn:6400,time:120,h:34,pw:4,wa:2},
-  hospital: {name:'Hospital',type:'svc',svc:2,cost:18000,lvl:7,rad:7,staff:5,pw:6,wa:4,h:40},
-  waterPlant: {name:'Water Plant',type:'util',cost:14000,lvl:7,supW:100,h:30,pw:3},
-  recycling: {name:'Recycling Centre',type:'util',cost:17500,lvl:8,supP:3,h:30,pw:2,wa:2},
-  wasteFacility: {name:'Waste Facility',type:'util',cost:24000,lvl:9,supP:4,h:35,pw:3,wa:2},
-  playground: {name:'Playground',type:'decor',cost:1650,lvl:2,happy:6,rad:2},
-  garden: {name:'Garden',type:'decor',cost:800,lvl:2,happy:4,rad:2},
-  plaza: {name:'Plaza',type:'decor',cost:4800,lvl:6,happy:10,rad:3},
-  gazebo: {name:'Gazebo',type:'decor',cost:2700,lvl:4,happy:7,rad:2},
-  smallTree: {name:'Small Tree',type:'decor',cost:85,lvl:1,happy:1,rad:1},
-  hedge: {name:'Hedge',type:'decor',cost:130,lvl:1,happy:1,rad:1},
-  streetLight: {name:'Street Light',type:'decor',cost:400,lvl:2,happy:1,rad:1},
-  bench: {name:'Bench',type:'decor',cost:250,lvl:1,happy:2,rad:1},
-  streetBin: {name:'Street Bin',type:'decor',cost:180,lvl:2,happy:1,rad:1},
-  busStop: {name:'Bus Stop',type:'decor',cost:1900,lvl:5,happy:3,rad:2},
-  civicSquare: {name:'Town Hall Area',type:'decor',cost:15000,lvl:8,happy:14,rad:3}
+  hall:     { name: 'Town Hall', type: 'hall', cost: 0, lvl: 1, h: 44, wall: '#F6EEE0', side: '#D9CDB8', roof: '#E53B3B' }
 };
 const SVC_NAMES = ['Police', 'Fire', 'Health', 'Education'];
 const BUILD_TABS = [
- ['homes','Homes',['house','house2','town','aptS','aptP','tower','luxuryVilla']],
- ['businesses','Businesses',['cornerShop','bakery','coffee','restaurant','grocery','clothingStore','electronics','gym','hardware','cinema','arcade','bank','gas','workshop','factory','warehouse','skyscraper']],
- ['util','Utilities',['wind','wtower','pump','plant','waterPlant','recycling','wasteFacility','solar2','nuclear']],
- ['services','Services',['police','fire','clinic','hospital','school']],
- ['city','Roads & streets',['road','streetLight','bench','streetBin','busStop']],
- ['decor','Parks & decor',['park','playground','garden','plaza','gazebo','tree','smallTree','hedge','civicSquare','needle','space']],
- ['items','My items',['sakura','fountain','statue']]
+  ['homes', 'Homes', ['house', 'house2', 'aptS', 'aptP', 'tower', 'town']],
+  ['businesses', 'Businesses', ['bakery', 'coffee', 'grocery', 'gym', 'hardware', 'cinema', 'gas', 'workshop', 'factory', 'warehouse', 'skyscraper']],
+  ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar2', 'nuclear']],
+  ['city', 'Roads & parks', ['road', 'park', 'tree', 'needle', 'space']],
+  ['items', 'My items', ['sakura', 'fountain', 'statue']]
 ];
 const EXPAND = [];
 const expIdx = () => 13 - S.lo;
@@ -2956,14 +2930,7 @@ function shadowFor(i, j, hpx) {
 }
 const SPR_KEY = { house: 'm1', house2: 'm2', aptS: 'apartments', aptP: 'pinkflats', tower: 'skytower', town: 'town', bakery: 'bakery', coffee: 'coffee', grocery: 'grocery', gym: 'gym', hardware: 'hardware', cinema: 'cinema', gas: 'gas', workshop: 'workshop', factory: 'factory', warehouse: 'warehouse', skyscraper: 'skyscraper', wind: 'wind', wtower: 'watertower', pump: 'waterpump', solar2: 'solar', nuclear: 'nuclear', hall: 'townhall', statue: 'bull', park: 'park', tree: 'tree', flowers: 'flowers', fountain: 'fountain', sakura: 'cherry', needle: 'needle', space: 'space' };
 const SPR = new Map();
-function spriteOf(id) {
- if (!SPR.has(id)) {
-  const fresh=window.BBModelPack&&window.BBModelPack.render(id);
-  if(fresh)SPR.set(id,fresh);
-  else if(SPR_KEY[id]&&typeof SPRK!=='undefined')SPR.set(id,SPRK.render(SPR_KEY[id]));
- }
- return SPR.get(id)||null;
-}
+function spriteOf(id) { if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
 function spriteImg(sp, mir) { const q = Math.round(DARK * 6); const key = 'v' + q + (mir ? 'm' : ''); if (sp[key]) return sp[key];
   const c = document.createElement('canvas'); c.width = sp.w; c.height = sp.h; const x = c.getContext('2d'); if (mir) { x.translate(sp.w, 0); x.scale(-1, 1); } x.drawImage(sp.img, 0, 0);
   if (q) { const im = x.getImageData(0, 0, sp.w, sp.h); const d = im.data; const f = q / 6 * .5; for (let k = 0; k < d.length; k += 4) { d[k] = d[k] * (1 - f) + 22 * f; d[k + 1] = d[k + 1] * (1 - f) + 32 * f; d[k + 2] = d[k + 2] * (1 - f) + 74 * f; } x.putImageData(im, 0, 0); }
