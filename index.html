@@ -3072,9 +3072,9 @@ const DEFS = {
 const SVC_NAMES = ['Police', 'Fire', 'Health', 'Education'];
 const BUILD_TABS = [
   ['homes', 'Homes', ['house', 'house2', 'm3', 'banksiaDuplex', 'q1', 'aptS', 'aptP', 'tower', 'town']],
-  ['businesses', 'Businesses', ['bakery', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'spindleCycles', 'gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper']],
+  ['businesses', 'Businesses', ['bakery', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'spindleCycles', 'gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'police', 'fire', 'clinic', 'school']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'plant', 'solar2', 'nuclear']],
-  ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'police', 'fire', 'clinic', 'school', 'ferris', 'tidalBaths', 'civicClock', 'needle', 'space']],
+  ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'ferris', 'tidalBaths', 'civicClock', 'needle', 'space']],
   ['transport', 'Transport', ['hailStop','busShelter']],
   ['items', 'My items', ['sakura', 'fountain', 'statue', 'sundrop', 'sunhouse', 'pelicanLight']]
 ];
@@ -3395,7 +3395,7 @@ const UP_MAX = 5;
 const lvlOf = t => (t && t.lvl) || 1;
 const UP_MULS = [1, 1, 1.25, 1.6, 2.05, 2.6]; const upMul = t => UP_MULS[lvlOf(t)] || 1;
 const hFac = t => 1 + .18 * (lvlOf(t) - 1);
-const canUp = d => d && (d.type === 'shop' || d.type === 'home' || d.type === 'ind' || d.type === 'util');
+const canUp = d => d && (d.type === 'shop' || d.type === 'home' || d.type === 'ind' || d.type === 'svc' || d.type === 'util');
 function upCost(d, L) { return { coins: Math.round((d.cost || 1000) * [0, .8, 1.6, 3, 5][L]), deeds: L >= 3 ? L - 2 : 0 }; }
 const stime = (t, d) => (S && S.tut ? 5000 : d.time * 1000 * (1 - .08 * (lvlOf(t) - 1)));
 const hcap = (t, d) => Math.round(d.cap * (1 + .5 * (lvlOf(t) - 1)));
@@ -3437,7 +3437,7 @@ function derive() {
   let left = S.pop; homes.forEach(h => { h.res = h.live ? Math.min(hcap(h.t, h.d), left) : 0; left -= h.res; });
   let free = S.pop, jobs = 0, employed = 0, shopJobs = 0, indJobs = 0;
   list.forEach(b => {
-    if (isBiz(b.d)) { jobs += 3; if (b.d.type === 'shop') shopJobs += 3; else indJobs += 3; b.works = b.ok && b.pow && b.wat; b.workers = b.works ? Math.max(0, Math.min(3, free)) : 0; free -= b.workers; employed += b.workers; b.staffed = b.workers > 0; return; }
+    if (isBiz(b.d)) { jobs += 3; if (b.d.type === 'shop') shopJobs += 3; else if (b.d.type === 'ind') indJobs += 3; b.works = b.ok && b.pow && b.wat; b.workers = b.works ? Math.max(0, Math.min(3, free)) : 0; free -= b.workers; employed += b.workers; b.staffed = b.workers > 0; return; }
     if (!b.d.staff) { b.staffed = true; return; }
     jobs += b.d.staff; if (b.d.type === 'shop') shopJobs += b.d.staff; if (b.d.type === 'ind') indJobs += b.d.staff;
     b.works = b.ok && b.pow && b.wat;
@@ -3447,7 +3447,7 @@ function derive() {
   list.forEach(b => {
     const d = b.d; const r = d.rad || 0; if (!r) return;
     let kind = null;
-    if (d.type === 'svc' && b.staffed) kind = 'svc';
+    if (d.type === 'svc' && b.workers >= d.staff) kind = 'svc';
     else if (d.type === 'decor') kind = 'deco';
     else if (d.poll && ((d.type === 'ind' && b.staffed) || (d.type === 'util' && b.ok))) kind = 'poll';
     if (!kind) return;
@@ -4900,7 +4900,7 @@ function renderCard(force) {
           else if (p.s > tn) st = `+${fmt(prodCpm(b, k))}/min · ${mmss(p.s - tn)}`;
           else { const cost = productRestockCost(t,k); st = 'Empty · ' + (k === 0 ? '1m' : k === 1 ? '15m' : '1h') + ' delivery'; btn = `<button class="pixel-btn pb sm" data-act="order" data-k="${k}" ${S.cash < cost ? 'disabled' : ''}>${stockPriceLabel('Restock',cost)}</button>`; }
           rows += `<div class="prod ${k >= b.workers ? 'lock' : ''}"><div><b>${names[k]}</b><span>${st}</span></div>${btn}</div>`; }
-        html = head(d.name, `Lv ${lvlOf(t)} · ${fmt(bizCpm(b))}/min`) + statusTags(b) + (w ? `<p class="note">${w}</p>` : '') + `<div class="prods">${rows}</div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
+        html = head(d.name, `Lv ${lvlOf(t)} · ${fmt(bizCpm(b))}/min`) + statusTags(b) + (d.type === 'svc' ? `<p class="note">${SVC_NAMES[d.svc]} coverage · ${d.rad} tiles with ${d.staff} workers</p>` : '') + (w ? `<p class="note">${w}</p>` : '') + `<div class="prods">${rows}</div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'home') {
         html = head(d.name, b.live ? `Lv ${lvlOf(t)} · ${b.res}/${hcap(t, d)} residents` : 'Needs road, power & water') + statusTags(b) + `` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'ind') {
@@ -4911,8 +4911,6 @@ function renderCard(force) {
         const upgrade=t.id==='hailStop'?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(S.cash<1200?'disabled':'')+'>Upgrade to shelter · 1,200 Coins</button>':'';
         html=head(d.name,d.fare+' Coins per visit · every 10 active minutes')
           +'<p class="note" id="stopTime"></p><div class="row">'+upgrade+demoBtn()+'</div>';
-      } else if (d.type === 'svc') {
-        html = head(d.name, 'An old service building. It no longer does anything, so you can demolish it for a refund.') + statusTags(b) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'hall') {
         const e = EXPAND[expIdx()];
         html = head('Town Hall', stage(S.level) + ' · Lv ' + S.level) + `<button class="pixel-btn pb purple sm" data-act="info" data-k="hall">How it works</button><div class="tags"><span class="tag">Residents ${S.pop}/${D.cap}</span><span class="tag">Jobs ${D.employed}/${D.jobs}</span><span class="tag ${D.useP <= D.supP ? 'ok' : 'bad'}">Power ${D.useP}/${D.supP}</span><span class="tag ${D.useW <= D.supW ? 'ok' : 'bad'}">Water ${D.useW}/${D.supW}</span></div>` + (e ? `<div class="row"><button class="pixel-btn pb" data-act="expand" ${S.level >= e.lvl && S.cash >= e.cost && (S.deeds || 0) >= e.deeds ? '' : 'disabled'}>Expand land · ${fmt(e.cost)} + ${e.deeds} Deed${e.deeds > 1 ? 's' : ''}${S.level < e.lvl ? ' (Lv ' + e.lvl + ')' : ''}</button></div>` : '<p class="note">Your city has all the land there is!</p>');
@@ -5022,7 +5020,7 @@ function buildHTML() {
     else if (d.type === 'home') sub = `${d.cap} residents`;
     else if (d.type === 'ind') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
-    else if (d.type === 'svc') sub = `${SVC_NAMES[d.svc]} for ${d.rad} tiles · ${d.staff} staff`;
+    else if (d.type === 'svc') sub = `${SVC_NAMES[d.svc]} · ~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
     else if (d.type === 'decor') sub = 'Decoration';
     else if (d.type === 'hall') sub = 'Your city centre, free';
     else sub = 'Connects everything';
@@ -5671,8 +5669,12 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (mg) cl
 
 
 /* ================= business economy (Tiny Tower style) ================= */
-const isBiz = d => !!d && (d.type === 'shop' || d.type === 'ind');
+const isBiz = d => !!d && (d.type === 'shop' || d.type === 'ind' || d.type === 'svc');
 const PRODUCTS = {
+  police: ['Patrol supplies', 'Radio equipment', 'Training kits'],
+  fire: ['Safety kits', 'Rescue equipment', 'Firefighter gear'],
+  clinic: ['First aid kits', 'Medical supplies', 'Diagnostic equipment'],
+  school: ['Stationery', 'Textbooks', 'Science kits'],
   record: ['Singles', 'LPs', 'Collector Editions'],
   books: ['Paperbacks', 'Hardcovers', 'Signed Editions'],
   fishchips: ['Hot Chips', 'Fish Baskets', 'Seafood Platters'],
