@@ -1292,6 +1292,13 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  #sheet.open{bottom:calc(75px + env(safe-area-inset-bottom,0px))!important}
 }
 </style>
+<style id="bb-tutorial-menu-isolation">
+/* Tutorial overlays are only shown on the playable city screen. */
+body.sheet-open #coach,
+body:has(#mg.show) #coach,
+body:has(#modal.show) #coach { display:none!important;pointer-events:none!important; }
+body.sheet-open .sbody{padding-bottom:16px!important}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -3439,7 +3446,7 @@ function animateTo(wx, wy) { const r = rotXY(wx, wy); camAnim = { sx: V.cx, sy: 
 /* ================= sheets: build + tasks ================= */
 let sheet = null, sheetKeyVal = '', buildTab = 'homes', buildTarget = null, resetArm = false, taskTab = 'tasks';
 const sheetEl = $('#sheet'), sheetBody = $('#sheetBody'), scrim = $('#scrim');
-function openSheet(name) { snd('open'); document.body.classList.add('sheet-open'); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); }
+function openSheet(name) { snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); }
 function closeSheet() { snd('close'); document.body.classList.remove('sheet-open'); sheet = null; buildTarget = null; sheetEl.classList.remove('open'); scrim.classList.remove('open'); renderCard(true); }
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
@@ -3540,6 +3547,7 @@ sheetEl.addEventListener('click', e => {
 const mgEl = $('#mg'), mgPanel = $('#mgPanel');
 let mg = null;
 function openMg(name) { if (name !== 'crates') snd('open');
+  $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null);
   if (sheet) closeSheet(); mg = name; card.classList.remove('show');
   mgPanel.className = 'mgp ' + (name === 'dice' ? 'tan' : 'purple') + ' mg-' + name;
   if (name === 'dice') buildDice(); else if (name === 'wheel') buildWheel(); else if (name === 'market') buildMarket(); else buildCrates();
@@ -4166,6 +4174,14 @@ function suggestTile(id) {
   return best;
 }
 function tutTick() {
+  // Keep the tutorial on the city map, never over Tasks or other menus.
+  // Pausing here preserves the current tutorial step and progress.
+  if (sheet || mg || $('#modal').classList.contains('show')) {
+    $('#coach').classList.remove('show');
+    document.body.classList.remove('tut-on');
+    setHL(null);
+    return;
+  }
   if (S.tut && S.tut.step >= TUT.length) { finishTut(); return; }
   const coach = $('#coach'); const st = tutStep();
   if (!st || S.firstRun) { coach.classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); return; }
