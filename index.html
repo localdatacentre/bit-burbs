@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=81">
+<link rel="stylesheet" href="pocket-ui.css?v=82">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -1298,6 +1298,22 @@ body.sheet-open #coach,
 body:has(#mg.show) #coach,
 body:has(#modal.show) #coach { display:none!important;pointer-events:none!important; }
 body.sheet-open .sbody{padding-bottom:16px!important}
+</style>
+<style id="bb-coach-top-pin-v82">
+/* Reliable pocket tutorial position on mobile Safari. No covering placement actions. */
+#coach.show{
+ position:fixed!important;
+ top:calc(var(--bb-hud-bottom,112px) + 14px)!important;
+ bottom:auto!important;
+ left:9px!important;right:auto!important;
+ width:min(325px,calc(100vw - 18px))!important;
+ height:auto!important;
+ min-height:0!important;max-height:170px!important;
+ z-index:33!important;overflow-y:auto!important;
+}
+body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
+ display:none!important;
+}
 </style>
 </head>
 <body>
@@ -4237,11 +4253,27 @@ function tutTick() {
     coach.classList.remove('show');document.body.classList.remove('tut-on');
   } else {
     coach.classList.add('show');document.body.classList.add('tut-on');
-    document.documentElement.style.setProperty('--tutTop',Math.round(coach.getBoundingClientRect().bottom)+'px');
-    let extra='';
-    if(st.build&&placing&&placing.id===st.build)extra=' Tap the yellow plot, then confirm.';
+    // Pin guidance below the top HUD, not above the bottom navigation.
+    // WebKit previously kept a stale bottom position when the card appeared.
+    const hudBottom=$('#hud').getBoundingClientRect().bottom;
+    const top=Math.round(hudBottom+14);
+    const available=Math.max(92,window.innerHeight-top-28);
+    coach.style.setProperty('position','fixed','important');
+    coach.style.setProperty('top',top+'px','important');
+    coach.style.setProperty('bottom','auto','important');
+    coach.style.setProperty('left','9px','important');
+    coach.style.setProperty('right','auto','important');
+    coach.style.setProperty('max-height',Math.min(170,available)+'px','important');
+    let message=st.d;
+    if(st.build&&placing&&placing.id===st.build)
+      message='The building is lined up on the yellow plot. Tap the highlighted BUILD/PLACE button to confirm.';
+    else if(st.build&&st===TUT[0])
+      message='Tap the highlighted blue BUILD button below. Choose Homes, then Cottage.';
+    else if(st.act&&sel)
+      message='Tap the highlighted action on your '+(st.target==='bakery'?'Bakery.':'building.');
     setText($('#coachStep'),'TUTORIAL '+(S.tut.step+1)+'/'+TUT.length);
-    setText($('#coachT'),st.t);setText($('#coachD'),st.d+extra);
+    setText($('#coachT'),st.t);setText($('#coachD'),message);
+    document.documentElement.style.setProperty('--tutTop',Math.round(coach.getBoundingClientRect().bottom)+'px');
   }
   let target=null;
   if(st.build){
