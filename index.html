@@ -1210,7 +1210,7 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 }
 </style>
-<link rel="stylesheet" href="pocket-ui.css?v=82">
+<link rel="stylesheet" href="pocket-ui.css?v=83">
 
 <style id="bb-nav-visibility-guard">
 /* Emergency baseline for mobile/WebKit: nav must render even if an offline
@@ -4029,24 +4029,121 @@ function updateCrateUI() {
   const m = $('#crateMsg');
   if (m && !crateAnim && !crateReveal) setText(m, can ? '' : 'You need a ' + TIER[crateSel] + ' key');
 }
-function drawChestScene() { const cvs = $('#chest'); if (!cvs) return; drawChestSceneInner(cvs); if (TXTQ) pxEnd(cvs); }
-function drawChestSceneInner(cvs) {
-  const c = pxBegin(cvs, 320, 210);
-  const cx = 160, cy = 168, t = performance.now();
-  let lid = 0, shakeA = 0, rays = 0;
-  if (crateAnim) { const e = (t - crateAnim.t0) / 1000; if (e < .7) shakeA = 3 + e * 6; else if (e < 1) lid = (e - .7) / .3; else { lid = 1; rays = Math.min(1, (e - 1) / .3); } if (e > 1.6) { crateReveal = crateAnim.rew; crateAnim = null; } }
-  else if (crateReveal) { lid = 1; rays = 1; }
-  if (rays > 0) {
-    c.save(); c.translate(cx, cy - 70); c.rotate(t / 2000); c.globalAlpha = rays * .8;
-    for (let k = 0; k < 12; k++) { c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 200, k * Math.PI / 6, k * Math.PI / 6 + Math.PI / 12); c.closePath(); c.fillStyle = k % 2 ? 'rgba(255,220,90,.38)' : 'rgba(255,255,255,.22)'; c.fill(); }
-    c.restore(); c.globalAlpha = 1;
+// A single time-based animation drives the chest; avoid competing CSS shakes,
+// repeated full-size canvas redraws, and duplicate timeout-driven reveals.
+let crateSceneFrame = -1;
+const crateEase = x => { x = Math.max(0, Math.min(1, x)); return 1-Math.pow(1-x,3); };
+function finishCrateReveal() {
+  if (!crateAnim) return;
+  const { rew, tier } = crateAnim;
+  crateAnim = null;
+  crateReveal = rew;
+  mgPanel.classList.remove('crate-opening');
+  mgPanel.classList.add('crate-revealed');
+  snd('win');
+  buzz(isBig(rew.r) ? [20,35,35] : 18);
+  // Celebrate only when the chest actually opens, not while it is loading.
+  const stage = mgPanel.querySelector('.cstage');
+  const rect = stage && stage.getBoundingClientRect();
+  confetti(isBig(rew.r) ? 48 : 24, rect ? rect.left+rect.width/2 : undefined, rect ? rect.top+rect.height*.45 : undefined);
+  if (isBig(rew.r)) bigWin={text:'BIG WIN!',t0:performance.now()};
+  buildCratesKeepScene();
+  setText($('#crateMsg'), 'You got '+rew.label+'!'+(rew.r.k==='item'?' Find it in Build › My items.':''));
+  crateSceneFrame=-1;
+  changed();
+}
+function drawChestScene() {
+  const cvs=$('#chest');
+  if(!cvs) return;
+  const t=performance.now();
+  if(crateAnim && t-crateAnim.t0 >= (crateAnim.reduceMotion?260:1780)){
+    finishCrateReveal();
+    return;
   }
-  chest(c, cx, cy, 150, crateSel, lid, shakeA);
-  const r = crateReveal || (crateAnim && rays > 0 ? crateAnim.rew : null);
-  if (r && rays > 0) {
-    const y = cy - 90 - rays * 20; c.globalAlpha = rays;
-    drawIcon(c, rewIconKind(r.r), cx, y, 64, r.r.tier);
-    txt(c, r.label, cx, y + 46, 20, '#FFE066'); c.globalAlpha = 1;
+  // Pixel art reads best at ~30 fps on mobile; static states need just 6 fps.
+  const interval=crateAnim?33:160;
+  if(crateSceneFrame>=0 && t-crateSceneFrame<interval)return;
+  crateSceneFrame=t;
+  drawChestSceneInner(cvs,t);
+  if(TXTQ)pxEnd(cvs);
+}
+function drawChestSceneInner(cvs,t) {
+  const c=pxBegin(cvs,320,210);
+  const cx=160, cy=171;
+  const anim=crateAnim;
+  const e=anim?Math.min(1,(t-anim.t0)/(anim.reduceMotion?260:1780)):0;
+  let lid=crateReveal?1:0, rays=crateReveal?1:0;
+  let bob=0,scale=1,shake=0;
+  if(anim){
+    if(e<.25){
+      const p=e/.25;
+      scale=1-.08*crateEase(p);
+      bob=6*crateEase(p);
+    }else if(e<.52){
+      const p=(e-.25)/.27;
+      scale=.92+.12*crateEase(p);
+      bob=6*(1-crateEase(p));
+      // Deliberate, increasing tremor instead of 10 shakes a second.
+      shake=Math.sin(p*28)*Math.min(3.2,p*3.2);
+    }else if(e<.72){
+      const p=(e-.52)/.20;
+      lid=crateEase(p);
+      scale=1.04+.07*Math.sin(Math.min(1,p)*Math.PI);
+      shake=(1-p)*2*Math.sin(p*20);
+      rays=crateEase(Math.max(0,(p-.22)/.78))*.85;
+    }else{
+      const p=(e-.72)/.28;
+      lid=1;
+      rays=crateEase(p);
+      scale=1.05-.05*crateEase(p);
+      bob=-7*(1-crateEase(p));
+    }
+  }
+  // Lightweight radial light rays behind the actual chest.
+  if(rays>0){
+    c.save();
+    c.translate(cx,cy-69);
+    c.globalAlpha=.54*rays;
+    const angle=(anim?e*.2:0)+.02;
+    c.rotate(angle);
+    for(let k=0;k<10;k++){
+      const a=k*Math.PI/5;
+      c.beginPath();c.moveTo(0,0);
+      c.lineTo(Math.cos(a)*180,Math.sin(a)*180);
+      c.lineTo(Math.cos(a+.22)*180,Math.sin(a+.22)*180);
+      c.closePath();
+      c.fillStyle=k%2?'#B7A8FF':'#FFF0B5';
+      c.fill();
+    }
+    c.restore();
+  }
+  c.save();
+  c.translate(cx+shake,cy+bob);
+  c.scale(scale,scale);
+  c.translate(-cx,-cy);
+  chest(c,cx,cy,142,crateSel,lid,0);
+  c.restore();
+  const r=crateReveal||(anim&&e>.61?anim.rew:null);
+  if(r){
+    const reveal=anim?crateEase((e-.61)/.30):1;
+    if(reveal>0){
+      const rise=18*reveal;
+      c.save();c.globalAlpha=reveal;
+      const y=cy-92-rise;
+      drawIcon(c,rewIconKind(r.r),cx,y,62*(.72+.28*reveal),r.r.tier);
+      txt(c,r.label,cx,y+43,19,'#FFE895');
+      c.restore();
+      // Tiny deterministic pixel stars: no extra DOM nodes or blur filters.
+      for(let k=0;k<10;k++){
+        const a=k*Math.PI*2/10+t*.00035;
+        const dist=44+reveal*(36+(k%3)*9);
+        const x=cx+Math.cos(a)*dist,y2=cy-83+Math.sin(a)*dist*.57;
+        c.globalAlpha=reveal*(.5+.5*Math.sin(t*.008+k*1.9)**2);
+        c.fillStyle=k%3===0?'#FFF7CE':'#B9EDFF';
+        c.fillRect(Math.round(x),Math.round(y2),k%3===0?4:2,k%3===0?4:2);
+      }
+      c.globalAlpha=1;
+    }
   }
 }
 function openCrate() {
@@ -4058,19 +4155,22 @@ function openCrate() {
   if (!row) { const tot = C.table.reduce((a, r) => a + r[0], 0); let x = Math.random() * tot; row = C.table[C.table.length - 1]; for (const r of C.table) { if (x < r[0]) { row = r; break; } x -= r[0]; } }
   const rew = row[2];
   if (C.pity) { if (rew.k === 'item' && rew.id === C.pity) S.pity[tier] = C.pityN; else S.pity[tier]--; }
-  const label = grant(rew); track('crate'); addXP(10); confetti(isBig(rew)?150:55); if(isBig(rew)) bigWin={text:'BIG WIN!',t0:performance.now()};
-  crateReveal = null; crateAnim = { t0: performance.now(), rew: { r: rew, label } }; mgPanel.classList.add('crate-opening'); mgPanel.classList.remove('crate-revealed');
-  setText($('#crateMsg'), 'Opening…');
-  setTimeout(() => { if (mg === 'crates') { if (crateAnim) { crateReveal = crateAnim.rew; crateAnim = null; } setText($('#crateMsg'), 'You got ' + label + '!' + (rew.k === 'item' ? ' Find it in Build › My items.' : '')); buildCratesKeepScene(); } }, 1650);
+  const label = grant(rew); track('crate'); addXP(10);
+  crateReveal = null;
+  crateSceneFrame = -1;
+  crateAnim = { t0: performance.now(), tier, reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, rew: { r: rew, label } };
+  mgPanel.classList.add('crate-opening'); mgPanel.classList.remove('crate-revealed');
+  snd('open'); buzz(12);
+  setText($('#crateMsg'), 'Unlocking chest…');
   updateCrateUI(); changed();
 }
-function buildCratesKeepScene() { const msg = $('#crateMsg') ? $('#crateMsg').textContent : ''; buildCrates(); setText($('#crateMsg'), msg); }
+function buildCratesKeepScene() { const msg = $('#crateMsg') ? $('#crateMsg').textContent : ''; buildCrates(); setText($('#crateMsg'), msg); crateSceneFrame=-1; }
 mgPanel.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
   if (a === 'mgclose') closeMg();
   else if (a === 'roll') roll();
   else if (a === 'spin') spin();
-  else if (a === 'crsel') { if (crateAnim) return; snd('tab'); crateSel = b.dataset.tier; crateReveal = null; buildCrates(); }
+  else if (a === 'crsel') { if (crateAnim) return; snd('tab'); crateSel = b.dataset.tier; crateReveal = null; crateSceneFrame=-1; buildCrates(); }
   else if (a === 'openCrate') openCrate();
   else if (a === 'buy') buyMarket(b.dataset.id);
   else if (a === 'buyDaily') buyDailyMarket(b.dataset.id);
