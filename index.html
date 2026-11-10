@@ -2859,25 +2859,87 @@ function brandPylon(k,x,y,label,bg,fg,z=24){
  const b=k.box(x,y,z,x+label.length*2+1,y+.8,z+8,{L:bg,R:sh(bg,.7),top:sh(bg,1.12)});
  brandSign(k,b,label,bg,fg,1);
 }
-M.bakery={fx:1,fy:1,H:46,name:'Crumb Bakery',d(k){shopLot(k,11);
- k.add(2,3,14,11,()=>{const b=k.box(2,3,0,14,11,20,{Lfn:k.brick('#D5A875'),Rfn:k.brick('#B78859'),top:'#864C38'});
- frontGlass(k,b,1,7,10,'#FFE6AB','#F6EAD3');k.door(k.L,b,10,4,11,'#7A4731',{frame:'#F6EAD3',glass:'#FFE6AB'});frontGlass(k,b,16,7,10,'#FFE6AB','#F6EAD3');
- for(const u of [3,6,18,21]){k.rect(k.L,b,u,3,u+1,4,'#BD773A');k.L(b,u,5,'#E8B76B');}
- brandSign(k,b,'CRUMB','#713A2B','#FFF1CB',12);
- gableRoof(k,2,3,14,11,20,9,'#B65742','#D5A875');
- awning(k,2,14,11,10,'#D57A59','#FFF1CB',1.4);
-
- levelMark(k,8,6.8,33,'#713A2B','#F6CA78',['..XXXXX..','.XX.X.XX.','XX.X.X.XX','XXXXXXXXX','.XXXXXXX.']);});
- k.bench(3,14,'x');k.planter(12.8,13,14.1,14,'banksia');k.flush();}};
-M.coffee={fx:1,fy:1,H:42,name:'Ember Coffee',d(k){shopLot(k,10);
- k.add(1.5,3,10.5,10,()=>{const b=k.box(1.5,3,0,10.5,10,18,{Lfn:k.siding('#5B4336'),Rfn:k.siding('#40362F'),top:'#394D4A'});
- frontGlass(k,b,1,7,10,'#EDC891','#342B26');k.door(k.L,b,10,5,11,'#4B3226',{frame:'#D8BD8B',glass:'#EDC891'});
- brandSign(k,b,'EMBER','#253E39','#FFE7AC',10);skillionRoof(k,1.5,3,10.5,10,19,25,'#2C4841','#5B4336');
- k.cyl(6,6,25,32,2.6,t=>k.lit('#EEE2CC',t));const p=k.sc(6,6,32);k.ctx.fillStyle='#58372A';k.ctx.fillRect(R(p.x)-4,R(p.y)-1,8,3);const hx=R(p.x)+8,hy=R(p.y)+3;k.ctx.fillStyle='#D3C3A9';k.ctx.fillRect(hx,hy,6,2);k.ctx.fillRect(hx+4,hy+2,2,5);k.ctx.fillRect(hx,hy+7,6,2);
+function shopSignPixels(k,face,wall,width,height,top,sample){
+ for(let x=0;x<width;x++)for(let y=0;y<height;y++){
+  const u=(x+.01)/4;
+  const pt=face===k.L?k.sc(wall.x0+u,wall.y1,top):k.sc(wall.x1,wall.y1-u,top);
+  k.px(Math.floor(pt.x),Math.floor(pt.y)+y,sample(x,y));
+ }
+}
+function grumbies(k,turn){
+ const {bounds,groundKit}=houseView(k,turn);shopLot(groundKit,11);
+ const [a,b,c,d]=bounds(1.5,3,14.5,11);
+ k.add(a,b,c,d,()=>{
+  const wall=k.box(a,b,0,c,d,24,{Lfn:k.brick('#E2C6A0'),Rfn:k.brick('#C6AB86'),top:'#665952'});
+  const band=k.box(a-.25,b-.25,15,c+.25,d+.25,24,{L:'#893B40',R:'#77323A',top:'#AC5A58'});
+  k.box(a,b,24,c,d,25,{L:'#EFC887',R:'#DCAB6A',top:'#AB7958'});
+  k.box(a+.5,b+.5,25,c-.5,d-.5,26,{L:'#625658',R:'#5B5355',top:'#847778'});
+  for(const [face,side] of [[k.L,turn],[k.Rf,(turn+1)%4]]){
+   if(side===0){
+    for(const u of [1,16])k.win(face,wall,u,2,9,10,{glass:'#9BC8DF',frame:'#795044'});
+    k.door(face,wall,11,4,12,'#73443A',{glass:'#9BC8DF',frame:'#F5E4C6'});
+    for(const u of [2,5,7,17,20,22]){face(wall,u,4,'#AF693B');face(wall,u+1,4,'#D89150');face(wall,u+1,5,'#EDB870');}
+    const glyphs=[[14,17,16,23,17,17,14],[30,17,17,30,20,18,17],[17,17,17,17,17,17,14],[17,27,21,21,17,17,17],[30,17,17,30,17,17,30],[14,4,4,4,4,4,14],[31,16,16,30,16,16,31],[15,16,16,14,1,1,30]];
+    shopSignPixels(k,face,band,54,13,23,(x,y)=>{
+     if(x<2||x>52)return face===k.L?'#893B40':'#77323A';
+     const col=x-4,bits=glyphs[Math.floor(col/6)]?.[y-3];
+     return bits&(16>>(col%6))?'#652935':k.light('#F8E8C7','#F3D4A4');
+    });
+   }else{
+    k.win(face,wall,2,5,5,7,{glass:'#9BC8DF',frame:'#F7E7CA'});
+    if(side===2)k.door(face,wall,16,5,12,'#7A6155',{frame:'#65473F'});
+    else ['..ccccc..','.cgsgsgc.','cggsgsggc','cgggggggc','.bbbbbbb.'].forEach((line,r)=>[...line].forEach((p,j)=>{
+     if(p!=='.')face(band,3+j,6-r,{c:'#C48547',g:'#EAB06A',s:'#FFE1A2',b:'#AE683C'}[p]);
+    }));
+   }
+   exteriorLamp(k,face,wall,side%2?14:24,13);
+  }
+  if(turn===0||turn===3){
+   const [i,j,l,m]=bounds(1.5,11,14.5,12.5),stripe=x=>Math.floor((x-1)/2)%2===0;
+   k.box(i,j,12,l,m,13,{noRim:true,top:'#F8E6C1',topFn:(x,y)=>stripe(turn===0?x:16-y)?'#BA5552':'#F8E6C1',Lfn:u=>(turn!==0||stripe(1.5+u/2))?'#9D4144':'#E5CCA4',Rfn:u=>(turn!==3||stripe(1.5+u/2))?'#913C40':'#DDC4A2'});
+  }
+ });k.flush();
+}
+function starquacks(k,turn){
+ const {bounds,groundKit}=houseView(k,turn);shopLot(groundKit,10);
+ function box(x,y,z,X,Y,Z,material){const [a,b,c,d]=bounds(x,y,X,Y);return k.box(a,b,z,c,d,Z,material);}
+ k.add(...bounds(1.5,2,14,10.5),()=>{
+  const wall=box(1.5,2,0,14,10.5,20,{Lfn:k.siding('#CFB995'),Rfn:k.siding('#AD9679'),top:'#394D4A'});
+  for(const [face,side] of [[k.L,turn],[k.Rf,(turn+1)%4]]){
+   const front=side===0,width=side%2?34:50;
+   k.win(face,wall,1,1,side===2?7:front?15:14,12,{glass:'#9BCADD',frame:'#424846',mullion:true});
+   if(front)k.door(face,wall,18,5,12,'#4B3226',{frame:'#D8BD8B',glass:'#9BCADD'});
+   shopSignPixels(k,face,wall,width,14,19,(x,y)=>{
+    if(front){
+     const col=x-5,letter='STARQUACKS'[Math.floor(col/4)],glyph=letter==='Q'?['111','101','101','111','001']:FONT[letter];
+     return glyph?.[y-4]?.[col%4]==='1'?k.light('#FFF2CF','#FFE0A2'):'#184C40';
+    }
+    const duck=['.......hhh...','......hhehh..','......hhhhbbb','..hh...hhh...','..hhhhhhhh...','...hhhhhh....','....hhhh.....'];
+    const mark=duck[y-3]?.[x-Math.floor((width-13)/2)];
+    if(mark==='h')return k.light('#FFF1D0','#ECD3A0');
+    if(mark==='b')return '#DE9B4C';
+    if(mark==='e')return '#283C35';
+    const radius=Math.hypot(x-(width-1)/2,y-6.5);
+    if(radius<7)return radius>=6?'#C2D6AC':'#23785D';
+    return x%4===0?'#B9956E':'#CCAD84';
+   });
+   exteriorLamp(k,face,wall,side%2?15:23,9);
+  }
+  box(1.25,1.75,20,14.25,10.75,21,{L:'#565A57',R:'#404844',top:'#A3A6A0'});
+  box(1.75,2.25,21,13.75,10.25,21.5,{L:'#737A76',R:'#646B68',top:'#888E8A'});
+  if(turn===0||turn===3)box(1.5,10.5,12,14,11.75,13,{L:'#34423D',R:'#293530',top:'#59645C'});
  });
- k.add(11.5,3.5,14.5,10,()=>{for(const y of [4,9])k.box(12,y,0,12.4,y+.4,14,{L:'#624935',R:'#493729',top:'#826749'});for(let y=3.5;y<10;y+=1.3)k.box(10.5,y,14,14.8,y+.5,15,{L:'#A88761',R:'#795A3D',top:'#C8AA7A'});});
- for(const xx of [3,9])k.add(xx,12,xx+2,14,()=>{k.box(xx+.8,12.8,0,xx+1.2,13.2,4,{L:'#394641',R:'#29352E',top:'#59655E'});k.box(xx,12,4,xx+2,14,4.6,{L:'#9E7850',R:'#795635',top:'#C6A170'});});
- k.planter(13,12,14.5,14,'pilly');k.flush();}};
+ for(const x of [3,9])k.add(...bounds(x,12,x+2,14),()=>{
+  box(x+.75,12.75,0,x+1.25,13.25,4,{L:'#394641',R:'#29352E',top:'#59655E'});
+  box(x,12,4,x+2,14,5,{L:'#9E7850',R:'#795635',top:'#C6A170'});
+ });
+ k.planter(...bounds(13,12,14.5,14),'pilly');k.flush();
+}
+for(let turn=0;turn<4;turn++){
+ const suffix=turn?'-turn'+turn:'';
+ M['bakery'+suffix]={fx:1,fy:1,H:46,name:'Grumbies',d:k=>grumbies(k,turn)};
+ M['coffee'+suffix]={fx:1,fy:1,H:42,name:'Starquacks Coffee',d:k=>starquacks(k,turn)};
+}
 M.grocery={fx:1,fy:1,H:35,name:'Sprout Market',d(k){shopLot(k,11);
  k.add(1,2,15,11,()=>{const b=k.box(1,2,0,15,11,19,{L:'#E5DFBC',R:'#C7C49E',top:'#46664B'});
  frontGlass(k,b,1,9,11,'#BAD5C8','#3C6347');frontGlass(k,b,17,9,11,'#BAD5C8','#3C6347');k.door(k.L,b,11,5,11,'#B7DAD5',{frame:'#3C6347'});
@@ -3389,8 +3451,8 @@ const DEFS = {
   aptS:     { name: 'Apartments', type: 'home', cost: 4000, lvl: 3, cap: 8, h: 46, wall: '#CFC9BF', side: '#ABA59B', roof: '#62656C', pw: 2, wa: 2 },
   aptP:     { name: 'Pink Flats', type: 'home', cost: 7000, lvl: 5, cap: 12, h: 58, wall: '#B98A70', side: '#966A55', roof: '#4E5258', pw: 3, wa: 3 },
   tower:    { name: 'Sky Tower', type: 'home', cost: 16000, lvl: 8, cap: 20, h: 88, wall: '#8FA6BA', side: '#6C8396', roof: '#3E4A56', pw: 5, wa: 4 },
-  bakery:   { name: 'Crumb Bakery', type: 'shop', cat: 'Food', cost: 1500, lvl: 1, staff: 2, rc: 100, earn: 260, time: 30, h: 24, wall: '#E4D6C2', side: '#C4B6A2', roof: '#5A4E48', awn: ['#9E4A42', '#E8E2D6'], pw: 2, wa: 1 },
-  coffee:   { name: 'Ember Coffee', type: 'shop', cat: 'Food', cost: 2500, lvl: 2, staff: 2, rc: 160, earn: 420, time: 45, h: 22, wall: '#D3C4B2', side: '#B3A492', roof: '#4E4440', awn: ['#5E4636', '#D8CDBB'], pw: 2, wa: 1 },
+  bakery:   { name: 'Grumbies', type: 'shop', cat: 'Food', cost: 1500, lvl: 1, staff: 2, rc: 100, earn: 260, time: 30, h: 24, wall: '#E4D6C2', side: '#C4B6A2', roof: '#5A4E48', awn: ['#9E4A42', '#E8E2D6'], pw: 2, wa: 1 },
+  coffee:   { name: 'Starquacks Coffee', type: 'shop', cat: 'Food', cost: 2500, lvl: 2, staff: 2, rc: 160, earn: 420, time: 45, h: 22, wall: '#D3C4B2', side: '#B3A492', roof: '#4E4440', awn: ['#5E4636', '#D8CDBB'], pw: 2, wa: 1 },
   grocery:  { name: 'Sprout Market', type: 'shop', cat: 'Retail', cost: 4000, lvl: 3, staff: 3, rc: 260, earn: 700, time: 60, h: 26, wall: '#DADDD5', side: '#BABDB5', roof: '#4A5048', awn: ['#3E6E4A', '#E8E8E0'], pw: 3, wa: 1 },
   gym:      { name: 'Forge Fitness', type: 'shop', cat: 'Leisure', cost: 6000, lvl: 4, staff: 2, rc: 320, earn: 880, time: 75, h: 28, wall: '#C6CED8', side: '#A6AEB8', roof: '#3E4650', awn: ['#2F5A8A', '#E4E8EE'], pw: 2, wa: 2 },
   hardware: { name: 'Bolt Hardware', type: 'shop', cat: 'Retail', cost: 8500, lvl: 5, staff: 3, rc: 420, earn: 1180, time: 90, h: 26, wall: '#DACFB8', side: '#BAAF98', roof: '#55504A', awn: ['#B0662E', '#EDE4D4'], pw: 3, wa: 1 },
@@ -4439,9 +4501,9 @@ const SPR_KEY = {
   flowers: 'flowers',
 };
 const SPR = new Map();
-const fourSidedHomes=new Set(['house','house2','m3','banksiaDuplex','q1','aptS','aptP','tower']);
+const fourSidedModels=new Set(['house','house2','m3','banksiaDuplex','q1','aptS','aptP','tower','bakery','coffee']);
 function spriteOf(id, turn=0) {
- if(fourSidedHomes.has(id) && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
+ if(fourSidedModels.has(id) && turn){const key=SPR_KEY[id]+'-turn'+turn;if(!SPR.has(key))SPR.set(key,SPRK.render(key));return SPR.get(key);}
  if(isStop(id))return stopSprite(id,1); if (!SPR_KEY[id] || typeof SPRK === 'undefined') return null; if (!SPR.has(id)) SPR.set(id, SPRK.render(SPR_KEY[id])); return SPR.get(id); }
 // Draw only the moving rotor over the cached tower.
 function drawRotor(ctx, x, y, scale, angle, mirror, shade) {
@@ -4504,7 +4566,7 @@ function spriteBox(i, j, id, turned=tileAt(i,j)?.turned) {
   const transport=isStop(id);
   const orientation=transport?(stopKerb(i,j,stop?.stopDir)?.dir??stop?.stopDir??1):0;
   const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id,(ROT+(turned?1:0))%4); if (!sp) return null; const [fx, fy] = fpOf(id,turned); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
-  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !fourSidedHomes.has(id) && !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
+  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !fourSidedModels.has(id) && !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
   return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
 // Frames are rendered from the approved models at the same metres-per-tile scale.
 const streetArt = new Image();
