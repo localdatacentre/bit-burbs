@@ -1416,6 +1416,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 </style>
 <style>#bayTravel{position:fixed;inset:0;margin:0;width:100vw;height:100%;max-width:none;max-height:none;padding:0;border:0;background:#000;color:white;text-align:center;font:inherit}#bayTravel[open]{display:grid;place-items:center}#bayTravel::backdrop{background:transparent}</style>
 <style>#nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}#nav > button.pixel-btn[data-open="bag"]{--bb-face:#a17aca;--bb-top:#c6a7e5;--bb-bottom:#825da8;--bb-edge:#674985}</style>
+<style>#nav > button.pixel-btn.bag-unread[data-open="bag"]{border-color:#ffdb59!important;box-shadow:inset 0 0 0 2px #ffdb59!important}#nav .bag-unread .dock-icon{filter:drop-shadow(0 1px 1px #ffdc65)}</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -3509,7 +3510,7 @@ const BUILD_TABS = [
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'plant', 'solar2', 'nuclear']],
   ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'tidalBaths', 'civicClock', 'needle', 'space']],
   ['transport', 'Transport', ['hailStop','busShelter']],
-  ['items', 'My items', ['sakura', 'fountain', 'statue', 'sundrop', 'sunhouse', 'pelicanLight']]
+  ['items', 'Collectables', ['sakura', 'fountain', 'statue', 'sundrop', 'sunhouse', 'pelicanLight']]
 ];
 const EXPAND = [];
 const expIdx = () => 13 - S.lo;
@@ -5310,7 +5311,7 @@ function renderCard(force) {
     }else if(placing.id==='road'){
       html=head('Laying roads','Tap tiles to place road, 20 Coins each.')+'<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>';
     }else{
-      const cost=placing.fromItem?0:costOf(placing.id);
+      const cost=placing.stored||placing.fromItem?0:costOf(placing.id);
       const msg=!g?'Tap a tile to preview the footprint.':!ok?(isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.') :
         d.type==='decor'||roadNearFP(g.i,g.j,placing.id,placing.turned)?'Ready to place.':'This spot has no adjacent road.';
       html=head('Place '+d.name,msg)+`<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok&&S.cash>=cost?'':'disabled'}>${cost?'Build · '+fmt(cost):'Place'}</button></div>`;
@@ -5378,7 +5379,7 @@ card.addEventListener('click', e => {
   }
   if(a==='confirmPlace'&&placing){
     const g=placing.ghost;if(!g)return;
-    const ok=placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
+    const ok=placing.stored?restoreBuilding(placing.stored,g.i,g.j):placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
     if(ok){placing=null;select(g.i,g.j);}return;
   }
   if (!sel) return;
@@ -5410,15 +5411,16 @@ function closeSheet() { snd('close'); document.body.classList.remove('sheet-open
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
   if (sheet === 'build') return buildTab + '|' + S.level + '|' + Object.keys(DEFS).map(k => S.cash >= (DEFS[k].cost || 0) ? 1 : 0).join('') + '|' + JSON.stringify(S.items);
+  if (sheet === 'bag') return (S.storedBuildings?.length || 0) + '|' + JSON.stringify(S.shopItems);
   if (sheet === 'tasks') return JSON.stringify([S.daily]);
   if (sheet === 'settings') return String(S.sound !== false) + '|' + LOC.src + '|' + resetArm;
   return '';
 }
 function renderSheet(force) {
   if (!sheet) return; const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
-  setText($('#sheetTitle'), sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
-  sheetBody.innerHTML = sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
-  if (sheet === 'build') drawPreviews(); else paintNewIcons();
+  setText($('#sheetTitle'), sheet === 'bag' ? 'My items' : sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
+  sheetBody.innerHTML = sheet === 'bag' ? itemBagHTML() : sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
+  if (sheet === 'build' || sheet === 'bag') drawPreviews(); else paintNewIcons();
   if(sheet==='build' && S.tut && !mg){
     const st=tutStep();
     if(st&&st.build){
@@ -5428,6 +5430,43 @@ function renderSheet(force) {
       setHL(target);
     }
   }
+}
+function openItemBag() {
+  buildTarget = null;
+  delete S.bagUnread;
+  delete S.bagPopupPending;
+  $('#nav [data-open="bag"]').classList.remove('bag-unread');
+  openSheet('bag');
+  save();
+}
+function itemBagHTML() {
+  const buildings = S.storedBuildings || [];
+  const collectables = Object.entries(S.shopItems).filter(([id,count]) => MARKET[id] && count > 0);
+  function card(id, action, detail) {
+    return `<button class="pixel-btn bcard" ${action}><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${DEFS[id].name}</b><span>${detail}</span><span class="price">Place</span></button>`;
+  }
+  const moved = buildings.map(({building},index) => card(building.id, `data-act="restore" data-index="${index}"`, 'Level '+lvlOf(building))).join('');
+  const owned = collectables.map(([id,count]) => card(id, `data-act="choose" data-id="${id}"`, 'Owned · '+count)).join('');
+  return '<h3>Moved buildings</h3>' + (moved ? '<div class="grid2">'+moved+'</div>' : '<p class="note">If a remodel needs more space, your building will be kept here with its upgrades.</p>') +
+    '<h3>Collectables</h3>' + (owned ? '<div class="grid2">'+owned+'</div>' : '<p class="note">Collectables you buy in the Dosh Shop appear here.</p>');
+}
+function restoreBuilding(entry,i,j) {
+  const index = S.storedBuildings.indexOf(entry);
+  const tile = entry.building;
+  if (index < 0 || !fpFree(i,j,tile.id,tile.turned)) return false;
+  occupy(i,j,tile);
+  S.storedBuildings.splice(index,1);
+  changed(); save(); snd('build');
+  return true;
+}
+function showBagNotice() {
+  if (!S.bagPopupPending || S.travelPending || document.getElementById('bayTravel') || $('#modal').classList.contains('show') || mg || sheet) return;
+  const count = S.bagPopupPending;
+  $('#modalBox').innerHTML = '<h2>Buildings moved</h2><p class="wl-s">A remodel needed more space. '+(count===1?'1 building was':count+' buildings were')+' moved to your item bag. Place them again for free.</p><button class="pixel-btn pb" id="bagView">Open item bag</button> <button class="pixel-btn pb" id="bagLater">Later</button>';
+  $('#modal').classList.add('show');
+  $('#bagView').focus();
+  $('#bagView').onclick = () => { $('#modal').classList.remove('show'); openItemBag(); };
+  $('#bagLater').onclick = () => { $('#modal').classList.remove('show'); delete S.bagPopupPending; save(); $('#nav [data-open="bag"]').focus(); };
 }
 function buildHTML() {
   let h = (S.tut && tutStep() && tutStep().build ? `<div class="tut-build-tip">TUTORIAL ${S.tut.step+1}/${TUT.length} · ${tutStep().t} — follow the yellow highlight</div>` : '') + `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pixel-btn pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
@@ -5455,8 +5494,8 @@ function buildHTML() {
     h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
   });
   h += '</div>';
-  if (buildTab === 'items') h += `<p class="note">Only cosmetic items purchased from the Dosh Shop appear here. Placing them is free.</p>`;
-  if (buildTab === 'items' && !visibleIds.length) h += `<p class="note">You haven't purchased any cosmetic items yet. Visit the Dosh Shop to add one to your item bag.</p>`;
+  if (buildTab === 'items') h += `<p class="note">Place collectables you own from the Dosh Shop for free.</p>`;
+  if (buildTab === 'items' && !visibleIds.length) h += `<p class="note">You haven't purchased any cosmetic items yet. Visit the Dosh Shop to find a collectable.</p>`;
   if(buildTab==='transport') h+='<p class="note">Build beside a straight road at least three tiles long. Each stop receives a bus every 10 minutes of active play. Longer shelter corridors also serve the M1 Riverline.</p>';
   if (buildTab === 'util') h += `<p class="note">City power ${D.useP}/${D.supP} · water ${D.useW}/${D.supW}. Buildings without power or water stop working.</p>`;
   return h;
@@ -5509,8 +5548,14 @@ sheetEl.addEventListener('click', e => {
   if (a === 'info') { showInfo(sheet); return; }
   if (a === 'tab') { snd('tab'); buildTab = b.dataset.tab; renderSheet(true); return; }
   if (a === 'tasktab') { snd('tab'); taskTab = b.dataset.tab; renderSheet(true); return; }
+  if (a === 'restore' && sheet === 'bag') {
+    const entry = S.storedBuildings[Number(b.dataset.index)];
+    if (!entry) return;
+    placing = {id:entry.building.id, turned:!!entry.building.turned, stored:entry};
+    closeSheet(); sel=null; renderCard(true); return;
+  }
   if (a === 'choose') {
-    const id = b.dataset.id, d = DEFS[id], fromItem = buildTab === 'items';
+    const id = b.dataset.id, d = DEFS[id], fromItem = sheet === 'bag' || buildTab === 'items';
     if (b.getAttribute('aria-disabled') === 'true') { toast(fromItem ? 'Purchase this weekly exclusive in the Dosh Shop.' : d.lvl > S.level ? 'Unlocks at Lv ' + d.lvl + '.' : 'You need ' + fmt(costOf(id)) + ' Coins.'); return; }
     if (buildTarget && id !== 'road') { const tg = buildTarget; if (placeAt(tg.i, tg.j, id, fromItem)) { closeSheet(); select(tg.i, tg.j); } return; }
     placing = { id, fromItem, ghost: (S.tut && tutStep() && tutStep().build === id ? suggestTile(id) : null) }; closeSheet(); sel = null; if(placing.ghost)animateTo(placing.ghost.i+.5,placing.ghost.j+.5); renderCard(true); return;
@@ -5950,7 +5995,7 @@ function buyMarket(id) {
   if (S.market.bought[id]) { snd('error'); toast('This weekly exclusive is already yours.'); return; }
   if (S.stars < it.price) { snd('error'); toast('Not enough Dosh. Complete tasks and activities to earn more.'); return; }
   S.items[id] = (S.items[id] || 0) + 1; S.shopItems[id] = (S.shopItems[id] || 0) + 1; S.stars -= it.price; S.market.bought[id] = 1;
-  addXP(10); snd('rare'); confetti(24); toast(it.name + ' added to Build › My items.'); changed(); save(); buildMarket();
+  addXP(10); snd('rare'); confetti(24); toast(it.name + ' added to your collectables.'); changed(); save(); buildMarket();
 }
 
 /* ----- crates ----- */
@@ -6090,7 +6135,7 @@ mgPanel.addEventListener('click', e => {
   else if (a === 'buyDaily') buyDailyMarket(b.dataset.id);
   else if (a === 'info') showInfo(b.dataset.k);
 });
-document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => { placing = null; const n = b.dataset.open; if (n === 'bag') { buildTarget = null; buildTab = 'items'; openSheet('build'); return; } if (n === 'build' || n === 'tasks' || n === 'settings') { closeMg(); openSheet(n); } else openMg(n); }));
+document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => { placing = null; const n = b.dataset.open; if (n === 'bag') { openItemBag(); return; } if (n === 'build' || n === 'tasks' || n === 'settings') { closeMg(); openSheet(n); } else openMg(n); }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (mg) closeMg(); else if (sheet) closeSheet(); } });
 
 
@@ -6462,10 +6507,11 @@ async function travelToBay() {
 
 /* ================= info popups ================= */
 const INFO = {
+  bag: ['My items', ['Buildings moved during a remodel keep their level and can be placed again for free.', 'Your purchased collectables are also available in Build › Collectables.']],
   dice: ['City Dice', ['Tap ROLL to move around the board.', 'You win whatever tile you land on.', 'Green arrows jump you forward, red arrows push you back.', 'The ??? tile gives a mystery prize.', 'You get a free roll every 30 minutes, and you earn more by collecting from shops, homes and industry.']],
   wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'Fill the ticket bar by collecting from your buildings.', 'Every 10 spins wins a free Gold crate.']],
   crates: ['Crates', ['Select a tier to see its rewards and odds.', 'Opening uses one crate from your collection.', 'Win crates on the Lucky Wheel. Every 10 completed spins also awards a Gold crate.']],
-  market: ['Dosh Shop', ['New stock every Monday.', 'Each item has limited stock for the week.', 'Spend Dosh, the green notes you earn from tasks, dice, the wheel and crates.', 'Buildings you buy go to Build, My items.']],
+  market: ['Dosh Shop', ['New stock every Monday.', 'Each item has limited stock for the week.', 'Spend Dosh, the green notes you earn from tasks, dice, the wheel and crates.', 'Buildings you buy appear in Build › Collectables and your item bag.']],
   build: ['Building', ['Everything needs a road next to it.', 'Most buildings need power and water too: build a Wind Turbine and a Water Tower.', 'Shops need workers, so build homes to bring people in.', 'Tap any building to upgrade it. Levels 4 and 5 need Deeds.']],
   tasks: ['Tasks', ['Finish tasks to win dice, tickets, crates, Dosh and Deeds.', 'When you claim one, a new task appears.', 'Upgrading buildings, restocking and collecting all count.']],
   hall: ['Town Hall', ['Expand your land here once you reach the right level.', 'Expanding costs Coins and Deeds.', 'Power and water show how much your city makes and uses.', 'Workers come from homes, and businesses need them to run.']]
@@ -6749,7 +6795,7 @@ function frame(t) {
   if (mg === 'dice') drawBoard(); else if (mg === 'wheel') drawWheel(); else if (mg === 'crates') drawChestScene();
   drawFx();
   uiAcc += dt;
-  if (uiAcc > .25 || dirty) { uiAcc = 0; paintNewIcons(); updateHUD(); checkDaily(); showDaily(); renderCard(false); renderSheet(false); tutTick(); updateDiceUI(); updateWheelUI(); updateCrateUI(); updateMarketUI(); if (pendingLevel && !$('#modal').classList.contains('show')) showLevel(); }
+  if (uiAcc > .25 || dirty) { uiAcc = 0; paintNewIcons(); updateHUD(); checkDaily(); showDaily(); renderCard(false); renderSheet(false); showBagNotice(); tutTick(); updateDiceUI(); updateWheelUI(); updateCrateUI(); updateMarketUI(); if (pendingLevel && !$('#modal').classList.contains('show')) showLevel(); }
   saveAcc += dt; if (saveAcc > 5 || (dirty && saveAcc > 1)) { saveAcc = 0; dirty = false; save(); }
   requestAnimationFrame(frame);
 }
@@ -6779,6 +6825,8 @@ function reconcileLotSizes(city) {
     owners.delete(anchor);
   }
   function storeBuilding(anchor) {
+    city.bagUnread = true;
+    city.bagPopupPending = (city.bagPopupPending || 0) + 1;
     (city.storedBuildings ||= []).push({building:city.tiles[anchor],from:[anchor%N,Math.floor(anchor/N)]});
     clear(anchor);
   }
@@ -6811,7 +6859,15 @@ function reconcileLotSizes(city) {
 }
 
 S = load() || newGame();
+// Earlier previews already packed some buildings without exposing the bag.
+if (!S.bagNoticeVersion && S.storedBuildings?.length) {
+  S.bagUnread = true;
+  S.bagPopupPending = S.storedBuildings.length;
+}
+S.bagNoticeVersion = 1;
 reconcileLotSizes(S);
+$('#nav [data-open="bag"]').classList.toggle('bag-unread',!!S.bagUnread);
+if (S.bagUnread) save();
 S.tiles.forEach((tile, index) => {
   if (tile?.id === 'ferris') {
     S.tiles[index] = null;
