@@ -5529,7 +5529,7 @@ function showBagNotice() {
 }
 function coinBoostHTML() {
   const tokens = Object.entries(S.coinBoostTokens || {}).filter(([min,count]) => Number(min)>0 && count>0);
-  const rows = tokens.map(([min,count]) => `<div class="task"><div class="info"><b class="coin-boost-label"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><span>2× coins · ${Number(min)} min</span></b><small>Owned · ${Number(count)}</small></div><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}">Use</button></div>`);
+  const rows = tokens.map(([min,count]) => `<div class="task"><div class="info"><b class="coin-boost-label"><canvas class="coin-boost-icon" data-icon="boost" width="48" height="48" aria-hidden="true"></canvas><span>2× coins · ${Number(min)} min</span></b><small>Owned · ${Number(count)}</small></div><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}">Use</button></div>`);
   return '<h3>Coin boosts</h3>' + (rows.join('') || '<p class="note">Earn boosts from rewards, then tap Use here to start the timer.</p>');
 }
 function useCoinBoost(min) {
