@@ -1445,8 +1445,8 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
   </div>
   <div class="cpmbar">
     <div class="city-stats">
-      <span id="popLbl" aria-label="Residents and housing capacity"><span class="stat-value" id="popValue">0 / 0</span> <span class="stat-unit">residents</span></span>
-      <span id="jobsLbl" title="Open positions in operating buildings / total town job capacity"><span class="stat-unit">Available Jobs</span> <span class="stat-value" id="jobsValue">0 / 0</span></span>
+      <span id="popLbl"><span class="stat-value" id="popValue">0</span> <span class="stat-unit">residents</span></span>
+      <span id="jobsLbl"><span class="stat-value" id="jobsValue">0</span> <span class="stat-unit">available jobs</span></span>
       <b id="cpmLbl"><span class="stat-value" id="cpmValue">0</span> <span class="stat-unit">coins/min</span></b>
     </div>
     <div class="stock-actions">
@@ -5483,7 +5483,7 @@ function updateHUD() {
   const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
   updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
   rushButton.disabled = !rushPrice || S.stars < rushPrice;
-  setText(hud.lvl, S.level); setText($('#popValue'), S.pop + ' / ' + (D.cap || 0)); setText($('#jobsValue'), (D.availableJobs || 0) + ' / ' + (D.jobs || 0));
+  setText(hud.lvl, S.level); setText($('#popValue'), S.pop); setText($('#jobsValue'), D.availableJobs || 0);
   setText($('#cpmValue'), fmt(D.cpm || 0));
   const targetXP = need(S.level);
   hud.xp.style.width = Math.min(100, S.xp / targetXP * 100) + '%';
