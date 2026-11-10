@@ -3703,7 +3703,7 @@ function fmt(n) {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 function mmss(ms) { const s = Math.max(0, Math.ceil(ms / 1000)); const m = Math.floor(s / 60); const h = Math.floor(m / 60); if (h) return h + 'h ' + (m % 60) + 'm'; return m + ':' + String(s % 60).padStart(2, '0'); }
-const need = L => Math.round(60 * Math.pow(L, 1.55));
+const need = L => Math.round(60 * Math.pow(L, 1.55) * (1 + Math.min(.25, Math.max(0, L - 5) * .01)));
 const stage = L => L < 5 ? 'Village' : L < 10 ? 'Town' : L < 20 ? 'City' : 'Metro';
 function hexRgb(h) { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 function rgbHex(r, g, b) { return '#' + [r, g, b].map(v => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')).join(''); }
@@ -3843,7 +3843,7 @@ const lvlOf = t => (t && t.lvl) || 1;
 const UP_MULS = [1, 1, 1.25, 1.6, 2.05, 2.6]; const upMul = t => UP_MULS[lvlOf(t)] || 1;
 const hFac = t => 1 + .18 * (lvlOf(t) - 1);
 const canUp = d => d && (d.type === 'shop' || d.type === 'home' || d.type === 'ind' || d.type === 'svc' || d.type === 'util');
-function upCost(d, L) { return { coins: Math.round((d.cost || 1000) * [0, .8, 1.6, 3, 5][L]), deeds: L >= 3 ? L - 2 : 0 }; }
+function upCost(d, L) { return { coins: Math.round((d.cost || 1000) * 1.15 * [0, .8, 1.6, 3, 5][L]), deeds: L >= 3 ? L - 2 : 0 }; }
 const stime = (t, d) => (S && S.tut ? 5000 : d.time * 1000 * (1 - .08 * (lvlOf(t) - 1)));
 const hcap = (t, d) => Math.round(d.cap * (1 + .5 * (lvlOf(t) - 1)));
 function upgrade(i, j) {
@@ -4756,9 +4756,10 @@ function dropPassengers(stop){
     if(path.length>1)startWalker(path);
   }
 }
+const shelterUpgradePrice = 1380;
 function upgradeStop(i,j){
-  const t=tileAt(i,j);if(t?.id!=='hailStop'||S.cash<1200)return false;
-  S.cash-=1200;t.id='busShelter';streetNetwork=null;changed();save();return true;
+  const t=tileAt(i,j);if(t?.id!=='hailStop'||S.cash<shelterUpgradePrice)return false;
+  S.cash-=shelterUpgradePrice;t.id='busShelter';streetNetwork=null;changed();save();return true;
 }
 function serviceBuses(dt){
   buses=[];
@@ -5321,7 +5322,7 @@ function renderCard(force) {
       html=head('Move '+d.name,message)+
         `<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok?'':'disabled'}>Confirm</button>${rotateButton}</div>`;
     }else if(placing.id==='road'){
-      html=head('Laying roads','Tap tiles to place road, 20 Coins each.')+'<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>';
+      html=head('Laying roads','Tap tiles to place road, '+costOf('road')+' Coins each.')+'<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>';
     }else{
       const cost=placing.fromItem?0:costOf(placing.id);
       const msg=!g?'Tap a tile to preview the footprint.':!ok?(isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.') :
@@ -5352,7 +5353,7 @@ function renderCard(force) {
       } else if (d.type === 'util') {
         html = head(d.name, `Level ${lvlOf(t)} · ` + (d.supP ? `+${Math.round(d.supP * upMul(t))} power` : `+${Math.round(d.supW * upMul(t))} water`) + ` · city power ${D.useP}/${D.supP}, water ${D.useW}/${D.supW}`) + statusTags(b) + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if(d.type==='transport'){
-        const upgrade=t.id==='hailStop'?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(S.cash<1200?'disabled':'')+'>Upgrade to shelter · 1,200 Coins</button>':'';
+        const upgrade=t.id==='hailStop'?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(S.cash<shelterUpgradePrice?'disabled':'')+'>Upgrade to shelter · '+fmt(shelterUpgradePrice)+' Coins</button>':'';
         html=head(d.name,d.fare+' Coins per visit · every 10 active minutes')
           +'<p class="note" id="stopTime"></p><div class="row">'+upgrade+demoBtn()+'</div>';
       } else if (d.type === 'hall') {
@@ -6128,17 +6129,19 @@ const PRODUCTS = {
   bakery: ['Bread', 'Cakes', 'Wedding Cakes'], coffee: ['Espresso', 'Muffins', 'Coffee Beans'], grocery: ['Fruit', 'Veggies', 'Hampers'], gym: ['Day Passes', 'Classes', 'Memberships'], hardware: ['Nails', 'Tools', 'Power Tools'], cinema: ['Popcorn', 'Tickets', 'Premieres'], gas: ['Snacks', 'Fuel', 'Car Washes'], workshop: ['Repairs', 'Parts', 'Custom Jobs'], factory: ['Bolts', 'Engines', 'Machines'], warehouse: ['Parcels', 'Pallets', 'Freight'], skyscraper: ['Consulting', 'Software', 'Mergers'] };
 const prodNames = id => PRODUCTS[id] || ['Goods', 'Deluxe Goods', 'Premium Goods'];
 const P_ORDER = [60e3, 15 * 60e3, 60 * 60e3], P_LAST = [5 * 60e3, 60 * 60e3, 4 * 3600e3], P_MUL = [1, 1.5, 2.2];
-function bizBase(d) { return Math.max(4, 6 * Math.pow((d.cost || 1000) / 1000, .85)); }
+function bizBase(d) { return Math.max(3.5, 5.4 * Math.pow((d.cost || 1000) / 1000, .85)); }
 function prodCpm(b, k) { return Math.max(1, Math.round(bizBase(b.d) * 1.35 * P_MUL[k] * upMul(b.t))); }
 function ensureProds(t) { if (!t.pr) t.pr = [{ s: 0, o: 0 }, { s: 0, o: 0 }, { s: 0, o: 0 }]; return t.pr; }
 function orderTime(k) { return S.tut ? 5000 : P_ORDER[k]; }
 function bizCpm(b) { const tn = now(); if (!b.workers) return 0; const pr = ensureProds(b.t); let c = 0; for (let k = 0; k < b.workers; k++) if (pr[k].s > tn) c += prodCpm(b, k); return c; }
 function countOf(id) { return S.tiles.filter(t => t && t.id === id).length; }
-function costOf(id) { const d = DEFS[id]; if (!d) return 0; if (id === 'road' || d.type === 'decor' || d.type === 'transport' || d.type === 'hall') return d.cost; return Math.round(d.cost * Math.pow(1.35, countOf(id)) / 10) * 10; }
+function costOf(id) { const d = DEFS[id]; if (!d) return 0; const price = d.cost * 1.125;
+  if (id === 'road' || d.type === 'decor' || d.type === 'transport' || d.type === 'hall') return Math.round(price);
+  return Math.round(price * Math.pow(1.35, countOf(id)) / 10) * 10; }
 function orderProd(i, j, k) { const t = tileAt(i, j); const b = t && t._; if (!b || !isBiz(b.d)) return; const w = whyNot(b); if (w) { snd('error'); toast(w); return; }
   if (k >= b.workers) { snd('error'); toast('Needs more workers. Build homes to bring in residents.'); return; }
   const p = ensureProds(t)[k], cost = productRestockCost(t,k); if (p.o || p.s > now() || S.cash < cost) return; S.cash -= cost; p.o = now() + orderTime(k); track('restock'); snd('restock'); changed(); }
-function rushCost(t,k,tn){return Math.max(0,Math.ceil((t.pr[k].o-tn)/(12 * 60000)));}
+function rushCost(t,k,tn){return Math.max(0,Math.ceil((t.pr[k].o-tn)/(20 * 60000)));}
 function pendingRush(tn) {
   const orders = [];
   let cost = 0;
@@ -6227,7 +6230,10 @@ function productRestockCost(t,k) {
   const buildPrice = DEFS[t.id].cost;
   const base = 190 + Math.floor(hash(buildPrice,1) * 20);
   const step = 175 + Math.floor(hash(buildPrice,2) * 25);
-  return base + k * step + (Math.min(lvlOf(t),5) - 1) * 100;
+  const quote = base + k * step + (Math.min(lvlOf(t),5) - 1) * 100;
+  // Even a starter business should cover its order cost during a full stocked run.
+  const gross = prodCpm({d:DEFS[t.id], t},k) * P_LAST[k] / 60000;
+  return Math.min(quote, Math.max(1, Math.floor(gross * .85)));
 }
 function restockCost(businesses, tn = now()) {
   return businesses.reduce((total,b) => total + ensureProds(b.t).reduce((sum,p,k) => sum + (k < b.workers && !p.o && p.s <= tn ? productRestockCost(b.t,k) : 0), 0), 0);
