@@ -1464,6 +1464,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
   <button class="pixel-btn pb purple sq" id="zin" aria-label="Zoom in"><canvas data-icon="plus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
   <button class="pixel-btn pb purple sq" id="zout" aria-label="Zoom out"><canvas data-icon="minus" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button>
   <button class="pixel-btn pb sq" id="moveTool" aria-label="Move buildings" aria-pressed="false" title="Move buildings"><canvas data-icon="moveTurn" width="48" height="48" style="width:28px;height:28px" aria-hidden="true"></canvas></button>
+  <button class="pixel-btn pb sq" id="turnView" aria-label="Rotate island view" title="Rotate island view"><canvas data-icon="rotate" width="48" height="48" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
   <button class="pixel-btn pb sq" id="eyeTool" aria-label="Transparent buildings" aria-pressed="false" title="Transparent buildings"><canvas data-icon="eye" width="56" height="56" style="width:24px;height:24px" aria-hidden="true"></canvas></button>
 </div>
 
@@ -3809,7 +3810,7 @@ const isBeach = (i, j) => !isLand(i, j) || !!ISL.beach[j * N + i];
 const isRoad = (i, j) => { const t = tileAt(i, j); return !!t && t.id === 'road'; };
 const roadNear = (i, j) => isRoad(i + 1, j) || isRoad(i - 1, j) || isRoad(i, j + 1) || isRoad(i, j - 1);
 function fpOf(id,turned=false){
-  const d=DEFS[id],w=d?.fx||1,h=d?.fy||1;return turned?[h,w]:[w,h];
+  const d=DEFS[id],w=d?.fx||1,h=d?.fy||1;return turned%2?[h,w]:[w,h];
 }
 const anchorOf = (i, j) => { const t = tileAt(i, j); return t && t.id === '_occ' ? { i: t.ref[0], j: t.ref[1] } : { i, j }; };
 function roadNearFP(i, j, id, turned=tileAt(i,j)?.turned) { const [fx, fy] = fpOf(id,turned); for (let a = 0; a < fx; a++) { if (isRoad(i + a, j - 1) || isRoad(i + a, j + fy)) return true; } for (let b = 0; b < fy; b++) { if (isRoad(i - 1, j + b) || isRoad(i + fx, j + b)) return true; } return false; }
@@ -3842,7 +3843,7 @@ function commitMove(edit,i,j){
   const {source,object,turned}=edit;
   if(tileAt(source.i,source.j)!==object||!fpFree(i,j,object.id,turned,source))return false;
   vacate(source.i,source.j,object);
-  object.turned=!!turned;occupy(i,j,object);
+  object.turned=Number(turned)||0;occupy(i,j,object);
   derive();changed();save();snd('build');return true;
 }
 const boostOn = () => S.boostUntil > now();
@@ -4047,7 +4048,7 @@ function placeAt(i, j, id, fromItem, turned=false) {
   const cost = fromItem ? 0 : costOf(id);
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
   if (fromItem && !(S.shopItems && S.shopItems[id] > 0)) { snd('error'); toast('You have none of this Dosh Shop item left.'); return false; }
-  S.cash -= cost; const tile=newTile(id);if(turned)tile.turned=true;occupy(i,j,tile); if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
+  S.cash -= cost; const tile=newTile(id);if(turned)tile.turned=Number(turned);occupy(i,j,tile); if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
   if (id === 'hall' && S.foundingGrant) {
     delete S.foundingGrant; S.cash += 8000; save(); toast('Town founded · 8,000 starter coins');
   }
@@ -4168,7 +4169,7 @@ function pickForMove(i,j){
   const source=anchorOf(i,j),object=tileAt(source.i,source.j);
   if(!object||!DEFS[object.id])return false;
   pickingMove=false;sel=null;
-  placing={id:object.id,object,source,action:'choose',turned:!!object.turned,ghost:null};
+  placing={id:object.id,object,source,action:'choose',turned:Number(object.turned)||0,ghost:null};
   renderCard(true);return true;
 }
 let PX = 3;
@@ -4179,7 +4180,7 @@ const lowCtx = mid.getContext('2d');
 const cv = $('#game'); const ctx = cv.getContext('2d');
 let W = 0, H = 0, DPR = 1;
 const V = { ctx, z: 1.15, cx: 0, cy: 0 };
-const ROT = 0;
+let ROT = 0;
 function rotXY(x, y) { return ROT === 0 ? [x, y] : ROT === 1 ? [N - y, x] : ROT === 2 ? [N - x, N - y] : [y, N - x]; }
 function unrotXY(vx, vy) { return ROT === 0 ? [vx, vy] : ROT === 1 ? [vy, N - vx] : ROT === 2 ? [N - vx, N - vy] : [N - vy, vx]; }
 function Pv(vx, vy) { return { x: V.cx + (vx - vy) * (TW / 2) * V.z, y: V.cy + (vx + vy) * (TH / 2) * V.z }; }
@@ -4618,8 +4619,8 @@ function spriteBox(i, j, id, turned=tileAt(i,j)?.turned) {
   const stop=tileAt(i,j);
   const transport=isStop(id);
   const orientation=transport?(stopKerb(i,j,stop?.stopDir)?.dir??stop?.stopDir??1):0;
-  const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id,(ROT+(turned?1:0))%4); if (!sp) return null; const [fx, fy] = fpOf(id,turned); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
-  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !fourSidedModels.has(id) && !transport && (Boolean(turned)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
+  const sp=transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id,(ROT+(Number(turned)||0))%4); if (!sp) return null; const [fx, fy] = fpOf(id,turned); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
+  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1)); const mir = !fourSidedModels.has(id) && !transport && (Boolean(turned%2)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
   return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
 // Frames are rendered from the approved models at the same metres-per-tile scale.
 const streetArt = new Image();
@@ -5065,7 +5066,20 @@ function render() {
   stepZoomAnim(); const camX = V.cx, camY = V.cy; V.cx = Math.round(V.cx / PX) * PX; V.cy = Math.round(V.cy / PX) * PX;
   V.ctx = lowCtx; lowCtx.setTransform(2 / PX, 0, 0, 2 / PX, 0, 0); lowCtx.imageSmoothingEnabled = false;
   drawSky(); drawSea(); drawIsland();
-  for (let s = 0; s < 2 * N - 1; s++) for (let i = 0; i < N; i++) { const j = s - i; if (j < 0 || j >= N) continue; drawGround(i, j); }
+  // Project the padded viewport onto the map, retaining diagonal paint order.
+  const pad = TW * V.z;
+  const corners = [[-pad,-pad],[W+pad,-pad],[-pad,H+pad],[W+pad,H+pad]].map(([x,y]) => screenToWorld(x,y));
+  const left = Math.max(0,Math.floor(Math.min(...corners.map(p=>p.x)))-1);
+  const right = Math.min(N-1,Math.ceil(Math.max(...corners.map(p=>p.x))));
+  const top = Math.max(0,Math.floor(Math.min(...corners.map(p=>p.y)))-1);
+  const bottom = Math.min(N-1,Math.ceil(Math.max(...corners.map(p=>p.y))));
+  for (let sum=left+top; sum<=right+bottom; sum++) {
+    for (let x=Math.max(left,sum-bottom); x<=Math.min(right,sum-top); x++) {
+      const y=sum-x;
+      // Reverse each world axis that points towards the camera in this view.
+      drawGround(ROT>=2?right+left-x:x, ROT===1||ROT===2?bottom+top-y:y);
+    }
+  }
   const streetLamps=streetMap().lamps,strength=Number(lightsOn);
   if(strength)for(const lamp of streetLamps)drawStreetLamp(lamp,true,strength);
   drawOverlay();
@@ -5309,7 +5323,7 @@ let cardKey = '', demoArm = false;
 function select(i, j) { if (i === null || i === undefined) { sel = null; demoArm = false; renderCard(true); return; } { const a = anchorOf(i, j); i = a.i; j = a.j; } { } sel = { i, j }; demoArm = false; renderCard(true); }
 function cardState() {
   if(pickingMove)return 'pickMove';
-  if (placing) return 'place|' + (placing.action||'build') + '|' + !!placing.source + '|' + !!placing.turned + '|' + placing.id + '|' + (placing.ghost ? placing.ghost.i + ',' + placing.ghost.j : '') + '|' + (S.cash >= (placing.fromItem ? 0 : costOf(placing.id))) + '|' + (placing.fromItem ? S.items[placing.id] : '');
+  if (placing) return 'place|' + (placing.action||'build') + '|' + !!placing.source + '|' + (Number(placing.turned)||0) + '|' + placing.id + '|' + (placing.ghost ? placing.ghost.i + ',' + placing.ghost.j : '') + '|' + (S.cash >= (placing.fromItem ? 0 : costOf(placing.id))) + '|' + (placing.fromItem ? S.items[placing.id] : '');
   if (!sel) return 'none';
   const t = tileAt(sel.i, sel.j); if (!t) return 'empty|' + sel.i + ',' + sel.j + '|' + inB(sel.i, sel.j) + '|' + roadNear(sel.i, sel.j);
   const b = t._ || {};
@@ -5336,23 +5350,23 @@ function renderCard(force) {
       '<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button></div>';
   }else if (placing) {
     const d=DEFS[placing.id],g=placing.ghost,ok=fitsEdit(g);
+    const rotateButton=placing.id==='road'||isStop(placing.id)?'':'<button class="pixel-btn pb" data-act="rotateBuilding">Rotate</button>';
     if(placing.action==='choose'){
-
       const road=placing.id==='road';
-      const hint=road?'Roads automatically connect to adjacent roads.':'Move this building or tap another one.';
+      const hint=road?'Roads automatically connect to adjacent roads.':'Choose an action or tap another building.';
       html=head(d.name,hint)+
-        `<div class="row"><button class="pixel-btn pb" data-act="chooseMove">Move ${road?'road':'building'}</button></div>`;
+        `<div class="row"><button class="pixel-btn pb" data-act="chooseMove">Move ${road?'road':'building'}</button>${rotateButton}</div>`;
     }else if(placing.source){
-      const message=!g?'Tap the new spot on the map.':ok?'Confirm this location.':isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.';
+      const message=!g?'Tap the new spot on the map.':ok?'Confirm this position and facing.':isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.';
       html=head('Move '+d.name,message)+
-        `<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok?'':'disabled'}>Confirm</button></div>`;
+        `<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok?'':'disabled'}>Confirm</button>${rotateButton}</div>`;
     }else if(placing.id==='road'){
       html=head('Laying roads','Tap tiles to place road, '+costOf('road')+' Coins each.')+'<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>';
     }else{
       const cost=placing.stored||placing.fromItem?0:costOf(placing.id);
       const msg=!g?'Tap a tile to preview the footprint.':!ok?(isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.') :
         d.type==='decor'||roadNearFP(g.i,g.j,placing.id,placing.turned)?'Ready to place.':'This spot has no adjacent road.';
-      html=head('Place '+d.name,msg)+`<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok&&S.cash>=cost?'':'disabled'}>${cost?'Build · '+fmt(cost):'Place'}</button></div>`;
+      html=head('Place '+d.name,msg)+`<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok&&S.cash>=cost?'':'disabled'}>${cost?'Build · '+fmt(cost):'Place'}</button>${rotateButton}</div>`;
     }
   } else if (sel) {
     const t = tileAt(sel.i, sel.j);
@@ -5411,13 +5425,19 @@ card.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
   if (a === 'closeCard') { snd('back'); pickingMove=false;placing = null; select(null); return; }
   if (a === 'cancelPlace' || a === 'donePlace') { pickingMove=false;placing = null; renderCard(true); return; }
+  if(a==='rotateBuilding' && placing && placing.id!=='road' && !isStop(placing.id)){
+    const views=fourSidedModels.has(placing.id)?4:2;
+    placing.turned=((Number(placing.turned)||0)+1)%views;
+    if(placing.action==='choose'){placing.action='move';placing.ghost={...placing.source};}
+    snd('tap');renderCard(true);return;
+  }
   if(placing?.action==='choose'&&a==='chooseMove'){
     placing.action='move';
     renderCard(true);return;
   }
   if(a==='confirmPlace'&&placing){
     const g=placing.ghost;if(!g)return;
-    const ok=placing.stored?restoreBuilding(placing.stored,g.i,g.j):placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
+    const ok=placing.stored?restoreBuilding(placing.stored,g.i,g.j,placing.turned):placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
     if(ok){placing=null;select(g.i,g.j);}return;
   }
   if (!sel) return;
@@ -5488,10 +5508,11 @@ function itemBagHTML() {
   return coinBoostHTML() + '<h3>Moved buildings</h3>' + (moved ? '<div class="grid2">'+moved+'</div>' : '<p class="note">If a remodel needs more space, your building will be kept here with its upgrades.</p>') +
     '<h3>Collectables</h3>' + (owned ? '<div class="grid2">'+owned+'</div>' : '<p class="note">Collectables you buy in the Dosh Shop appear here.</p>');
 }
-function restoreBuilding(entry,i,j) {
+function restoreBuilding(entry,i,j,turned=entry.building.turned) {
   const index = S.storedBuildings.indexOf(entry);
   const tile = entry.building;
-  if (index < 0 || !fpFree(i,j,tile.id,tile.turned)) return false;
+  if (index < 0 || !fpFree(i,j,tile.id,turned)) return false;
+  if (turned || tile.turned) tile.turned=Number(turned)||0;
   occupy(i,j,tile);
   S.storedBuildings.splice(index,1);
   changed(); save(); snd('build');
@@ -5603,7 +5624,7 @@ sheetEl.addEventListener('click', e => {
   if (a === 'restore' && sheet === 'bag') {
     const entry = S.storedBuildings[Number(b.dataset.index)];
     if (!entry) return;
-    placing = {id:entry.building.id, turned:!!entry.building.turned, stored:entry};
+    placing = {id:entry.building.id, turned:Number(entry.building.turned)||0, stored:entry};
     closeSheet(); sel=null; renderCard(true); return;
   }
   if (a === 'choose') {
@@ -6612,6 +6633,14 @@ $('#moveTool').addEventListener('click',()=>{
   placing=null;pickingMove=!active;
   sel=null;renderCard(true);
 });
+$('#turnView').addEventListener('click',()=>{
+  const focus=screenToWorld(W/2,mapMidY());
+  zoomAnim=null; camAnim=null;
+  ROT=(ROT+1)%4;
+  centerOn(focus.x,focus.y);
+  hulls=[]; badgeHits=[];
+  snd('tap');
+});
 $('#eyeTool').addEventListener('click',()=>{
   transparency=!fadedBuildings();syncMapTools();
 });
@@ -6684,8 +6713,9 @@ function makeWalkingGraph() {
     }
     let best=null;
     for(const door of entrances) {
-      const x=i+(tile.turned?door.y:door.x),y=j+(tile.turned?door.x:door.y);
-      const front=(door.side==='front')!==!!tile.turned;
+      const odd=Boolean(tile.turned%2);
+      const x=i+(odd?door.y:door.x),y=j+(odd?door.x:door.y);
+      const front=(door.side==='front')!==odd;
       const gate=front?{x,y:B,s:width+height+R-x}:{x:R,y,s:width+y-T};
       for(const a of access){
         const cw=(a.s-gate.s+perimeter)%perimeter,forward=cw<=perimeter/2;
