@@ -1414,6 +1414,14 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 .wheel-goal progress{grid-column:2/-1;grid-row:3;width:100%;appearance:none;height:6px;border:0;background:#201d38;margin-top:2px}
 .wheel-goal progress::-webkit-progress-bar{background:#201d38}.wheel-goal progress::-webkit-progress-value{background:var(--fill)}.wheel-goal progress::-moz-progress-bar{background:var(--fill)}
 </style>
+<style>
+#hud #boost:not([hidden]),#sheetBody .task .info .coin-boost-label{display:inline-flex;align-items:center;gap:4px}
+#hud #boost{font-size:22px;line-height:1}
+#boostT{font-size:16px;font-variant-numeric:tabular-nums}
+#sheetBody .task .info .coin-boost-label{font-size:22px;line-height:1.1}
+.coin-boost-icon{width:22px;height:22px;flex:none;image-rendering:pixelated}
+@media(max-width:370px){#hud #boost{gap:2px;padding-inline:2px}#boost .coin-boost-icon{width:18px;height:18px}}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -1422,7 +1430,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
     <div class="cname"><b class="wm">BIT-BURBS</b><div class="xp-row"><div class="xp" aria-hidden="true"><i id="xpFill"></i></div><span id="xpCount">0/60 XP</span></div></div>
-    <div id="boost" hidden>2× <span id="boostT"></span></div>
+    <div id="boost" hidden aria-label="Double coin earnings"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><b>2×</b> <span id="boostT"></span></div>
     <div style="display:flex;align-items:center;gap:6px"><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
   </div>
   <div class="cpmbar">
@@ -5455,7 +5463,7 @@ function renderSheet(force) {
 }
 function coinBoostHTML() {
   const tokens = Object.entries(S.coinBoostTokens || {}).filter(([min,count]) => Number(min)>0 && count>0);
-  const rows = tokens.map(([min,count]) => `<div class="task"><div class="info"><b>2× coins · ${Number(min)} min</b><small>Owned · ${Number(count)}</small></div><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}">Use</button></div>`);
+  const rows = tokens.map(([min,count]) => `<div class="task"><div class="info"><b class="coin-boost-label"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><span>2× coins · ${Number(min)} min</span></b><small>Owned · ${Number(count)}</small></div><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}">Use</button></div>`);
   return '<h3>Coin boosts</h3>' + (rows.join('') || '<p class="note">Earn boosts from rewards, then tap Use here to start the timer.</p>');
 }
 function useCoinBoost(min) {
