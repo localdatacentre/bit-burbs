@@ -6650,7 +6650,63 @@ function frame(t) {
 }
 
 /* ================= boot ================= */
+// Baseline for cities saved before footprint tracking. Unlisted lots were one tile.
+const originalLotSizes = {town:'3x2',gas:'2x2',warehouse:'3x2',skyscraper:'2x2',solar2:'2x2',nuclear:'7x5',needle:'2x2',space:'4x3',banksiaDuplex:'2x1',tidalBaths:'2x2',sunhouse:'2x1',pelicanLight:'2x2'};
+function reconcileLotSizes(city) {
+  const previous = city.lotSizes || originalLotSizes;
+  const sizes = {};
+  for (const id of Object.keys(DEFS)) {
+    const [w,h] = fpOf(id);
+    if (w*h > 1) sizes[id] = w+'x'+h;
+  }
+  const owners = new Map();
+  const resized = [];
+  city.tiles.forEach((tile,i) => {
+    if (!tile) return;
+    const anchor = tile.id === '_occ' ? tile.ref[1]*N+tile.ref[0] : i;
+    if (!owners.has(anchor)) owners.set(anchor,[]);
+    owners.get(anchor).push(i);
+    if (tile.id !== '_occ' && (previous[tile.id] || '1x1') !== (sizes[tile.id] || '1x1')) resized.push(i);
+  });
+  const claimed = new Set();
+  function clear(anchor) {
+    for (const index of owners.get(anchor) || []) city.tiles[index] = null;
+    owners.delete(anchor);
+  }
+  function storeBuilding(anchor) {
+    (city.storedBuildings ||= []).push({building:city.tiles[anchor],from:[anchor%N,Math.floor(anchor/N)]});
+    clear(anchor);
+  }
+  for (const anchor of resized) {
+    const building = city.tiles[anchor];
+    if (!building || building.id === '_occ') continue;
+    const x = anchor%N, y = Math.floor(anchor/N);
+    const [w,h] = fpOf(building.id,building.turned);
+    const cells = [], blockers = new Set();
+    let fits = true;
+    for (let dy=0;dy<h;dy++) for (let dx=0;dx<w;dx++) {
+      const col=x+dx, row=y+dy, index=row*N+col;
+      if (!inB(col,row) || col<city.lo || row<city.lo || col>=N-city.lo || row>=N-city.lo) { fits=false; continue; }
+      cells.push(index);
+      const tile=city.tiles[index];
+      if (!tile) continue;
+      const owner=tile.id==='_occ' ? tile.ref[1]*N+tile.ref[0] : index;
+      if (owner===anchor) continue;
+      if (tile.id==='road' || claimed.has(owner)) fits=false;
+      else blockers.add(owner);
+    }
+    if (!fits) { storeBuilding(anchor); continue; }
+    for (const owner of blockers) storeBuilding(owner);
+    clear(anchor);
+    for (const index of cells) city.tiles[index]=index===anchor ? building : {id:'_occ',ref:[x,y]};
+    owners.set(anchor,cells);
+    claimed.add(anchor);
+  }
+  city.lotSizes=sizes;
+}
+
 S = load() || newGame();
+reconcileLotSizes(S);
 S.tiles.forEach((tile, index) => {
   if (tile?.id === 'ferris') {
     S.tiles[index] = null;
