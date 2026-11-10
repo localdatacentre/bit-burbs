@@ -1417,6 +1417,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <style>#bayTravel{position:fixed;inset:0;margin:0;width:100vw;height:100%;max-width:none;max-height:none;padding:0;border:0;background:#000;color:white;text-align:center;font:inherit}#bayTravel[open]{display:grid;place-items:center}#bayTravel::backdrop{background:transparent}</style>
 <style>#nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}#nav > button.pixel-btn[data-open="bag"]{--bb-face:#a17aca;--bb-top:#c6a7e5;--bb-bottom:#825da8;--bb-edge:#674985}</style>
 <style>#nav > button.pixel-btn.bag-unread[data-open="bag"]{border-color:#ffdb59!important;box-shadow:inset 0 0 0 2px #ffdb59!important}#nav .bag-unread .dock-icon{filter:drop-shadow(0 1px 1px #ffdc65)}</style>
+<style>#remodelDemoPanel{position:fixed;top:max(6px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:9999;width:min(92vw,430px);box-sizing:border-box;background:#182d45;color:white;padding:8px 12px;border:2px solid #78adc3;font:16px/1.2 monospace;text-align:center}#remodelDemoPanel p{margin:0 0 4px}#remodelDemoPanel a{color:#ffe391;font-size:14px}</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -3435,7 +3436,8 @@ return {render};})();
 
 /* ================= constants ================= */
 const TW = 64, TH = 32, BEACH = 2;
-const SAVE_KEY = 'bit-burbs-remodel-preview-v1';
+const remodelDemo = new URLSearchParams(location.search).get('demo') === 'remodel';
+const SAVE_KEY = remodelDemo ? 'bit-burbs-remodel-demo' : 'bit-burbs-remodel-preview-v1';
 let N = 48;
 try { if (JSON.parse(localStorage.getItem(SAVE_KEY))?.island === 'banksia-bay') N = 144; } catch {}
 let MID = N / 2;
@@ -5034,6 +5036,9 @@ function render() {
   const streetLamps=streetMap().lamps,strength=Number(lightsOn);
   if(strength)for(const lamp of streetLamps)drawStreetLamp(lamp,true,strength);
   drawOverlay();
+  if (remodelDemo && DEFS.gym.fx === 2) {
+    poly([P(25,24),P(26,24),P(26,25),P(25,25)],'rgba(255,206,68,.36)','#ffdb59',2);
+  }
   if (sel) poly(diamond(sel.i, sel.j), 'rgba(255,255,255,.25)', '#FFFFFF', 3);
   if(placing?.action==='choose'){
     const {i,j}=placing.source,[w,h]=fpOf(placing.id,placing.turned);
@@ -6858,7 +6863,14 @@ function reconcileLotSizes(city) {
   city.lotSizes=sizes;
 }
 
-S = load() || newGame();
+S = remodelDemo ? newGame() : load() || newGame();
+if (remodelDemo) {
+  S.tiles.fill(null);
+  S.firstRun=false; S.tut=null; S.tutDone=true; S.level=5;
+  S.tiles[24*N+24]=newTile('gym');
+  S.tiles[24*N+25]={...newTile('house'),lvl:4,rent:78};
+  for (let x=23;x<=28;x++) S.tiles[25*N+x]=newTile('road');
+}
 // Earlier previews already packed some buildings without exposing the bag.
 if (!S.bagNoticeVersion && S.storedBuildings?.length) {
   S.bagUnread = true;
@@ -6977,6 +6989,34 @@ else if (S.upgraded || S.firstRun) {
 }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resize(); paintStaticIcons(); lastClockKind = ''; lastFace = -1; });
 requestAnimationFrame(frame);
+if (remodelDemo) playRemodelDemo();
+async function playRemodelDemo() {
+  const panel=document.createElement('aside');
+  panel.id='remodelDemoPanel';
+  panel.innerHTML='<p role="status"></p><a href="?demo=remodel">Replay</a> · <a href="./">Exit demo</a>';
+  document.body.append(panel);
+  const caption=panel.querySelector('p');
+  const say=async (message,ms)=>{caption.textContent=message; await new Promise(resolve=>setTimeout(resolve,ms));};
+  centerOn(25,24);
+  await say('This level 4 cottage is next door to Forge Fitness.',3500);
+  DEFS.gym.fx=2;
+  reconcileLotSizes(S);
+  streetNetwork=null; walkingGraph=null; derive(); changed(); save();
+  $('#nav [data-open="bag"]').classList.add('bag-unread');
+  showBagNotice();
+  await say('The gym needs the yellow plot. The game packs the cottage and alerts the player.',3800);
+  $('#bagLater')?.click();
+  await say('The satchel stays highlighted after choosing Later.',2300);
+  $('#nav [data-open="bag"]').click();
+  await say('Open My items. The cottage is under Moved buildings, still level 4.',3600);
+  sheetBody.querySelector('[data-act="restore"]')?.click();
+  if (!placing?.stored) return;
+  placing.ghost={i:27,j:24}; renderCard(true);
+  await say('Choose a clear plot beside the road and tap Place.',2800);
+  card.querySelector('[data-act="confirmPlace"]')?.click();
+  if (tileAt(27,24)?.lvl===4 && !S.storedBuildings.length)
+    caption.textContent='The level 4 cottage is back in town. Placement cost 0 coins.';
+}
 })();
 </script>
 
