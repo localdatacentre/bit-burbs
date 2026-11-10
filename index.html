@@ -1415,7 +1415,13 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 .wheel-goal progress::-webkit-progress-bar{background:#201d38}.wheel-goal progress::-webkit-progress-value{background:var(--fill)}.wheel-goal progress::-moz-progress-bar{background:var(--fill)}
 </style>
 <style>#bayTravel{position:fixed;inset:0;margin:0;width:100vw;height:100%;max-width:none;max-height:none;padding:0;border:0;background:#000;color:white;text-align:center;font:inherit}#bayTravel[open]{display:grid;place-items:center}#bayTravel::backdrop{background:transparent}</style>
-<style>#nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}#nav > button.pixel-btn[data-open="bag"]{--bb-face:#a17aca;--bb-top:#c6a7e5;--bb-bottom:#825da8;--bb-edge:#674985}</style>
+<style>
+#nav{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:4px!important;padding-inline:5px!important}
+#nav > button.pixel-btn[data-open]{height:52px!important;min-height:52px!important;max-height:52px!important;gap:2px!important}
+#nav .dock-icon{width:28px;height:28px}
+@media(max-width:540px){#nav > button.pixel-btn[data-open]{font-size:clamp(14px,4vw,16px)!important}}
+#sheet.open{bottom:var(--main-dock-height,calc(62px + env(safe-area-inset-bottom,0px)))!important}
+#nav > button.pixel-btn[data-open="bag"]{--bb-face:#a17aca;--bb-top:#c6a7e5;--bb-bottom:#825da8;--bb-edge:#674985}</style>
 <style>#nav > button.pixel-btn.bag-unread[data-open="bag"]{border-color:#ffdb59!important;box-shadow:inset 0 0 0 2px #ffdb59!important}#nav .bag-unread .dock-icon{filter:drop-shadow(0 1px 1px #ffdc65)}</style>
 <style>#remodelDemoPanel{position:fixed;top:max(6px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:9999;width:min(92vw,430px);box-sizing:border-box;background:#182d45;color:white;padding:8px 12px;border:2px solid #78adc3;font:16px/1.2 monospace;text-align:center}#remodelDemoPanel p{margin:0 0 4px}#remodelDemoPanel a{color:#ffe391;font-size:14px}</style>
 <style>
@@ -5515,6 +5521,7 @@ function layoutUI() {
   document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
   $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 10) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
   const nt = $('#nav').getBoundingClientRect().top; const panel = $('#card');
+  document.documentElement.style.setProperty('--main-dock-height', (H - nt) + 'px');
   panel.style.bottom = (H - nt + 10) + 'px';
   panel.style.maxHeight = Math.max(140, nt - $('#eyeTool').getBoundingClientRect().bottom - 18) + 'px';
 }
