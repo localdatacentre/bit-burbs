@@ -3430,7 +3430,7 @@ return {render};})();
 'use strict';
 
 /* ================= constants ================= */
-const TW = 64, TH = 32, N = 48, BEACH = 2, MID = N / 2;
+const TW = 64, TH = 32, N = 120, BEACH = 2, MID = N / 2;
 const SAVE_KEY = 'blocktown-save-v1';
 const INK = '#14202E';
 const TIER = { steel: 'Silver', gold: 'Gold', diamond: 'Diamond' };
@@ -3726,17 +3726,36 @@ function newGame() {
 /* Only fresh tutorial towns get a prebuilt layout; existing cities are untouched. */
 function seedTutorialTown(s) {
   const put=(x,y,id)=>{if(x>=s.lo&&x<N-s.lo&&y>=s.lo&&y<N-s.lo&&!s.tiles[y*N+x])s.tiles[y*N+x]=newTile(id);};
-  put(24,24,'hall');
-  for(let x=24;x<=28;x++)put(x,25,'road');
-  put(23,25,'house');
-  put(22,25,'tree');
+  put(MID,MID,'hall');
+  for(let x=MID;x<=MID+4;x++)put(x,MID+1,'road');
+  put(MID-1,MID+1,'house');
+  put(MID-2,MID+1,'tree');
   s.pop=2;
   s.busT=now()+5000;
   s.tutorialTown=1;
 }
 
 function newTile(id) { const d = DEFS[id]; if (d.type === 'shop') return { id, st: 'idle' }; if (d.type === 'home') return { id, rent: 0 }; if (d.type === 'ind') return { id, stock: 0 }; return { id }; }
+function expandBetaIsland(city) {
+  const oldSize = Math.sqrt(city.tiles.length);
+  if (oldSize === N) return;
+  if (!Number.isInteger(oldSize) || oldSize <= 0 || oldSize > N) throw new Error('Unsupported saved island size');
+  const offset = Math.floor((N - oldSize) / 2);
+  const tiles = Array(N * N).fill(null);
+  city.tiles.forEach((tile, index) => {
+    if (!tile) return;
+    const x = index % oldSize + offset;
+    const y = Math.floor(index / oldSize) + offset;
+    if (tile.id === '_occ') tile.ref = [tile.ref[0] + offset, tile.ref[1] + offset];
+    tiles[y * N + x] = tile;
+  });
+  for (const entry of city.storedBuildings || []) {
+    if (Array.isArray(entry.from)) entry.from = [entry.from[0] + offset, entry.from[1] + offset];
+  }
+  city.tiles = tiles;
+}
 function migrate(d) {
+  expandBetaIsland(d);
   if (d.v === 2) return d;
   const b = baseState();
   const s = Object.assign(b, d, { v: 2, tickets: 3, wheelPips: 0, needle: 0, dicePos: 0, lastDie: 1 });
@@ -5009,7 +5028,16 @@ function render() {
   stepZoomAnim(); const camX = V.cx, camY = V.cy; V.cx = Math.round(V.cx / PX) * PX; V.cy = Math.round(V.cy / PX) * PX;
   V.ctx = lowCtx; lowCtx.setTransform(2 / PX, 0, 0, 2 / PX, 0, 0); lowCtx.imageSmoothingEnabled = false;
   drawSky(); drawSea(); drawIsland();
-  for (let s = 0; s < 2 * N - 1; s++) for (let i = 0; i < N; i++) { const j = s - i; if (j < 0 || j >= N) continue; drawGround(i, j); }
+  // Project the padded viewport onto the map, retaining diagonal paint order.
+  const pad = TW * V.z;
+  const corners = [[-pad,-pad],[W+pad,-pad],[-pad,H+pad],[W+pad,H+pad]].map(([x,y]) => screenToWorld(x,y));
+  const left = Math.max(0,Math.floor(Math.min(...corners.map(p=>p.x)))-1);
+  const right = Math.min(N-1,Math.ceil(Math.max(...corners.map(p=>p.x))));
+  const top = Math.max(0,Math.floor(Math.min(...corners.map(p=>p.y)))-1);
+  const bottom = Math.min(N-1,Math.ceil(Math.max(...corners.map(p=>p.y))));
+  for (let sum=left+top; sum<=right+bottom; sum++) {
+    for (let x=Math.max(left,sum-bottom); x<=Math.min(right,sum-top); x++) drawGround(x,sum-x);
+  }
   const streetLamps=streetMap().lamps,strength=Number(lightsOn);
   if(strength)for(const lamp of streetLamps)drawStreetLamp(lamp,true,strength);
   drawOverlay();
@@ -6253,7 +6281,7 @@ const TUT = [
  {t:'Open a bakery',d:'Build a Bakery beside the street to earn Coins.',build:'bakery',tab:'businesses',done:()=>hasB('bakery')},
  {t:'Stock your bakery',d:'Tap the Bakery and tap STOCK to start selling. Then your town is ready!',target:'bakery',act:'order',done:()=>tev('restock')}
 ];
-const TUTORIAL_PLOTS={house:[25,24],wind:[26,24],wtower:[27,24],bakery:[28,24]};
+const TUTORIAL_PLOTS={house:[MID+1,MID],wind:[MID+2,MID],wtower:[MID+3,MID],bakery:[MID+4,MID]};
 let tutHL = null;
 // A separate, non-interactive focus frame stays visible outside pixel button
 // clip-paths (which otherwise clip CSS outlines on iOS WebKit).
@@ -6771,7 +6799,6 @@ if (S.tut && !S.tutDone && S.tut.version!==3) {
   if(S.tut.step>=3&&hasB('bakery'))S.tut.step=4;
 }
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
-if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; }
 // Honour the old opening costs and keep partial sets by rounding up once.
 const legacyCrateCosts = { steel: 3, gold: 2, diamond: 1 };
 S.wheelPips = Math.max(0, Math.floor(Number(S.wheelPips) || 0)) % SPINS_PER_GOLD_CRATE;
