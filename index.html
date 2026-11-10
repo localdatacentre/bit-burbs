@@ -3454,8 +3454,9 @@ return {render};})();
 const TW = 64, TH = 32, BEACH = 2;
 const remodelDemo = new URLSearchParams(location.search).get('demo') === 'remodel';
 const SAVE_KEY = remodelDemo ? 'bit-burbs-remodel-demo' : new URLSearchParams(location.search).get('demo') === 'tutorial' ? 'bit-burbs-private-tutorial-test' : 'bit-burbs-remodel-preview-v1';
+const BAY_SIZE = 192;
 let N = 48;
-try { if (JSON.parse(localStorage.getItem(SAVE_KEY))?.island === 'banksia-bay') N = 144; } catch {}
+try { if (JSON.parse(localStorage.getItem(SAVE_KEY))?.island === 'banksia-bay') N = BAY_SIZE; } catch {}
 let MID = N / 2;
 const INK = '#14202E';
 const TIER = { steel: 'Silver', gold: 'Gold', diamond: 'Diamond', premium: 'Premium' };
@@ -3984,9 +3985,9 @@ const setTile = (i, j, t) => { S.tiles[j * N + i] = t;
   walkingGraph=null;streetNetwork=null;
   for(const w of walkers)if(w.routeTiles.has(j*N+i))w.retire=true; };
 const inB = (i, j) => isLand(i, j) && !ISL.beach[j * N + i];
-const BAY_RUNS = [1959,6,3,1,3,3,127,18,124,21,6,4,112,23,4,8,109,23,3,11,106,38,106,38,105,39,104,41,101,43,49,2,49,43,49,5,41,47,49,8,23,9,5,48,50,9,20,64,49,12,18,61,52,13,17,61,52,15,12,64,52,18,6,67,53,20,2,68,53,89,55,84,59,84,60,83,60,84,59,83,61,81,63,81,63,82,62,82,62,82,61,79,65,77,67,77,66,77,66,78,66,77,67,77,67,78,67,78,68,76,70,74,71,73,71,71,73,70,74,70,74,70,75,69,75,70,73,72,71,74,68,77,66,79,65,79,65,80,63,81,63,82,62,82,37,2,23,82,35,5,22,82,22,8,4,6,21,83,17,24,20,83,15,26,19,84,13,28,18,86,2,3,5,30,18,126,18,126,18,127,17,127,17,128,16,127,17,127,17,125,18,126,19,124,20,124,20,124,20,123,21,123,21,122,23,120,24,120,25,14,5,99,26,8,12,97,26,8,15,95,25,8,18,91,27,6,22,87,29,5,24,83,32,4,25,82,34,3,26,81,35,1,28,80,66,77,67,76,69,70,74,70,74,70,74,70,74,70,75,69,75,69,76,68,75,69,74,63,79,61,66,5,11,61,67,6,2,3,3,62,68,75,70,72,83,60,85,57,88,53,93,49,98,45,100,42,103,14,4,4,5,12,106,11,17,8,109,9,21,3,112,7,2250];
+const BAY_RUNS = [3189,20,170,23,168,25,10,1,154,28,6,7,150,30,4,11,146,47,144,49,143,49,142,51,141,51,140,52,139,53,138,54,137,54,137,54,69,1,66,54,68,6,62,54,69,8,57,57,68,11,53,56,70,14,50,56,71,15,31,11,5,58,71,17,27,75,72,18,25,76,72,20,23,76,72,23,19,79,71,24,13,86,68,27,6,91,68,124,67,125,67,126,66,126,65,126,66,124,67,123,69,122,70,118,74,117,75,116,76,115,77,114,78,112,80,107,85,106,85,106,86,106,86,104,87,103,89,103,89,104,88,104,89,103,90,103,90,102,92,101,93,99,94,97,96,95,97,95,97,94,98,94,99,93,99,93,99,94,98,94,98,95,96,97,94,100,91,101,90,103,88,105,86,106,86,107,85,107,84,109,83,109,83,109,83,109,82,110,27,2,1,5,12,5,30,110,23,17,5,8,28,111,12,41,28,111,7,46,27,112,5,49,25,114,2,51,25,167,24,167,24,168,24,168,24,168,24,169,22,170,22,170,22,170,22,169,23,169,22,169,23,168,24,167,25,166,26,165,26,166,26,165,27,165,27,164,28,163,29,162,31,161,31,160,32,159,33,19,4,135,34,12,12,1,2,130,35,10,18,128,35,10,20,126,36,9,23,122,37,8,27,117,40,7,29,114,42,6,31,112,44,4,33,110,46,2,35,109,83,108,85,106,87,104,89,98,95,96,92,100,92,100,92,100,93,99,99,93,99,93,99,93,99,93,100,92,100,90,103,81,111,78,114,76,115,76,93,1,21,76,93,5,16,77,93,8,13,77,95,13,4,79,97,94,106,84,113,77,117,73,120,70,123,68,125,66,128,63,131,59,135,56,137,53,140,50,143,29,9,10,145,17,24,4,148,14,179,12,182,9,186,3,3386];
 function makeIsland() { const land = new Uint8Array(N * N), beach = new Uint8Array(N * N), shallow = new Uint8Array(N * N), ed = new Float32Array(N * N);
-  if (N === 144) {
+  if (N === BAY_SIZE) {
     // Alternating ocean and land runs in row-major order from the approved coastline.
     let offset = 0, solid = 0;
     for (const length of BAY_RUNS) { land.fill(solid, offset, offset + length); offset += length; solid ^= 1; }
@@ -6840,7 +6841,7 @@ async function travelToBay() {
   }
   await wait(650);
   const sound=S.sound;
-  N=144; MID=N/2; ISL=makeIsland();
+  N=BAY_SIZE; MID=N/2; ISL=makeIsland();
   S=Object.assign(baseState(),{
     island:'banksia-bay', lo:0, tut:null, tutDone:true, firstRun:false, welcomeBonus:true,
     harbourGoldGiftClaimed:true, cash:0, stars:0, deeds:0, tickets:0, dice:0, pop:0,
@@ -7251,6 +7252,23 @@ function standardiseCoinBoosts(city) {
   city.coinBoostTokens = minutes ? {15:Math.ceil(minutes/15)} : {};
 }
 S = remodelDemo ? newGame() : load() || newGame();
+// Reindex saved towns before footprint reconciliation reads their anchors.
+if (S.tiles.length !== N * N) {
+  const oldSize = Math.sqrt(S.tiles.length);
+  const shift = Math.floor((N - oldSize) / 2);
+  const expanded = Array(N * N).fill(null);
+  S.tiles.forEach((tile, index) => {
+    if (!tile) return;
+    const x = index % oldSize + shift;
+    const y = Math.floor(index / oldSize) + shift;
+    if (tile.id === '_occ') tile.ref = [tile.ref[0] + shift, tile.ref[1] + shift];
+    expanded[y * N + x] = tile;
+  });
+  for (const entry of S.storedBuildings || []) {
+    if (entry.from) entry.from = [entry.from[0] + shift, entry.from[1] + shift];
+  }
+  S.tiles = expanded;
+}
 standardiseCoinBoosts(S);
 if (remodelDemo) {
   S.tiles.fill(null);
@@ -7286,7 +7304,6 @@ if (S.tut && !S.tutDone && S.tut.version!==3) {
   if(S.tut.step>=3&&hasB('bakery'))S.tut.step=4;
 }
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
-if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.tiles.length)), off = Math.floor((N - oN) / 2), nt = Array(N * N).fill(null); for (let j = 0; j < oN; j++) for (let i = 0; i < oN; i++) { const t = S.tiles[j * oN + i]; if (!t) continue; if (t.id === '_occ' && t.ref) t.ref = [t.ref[0] + off, t.ref[1] + off]; nt[(j + off) * N + i + off] = t; } S.tiles = nt; }
 // Honour the old opening costs and keep partial sets by rounding up once.
 const legacyCrateCosts = { steel: 3, gold: 2, diamond: 1 };
 S.wheelPips = Math.max(0, Math.floor(Number(S.wheelPips) || 0)) % SPINS_PER_GOLD_CRATE;
