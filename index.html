@@ -3451,7 +3451,7 @@ let N = 48;
 try { if (JSON.parse(localStorage.getItem(SAVE_KEY))?.island === 'banksia-bay') N = 144; } catch {}
 let MID = N / 2;
 const INK = '#14202E';
-const TIER = { steel: 'Silver', gold: 'Gold', diamond: 'Diamond' };
+const TIER = { steel: 'Silver', gold: 'Gold', diamond: 'Diamond', premium: 'Premium' };
 const SPINS_PER_GOLD_CRATE = 10;
 const CHEST = {
   steel:   { b: '#AEB9C9', d: '#66728A', s: '#3E4652', l: '#FFC21A' },
@@ -3526,11 +3526,51 @@ const BUILD_TABS = [
 const EXPAND = [];
 const expIdx = () => 13 - S.lo;
 
+// Coin ranges scale with town level. Every opening makes one weighted draw.
+const coins = (low, high) => ({ k:'cash', low, high });
+const dosh = (low, high) => ({ k:'stars', low, high });
+const freight = tier => ({ k:'crate', tier });
+const oneSpin = { k:'ticket', n:1 };
+const coinToken = { k:'boost', min:15 };
 const CRATES = {
-  steel:   { table: [[28, 'Silver coin bundle', { k: 'cash', m: 10 }], [15, '12 Dosh', { k: 'stars', n: 12 }], [10, '2 Wheel tickets', { k: 'ticket', n: 2 }], [5, 'Gold crate', { k: 'crate', tier: 'gold' }], [30, 'Bonus Coins', { k: 'cash', m: 18 }], [12, '2× boost 15 min', { k: 'boost', min: 15 }]] },
-  gold:    { table: [[34, 'Big Coin bundle', { k: 'cash', m: 28 }], [22, '25 Dosh', { k: 'stars', n: 25 }], [14, '4 Wheel tickets', { k: 'ticket', n: 4 }], [4, 'Diamond crate', { k: 'crate', tier: 'diamond' }], [12, '2 Deeds', { k: 'deed', n: 2 }], [14, '2× boost 15 min', { k: 'boost', min: 15 }]] },
-  diamond: { table: [[36, 'Mega Coin vault', { k: 'cash', m: 90 }], [30, '50 Dosh', { k: 'stars', n: 50 }], [18, '5 Wheel tickets', { k: 'ticket', n: 5 }], [10, '3 Deeds', { k: 'deed', n: 3 }], [6, 'Diamond crate', { k: 'crate', tier: 'diamond' }]] }
+  steel: { guaranteed:[], table:[
+    [56, 'Coins', coins(200,400)], [23, 'Dosh', dosh(8,16)],
+    [5, '1 wheel spin', oneSpin], [6, 'Gold crate', freight('gold')],
+    [7.8, '15 min double coins', coinToken], [2, 'Diamond crate', freight('diamond')],
+    [0.2, 'Premium crate', freight('premium')]
+  ]},
+  gold: { guaranteed:[], table:[
+    [38, 'Coins', coins(500,900)], [30, 'Dosh', dosh(20,36)],
+    [5, '1 wheel spin', oneSpin], [15, '2 deeds', {k:'deed',n:2}],
+    [9.8, '15 min double coins', coinToken], [2, 'Diamond crate', freight('diamond')],
+    [0.2, 'Premium crate', freight('premium')]
+  ]},
+  diamond: { guaranteed:[coins(1200,2000), dosh(40,65)], table:[
+    [45, '2 deeds', {k:'deed',n:2}], [30, '15 min double coins', coinToken],
+    [20, 'Extra dosh', dosh(12,24)], [4.8, '1 wheel spin', oneSpin],
+    [0.2, 'Premium crate', freight('premium')]
+  ]},
+  premium: { guaranteed:[coins(2400,3600), dosh(80,120)], table:[
+    [45, '4 deeds', {k:'deed',n:4}], [35, 'Extra dosh', dosh(30,50)],
+    [20, 'Diamond crate', freight('diamond')]
+  ]}
 };
+function crateRange(reward) {
+  const scale = reward.k === 'cash' ? Math.max(1,S.level) : 1;
+  return [reward.low * scale, reward.high * scale];
+}
+function crateAmountLabel(reward,label) {
+  if (reward.low == null) return label;
+  const [low, high] = crateRange(reward);
+  return low.toLocaleString() + '–' + high.toLocaleString() + (reward.k === 'cash' ? ' coins' : ' dosh');
+}
+function drawCrateRewards(crate) {
+  return [...crate.guaranteed, rollReward(crate.table)].map(reward => {
+    if (reward.low == null) return reward;
+    const [low, high] = crateRange(reward);
+    return {k:reward.k, n:low + Math.floor(Math.random() * (high-low+1))};
+  });
+}
 
 const BOARD = [
   { k: 'start', col: '#F28C28' }, { k: 'cash', m: 2, col: '#22C8F0' }, { k: 'crate', tier: 'steel', col: '#7B5CE0' }, { k: 'crate', tier: 'steel', col: '#3FB52E' },
@@ -3541,14 +3581,15 @@ const BOARD = [
 const MYSTERY = [[10, 'Deed', { k: 'deed', n: 1 }], [15, 'Gold crate', { k: 'crate', tier: 'gold' }], [15, '1 Wheel ticket', { k: 'ticket', n: 1 }], [20, '2 Wheel tickets', { k: 'ticket', n: 2 }], [30, 'Silver crate', { k: 'crate', tier: 'steel' }], [20, '15 Dosh', { k: 'stars', n: 15 }]];
 
 const WHEEL = [
-  { c: '#FFC93C', w: 22, r: { k: 'cash', m: 8 } },
-  { c: '#2EB6E8', w: 14, r: { k: 'stars', n: 12 } },
-  { c: '#9AA6B8', w: 5, r: { k: 'crate', tier: 'steel' } },
-  { c: '#3EBE7A', w: 12, r: { k: 'cash', m: 25 } },
-  { c: '#8E5CF7', w: 10, r: { k: 'boost', min: 15 } },
-  { c: '#F2B21A', w: 3.2, r: { k: 'crate', tier: 'gold' } },
-  { c: '#C9A86A', w: 4.2, r: { k: 'deed', n: 1 } },
-  { c: '#7FE3FF', w: .6, r: { k: 'crate', tier: 'diamond' } }
+  { c: '#FFC93C', w: 31, r: { k: 'cash', m: 8 } },
+  { c: '#2EB6E8', w: 19.8, r: { k: 'stars', n: 12 } },
+  { c: '#9AA6B8', w: 7, r: { k: 'crate', tier: 'steel' } },
+  { c: '#3EBE7A', w: 17, r: { k: 'cash', m: 25 } },
+  { c: '#8E5CF7', w: 14, r: { k: 'boost', min: 15 } },
+  { c: '#F2B21A', w: 4.5, r: { k: 'crate', tier: 'gold' } },
+  { c: '#C9A86A', w: 4.5, r: { k: 'deed', n: 1 } },
+  { c: '#7FE3FF', w: 2, r: { k: 'crate', tier: 'diamond' } },
+  { c: '#824BA8', w: 0.2, r: { k: 'crate', tier: 'premium' } }
 ];
 const WTOT = WHEEL.reduce((a, sg) => a + sg.w, 0); WHEEL.forEach((sg, q) => { sg.span = Math.PI * 2 / WHEEL.length; sg.a = q * sg.span; });
 const WHEEL_CD = 12 * 3600 * 1000;
@@ -3648,6 +3689,11 @@ function pixImg(key) {
 }
 // A reinforced transit case, a brass strongbox and a faceted crystal vault.
 const crateDesigns = {
+  premium: {
+    colours: ['#241B37','#42304F','#78568E','#EABA64','#FFF1AA'],
+    lid: ['.......kk..kk.......','......khhkkhhk......','....kkhllhhllhkk....','...khllssssssllhk...','..khhslsssssslshhk..','.khhlsslsssslsslhhk.','khhhhhhhaaaahhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
+    body: ['khllssssshhsssssllhk','khlhsssslahhlssshlhk','khslhsslhaahlsshlshk','khsslhhhaaaahhhlsshk','khslhsslhaahlsshlshk','khlhsssslahlsssslhlk','khllssssshhsssssllhk','.khhhhhhhhhhhhhhhhk.','..kkkkkkkkkkkkkkkk..']
+  },
   steel: {
     colours: ['#24344A','#65849C','#BCCFDC','#E9F6FF','#EB8438'],
     lid: ['....kkkkkkkkkkkk....','...khhhhhhhhhhhhk...','..khlsssssssssslhk..','.khhllllllllllllhhk.','khhlsllsllsllslllhhk','ksslsllsllsllslllssk','khhhhhhhhhhhhhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
@@ -3731,7 +3777,7 @@ function hash(a, b, c) { let x = (a * 374761393 + b * 668265263 + (c || 0) * 214
 /* ================= state ================= */
 let S;
 function baseState() {
-  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), crates: { steel: 1, gold: 0, diamond: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
+  return { v: 2, cash: 3000, stars: 10, dice: 3, diceT: now(), crates: { steel: 1, gold: 0, diamond: 0, premium: 0 }, pity: { gold: 8, diamond: 4 }, xp: 0, level: 1, pop: 2, lo: 11, deeds: 2, grind: { d: 0, t: 0 }, tiles: new Array(N * N).fill(null), items: { fountain: 0, statue: 0, flowers: 0, sakura: 0 }, shopItems: {}, market: { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} }, tasks: [], boostUntil: 0, busT: now() + 12000, wheelT: 0, tickets: 1, wheelPips: 0, needle: 0, saved: now(), dicePos: 0, lastDie: 1, firstRun: true };
 }
 function newGame() {
   const s=baseState();
@@ -5290,7 +5336,7 @@ function updateHUD() {
   $('#advisor').setAttribute('aria-label', 'City advisor: ' + a[0] + '. ' + a[1] + '. Happiness ' + D.happy + ' percent.');
 
   dot(hud.dotWheel, S.tickets + (now() - S.wheelT >= WHEEL_CD ? 1 : 0));
-  dot(hud.dotCrates, S.crates.steel + S.crates.gold + S.crates.diamond);
+  dot(hud.dotCrates, S.crates.steel + S.crates.gold + S.crates.diamond + S.crates.premium);
   dot(hud.dotTasks, (S.daily || []).filter(t => !t.done && t.p >= t.n).length);
   $('#dotMkt').hidden = !(S.market && (S.market.seen !== weekInfo().seed || S.market.dailySeen !== brisbaneTaskCycle()));
 }
@@ -5790,7 +5836,7 @@ function snd(type) {
   try { audio(); SFX[type](); } catch (e) { /* audio unavailable */ }
 }
 function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* no haptics */ } }
-function isBig(r) { r = resolveR(r); return (r.k === 'cash' && r.n >= 1200 * S.level) || (r.k === 'crate' && (r.tier === 'gold' || r.tier === 'diamond')) || r.k === 'item' || (r.k === 'dice' && r.n >= 5); }
+function isBig(r) { r = resolveR(r); return (r.k === 'cash' && r.n >= 1200 * S.level) || (r.k === 'crate' && ['gold','diamond','premium'].includes(r.tier)) || r.k === 'item' || (r.k === 'dice' && r.n >= 5); }
 function celebrate(r, sn) { if (isBig(r)) { confetti(160); bigWin = { text: 'BIG WIN!', t0: performance.now() }; snd(sn || 'big'); buzz([30, 50, 30, 50, 80]); } else { confetti(50); snd(sn || 'win'); buzz(20); } }
 
 /* ----- dice ----- */
@@ -5904,7 +5950,7 @@ function buildWheel() {
     <div class="wheel-goal"><span id="ticketArt"></span><strong>Wheel ticket</strong><small>+1 point per rent collection</small><b id="gTt"></b><progress id="ticketMeter" aria-label="Points towards a ticket" max="${GRIND_T}"></progress></div>
     <div class="wheel-goal"><span id="goldArt"></span><strong>Gold crate</strong><small>+1 per wheel spin</small><b id="spinCount"></b><progress id="spinMeter" aria-label="Spins towards a gold crate" max="${SPINS_PER_GOLD_CRATE}"></progress></div>
   </div>`;
-  { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${(w.w / WTOT * 100).toFixed(w.w / WTOT < .02 ? 1 : 0)}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
+  { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${Number((w.w / WTOT * 100).toFixed(1))}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
   const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
   $('#ticketArt').appendChild(iconCanvas('ticket', null, 26));
   $('#goldArt').appendChild(iconCanvas('crate', 'gold', 26));
@@ -6077,10 +6123,12 @@ function buildCrates() {
   const C = CRATES[crateSel];
   mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
   const tiers = Object.keys(CRATES).map(tier => `<button class="pixel-btn crate-slot" data-act="crsel" data-tier="${tier}" aria-pressed="${crateSel === tier}"><span data-tic="${tier}"></span><b>${TIER[tier]}</b><span class="crate-count">${S.crates[tier]} owned</span></button>`).join('');
-  const odds = C.table.map(([weight, label], i) => `<div class="orow"><span data-oic="${i}"></span><span class="oname">${label}</span><b>${weight}%</b></div>`).join('');
+  const guaranteed = C.guaranteed.map(r => crateAmountLabel(r)).join(' + ');
+  const odds = C.table.map(([weight, label, r], i) => `<div class="orow"><span data-oic="${i}"></span><span class="oname">${crateAmountLabel(r,label)}</span><b>${weight}%</b></div>`).join('');
   mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">HARBOUR FREIGHT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
   <div class="cstage freight-quay"><span class="dock-light"></span><canvas id="chest" width="288" height="156" aria-hidden="true"></canvas></div>
 
+  <style>#mg #mgPanel.mg-crates .crate-shelf{grid-template-columns:repeat(4,minmax(0,1fr))}#mg #mgPanel.mg-crates .crate-slot{display:flex;flex-direction:column;align-items:center}#mg #mgPanel.mg-crates .crate-notice{height:auto;white-space:normal}</style>
   <div class="crate-shelf">${tiers}</div>
 
   <div class="crate-feature">
@@ -6088,7 +6136,7 @@ function buildCrates() {
     <div class="crate-notice" id="crateMsg" role="status"></div>
   </div>
   <div class="crate-bonus"><span>Gold crate bonus</span><b>${S.wheelPips}/${SPINS_PER_GOLD_CRATE} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_GOLD_CRATE}" aria-label="Spins towards a Gold crate"></progress></div>
-  <details class="odds"><summary>${TIER[crateSel]} reward odds</summary>${odds}</details>`;
+  <details class="odds"><summary>${TIER[crateSel]} reward odds</summary>${guaranteed ? '<p>Always inside · '+guaranteed+'</p><p>Plus one bonus</p>' : ''}${odds}</details>`;
   mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 36)));
   mgPanel.querySelectorAll('[data-oic]').forEach(el => { const r = C.table[+el.dataset.oic][2]; el.replaceWith(iconCanvas(rewIconKind(r), r.tier, 22)); });
   mgPanel.querySelectorAll('[data-reward-icon]').forEach(el => el.replaceWith(iconCanvas(el.dataset.rewardIcon, el.dataset.tier, 32)));
@@ -6145,12 +6193,10 @@ function drawChestSceneInner(cvs,t) {
   const progress = crateReveal ? 1 : anim && !anim.reduceMotion ? Math.min(1,(t-anim.t0)/950) : 0;
   const lid = crateEase((progress-.22)/.30);
   const rise = crateEase((progress-.34)/.52);
-  const accent = {steel:'#d1e4eb',gold:'#ffd374',diamond:'#91ecff'}[crateSel];
+  const accent = {steel:'#d1e4eb',gold:'#ffd374',diamond:'#91ecff',premium:'#eaba64'}[crateSel];
   // Frame the chest in the foreground of the wharf.
   c.fillStyle = 'rgba(12,25,38,.58)';
   c.fillRect(0,0,288,156);
-  const present = anim || crateReveal || S.crates[crateSel];
-  if (!present) return;
   const press = progress < .22 ? Math.round(3*Math.sin(Math.PI*progress/.22)) : 0;
   c.fillStyle = '#182632';
   c.fillRect(98,130,92,4);
@@ -6185,9 +6231,10 @@ function drawChestSceneInner(cvs,t) {
 function openCrate() {
   if (crateAnim) return; const tier = crateSel, C = CRATES[tier];
   if (S.crates[tier] < 1) { snd('error'); updateCrateUI(); return; }
-  const rew = rollReward(C.table);
+  const rewards = drawCrateRewards(C);
+  const rew = rewards[rewards.length-1];
   S.crates[tier]--;
-  const label = grant(rew); track('crate'); addXP(10);
+  const label = rewards.map(grant).join(' + '); track('crate'); addXP(10);
   crateReveal = null;
   crateSceneFrame = -1;
   crateAnim = { t0: performance.now(), tier, reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, rew: { r: rew, label } };
@@ -6565,7 +6612,7 @@ async function travelToBay() {
   S=Object.assign(baseState(),{
     island:'banksia-bay', lo:0, tut:null, tutDone:true, firstRun:false, welcomeBonus:true,
     harbourGoldGiftClaimed:true, cash:0, stars:0, deeds:0, tickets:0, dice:0, pop:0,
-    crates:{steel:0,gold:0,diamond:0}, foundingGrant:true, sound
+    crates:{steel:0,gold:0,diamond:0,premium:0}, foundingGrant:true, sound
   });
   pendingLevel=null; rewardQueue.length=0; parts.length=0; popups.length=0; bizAcc.clear();
   streetNetwork=null; walkingGraph=null; traffic=[]; buses=[]; walkers.length=0; serviceClock=null;
@@ -6985,6 +7032,7 @@ if (S.tiles && S.tiles.length !== N * N) { const oN = Math.round(Math.sqrt(S.til
 const legacyCrateCosts = { steel: 3, gold: 2, diamond: 1 };
 S.wheelPips = Math.max(0, Math.floor(Number(S.wheelPips) || 0)) % SPINS_PER_GOLD_CRATE;
 const ownedCrates = S.crates || {};
+ownedCrates.premium = Math.max(0, Math.floor(Number(ownedCrates.premium) || 0));
 for (const [tier, cost] of Object.entries(legacyCrateCosts)) {
   const oldKeys = Math.max(0, Math.floor(Number(S.keys?.[tier]) || 0));
   ownedCrates[tier] = Math.max(0, Math.floor(Number(ownedCrates[tier]) || 0)) + Math.ceil(oldKeys / cost);
