@@ -5792,7 +5792,8 @@ function buildHTML() {
   visibleIds.forEach(id => {
     const d = DEFS[id]; const item = buildTab === 'items';
     const locked = !item && d.lvl > S.level; const count = item ? (S.shopItems && S.shopItems[id] || 0) : 0;
-    const cant = locked || (item ? count < 1 : S.cash < costOf(id));
+    const cost = item ? 0 : costOf(id);
+    const cant = locked || (item ? count < 1 : S.cash < cost);
     let sub = '';
     if(d.type==='transport') sub='BinLink · '+d.fare+' Coins per visit';
     else if (d.type === 'shop') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
@@ -5804,7 +5805,8 @@ function buildHTML() {
     else if (d.type === 'hall') sub = 'Your city centre, free';
     else sub = 'Connects everything';
     if (isBiz(d) && !item) sub += ` · ${d.jobs || 3} jobs`;
-    const price = locked ? `Unlocks at Lv ${d.lvl}` : item ? `You have ${count}` : coinSvg() + fmt(costOf(id));
+    if (locked) sub += ` · Unlocks at Lv ${d.lvl}`;
+    const price = item ? `You have ${count}` : coinSvg() + cost.toLocaleString('en-AU');
     h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
   });
   h += '</div>';
@@ -5872,7 +5874,7 @@ sheetEl.addEventListener('click', e => {
     closeSheet(); sel=null; renderCard(true); return;
   }
   if (a === 'choose') {
-    const id = b.dataset.id, d = DEFS[id], fromItem = sheet === 'bag' || buildTab === 'items';
+    const id = b.dataset.id, d = DEFS[id], fromItem = sheet === 'bag' || (buildTab === 'items' && id !== 'hall');
     if (b.getAttribute('aria-disabled') === 'true') { toast(fromItem ? 'Purchase this weekly exclusive in the Dosh Shop.' : d.lvl > S.level ? 'Unlocks at Lv ' + d.lvl + '.' : 'You need ' + fmt(costOf(id)) + ' Coins.'); return; }
     if (buildTarget && id !== 'road') { const tg = buildTarget; if (placeAt(tg.i, tg.j, id, fromItem)) { closeSheet(); select(tg.i, tg.j); } return; }
     placing = { id, fromItem, ghost: (S.tut && tutStep() && tutStep().build === id ? suggestTile(id) : null) }; closeSheet(); sel = null; if(placing.ghost)animateTo(placing.ghost.i+.5,placing.ghost.j+.5); renderCard(true); return;
@@ -6867,18 +6869,18 @@ const INFO = {
 function showFoundingPrompt() {
   if (S.island !== 'banksia-bay' || !S.foundingGrant || S.foundingPromptDismissed || findHall()) return;
   const modal = $('#modal');
-  $('#modalBox').innerHTML = '<h2>Welcome to Banksia Bay</h2><p class="wl-s">Choose a spot for your free Town Hall. Place it to receive 8,000 starter coins.</p><button class="pixel-btn pb" id="placeFoundingHall">Build Town Hall</button><button class="pixel-btn pb sm" id="laterFoundingHall">Later</button>';
+  $('#modalBox').innerHTML = '<h2>Welcome to Banksia Bay</h2><p class="wl-s">Select your free Town Hall in the build shop, then choose a spot on the island. Place it to receive 8,000 starter coins.</p><button class="pixel-btn pb" id="placeFoundingHall">Open build shop</button><button class="pixel-btn pb sm" id="laterFoundingHall">Later</button>';
   modal.classList.add('show');
   const build = $('#placeFoundingHall');
   build.focus();
   build.onclick = () => {
     modal.classList.remove('show');
-    const spot = suggestTile('hall');
-    const ghost = spot && fpFree(spot.i, spot.j, 'hall') ? spot : null;
-    placing = {id:'hall', fromItem:false, ghost};
-    sel = null;
-    if (ghost) animateTo(ghost.i + .5, ghost.j + .5);
-    snd('confirm'); renderCard(true);
+    buildTarget = null;
+    buildTab = 'homes';
+    openSheet('build');
+    const hallCard = sheetBody.querySelector('[data-id="hall"]');
+    hallCard.focus();
+    hallCard.scrollIntoView({block:'nearest'});
   };
   $('#laterFoundingHall').onclick = () => {
     modal.classList.remove('show');
@@ -7225,10 +7227,13 @@ function reconcileLotSizes(city) {
       if (!tile) continue;
       const owner=tile.id==='_occ' ? tile.ref[1]*N+tile.ref[0] : index;
       if (owner===anchor) continue;
-      if (tile.id==='road' || claimed.has(owner)) fits=false;
+      if (tile.id==='road' || city.tiles[owner]?.id==='hall' || claimed.has(owner)) fits=false;
       else blockers.add(owner);
     }
-    if (!fits) { storeBuilding(anchor); continue; }
+    if (!fits) {
+      if (building.id !== 'hall') storeBuilding(anchor);
+      continue;
+    }
     for (const owner of blockers) storeBuilding(owner);
     clear(anchor);
     for (const index of cells) city.tiles[index]=index===anchor ? building : {id:'_occ',ref:[x,y]};
