@@ -3527,8 +3527,8 @@ const EXPAND = [];
 const expIdx = () => 13 - S.lo;
 
 const CRATES = {
-  steel:   { table: [[28, 'Silver coin bundle', { k: 'cash', m: 10 }], [15, '12 Dosh', { k: 'stars', n: 12 }], [10, '2 Wheel tickets', { k: 'ticket', n: 2 }], [5, 'Gold crate', { k: 'crate', tier: 'gold' }], [30, 'Bonus Coins', { k: 'cash', m: 18 }], [12, '2× boost 10 min', { k: 'boost', min: 10 }]] },
-  gold:    { table: [[34, 'Big Coin bundle', { k: 'cash', m: 28 }], [22, '25 Dosh', { k: 'stars', n: 25 }], [14, '4 Wheel tickets', { k: 'ticket', n: 4 }], [4, 'Diamond crate', { k: 'crate', tier: 'diamond' }], [12, '2 Deeds', { k: 'deed', n: 2 }], [14, '2× boost 20 min', { k: 'boost', min: 20 }]] },
+  steel:   { table: [[28, 'Silver coin bundle', { k: 'cash', m: 10 }], [15, '12 Dosh', { k: 'stars', n: 12 }], [10, '2 Wheel tickets', { k: 'ticket', n: 2 }], [5, 'Gold crate', { k: 'crate', tier: 'gold' }], [30, 'Bonus Coins', { k: 'cash', m: 18 }], [12, '2× boost 15 min', { k: 'boost', min: 15 }]] },
+  gold:    { table: [[34, 'Big Coin bundle', { k: 'cash', m: 28 }], [22, '25 Dosh', { k: 'stars', n: 25 }], [14, '4 Wheel tickets', { k: 'ticket', n: 4 }], [4, 'Diamond crate', { k: 'crate', tier: 'diamond' }], [12, '2 Deeds', { k: 'deed', n: 2 }], [14, '2× boost 15 min', { k: 'boost', min: 15 }]] },
   diamond: { table: [[36, 'Mega Coin vault', { k: 'cash', m: 90 }], [30, '50 Dosh', { k: 'stars', n: 50 }], [18, '5 Wheel tickets', { k: 'ticket', n: 5 }], [10, '3 Deeds', { k: 'deed', n: 3 }], [6, 'Diamond crate', { k: 'crate', tier: 'diamond' }]] }
 };
 
@@ -3970,7 +3970,7 @@ function rollReward(table) {
   }
   return table[table.length - 1][2];
 }
-function resolveR(r) { if (r.k === 'cash' && r.m) return { k: 'cash', n: r.m * 20 * S.level }; return r; }
+function resolveR(r) { if (r.k === 'boost') return {k:'boost', min:15}; if (r.k === 'cash' && r.m) return { k: 'cash', n: r.m * 20 * S.level }; return r; }
 function grant(r) {
   r = resolveR(r); const n = r.n || 1;
   switch (r.k) {
@@ -5533,7 +5533,7 @@ function coinBoostHTML() {
   return '<h3>Coin boosts</h3>' + (rows.join('') || '<p class="note">Earn boosts from rewards, then tap Use here to start the timer.</p>');
 }
 function useCoinBoost(min) {
-  if (!Number.isSafeInteger(min) || min<=0 || !(S.coinBoostTokens?.[min]>0)) return;
+  if (min!==15 || !(S.coinBoostTokens?.[min]>0)) return;
   if (--S.coinBoostTokens[min]===0) delete S.coinBoostTokens[min];
   S.boostUntil = Math.max(now(), S.boostUntil || 0) + min*60000;
   changed(); save(); updateHUD(); renderSheet(true); snd('confirm');
@@ -6937,7 +6937,15 @@ function reconcileLotSizes(city) {
   city.lotSizes=sizes;
 }
 
+function standardiseCoinBoosts(city) {
+  const saved = Object.entries(city.coinBoostTokens || {});
+  if (!saved.some(([duration]) => duration !== '15')) return;
+  const minutes = saved.reduce((sum,[duration,count]) =>
+    sum + (Number(duration)>0 && Number.isSafeInteger(count) && count>0 ? Number(duration)*count : 0),0);
+  city.coinBoostTokens = minutes ? {15:Math.ceil(minutes/15)} : {};
+}
 S = remodelDemo ? newGame() : load() || newGame();
+standardiseCoinBoosts(S);
 if (remodelDemo) {
   S.tiles.fill(null);
   S.firstRun=false; S.tut=null; S.tutDone=true; S.level=5;
