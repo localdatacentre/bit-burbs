@@ -3856,7 +3856,7 @@ function upgrade(i, j) {
   if (S.cash < c.coins) { snd('error'); toast('Upgrading costs ' + fmt(c.coins) + ' Coins.'); return; }
   if ((S.deeds || 0) < c.deeds) { snd('error'); toast('You need ' + c.deeds + ' Deed' + (c.deeds > 1 ? 's' : '') + ' for this upgrade.'); return; }
   S.cash -= c.coins; S.deeds = (S.deeds || 0) - c.deeds; t.lvl = L + 1;
-  track('upgrade'); addXP(20 + c.coins / 30); popup(i, j, 'LEVEL ' + t.lvl + '!', '#FFE066');
+  track('upgrade'); addXP(30 * L); popup(i, j, 'LEVEL ' + t.lvl + '!', '#FFE066');
   if (typeof confetti === 'function') { const p = P(i + .5, j + .5); confetti(t.lvl >= UP_MAX ? 120 : 40, p.x, p.y - 40); }
   if (typeof snd === 'function') snd(t.lvl >= UP_MAX ? 'maxup' : 'upgrade');
   changed();
@@ -4019,7 +4019,7 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
   if (fromItem && !(S.shopItems && S.shopItems[id] > 0)) { snd('error'); toast('You have none of this Dosh Shop item left.'); return false; }
   S.cash -= cost; const tile=newTile(id);if(turned)tile.turned=true;occupy(i,j,tile); if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
-  if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build'); addXP(Math.max(5, cost / 40)); popup(i, j, d.name + '!', '#FFF3D6'); }
+  if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build'); addXP(Math.min(60, Math.max(5, cost / 40))); popup(i, j, d.name + '!', '#FFF3D6'); }
   if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
 }
