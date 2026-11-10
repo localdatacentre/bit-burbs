@@ -3469,21 +3469,21 @@ const DEFS = {
   tower:    { name: 'Sky Tower', type: 'home', cost: 16000, lvl: 8, cap: 20, h: 88, wall: '#8FA6BA', side: '#6C8396', roof: '#3E4A56', pw: 5, wa: 4 },
   bakery:   { name: 'Grumbies', type: 'shop', cat: 'Food', cost: 1500, lvl: 1, staff: 2, rc: 100, earn: 260, time: 30, h: 24, wall: '#E4D6C2', side: '#C4B6A2', roof: '#5A4E48', awn: ['#9E4A42', '#E8E2D6'], pw: 2, wa: 1 },
   coffee:   { name: 'Starquacks Coffee', type: 'shop', cat: 'Food', cost: 2500, lvl: 2, staff: 2, rc: 160, earn: 420, time: 45, h: 22, wall: '#D3C4B2', side: '#B3A492', roof: '#4E4440', awn: ['#5E4636', '#D8CDBB'], pw: 2, wa: 1 },
-  grocery:  { name: 'Sprout Market', type: 'shop', cat: 'Retail', cost: 4000, lvl: 3, staff: 3, rc: 260, earn: 700, time: 60, h: 26, wall: '#DADDD5', side: '#BABDB5', roof: '#4A5048', awn: ['#3E6E4A', '#E8E8E0'], pw: 3, wa: 1 },
-  gym:      { name: 'Forge Fitness', type: 'shop', cat: 'Leisure', cost: 6000, lvl: 4, staff: 2, rc: 320, earn: 880, time: 75, h: 28, wall: '#C6CED8', side: '#A6AEB8', roof: '#3E4650', awn: ['#2F5A8A', '#E4E8EE'], pw: 2, wa: 2 },
-  hardware: { name: 'Bolt Hardware', type: 'shop', cat: 'Retail', cost: 8500, lvl: 5, staff: 3, rc: 420, earn: 1180, time: 90, h: 26, wall: '#DACFB8', side: '#BAAF98', roof: '#55504A', awn: ['#B0662E', '#EDE4D4'], pw: 3, wa: 1 },
-  cinema:   { name: 'Nova Cinema', type: 'shop', cat: 'Leisure', cost: 15000, lvl: 7, staff: 4, rc: 800, earn: 2450, time: 120, h: 38, wall: '#BDB7C8', side: '#9D97A8', roof: '#3E3A48', awn: ['#4A3E6E', '#D9C98A'], pw: 4, wa: 2 },
+  grocery:  { name: 'Sprout Market', type: 'shop', cat: 'Retail', cost: 4000, lvl: 3, jobs: 10, staff: 3, rc: 260, earn: 700, time: 60, h: 26, wall: '#DADDD5', side: '#BABDB5', roof: '#4A5048', awn: ['#3E6E4A', '#E8E8E0'], pw: 3, wa: 1 },
+  gym:      { name: 'Forge Fitness', type: 'shop', cat: 'Leisure', cost: 6000, lvl: 4, jobs: 12, staff: 2, rc: 320, earn: 880, time: 75, h: 28, wall: '#C6CED8', side: '#A6AEB8', roof: '#3E4650', awn: ['#2F5A8A', '#E4E8EE'], pw: 2, wa: 2 },
+  hardware: { name: 'Bolt Hardware', type: 'shop', cat: 'Retail', cost: 8500, lvl: 5, jobs: 16, staff: 3, rc: 420, earn: 1180, time: 90, h: 26, wall: '#DACFB8', side: '#BAAF98', roof: '#55504A', awn: ['#B0662E', '#EDE4D4'], pw: 3, wa: 1 },
+  cinema:   { name: 'Nova Cinema', type: 'shop', cat: 'Leisure', cost: 15000, lvl: 7, jobs: 30, staff: 4, rc: 800, earn: 2450, time: 120, h: 38, wall: '#BDB7C8', side: '#9D97A8', roof: '#3E3A48', awn: ['#4A3E6E', '#D9C98A'], pw: 4, wa: 2 },
   workshop: { name: 'Patch Repairs', type: 'ind', cost: 2000, lvl: 2, staff: 3, rate: .9, h: 24, wall: '#D2C0AE', side: '#AE9C8A', roof: '#6B5B4E', pw: 3, wa: 1 },
-  factory:  { name: 'Rivet Works', type: 'ind', cost: 9000, lvl: 6, staff: 6, rate: 2.6, h: 34, wall: '#B8C1CA', side: '#8E979F', roof: '#4E565E', pw: 6, wa: 2 },
+  factory:  { name: 'Rivet Works', type: 'ind', cost: 9000, lvl: 6, jobs: 60, staff: 6, rate: 2.6, h: 34, wall: '#B8C1CA', side: '#8E979F', roof: '#4E565E', pw: 6, wa: 2 },
   wind:     { name: 'Wind Turbine', type: 'util', cost: 1200, lvl: 1, supP: 12, h: 52 },
   wtower:   { name: 'Water Tower', type: 'util', cost: 1000, lvl: 1, supW: 12, h: 46 },
   pump:     { name: 'Water Pump', type: 'util', cost: 5000, lvl: 4, supW: 45, h: 20, wall: '#A8DCF0', side: '#7FB3C8', roof: '#3E7B9A' },
   plant:    { name: 'Power Plant', type: 'util', cost: 8000, lvl: 5, supP: 60, poll: 2, rad: 3, h: 30, wall: '#CFC8BB', side: '#A9A295', roof: '#7A746A' },
   solar:    { name: 'Solar Farm 1×1', type: 'util', cost: 6000, lvl: 5, supP: 25, h: 10 },
-  police:   { name: 'Police Station', type: 'svc', svc: 0, cost: 3500, lvl: 3, rad: 3, staff: 2, pw: 2, wa: 1, h: 26, wall: '#C9D2DE', side: '#A9B2BE', roof: '#3E4A5E', acc: '#2F5A9A' },
-  fire:     { name: 'Fire Station', type: 'svc', svc: 1, cost: 3500, lvl: 3, rad: 3, staff: 2, pw: 2, wa: 2, h: 26, wall: '#D9BCB0', side: '#B99C90', roof: '#5A3A36', acc: '#A8443E' },
-  clinic:   { name: 'Clinic', type: 'svc', svc: 2, cost: 5000, lvl: 4, rad: 4, staff: 3, pw: 3, wa: 2, h: 30, wall: '#F0F0EC', side: '#D0D0CA', roof: '#55605A', acc: '#3E8E5A' },
-  school:   { name: 'School', type: 'svc', svc: 3, cost: 6000, lvl: 5, rad: 4, staff: 3, pw: 2, wa: 2, h: 28, wall: '#E2D6B8', side: '#C2B698', roof: '#6A4A38', acc: '#B8862E' },
+  police:   { name: 'Police Station', type: 'svc', svc: 0, cost: 3500, lvl: 3, rad: 3, jobs: 20, staff: 2, pw: 2, wa: 1, h: 26, wall: '#C9D2DE', side: '#A9B2BE', roof: '#3E4A5E', acc: '#2F5A9A' },
+  fire:     { name: 'Fire Station', type: 'svc', svc: 1, cost: 3500, lvl: 3, rad: 3, jobs: 16, staff: 2, pw: 2, wa: 2, h: 26, wall: '#D9BCB0', side: '#B99C90', roof: '#5A3A36', acc: '#A8443E' },
+  clinic:   { name: 'Clinic', type: 'svc', svc: 2, cost: 5000, lvl: 4, rad: 4, jobs: 24, staff: 3, pw: 3, wa: 2, h: 30, wall: '#F0F0EC', side: '#D0D0CA', roof: '#55605A', acc: '#3E8E5A' },
+  school:   { name: 'School', type: 'svc', svc: 3, cost: 6000, lvl: 5, rad: 4, jobs: 35, staff: 3, pw: 2, wa: 2, h: 28, wall: '#E2D6B8', side: '#C2B698', roof: '#6A4A38', acc: '#B8862E' },
   park:     { name: 'Park', type: 'decor', cost: 1200, lvl: 1, happy: 8, rad: 2 },
   tree:     { name: 'Gum Grove', type: 'decor', cost: 150, lvl: 1, happy: 2, rad: 1 },
   flowers:  { name: 'Flower Bed', type: 'decor', lvl: 1, cost: 600, happy: 5, rad: 1 },
@@ -3492,9 +3492,9 @@ const DEFS = {
   sakura:   { name: 'Flowering Gum', type: 'decor', crateOnly: true, cost: 300, happy: 3, rad: 1 },
   house2:   { name: 'Parkside House', type: 'home', cost: 2200, lvl: 2, cap: 5, h: 30, pw: 1, wa: 1 },
   town:     { name: 'Townhouses', type: 'home', cost: 24000, lvl: 9, cap: 30, h: 30, pw: 6, wa: 6, fx: 3, fy: 2 },
-  gas:      { name: 'Zip Fuel', type: 'shop', cat: 'Services', cost: 12000, lvl: 6, staff: 3, rc: 600, earn: 1800, time: 100, h: 34, pw: 2, wa: 1, fx: 2, fy: 2 },
-  warehouse:{ name: 'Parcel Logistics', type: 'ind', cost: 30000, lvl: 9, staff: 10, rate: 7, h: 30, pw: 4, wa: 1, fx: 3, fy: 2 },
-  skyscraper:{ name: 'Vertex Offices', type: 'ind', cost: 80000, lvl: 12, staff: 20, rate: 16, h: 140, pw: 8, wa: 4, fx: 2, fy: 2 },
+  gas:      { name: 'Zip Fuel', type: 'shop', cat: 'Services', cost: 12000, lvl: 6, jobs: 8, staff: 3, rc: 600, earn: 1800, time: 100, h: 34, pw: 2, wa: 1, fx: 2, fy: 2 },
+  warehouse:{ name: 'Parcel Logistics', type: 'ind', cost: 30000, lvl: 9, jobs: 100, staff: 10, rate: 7, h: 30, pw: 4, wa: 1, fx: 3, fy: 2 },
+  skyscraper:{ name: 'Vertex Offices', type: 'ind', cost: 80000, lvl: 12, jobs: 150, staff: 20, rate: 16, h: 140, pw: 8, wa: 4, fx: 2, fy: 2 },
   solar2:   { name: 'Solar Farm 2×2', type: 'util', cost: 9000, lvl: 7, supP: 40, h: 12, fx: 2, fy: 2 },
   nuclear:  { name: 'Nuclear Plant', type: 'util', cost: 120000, lvl: 12, supP: 400, h: 100, fx: 7, fy: 5 },
   needle:   { name: 'Observation Tower', type: 'decor', cost: 50000, lvl: 10, h: 150, fx: 2, fy: 2 },
@@ -3895,12 +3895,29 @@ function derive() {
   let left = S.pop; homes.forEach(h => { h.res = h.live ? Math.min(hcap(h.t, h.d), left) : 0; left -= h.res; });
   let free = S.pop, jobs = 0, employed = 0, shopJobs = 0, indJobs = 0;
   list.forEach(b => {
-    if (isBiz(b.d)) { jobs += 3; if (b.d.type === 'shop') shopJobs += 3; else if (b.d.type === 'ind') indJobs += 3; b.works = b.ok && b.pow && b.wat; b.workers = b.works ? Math.max(0, Math.min(3, free)) : 0; free -= b.workers; employed += b.workers; b.staffed = b.workers > 0; return; }
+    if (isBiz(b.d)) {
+      b.capacity = b.d.jobs || 3;
+      jobs += b.capacity;
+      if (b.d.type === 'shop') shopJobs += b.capacity;
+      if (b.d.type === 'ind') indJobs += b.capacity;
+      b.works = b.ok && b.pow && b.wat;
+      b.workers = b.works ? Math.min(3, free) : 0;
+      free -= b.workers; employed += b.workers;
+      b.staffed = b.workers > 0;
+      return;
+    }
     if (!b.d.staff) { b.staffed = true; return; }
     jobs += b.d.staff; if (b.d.type === 'shop') shopJobs += b.d.staff; if (b.d.type === 'ind') indJobs += b.d.staff;
     b.works = b.ok && b.pow && b.wat;
     b.staffed = b.works && free >= b.d.staff; if (b.staffed) { free -= b.d.staff; employed += b.d.staff; }
   });
+  // Fill the three operating positions across town before allocating additional jobs.
+  for (const b of list) {
+    if (!free) break;
+    if (!b.works || !b.capacity) continue;
+    const hires = Math.min(free, b.capacity - b.workers);
+    b.workers += hires; free -= hires; employed += hires;
+  }
   const svc = new Uint8Array(N * N), deco = new Float32Array(N * N), poll = new Float32Array(N * N), val = new Float32Array(N * N);
   list.forEach(b => {
     const d = b.d; const r = d.rad || 0; if (!r) return;
@@ -5117,7 +5134,7 @@ function render() {
     else if (!b.wat) hit = badge(a.x, a.y, 'NO WATER', '#C9434A', '#FFFFFF');
     else if (isBiz(d)) { const pr = ensureProds(t);
       if (!b.workers) hit = badge(a.x, a.y, 'NEED STAFF', '#C9434A', '#FFFFFF');
-      else { let empty = false, soon = null; for (let k = 0; k < b.workers; k++) { const p = pr[k]; if (p.o) { if (!soon || p.o < soon.o) soon = { o: p.o, k }; } else if (p.s <= tnow) empty = true; }
+      else { let empty = false, soon = null; for (let k = 0; k < Math.min(pr.length,b.workers); k++) { const p = pr[k]; if (p.o) { if (!soon || p.o < soon.o) soon = { o: p.o, k }; } else if (p.s <= tnow) empty = true; }
         if (empty && detailed) hit = badge(a.x, a.y, 'RESTOCK', '#329BD6', '#FFFFFF');
         else if (empty) {
           const x = Math.round(a.x), y = Math.round(a.y + 6);
@@ -5303,7 +5320,7 @@ function statusTags(b) {
   if (b.d.type !== 'decor' && b.d.type !== 'hall') tags.push(`<span class="tag ${b.ok ? 'ok' : 'bad'}">Road</span>`);
   if (b.d.pw) tags.push(`<span class="tag ${b.pow ? 'ok' : 'bad'}">Power ${b.d.pw}</span>`);
   if (b.d.wa) tags.push(`<span class="tag ${b.wat ? 'ok' : 'bad'}">Water ${b.d.wa}</span>`);
-  if (isBiz(b.d)) tags.push(`<span class="tag ${b.workers >= 3 ? 'ok' : 'bad'}">Workers ${b.workers || 0}/3</span>`); else if (b.d.staff) tags.push(`<span class="tag ${b.staffed ? 'ok' : 'bad'}">Staff ${b.d.staff}</span>`);
+  if (isBiz(b.d)) tags.push(`<span class="tag ${b.workers >= 3 ? 'ok' : 'bad'}">Workers ${b.workers || 0}/${b.capacity}</span>`); else if (b.d.staff) tags.push(`<span class="tag ${b.staffed ? 'ok' : 'bad'}">Staff ${b.d.staff}</span>`);
   return `<div class="tags">${tags.join('')}</div>`;
 }
 function coverageTags(i, j) { const m = D.svc[j * N + i]; return `<div class="tags">${SVC_NAMES.map((n, k) => `<span class="tag ${m & (1 << k) ? 'ok' : ''}">${n}</span>`).join('')}${D.poll[j * N + i] > 0 ? '<span class="tag bad">Pollution</span>' : ''}</div>`; }
@@ -5523,6 +5540,7 @@ function buildHTML() {
     else if (d.type === 'decor') sub = 'Decoration';
     else if (d.type === 'hall') sub = 'Your city centre, free';
     else sub = 'Connects everything';
+    if (isBiz(d) && !item) sub += ` · ${d.jobs || 3} jobs`;
     const price = locked ? `Unlocks at Lv ${d.lvl}` : item ? `You have ${count}` : coinSvg() + fmt(costOf(id));
     h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
   });
@@ -6193,7 +6211,7 @@ function bizBase(d) { return Math.max(3.5, 5.4 * Math.pow((d.cost || 1000) / 100
 function prodCpm(b, k) { return Math.max(1, Math.round(bizBase(b.d) * 1.35 * P_MUL[k] * upMul(b.t))); }
 function ensureProds(t) { if (!t.pr) t.pr = [{ s: 0, o: 0 }, { s: 0, o: 0 }, { s: 0, o: 0 }]; return t.pr; }
 function orderTime(k) { return S.tut ? 5000 : P_ORDER[k]; }
-function bizCpm(b) { const tn = now(); if (!b.workers) return 0; const pr = ensureProds(b.t); let c = 0; for (let k = 0; k < b.workers; k++) if (pr[k].s > tn) c += prodCpm(b, k); return c; }
+function bizCpm(b) { const tn = now(); if (!b.workers) return 0; const pr = ensureProds(b.t); let c = 0; for (let k = 0; k < Math.min(pr.length,b.workers); k++) if (pr[k].s > tn) c += prodCpm(b, k); return c; }
 function countOf(id) { return S.tiles.filter(t => t && t.id === id).length; }
 function costOf(id) { const d = DEFS[id]; if (!d) return 0; const price = d.cost * 1.125;
   if (id === 'road' || d.type === 'decor' || d.type === 'transport' || d.type === 'hall') return Math.round(price);
