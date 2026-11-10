@@ -3550,7 +3550,7 @@ const CRATES = {
     [20, 'Extra dosh', dosh(12,24)], [4.8, '1 wheel spin', oneSpin],
     [0.2, 'Premium crate', freight('premium')]
   ]},
-  premium: { guaranteed:[coins(2400,3600), dosh(80,120)], table:[
+  premium: { guaranteed:[coins(2400,3600), dosh(80,120), {k:'voucher',n:1}], table:[
     [45, '4 deeds', {k:'deed',n:4}], [35, 'Extra dosh', dosh(30,50)],
     [20, 'Diamond crate', freight('diamond')]
   ]}
@@ -3560,6 +3560,7 @@ function crateRange(reward) {
   return [reward.low * scale, reward.high * scale];
 }
 function crateAmountLabel(reward,label) {
+  if (reward.k === 'voucher') return '1 restock voucher';
   if (reward.low == null) return label;
   const [low, high] = crateRange(reward);
   return low.toLocaleString() + '–' + high.toLocaleString() + (reward.k === 'cash' ? ' coins' : ' dosh');
@@ -3613,6 +3614,7 @@ const DAILY_DEALS = {
 /* ================= pixel art kit ================= */
 const PX_PAL = {k:'#15122E',W:'#FFFFFF',B:'#3E7BFA',b:'#2A55C4',Y:'#FFD23F',y:'#F2B32C',o:'#C98A0C',w:'#FFF6C8',R:'#E53B3B',r:'#A8202A',G:'#4BE34B',g:'#2E9E2E',O:'#FF8A1F',S:'#9AA6B8',s:'#D9DFE8',L:'#E8ECF4',N:'#C9965A',n:'#8A5A2A',T:'#F4E2B0',P:'#F6C9A0',C:'#6ADAF6',c:'#2B7FB0',V:'#8E5CF7',v:'#5A2FC0',D:'#3A3F4A',H:'#B8860B',q:'#FFFFFF',x:'#8A1620',X:'#D9343F',l:'#A8875A',p:'#C9A86A',K:'#36C9D2',E:'#8AE07A',F:'#3FB52E',f:'#2A8A22',Z:'#1E5A1A',t:'#FFE066',U:'#FF5A7A',u:'#C42F55'};
 const PX_MAP = {
+  voucher:['................','..kkkkkkkkkkkk..','.kCCCCCCCCCCCCk.','.kCcccccccccCCk.','.kCckkWWkkccsCk.','..kcWWWWWWccsCk.','...kWWkkWWccsCk.','..kcWWcccccccck.','.kCcWWccWWccsCk.','.kCccWWWWWccsCk.','.kCcckkWWkccsCk.','.kCCCCCCCCCCCCk.','..kkkkkkkkkkkk..','................','................','................'],
 moveTurn:[
   '........................',
   '..........kkkkk.........',
@@ -3687,27 +3689,178 @@ function pixImg(key) {
   }
   PX_CACHE.set(key, cv); return cv;
 }
-// A reinforced transit case, a brass strongbox and a faceted crystal vault.
 const crateDesigns = {
-  premium: {
-    colours: ['#241B37','#42304F','#78568E','#EABA64','#FFF1AA'],
-    lid: ['.......kk..kk.......','......khhkkhhk......','....kkhllhhllhkk....','...khllssssssllhk...','..khhslsssssslshhk..','.khhlsslsssslsslhhk.','khhhhhhhaaaahhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
-    body: ['khllssssshhsssssllhk','khlhsssslahhlssshlhk','khslhsslhaahlsshlshk','khsslhhhaaaahhhlsshk','khslhsslhaahlsshlshk','khlhsssslahlsssslhlk','khllssssshhsssssllhk','.khhhhhhhhhhhhhhhhk.','..kkkkkkkkkkkkkkkk..']
+  "steel": {
+    "colours": [
+      "#132332",
+      "#536d81",
+      "#9eb5bf",
+      "#e1eeee",
+      "#63f0dc"
+    ],
+    "lid": [
+      "........................................",
+      "........................................",
+      "........................................",
+      "........kkkkkkkkkkkkkkkkkkkkkkkk........",
+      ".......kkllllllllllllllllllllllkk.......",
+      ".....kkklhhhhhhhhhhhhhhhhhhhhhhlkkk.....",
+      "....kkllhhhhhhhhhhhhhhhhhhhhhhhhllkk....",
+      "....kllhhhssllssllssllssllsslllhhllk....",
+      "...kklhhhlssllssllssllssllssllllhhlkk...",
+      "...klhhhllssllssllssllssllssllllllllk...",
+      "..kllllllllllllllllllllllllllllllllllk..",
+      "..klsssssssssssssssssssssssssssssssslk..",
+      "..klsssssssssssssssssssssssssssssssslk..",
+      "..kllllllllllllllllllllllllllllllllllk.."
+    ],
+    "body": [
+      "..kkhhslllllllllllllllllllllllllhhslkk..",
+      "..kkhhsllllllllsssssssssslllllllhhslkk..",
+      "..kkhhslhhhhhhhskkkkkkkkshhhhhhhhhslkk..",
+      "..kkhhsllllllllskkaaaakkslllllllhhslkk..",
+      "..kksssllllllllskkaaaakkslllllllssslkk..",
+      "..kksssllllllllskkkkkkkkslllllllssslkk..",
+      "..kksssllllllllskkkkkkkkslllllllssslkk..",
+      "..kksssllllllllsssssssssslllllllssslkk..",
+      "..kkssslllllllllllllllllllllllllssslkk..",
+      "..kkssslllllllllllllllllllllllllssslkk..",
+      "..kklsssssssssssssssssssssssssssssslkk..",
+      "...kksssssssssssssssssssssssssssssskk...",
+      "....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk....",
+      ".....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.....",
+      "........................................",
+      "........................................"
+    ]
   },
-  steel: {
-    colours: ['#24344A','#65849C','#BCCFDC','#E9F6FF','#EB8438'],
-    lid: ['....kkkkkkkkkkkk....','...khhhhhhhhhhhhk...','..khlsssssssssslhk..','.khhllllllllllllhhk.','khhlsllsllsllslllhhk','ksslsllsllsllslllssk','khhhhhhhhhhhhhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
-    body: ['kssllllllllllllllssk','khhllllllllllllllhhk','khhlsllllllllslllhhk','khhlslllkaaklslllhhk','khhlslllkaaklslllhhk','khhlsllllllllslllhhk','kssllllllllllllllssk','.kssssssssssssssssk.','..kkkkkkkkkkkkkkkk..']
+  "gold": {
+    "colours": [
+      "#31232b",
+      "#8b5943",
+      "#d59a52",
+      "#ffe1a1",
+      "#ffb637"
+    ],
+    "lid": [
+      "........................................",
+      "........................................",
+      "........................................",
+      "........kkkkkkkkkkkkkkkkkkkkkkkk........",
+      ".......kkllllllllllllllllllllllkk.......",
+      ".....kkklhhhhhhhhhhhhhhhhhhhhhhlkkk.....",
+      "....kkllhhhhhhhhhhhhhhhhhhhhhhhhllkk....",
+      "....kllhhhhhlllllllllllllllhhhlhhllk....",
+      "...kklhhhhhhlllllllllllllllhhhllhhlkk...",
+      "...klhhhlhhhlllllllllllllllhhhllllllk...",
+      "..kllllllhhhlllllllllllllllhhhlllllllk..",
+      "..klssssshhhssssssssssssssshhhsssssslk..",
+      "..klssssshhhssssssssssssssshhhsssssslk..",
+      "..kllllllllllllllllllllllllllllllllllk.."
+    ],
+    "body": [
+      "..kkhhsllhhssllllllllllllllhhsslhhslkk..",
+      "..kkhhsllhhssllkkkkkkkkkkllhhsslhhslkk..",
+      "..kkhhsllhhssllkhhhhhhhhkllhhsslhhslkk..",
+      "..kkhhsllhhssllkhhhhhhhhkllhhsslhhslkk..",
+      "..kksssllhhssllkhhhhhhhhkllhhsslssslkk..",
+      "..kksssllhhssllkkaaaaaakkllhhsslssslkk..",
+      "..kksssllhhssllkkkkkkkkkkllhhsslssslkk..",
+      "..kksssllhhssllllllllllllllhhsslssslkk..",
+      "..kksssllhhssllllllllllllllhhsslssslkk..",
+      "..kksssllhhssllllllllllllllhhsslssslkk..",
+      "..kklsssssssssssssssssssssssssssssslkk..",
+      "...kksssssssssssssssssssssssssssssskk...",
+      "....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk....",
+      ".....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.....",
+      "........................................",
+      "........................................"
+    ]
   },
-  gold: {
-    colours: ['#422735','#98552D','#E6A52E','#FFE49A','#D94355'],
-    lid: ['......kkkkkkkk......','....kkhhhhhhhhkk....','...khhllllllllhhk...','..khlsslhhhhlsslhk..','.khllsslhhhhlssllhk.','khhllsslhhhhlssllhhk','khhhhhhhhhhhhhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
-    body: ['khhllllllllllllllhhk','khlhllllhhhhllllhlhk','khlshllhhaahlllhslhk','khlsslhhaaaahhlsslhk','khlshllhhaahlllhslhk','khlhllllhhhhllllhlhk','khhllllllllllllllhhk','.khhhhhhhhhhhhhhhhk.','..kkk..........kkk..']
+  "diamond": {
+    "colours": [
+      "#132844",
+      "#345a88",
+      "#77bbd1",
+      "#cefaff",
+      "#4ff4ff"
+    ],
+    "lid": [
+      "........................................",
+      "........................................",
+      "........................................",
+      "........kkkkkkkkkkkkkkkkkkkkkkkk........",
+      ".......kkllllllllllllllllllllllkk.......",
+      ".....kkklhhhhhhhhhhhhhhhhhhhhhhhhhk.....",
+      "....kkllhhhhhhhhhhhhhhhhhhhhhhhhhlkk....",
+      "....kllhhhhhllllllllllllllllhhhhhllk....",
+      "...kklhhhhhllllllllllllllllhhhhlhhlkk...",
+      "...klhhhllllllllllllllllllllllllllllk...",
+      "..kllllllllllllllllllllllllllllllllllk..",
+      "..klsssssssssssssssssssssssssssssssslk..",
+      "..klsssssssssssssssssssssssssssssssslk..",
+      "..kllllllllllllllllllllllllllllllllllk.."
+    ],
+    "body": [
+      "..kkhhsllllllllllllkkkllllllllllhhslkk..",
+      "..kkhhssssssslllllkkakkllllsssssshslkk..",
+      "..kkhhslsssssslllkkhhakkllsssssshhslkk..",
+      "..kkhhsllsssssslkkahhaakksssssslhhslkk..",
+      "..kksssllllsssskkaaaaaaakkssslllssslkk..",
+      "..kkssslllllsssskkaaaaakksssllllssslkk..",
+      "..kksssllllllssslkkaaakkssslllllssslkk..",
+      "..kkssslllllllslllkkakkllsllllllssslkk..",
+      "..kksssllllllllllllkkkllllllllllssslkk..",
+      "..kkssslllllllllllllklllllllllllssslkk..",
+      "..kklsssssssssssssssssssssssssssssslkk..",
+      "...kksssssssssssssssssssssssssssssskk...",
+      "....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk....",
+      ".....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.....",
+      "........................................",
+      "........................................"
+    ]
   },
-  diamond: {
-    colours: ['#23365B','#367FAF','#72DDF0','#DBFCFF','#AB86FA'],
-    lid: ['.........kk.........','.......kkhhkk.......','.....kkhhllhhkk.....','...kkhhllllllhhkk...','..khhllshhhhsllhhk..','.khllsshllllhssllhk.','khhhhhhhhhhhhhhhhhhk','kkkkkkkkkkkkkkkkkkkk'],
-    body: ['khllllllllllllllllhk','.khhlllllhhlllllhhk.','.klhhlllhaahlllhhlk.','..klhhlhaaaahlhhlk..','..kllhhlhaahlhhllk..','...kllhhlhhlhhllk...','...ksslhhllhhlssk...','....ksshhhhhhssk....','.....kkkkkkkkkk.....']
+  "premium": {
+    "colours": [
+      "#1b192f",
+      "#3c3758",
+      "#746780",
+      "#d5aa72",
+      "#ffe1a1"
+    ],
+    "lid": [
+      "........................................",
+      "........................................",
+      "........................................",
+      "........kkkkkkkkkkkkkkkkkkkkkkkk........",
+      ".......kkllllllllllllllllllllllkk.......",
+      ".....kkklhsssssssssssssssssssshlkkk.....",
+      "....kkllhhhsssssssssssssssssshhhllkk....",
+      "....kllhhhllssssshhhhhhssssslllhhllk....",
+      "...kklhhhlllssssssssssssssssllllhhlkk...",
+      "...klhhhlllllsssssssssssssslllllllllk...",
+      "..kllllllllllllllllllllllllllllllllllk..",
+      "..klsssssssssssssssssssssssssssssssslk..",
+      "..klsssssssssssssssssssssssssssssssslk..",
+      "..klllllllllllllllllkllllllllllllllllk.."
+    ],
+    "body": [
+      "..kkhhslllllssssssskhkssssssllllhhslkk..",
+      "..kkhhshhhllsssssskhahksssssllhhhhslkk..",
+      "..kkhhshhhlllssskkhhahhkksslllhhhhslkk..",
+      "..kkhhshhhlllsskkhhaaahhkkslllhhhhslkk..",
+      "..kkssshhhllllkkhaaaaaaahkklllhhhsslkk..",
+      "..kkssshhhllllskkhhaaahhkkllllhhhsslkk..",
+      "..kkssshhhlllllskkhhahhkklllllhhhsslkk..",
+      "..kkssshhhllllllskkhahkkllllllhhhsslkk..",
+      "..kkssshhhllllllllkkhkklllllllhhhsslkk..",
+      "..kksssllllllllllllkkkllllllllllssslkk..",
+      "..kklsssssssssssssssksssssssssssssslkk..",
+      "...kksssssssssssssssssssssssssssssskk...",
+      "....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk....",
+      ".....kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.....",
+      "........................................",
+      "........................................"
+    ]
   }
 };
 function chestPix(tier, part = 'all') {
@@ -3717,17 +3870,17 @@ function chestPix(tier, part = 'all') {
   const [outline, shadow, face, light, accent] = design.colours;
   const palette = { k:outline, s:shadow, l:face, h:light, a:accent };
   const canvas = document.createElement('canvas');
-  canvas.width = 26; canvas.height = 24;
+  canvas.width = 40; canvas.height = 30;
   const ctx = canvas.getContext('2d');
   function paint(rows, top) {
     rows.forEach((row, y) => [...row].forEach((pixel, x) => {
       if (pixel === '.') return;
       ctx.fillStyle = palette[pixel];
-      ctx.fillRect(3 + x, top + y, 1, 1);
+      ctx.fillRect(x, top + y, 1, 1);
     }));
   }
-  if (part !== 'body') paint(design.lid, 4);
-  if (part !== 'lid') paint(design.body, 12);
+  if (part !== 'body') paint(design.lid, 0);
+  if (part !== 'lid') paint(design.body, 14);
   PX_CACHE.set(key, canvas);
   return canvas;
 }
@@ -4026,6 +4179,9 @@ function grant(r) {
     case 'dice': S.tickets += r.n; return r.n + ' Wheel ticket' + (r.n > 1 ? 's' : '');
     case 'crate': { const tier = r.tier === 'wood' ? 'steel' : r.tier; S.crates[tier] += n; return rewLabel(r); }
     case 'ticket': S.tickets += n; return n + ' Wheel ticket' + (n > 1 ? 's' : '');
+    case 'voucher':
+      S.restockVouchers = (S.restockVouchers || 0) + n;
+      return 'Restock voucher saved to My items';
     case 'boost': {
       const tokens = S.coinBoostTokens ||= {};
       tokens[r.min] = (tokens[r.min] || 0) + 1;
@@ -5281,12 +5437,12 @@ function chest(c, x, y, w, tier, lid, shake) {
   else pixDraw(c, chestPix(tier, 'all'), ox, oy - (shake ? 0 : Math.round(Math.sin(performance.now() / 400)) * sc), 26 * sc, 24 * sc);
 }
 function drawIcon(c, kind, x, y, s, tier) {
-  if (kind === 'crate') { pixDraw(c, chestPix(tier || 'steel'), x - s * .55, y - s * .5, s * 1.1, s * 1.02); return; }
+  if (kind === 'crate') { pixDraw(c, chestPix(tier || 'steel'), x - s * .55, y - s * .4125, s * 1.1, s * .825); return; }
   const map = { cash: 'cash', stars: 'dosh', dosh: 'dosh', deed: 'deed', dice: 'dice', ticket: 'ticket', boost: 'boost', item: 'gift', wheel: 'wheel', sun: 'sun', moon: 'moon', face: 'info', info: 'info' };
   const k = map[kind] || kind;
   pixDraw(c, pixImg(k), x - s / 2, y - s / 2, s, s);
 }
-function rewIconKind(r) { r = resolveR(r); return { cash: 'cash', stars: 'stars', deed: 'deed', dice: 'dice', crate: 'crate', ticket: 'ticket', boost: 'boost', item: 'item' }[r.k] || 'item'; }
+function rewIconKind(r) { r = resolveR(r); return { cash: 'cash', stars: 'stars', deed: 'deed', dice: 'dice', crate: 'crate', ticket: 'ticket', boost: 'boost', voucher: 'voucher', item: 'item' }[r.k] || 'item'; }
 function iconCanvas(kind, tier, px) { const cvs = document.createElement('canvas'); cvs.width = px * 2; cvs.height = px * 2; cvs.style.width = px + 'px'; cvs.style.height = px + 'px'; const c = cvs.getContext('2d'); c.scale(2, 2); drawIcon(c, kind, px / 2, px / 2, px, tier); cvs.setAttribute('aria-hidden', 'true'); return cvs; }
 function paintStaticIcons() {
   document.querySelectorAll('canvas[data-icon]').forEach(cvs => { const c = cvs.getContext('2d'); const s = cvs.width; c.clearRect(0, 0, s, cvs.height); drawIcon(c, cvs.dataset.icon, s / 2, cvs.height / 2, s * (cvs.dataset.icon === 'crate' ? .9 : 1), cvs.dataset.tier || 'steel'); });
@@ -5515,7 +5671,7 @@ function closeSheet() { snd('close'); document.body.classList.remove('sheet-open
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
   if (sheet === 'build') return buildTab + '|' + S.level + '|' + Object.keys(DEFS).map(k => S.cash >= (DEFS[k].cost || 0) ? 1 : 0).join('') + '|' + JSON.stringify(S.items);
-  if (sheet === 'bag') return (S.storedBuildings?.length || 0) + '|' + JSON.stringify([S.shopItems,S.coinBoostTokens]);
+  if (sheet === 'bag') return (S.storedBuildings?.length || 0) + '|' + JSON.stringify([S.shopItems,S.coinBoostTokens,S.restockVouchers]);
   if (sheet === 'tasks') return JSON.stringify([S.daily]);
   if (sheet === 'settings') return String(S.sound !== false) + '|' + LOC.src + '|' + resetArm;
   return '';
@@ -5524,7 +5680,8 @@ function renderSheet(force) {
   if (!sheet) return; const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
   setText($('#sheetTitle'), sheet === 'bag' ? 'My items' : sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
   sheetBody.innerHTML = sheet === 'bag' ? itemBagHTML() : sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
-  if (sheet === 'build' || sheet === 'bag') drawPreviews(); else paintNewIcons();
+  if (sheet === 'build' || sheet === 'bag') drawPreviews();
+  paintNewIcons();
   if(sheet==='build' && S.tut && !mg){
     const st=tutStep();
     if(st&&st.build){
@@ -5536,6 +5693,7 @@ function renderSheet(force) {
   }
 }
 function openItemBag() {
+  choosingVoucher = false;
   buildTarget = null;
   delete S.bagUnread;
   delete S.bagPopupPending;
@@ -5551,7 +5709,7 @@ function itemBagHTML() {
   }
   const moved = buildings.map(({building},index) => card(building.id, `data-act="restore" data-index="${index}"`, 'Level '+lvlOf(building))).join('');
   const owned = collectables.map(([id,count]) => card(id, `data-act="choose" data-id="${id}"`, 'Owned · '+count)).join('');
-  return coinBoostHTML() + '<h3>Moved buildings</h3>' + (moved ? '<div class="grid2">'+moved+'</div>' : '<p class="note">If a remodel needs more space, your building will be kept here with its upgrades.</p>') +
+  return voucherHTML() + coinBoostHTML() + '<h3>Moved buildings</h3>' + (moved ? '<div class="grid2">'+moved+'</div>' : '<p class="note">If a remodel needs more space, your building will be kept here with its upgrades.</p>') +
     '<h3>Collectables</h3>' + (owned ? '<div class="grid2">'+owned+'</div>' : '<p class="note">Collectables you buy in the Dosh Shop appear here.</p>');
 }
 function restoreBuilding(entry,i,j,turned=entry.building.turned) {
@@ -5572,6 +5730,34 @@ function showBagNotice() {
   $('#bagView').focus();
   $('#bagView').onclick = () => { $('#modal').classList.remove('show'); openItemBag(); };
   $('#bagLater').onclick = () => { $('#modal').classList.remove('show'); delete S.bagPopupPending; save(); $('#nav [data-open="bag"]').focus(); };
+}
+let choosingVoucher = false;
+function missingStock(b, time) {
+  if (!b || !isBiz(b.d) || !b.workers || whyNot(b)) return [];
+  return ensureProds(b.t).map((p,k) => ({p,k})).filter(({p,k}) => k < b.workers && p.s <= time);
+}
+function voucherHTML() {
+  const count = S.restockVouchers || 0;
+  const status = count ? 'Owned · '+count : 'Found in every Premium crate';
+  let html = '<h3>Restock vouchers</h3><div class="task"><div class="info"><b class="coin-boost-label"><canvas class="coin-boost-icon" data-icon="voucher" width="48" height="48"></canvas>Restock voucher</b><small>'+status+'</small></div>';
+  if (count) html += '<button class="pixel-btn pb" data-act="pickVoucher">'+(choosingVoucher?'Cancel':'Use')+'</button>';
+  html += '</div>';
+  if (!count || !choosingVoucher) return html;
+  const time = now();
+  const choices = D.list.filter(b => missingStock(b,time).length);
+  html += '<p class="note">'+(choices.length ? 'Choose a business to fill its empty staffed shelves instantly.' : 'No staffed businesses need stock right now.')+'</p>';
+  for (const b of choices) html += '<button class="pixel-btn pb sm" data-act="redeemVoucher" data-i="'+b.i+'" data-j="'+b.j+'">'+b.d.name+' · '+b.i+', '+b.j+'</button> ';
+  return html;
+}
+function redeemVoucher(i,j) {
+  if (!choosingVoucher || !(S.restockVouchers > 0)) return;
+  const b = tileAt(i,j)?._, time = now(), missing = missingStock(b,time);
+  if (!missing.length) { renderSheet(true); return; }
+  for (const {p,k} of missing) { p.o = 0; p.s = time + P_LAST[k]; }
+  S.restockVouchers--;
+  choosingVoucher = false;
+  track('restock',missing.length); changed(); save(); updateHUD(); renderSheet(true);
+  snd('restock'); toast(b.d.name+' restocked');
 }
 function coinBoostHTML() {
   const tokens = Object.entries(S.coinBoostTokens || {}).filter(([min,count]) => Number(min)>0 && count>0);
@@ -5662,6 +5848,8 @@ function settingsHTML() {
 }
 sheetEl.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
+  if (a === 'pickVoucher') { choosingVoucher = !choosingVoucher; renderSheet(true); return; }
+  if (a === 'redeemVoucher') { redeemVoucher(+b.dataset.i,+b.dataset.j); return; }
   if (a === 'useCoinBoost') { useCoinBoost(Number(b.dataset.min)); return; }
   if (a === 'closeSheet') { closeSheet(); return; }
   if (a === 'info') { showInfo(sheet); return; }
@@ -6121,14 +6309,31 @@ function buyMarket(id) {
 let crateSel = 'steel', crateAnim = null, crateReveal = null;
 function buildCrates() {
   const C = CRATES[crateSel];
+  mgPanel.style.setProperty('--vault-light',crateDesigns[crateSel].colours[4]);
   mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
   const tiers = Object.keys(CRATES).map(tier => `<button class="pixel-btn crate-slot" data-act="crsel" data-tier="${tier}" aria-pressed="${crateSel === tier}"><span data-tic="${tier}"></span><b>${TIER[tier]}</b><span class="crate-count">${S.crates[tier]} owned</span></button>`).join('');
   const guaranteed = C.guaranteed.map(r => crateAmountLabel(r)).join(' + ');
   const odds = C.table.map(([weight, label, r], i) => `<div class="orow"><span data-oic="${i}"></span><span class="oname">${crateAmountLabel(r,label)}</span><b>${weight}%</b></div>`).join('');
-  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">HARBOUR FREIGHT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
-  <div class="cstage freight-quay"><span class="dock-light"></span><canvas id="chest" width="288" height="156" aria-hidden="true"></canvas></div>
-
-  <style>#mg #mgPanel.mg-crates .crate-shelf{grid-template-columns:repeat(4,minmax(0,1fr))}#mg #mgPanel.mg-crates .crate-slot{display:flex;flex-direction:column;align-items:center}#mg #mgPanel.mg-crates .crate-notice{height:auto;white-space:normal}</style>
+  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">THE VAULT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
+  <style>
+  #mg #mgPanel.mg-crates{background:#0e1924!important;color:#e1edf1;gap:12px!important}
+  #mg #mgPanel.mg-crates .mg-screen-head{background:#172937!important;border-bottom-color:#385060!important}
+  .vault-stage{width:100%;position:relative;isolation:isolate;overflow:hidden;border:1px solid #334b59;box-sizing:border-box;background:#101d28}
+  #mg #mgPanel .vault-stage #chest{width:100%!important;height:auto!important;max-height:none!important;display:block;position:static!important;animation:none!important;transform:none!important;filter:none!important;image-rendering:pixelated;margin:0!important}
+  .vault-caption{position:absolute;top:12px;left:14px;text-align:left;z-index:2;display:grid;gap:4px}
+  .vault-caption strong{font:24px/1 'Silkscreen',monospace;color:#f1f5ef;letter-spacing:-1px}
+  .vault-caption small{font:17px/1 'VT323',monospace;color:var(--vault-light)}
+  #mg #mgPanel.mg-crates .crate-shelf{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+  #mg #mgPanel.mg-crates .crate-slot{display:flex;flex-direction:column;align-items:center;background:#192b38!important;border-bottom-color:#314654!important;min-height:72px}
+  #mg #mgPanel.mg-crates .crate-slot canvas{width:38px!important;height:38px!important;margin:-4px auto}
+  #mg #mgPanel.mg-crates .crate-slot[aria-pressed=true]{background:#2a3d4c!important;border-bottom-color:var(--vault-light)!important}
+  #mg #mgPanel.mg-crates .crate-count{color:#b8cbd1}
+  #mg #mgPanel.mg-crates .crate-feature #openBtn{--bb-face:var(--vault-light);--bb-top:#e9f5ef;--bb-bottom:#73999d;--bb-edge:#385c68;width:100%!important;max-width:none!important}
+  #mg #mgPanel.mg-crates .crate-notice{height:auto;white-space:normal;color:#eaf3eb;font-size:19px;line-height:1.15}
+  #mg #mgPanel.mg-crates .crate-bonus,#mg #mgPanel.mg-crates .odds{background:#182a37;border:0;color:#d4e2e5;text-align:left;padding:12px}
+  #mg #mgPanel.mg-crates .odds summary{color:#d9e9ec}#mg #mgPanel.mg-crates .crate-bonus progress{accent-color:#ffc17b}
+  </style>
+  <div class="vault-stage"><div class="vault-caption"><strong>${TIER[crateSel]} crate</strong><small>${S.crates[crateSel]} in collection</small></div><canvas id="chest" width="288" height="156" aria-hidden="true"></canvas></div>
   <div class="crate-shelf">${tiers}</div>
 
   <div class="crate-feature">
@@ -6193,25 +6398,40 @@ function drawChestSceneInner(cvs,t) {
   const progress = crateReveal ? 1 : anim && !anim.reduceMotion ? Math.min(1,(t-anim.t0)/950) : 0;
   const lid = crateEase((progress-.22)/.30);
   const rise = crateEase((progress-.34)/.52);
-  const accent = {steel:'#d1e4eb',gold:'#ffd374',diamond:'#91ecff',premium:'#eaba64'}[crateSel];
-  // Frame the chest in the foreground of the wharf.
-  c.fillStyle = 'rgba(12,25,38,.58)';
-  c.fillRect(0,0,288,156);
-  const press = progress < .22 ? Math.round(3*Math.sin(Math.PI*progress/.22)) : 0;
-  c.fillStyle = '#182632';
-  c.fillRect(98,130,92,4);
-  const body = chestPix(crateSel,'body'), cover = chestPix(crateSel,'lid');
+  const accent = crateDesigns[crateSel].colours[4];
   c.imageSmoothingEnabled = false;
-  // The back hinge stays fixed as the lid tips away from the viewer.
-  const height = Math.round(32-23*lid);
-  c.drawImage(cover,3,4,20,8,104,96-height+press,80,height);
-  if (lid > 0) {
-    c.fillStyle = '#252634';
-    c.fillRect(104,95,80,4);
-    c.fillStyle = accent;
-    c.fillRect(108,95,72,2);
+  function rect(x,y,w,h,colour) { c.fillStyle=colour; c.fillRect(x,y,w,h); }
+  function platform(x,y,w,h,cut,depth,colour) {
+    for(let row=0; row<h; row++) {
+      const inset=Math.max(0,cut-Math.min(row,h-1-row)*2);
+      rect(x+inset,y+row,w-inset*2,1,colour);
+    }
+    if(depth) rect(x+cut,y+h,w-cut*2,depth,'#101d28');
   }
-  c.drawImage(body,3,12,20,9,104,97+press,80,36-press);
+  rect(0,0,288,156,'#111f2c');
+  rect(0,75,288,32,'#182a37');rect(0,107,288,49,'#1c313f');
+  for (let x=-72;x<360;x+=36) {
+    for(let y=0;y<47;y++) rect(Math.round(144+(x-144)*(1+y/100)),109+y,1,1,'#263d48');
+  }
+  for(const y of [111,119,132,151]) rect(0,y,288,1,'#2c424c');
+  for(const x of [12,247]) {
+    rect(x,59,29,43,'#213442');rect(x+2,61,25,36,'#142430');
+    for(let y=65;y<92;y+=5) rect(x+6,y,17,2,'#314653');
+    rect(x+4,99,7,1,accent);
+  }
+  for(let x=56;x<235;x+=28) rect(x,76,20,1,'#3c5260');
+  platform(44,111,200,29,25,3,'#0c1823');
+  platform(44,106,200,29,25,0,'#354f5d');
+  platform(48,107,192,23,22,0,'#182c39');
+  platform(63,109,162,17,16,0,'#263d49');
+  rect(77,133,37,2,accent);rect(174,133,37,2,accent);
+  rect(116,135,56,2,'#4a626d');
+  const press = progress < .22 ? Math.round(2*Math.sin(Math.PI*progress/.22)) : 0;
+  const body=chestPix(crateSel,'body'), cover=chestPix(crateSel,'lid');
+  const seam=87+press, lidHeight=Math.round(42-31*lid);
+  c.drawImage(cover,0,0,40,14,84,seam-lidHeight,120,lidHeight);
+  if(lid>0) rect(93,seam-2,102,2,accent);
+  c.drawImage(body,0,14,40,16,84,seam,120,48-press);
   if (rise > 0) {
     const reward = crateReveal || anim.rew;
     const y = Math.round(89-44*rise);
@@ -7111,11 +7331,11 @@ else if (S.upgraded || S.firstRun) {
   if (receivedGoldGift) {
     const gift = document.createElement('p');
     gift.className = 'wl-s';
-    gift.textContent = 'A free Gold crate is waiting in Harbour Freight.';
+    gift.textContent = 'A free Gold crate is waiting in the Vault.';
     $('#modalBox .wl-s').after(gift);
   }
 } else if (receivedGoldGift) {
-  toast('Login gift: +1 Gold crate in Harbour Freight.');
+  toast('Login gift: +1 Gold crate in the Vault.');
 }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resize(); paintStaticIcons(); lastClockKind = ''; lastFace = -1; });
 requestAnimationFrame(frame);
