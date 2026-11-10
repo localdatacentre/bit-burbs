@@ -6849,7 +6849,8 @@ async function travelToBay() {
   sel=null; placing=null; camAnim=null; closeSheet(); derive(); centerOn(MID,MID); changed(); save();
   overlay.firstChild.textContent='';
   await overlay.animate([{opacity:1},{opacity:0}],{duration:fade,fill:'forwards'}).finished;
-  overlay.close(); overlay.remove(); toast('Welcome to Banksia Bay. Place your free Town Hall to start.');
+  overlay.close(); overlay.remove();
+  showFoundingPrompt();
 }
 
 /* ================= info popups ================= */
@@ -6863,6 +6864,29 @@ const INFO = {
   tasks: ['Tasks', ['Finish tasks to win dice, tickets, crates, Dosh and Deeds.', 'When you claim one, a new task appears.', 'Upgrading buildings, restocking and collecting all count.']],
   hall: ['Town Hall', ['Expand your land here once you reach the right level.', 'Expanding costs Coins and Deeds.', 'Power and water show how much your city makes and uses.', 'Workers come from homes, and businesses need them to run.']]
 };
+function showFoundingPrompt() {
+  if (S.island !== 'banksia-bay' || !S.foundingGrant || S.foundingPromptDismissed || findHall()) return;
+  const modal = $('#modal');
+  $('#modalBox').innerHTML = '<h2>Welcome to Banksia Bay</h2><p class="wl-s">Choose a spot for your free Town Hall. Place it to receive 8,000 starter coins.</p><button class="pixel-btn pb" id="placeFoundingHall">Build Town Hall</button><button class="pixel-btn pb sm" id="laterFoundingHall">Later</button>';
+  modal.classList.add('show');
+  const build = $('#placeFoundingHall');
+  build.focus();
+  build.onclick = () => {
+    modal.classList.remove('show');
+    const spot = suggestTile('hall');
+    const ghost = spot && fpFree(spot.i, spot.j, 'hall') ? spot : null;
+    placing = {id:'hall', fromItem:false, ghost};
+    sel = null;
+    if (ghost) animateTo(ghost.i + .5, ghost.j + .5);
+    snd('confirm'); renderCard(true);
+  };
+  $('#laterFoundingHall').onclick = () => {
+    modal.classList.remove('show');
+    S.foundingPromptDismissed = true;
+    save();
+    $('#nav [data-open="build"]').focus();
+  };
+}
 function showInfo(k) {
   const it = INFO[k]; if (!it) return;
   $('#modalBox').innerHTML = `<h2>${it[0]}</h2><p class="note" style="color:#FFE066!important">How it works</p><ul style="text-align:left">${it[1].map((x, n) => `<li>${n + 1}. ${x}</li>`).join('')}</ul><button class="pixel-btn pb" id="modalOk">Got it</button>`;
@@ -7344,6 +7368,8 @@ else if (S.upgraded || S.firstRun) {
     gift.textContent = 'A free Gold crate is waiting in the Vault.';
     $('#modalBox .wl-s').after(gift);
   }
+} else if (S.foundingGrant) {
+  showFoundingPrompt();
 } else if (receivedGoldGift) {
   toast('Login gift: +1 Gold crate in the Vault.');
 }
