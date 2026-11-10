@@ -1446,6 +1446,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
   <div class="cpmbar">
     <div class="city-stats">
       <span id="popLbl" aria-label="Residents and housing capacity"><span class="stat-value" id="popValue">0 / 0</span> <span class="stat-unit">residents</span></span>
+      <span id="jobsLbl" title="Open positions in operating buildings / total town job capacity"><span class="stat-unit">Available Jobs</span> <span class="stat-value" id="jobsValue">0 / 0</span></span>
       <b id="cpmLbl"><span class="stat-value" id="cpmValue">0</span> <span class="stat-unit">coins/min</span></b>
     </div>
     <div class="stock-actions">
@@ -4145,7 +4146,8 @@ function derive() {
   const ind = list.filter(b => b.d.type === 'ind');
   const happy = hn ? Math.round(hs / hn) : 50;
   const demand = [clamp((jobs - S.pop + 4) / 12, -1, 1), clamp((S.pop * .45 - shopJobs) / 10, -1, 1), clamp((S.pop * .3 - indJobs) / 10, -1, 1)];
-  D = { list, homes, shops, ind, happy, cap, jobs, employed, supP, supW, useP: supP - remP, useW: supW - remW, demand, val, svc, poll };
+  const operatingJobs = list.reduce((total, b) => total + (b.works ? (b.capacity || b.d.staff || 0) : 0), 0);
+  D = { list, homes, shops, ind, happy, cap, jobs, availableJobs: Math.max(0, operatingJobs - employed), employed, supP, supW, useP: supP - remP, useW: supW - remW, demand, val, svc, poll };
   list.forEach(b => { b.t._ = b; });
 }
 const info = (i, j) => { const t = tileAt(i, j); return t && t._ ? t._ : null; };
@@ -5481,7 +5483,8 @@ function updateHUD() {
   const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
   updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
   rushButton.disabled = !rushPrice || S.stars < rushPrice;
-  setText(hud.lvl, S.level); setText($('#popValue'), S.pop + ' / ' + (D.cap || 0)); setText($('#cpmValue'), fmt(D.cpm || 0));
+  setText(hud.lvl, S.level); setText($('#popValue'), S.pop + ' / ' + (D.cap || 0)); setText($('#jobsValue'), (D.availableJobs || 0) + ' / ' + (D.jobs || 0));
+  setText($('#cpmValue'), fmt(D.cpm || 0));
   const targetXP = need(S.level);
   hud.xp.style.width = Math.min(100, S.xp / targetXP * 100) + '%';
   setText(hud.xpCount, S.xp + '/' + targetXP + ' XP');
