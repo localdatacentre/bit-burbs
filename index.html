@@ -1433,6 +1433,12 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 .coin-boost-icon{width:22px;height:22px;flex:none;image-rendering:pixelated}
 @media(max-width:370px){#hud #boost{gap:2px;padding-inline:2px}#boost .coin-boost-icon{width:18px;height:18px}}
 </style>
+<style>
+#bb-tutorial-focus{display:none;position:fixed;box-sizing:border-box;pointer-events:none;z-index:10000;border:3px solid #ffcf40;box-shadow:0 0 0 1px #73551b;animation:bb-focus-pulse 1s steps(2,end) infinite}
+#bb-tutorial-focus.show{display:block}
+@keyframes bb-focus-pulse{0%,100%{border-color:#ffcf40}50%{border-color:#fff0a6}}
+@media(prefers-reduced-motion:reduce){#bb-tutorial-focus{animation:none}}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
