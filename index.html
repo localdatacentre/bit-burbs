@@ -36,7 +36,8 @@ body{font-family:'Oswald',ui-rounded,system-ui,-apple-system,'Segoe UI',sans-ser
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ui-deep)}
 button{font:inherit}
 button:focus-visible{outline:3px solid #FFFFFF;outline-offset:2px}
-html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
+html,body,body *{touch-action:pan-x pan-y}
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;filter:saturate(1.12) contrast(1.05) brightness(1.03)}
 
 /* pixel buttons */
@@ -1498,7 +1499,13 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
 
 <script>
-document.addEventListener('touchend',e=>{const now=Date.now();if(window.__bbLastTouchEnd&&now-window.__bbLastTouchEnd<320)e.preventDefault();window.__bbLastTouchEnd=now;},{passive:false});
+// Leave single-finger scrolling and control taps to the browser.
+function blockPagePinch(event) {
+  if (event.cancelable && (!event.touches || event.touches.length > 1)) event.preventDefault();
+}
+for (const type of ['gesturestart','gesturechange','touchmove']) {
+  document.addEventListener(type, blockPagePinch, {capture:true, passive:false});
+}
 </script>
 <script>
 const SPRK=(function(){let NO_SKIRT=true;
@@ -3443,6 +3450,27 @@ function render(key,mirrorSigns=false){const it=M[key]||Q[key];if(!it)return nul
   if(d[off+3]===255 && colour===mat.source)emission.push(index-top*cw,mat.night);
  }
  return {rotor,emission:new Uint32Array(emission),entrances:kit.entrances||[],key,hasFascia:!!kit.hasFascia,img:c2,w:cw,h:ch-top,gMinX:OX-32*FY*SC,gMaxX:OX+32*FX*SC,gMinY:OY-top,fx:FX,fy:FY,sc:SC};}
+M.deliveryDepot={name:'Delivery Depot',fx:2,fy:2,H:35,d(k){
+ const {groundKit}=houseView(k,0,32,32);
+ groundKit.ground((x,y)=>Math.min(x,y,32-x,32-y)<1.5?k.walk(x,y):'#aaa99a');
+ const wall=k.box(1.8,3,0,30.2,22,29,{L:'#e1d4b8',Rfn:(u,v)=>v<5?'#887b67':u%5===0?'#ada998':'#bbb6a4',top:'#b9baad'});
+ const f=k.L;
+ for(const u of [2,19]){
+  k.rect(f,wall,u,0,u+15,16,'#334644');
+  k.rect(f,wall,u+1,1,u+14,14,'#728780');
+  for(let v=3;v<15;v+=3)k.rect(f,wall,u+1,v,u+14,v,'#60766f');
+  k.rect(f,wall,u+6,2,u+9,2,'#334644');
+  k.rect(f,wall,u+5,17,u+10,17,k.light('#ebe1c7','#ffd092'));
+ }
+ k.win(f,wall,37,6,9,8,{frame:'#435b55',glass:'#9cbac0',mullion:true});
+ k.door(f,wall,48,6,13,'#54746a');
+ signBoard(k,f,wall,0,19,57,9,'#284e46','#fff1cf','DELIVERY DEPOT');
+ k.box(1.3,2.5,29,30.7,22.5,31,{topfn:(x,y)=>x%5===0?'#92a59a':'#a5b4a8',L:'#71847a',R:'#5c7167'});
+ const mat={L:'#be9263',R:'#99704e',top:'#d6b07c'};
+ function parcel(x,y,z){k.box(x,y,z,x+2.4,y+2,z+3,mat);k.box(x+.9,y,z+3,x+1.4,y+2,z+3.3,{top:'#ebd0a0',L:'#cfac7e',R:'#aa875e'});}
+ parcel(24,23,0);parcel(26.6,23,0);parcel(25,23,3);parcel(26.8,25.2,0);
+}};
+
 return {render};})();
 
 </script>
@@ -3468,7 +3496,7 @@ const CHEST = {
 };
 const KEYCOL = { steel: '#D6DEE8', gold: '#FFC93C', diamond: '#7FE3FF' };
 
-const DEFS = {
+const DEFS = {deliveryDepot:{name:'Delivery Depot',type:'depot',fx:2,fy:2,lvl:1,cost:0},
   hailStop: {name:'BinLink Hail Stop',type:'transport',cost:600,fare:25,lvl:1},
   busShelter: {name:'BinLink Shelter',type:'transport',cost:1800,fare:75,lvl:1},
   road:     { name: 'Road', type: 'road', cost: 20, lvl: 1 },
@@ -3943,7 +3971,7 @@ function baseState() {
 function newGame() {
   const s=baseState();
   s.cash=8000;
-  s.tut={ version:3, step:0, ev:{}, started:false };
+  s.tut={ version:4, step:0, ev:{}, started:false };
   seedTutorialTown(s);
   return s;
 }
@@ -3951,16 +3979,34 @@ function newGame() {
 /* Only fresh tutorial towns get a prebuilt layout; existing cities are untouched. */
 function seedTutorialTown(s) {
   const put=(x,y,id)=>{if(x>=s.lo&&x<N-s.lo&&y>=s.lo&&y<N-s.lo&&!s.tiles[y*N+x])s.tiles[y*N+x]=newTile(id);};
-  put(24,24,'hall');
-  for(let x=24;x<=28;x++)put(x,25,'road');
-  put(23,25,'house');
-  put(22,25,'tree');
+  put(MID,MID,'hall');
+  for(let x=MID;x<=MID+4;x++)put(x,MID+1,'road');
+  put(MID-1,MID+1,'house');
+  put(MID-2,MID+1,'tree');
   s.pop=2;
   s.busT=now()+5000;
   s.tutorialTown=1;
 }
 
 function newTile(id) { const d = DEFS[id]; if (d.type === 'shop') return { id, st: 'idle' }; if (d.type === 'home') return { id, rent: 0 }; if (d.type === 'ind') return { id, stock: 0 }; return { id }; }
+function expandBetaIsland(city) {
+  const oldSize = Math.sqrt(city.tiles.length);
+  if (oldSize === N) return;
+  if (!Number.isInteger(oldSize) || oldSize <= 0 || oldSize > N) throw new Error('Unsupported saved island size');
+  const offset = Math.floor((N - oldSize) / 2);
+  const tiles = Array(N * N).fill(null);
+  city.tiles.forEach((tile, index) => {
+    if (!tile) return;
+    const x = index % oldSize + offset;
+    const y = Math.floor(index / oldSize) + offset;
+    if (tile.id === '_occ') tile.ref = [tile.ref[0] + offset, tile.ref[1] + offset];
+    tiles[y * N + x] = tile;
+  });
+  for (const entry of city.storedBuildings || []) {
+    if (Array.isArray(entry.from)) entry.from = [entry.from[0] + offset, entry.from[1] + offset];
+  }
+  city.tiles = tiles;
+}
 function migrate(d) {
   if (d.v === 2) return d;
   const b = baseState();
@@ -4102,6 +4148,11 @@ function upBenefit(d) { return d.type === 'shop' || d.type === 'ind' ? 'Earnings
 
 /* ================= simulation ================= */
 let D = { list: [], homes: [], shops: [], ind: [], happy: 50, cap: 0, jobs: 0, employed: 0, supP: 0, supW: 0, useP: 0, useW: 0, demand: [0, 0, 0], val: new Float32Array(N * N), svc: new Uint8Array(N * N), poll: new Float32Array(N * N) };
+function jobCapacity(t, d) {
+  const cost = d.cost || 0;
+  const base = cost >= 15000 ? 48 : cost >= 8000 ? 24 : cost >= 4000 ? 12 : 6;
+  return base * lvlOf(t);
+}
 function derive() {
   const list = [];
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
@@ -4125,13 +4176,15 @@ function derive() {
   let free = S.pop, jobs = 0, employed = 0, shopJobs = 0, indJobs = 0;
   list.forEach(b => {
     if (isBiz(b.d)) {
-      b.capacity = b.d.jobs || 3;
-      jobs += b.capacity;
-      if (b.d.type === 'shop') shopJobs += b.capacity;
-      if (b.d.type === 'ind') indJobs += b.capacity;
+      b.jobCapacity = jobCapacity(b.t, b.d);
+      jobs += b.jobCapacity;
+      if (b.d.type === 'shop') shopJobs += b.jobCapacity;
+      else if (b.d.type === 'ind') indJobs += b.jobCapacity;
       b.works = b.ok && b.pow && b.wat;
-      b.workers = b.works ? Math.min(3, free) : 0;
-      free -= b.workers; employed += b.workers;
+      b.workers = b.works ? Math.max(0, Math.min(3, free)) : 0;
+      b.employees = b.workers;
+      free -= b.workers;
+      employed += b.workers;
       b.staffed = b.workers > 0;
       return;
     }
@@ -4140,13 +4193,14 @@ function derive() {
     b.works = b.ok && b.pow && b.wat;
     b.staffed = b.works && free >= b.d.staff; if (b.staffed) { free -= b.d.staff; employed += b.d.staff; }
   });
-  // Fill the three operating positions across town before allocating additional jobs.
-  for (const b of list) {
-    if (!free) break;
-    if (!b.works || !b.capacity) continue;
-    const hires = Math.min(free, b.capacity - b.workers);
-    b.workers += hires; free -= hires; employed += hires;
-  }
+  // Fill additional jobs after every business has received operating staff.
+  list.forEach(b => {
+    if (!isBiz(b.d) || !b.works) return;
+    const extra = Math.min(b.jobCapacity - b.employees, free);
+    b.employees += extra;
+    free -= extra;
+    employed += extra;
+  });
   const svc = new Uint8Array(N * N), deco = new Float32Array(N * N), poll = new Float32Array(N * N), val = new Float32Array(N * N);
   list.forEach(b => {
     const d = b.d; const r = d.rad || 0; if (!r) return;
@@ -4168,7 +4222,7 @@ function derive() {
   const ind = list.filter(b => b.d.type === 'ind');
   const happy = hn ? Math.round(hs / hn) : 50;
   const demand = [clamp((jobs - S.pop + 4) / 12, -1, 1), clamp((S.pop * .45 - shopJobs) / 10, -1, 1), clamp((S.pop * .3 - indJobs) / 10, -1, 1)];
-  const operatingJobs = list.reduce((total, b) => total + (b.works ? (b.capacity || b.d.staff || 0) : 0), 0);
+  const operatingJobs = list.reduce((total, b) => total + (b.works ? (b.jobCapacity || b.d.staff || 0) : 0), 0);
   D = { list, homes, shops, ind, happy, cap, jobs, availableJobs: Math.max(0, operatingJobs - employed), employed, supP, supW, useP: supP - remP, useW: supW - remW, demand, val, svc, poll };
   list.forEach(b => { b.t._ = b; });
 }
@@ -4273,6 +4327,7 @@ function collectInd(i, j) {
 }
 function placeAt(i, j, id, fromItem, turned=false) {
   const d = DEFS[id];
+  if (id === 'deliveryDepot' && hasB(id)) return false;
   if (!d || Boolean(MARKET[id]) !== Boolean(fromItem)) return false;
   if (!inB(i, j)) { snd('error'); toast('That land is locked. Expand from the Town Hall.'); return false; }
   if(isStop(id)&&!stopKerb(i,j)){toast('Choose a clear plot beside the middle of a straight road.');return false;}
@@ -4284,6 +4339,7 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (id === 'hall' && S.foundingGrant) {
     delete S.foundingGrant; S.cash += 8000; save(); toast('Town founded · 8,000 starter coins');
   }
+  if (id === 'deliveryDepot') { snd('build'); changed(); save(); return true; }
   if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build'); addXP(Math.min(60, Math.max(5, cost / 40))); popup(i, j, d.name + '!', '#FFF3D6'); }
   if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
@@ -4734,7 +4790,7 @@ function shadowFor(i, j, hpx) {
   const pts = diamond(i, j, .1);
   poly([pts[0], pts[1], { x: pts[1].x + off, y: pts[1].y + off * .5 }, { x: pts[2].x + off, y: pts[2].y + off * .5 }, { x: pts[3].x + off, y: pts[3].y + off * .5 }, pts[3]], `rgba(10,20,40,${a})`);
 }
-const SPR_KEY = {
+const SPR_KEY = {deliveryDepot:'deliveryDepot',
   banksiaDuplex: 'banksiaDuplex',
   spindleCycles: 'spindleCycles',
   tidalBaths: 'tidalBaths',
@@ -5380,9 +5436,9 @@ function render() {
     else if (!b.wat) hit = badge(a.x, a.y, 'NO WATER', '#C9434A', '#FFFFFF');
     else if (isBiz(d)) { const pr = ensureProds(t);
       if (!b.workers) hit = badge(a.x, a.y, 'NEED STAFF', '#C9434A', '#FFFFFF');
-      else { let empty = false, soon = null; for (let k = 0; k < Math.min(pr.length,b.workers); k++) { const p = pr[k]; if (p.o) { if (!soon || p.o < soon.o) soon = { o: p.o, k }; } else if (p.s <= tnow) empty = true; }
-        if (empty && detailed) hit = badge(a.x, a.y, 'RESTOCK', '#329BD6', '#FFFFFF');
-        else if (empty) {
+      else { let empty = false, soon = null; for (let k = 0; k < b.workers; k++) { const p = pr[k]; if (p.o) { if (!soon || p.o < soon.o) soon = { o: p.o, k }; } else if (p.s <= tnow) empty = true; }
+        if (empty && detailed && !S.depotAuto) hit = badge(a.x, a.y, 'DEPOT', '#329BD6', '#FFFFFF');
+        else if (empty && !S.depotAuto) {
           const x = Math.round(a.x), y = Math.round(a.y + 6);
           const c = V.ctx, r = V.z < .5 ? 4 : 6;
           pxBox(c,x-r,y-r,r*2,r*2,'#329BD6','#195881');
@@ -5406,17 +5462,55 @@ function render() {
 }
 
 /* ================= input ================= */
-const pointers = new Map(); let dragMoved = false, startPt = null, pinchD = 0;
-cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pointers.size === 1) { dragMoved = false; startPt = { x: e.clientX, y: e.clientY }; } if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); dragMoved = true; } });
-cv.addEventListener('pointermove', e => {
-  if (!pointers.has(e.pointerId)) return;
-  const prev = pointers.get(e.pointerId); const cur = { x: e.clientX, y: e.clientY }; pointers.set(e.pointerId, cur);
-  if (pointers.size === 2) { const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); zoomAnim = null; pinchC = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; if (pinchD > 0) zoomAt(d / pinchD, pinchC.x, pinchC.y); pinchD = d; return; }
-  if (startPt && Math.hypot(cur.x - startPt.x, cur.y - startPt.y) > 8) dragMoved = true;
-  if (dragMoved) { V.cx += cur.x - prev.x; V.cy += cur.y - prev.y; clampCam(); }
+const pointers = new Map();
+let dragMoved = false, startPt = null, pinchD = 0;
+function resetPinch() {
+  pinchC = null;
+  pinchD = 0;
+  if (pointers.size !== 2) return;
+  const [a,b] = pointers.values();
+  pinchD = Math.hypot(a.x-b.x, a.y-b.y);
+  pinchC = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
+}
+cv.addEventListener('pointerdown', e => {
+  clearTimeout(wheelSnapT);
+  zoomAnim = null;
+  cv.setPointerCapture(e.pointerId);
+  const point = {x:e.clientX,y:e.clientY};
+  pointers.set(e.pointerId, point);
+  startPt = pointers.size === 1 ? point : null;
+  dragMoved = pointers.size > 1;
+  resetPinch();
 });
-function endPtr(e) { if (!pointers.has(e.pointerId)) return; if (pointers.size === 2 && pinchC) { snapZoom(pinchC.x, pinchC.y, 0); pinchC = null; } pointers.delete(e.pointerId); if (pointers.size === 0) { if (!dragMoved && startPt) onTap(e.clientX, e.clientY); startPt = null; pinchD = 0; } }
-cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); startPt = null; });
+cv.addEventListener('pointermove', e => {
+  const prev = pointers.get(e.pointerId);
+  if (!prev) return;
+  const cur = {x:e.clientX,y:e.clientY};
+  pointers.set(e.pointerId,cur);
+  if (pointers.size > 2) return;
+  if (pointers.size === 2) {
+    const centre = pinchC, distance = pinchD;
+    resetPinch();
+    if (distance > 0 && pinchD > 0) {
+      zoomAt(pinchD/distance,centre.x,centre.y);
+      V.cx += pinchC.x-centre.x;
+      V.cy += pinchC.y-centre.y;
+      clampCam();
+    }
+    return;
+  }
+  if (startPt && Math.hypot(cur.x-startPt.x,cur.y-startPt.y)>8) dragMoved = true;
+  if (dragMoved) { V.cx += cur.x-prev.x; V.cy += cur.y-prev.y; clampCam(); }
+});
+function endPtr(e) {
+  if (!pointers.delete(e.pointerId)) return;
+  const tap = e.type==='pointerup' && !pointers.size && !dragMoved && startPt;
+  if (e.type!=='pointerup') dragMoved = true;
+  startPt = null;
+  resetPinch();
+  if (tap) onTap(e.clientX,e.clientY);
+}
+for (const type of ['pointerup','pointercancel','lostpointercapture']) cv.addEventListener(type,endPtr);
 cv.addEventListener('wheel', e => { e.preventDefault(); zoomAnim = null; zoomAt(e.deltaY < 0 ? 1.08 : 1 / 1.08, e.clientX, e.clientY); clampCam(); clearTimeout(wheelSnapT); const x = e.clientX, y = e.clientY; wheelSnapT = setTimeout(() => snapZoom(x, y, 0), 160); }, { passive: false });
 function clampCam() {
   const c = P(N / 2, N / 2); const lim = N * TW / 2 * V.z * .6, limY = N * TH / 2 * V.z * .8;
@@ -5499,14 +5593,11 @@ function updateStockLabel(button,action,cost,empty) {
   if (cost) paintNewIcons();
 }
 function updateHUD() {
-  const restockButton = $('#rsAll'), price = restockCost(businessesToRestock());
-  updateStockLabel(restockButton,'Restock',price,'All stocked');
-  restockButton.disabled = !price || S.cash < price;
-  const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
-  updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
-  rushButton.disabled = !rushPrice || S.stars < rushPrice;
-  setText(hud.lvl, S.level); setText($('#popValue'), S.pop); setText($('#jobsValue'), D.availableJobs || 0);
-  setText($('#cpmValue'), fmt(D.cpm || 0));
+  setText($('#rsAll'), hasB('deliveryDepot') ? 'Delivery depot' : 'Place free depot · Shop');
+  $('#rsAll').disabled=false;
+  $('#rushAll').style.display='none';
+  setText($('#jobsValue'), D.availableJobs || 0);
+  setText(hud.lvl, S.level); setText($('#popValue'), S.pop + ' / ' + (D.cap || 0)); setText($('#cpmValue'), fmt(D.cpm || 0));
   const targetXP = need(S.level);
   hud.xp.style.width = Math.min(100, S.xp / targetXP * 100) + '%';
   setText(hud.xpCount, S.xp + '/' + targetXP + ' XP');
@@ -5568,7 +5659,7 @@ function statusTags(b) {
   if (b.d.type !== 'decor' && b.d.type !== 'hall') tags.push(`<span class="tag ${b.ok ? 'ok' : 'bad'}">Road</span>`);
   if (b.d.pw) tags.push(`<span class="tag ${b.pow ? 'ok' : 'bad'}">Power ${b.d.pw}</span>`);
   if (b.d.wa) tags.push(`<span class="tag ${b.wat ? 'ok' : 'bad'}">Water ${b.d.wa}</span>`);
-  if (isBiz(b.d)) tags.push(`<span class="tag ${b.workers >= 3 ? 'ok' : 'bad'}">Workers ${b.workers || 0}/${b.capacity}</span>`); else if (b.d.staff) tags.push(`<span class="tag ${b.staffed ? 'ok' : 'bad'}">Staff ${b.d.staff}</span>`);
+  if (isBiz(b.d)) tags.push(`<span class="tag ${b.workers >= 3 ? 'ok' : 'bad'}">Workers ${b.employees || 0}/${b.jobCapacity}</span>`); else if (b.d.staff) tags.push(`<span class="tag ${b.staffed ? 'ok' : 'bad'}">Staff ${b.d.staff}</span>`);
   return `<div class="tags">${tags.join('')}</div>`;
 }
 function coverageTags(i, j) { const m = D.svc[j * N + i]; return `<div class="tags">${SVC_NAMES.map((n, k) => `<span class="tag ${m & (1 << k) ? 'ok' : ''}">${n}</span>`).join('')}${D.poll[j * N + i] > 0 ? '<span class="tag bad">Pollution</span>' : ''}</div>`; }
@@ -5599,7 +5690,7 @@ function renderCard(force) {
     }else{
       const cost=placing.stored||placing.fromItem?0:costOf(placing.id);
       const msg=!g?'Tap a tile to preview the footprint.':!ok?(isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.') :
-        d.type==='decor'||roadNearFP(g.i,g.j,placing.id,placing.turned)?'Ready to place.':'This spot has no adjacent road.';
+        d.type==='depot'||d.type==='decor'||roadNearFP(g.i,g.j,placing.id,placing.turned)?'Ready to place.':'This spot has no adjacent road.';
       html=head('Place '+d.name,msg)+`<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok&&S.cash>=cost?'':'disabled'}>${cost?'Build · '+fmt(cost):'Place'}</button>${rotateButton}</div>`;
     }
   } else if (sel) {
@@ -5610,13 +5701,14 @@ function renderCard(force) {
     } else {
       const b = t._; const d = DEFS[t.id];
       if (!b) html = head(d.name, '');
+      else if(t.id==='deliveryDepot') html=head(d.name,'Citywide business supplies')+'<button class="pixel-btn pb" data-depot="open">Manage deliveries</button>';
       else if (isBiz(d)) {
         const pr = ensureProds(t), names = prodNames(t.id), tn = now(), w = whyNot(b); let rows = '';
         for (let k = 0; k < 3; k++) { const p = pr[k]; let st, btn = '';
           if (k >= b.workers) st = `Locked · needs ${k + 1} staff`;
-          else if (p.o) { const cost = rushCost(t,k,tn); st = `Arriving ${mmss(p.o - tn)}`; btn = `<button class="pixel-btn pb rush sm" data-act="rush" data-k="${k}" data-cost="${cost}" ${cost && S.stars >= cost ? '' : 'disabled'}>${stockPriceLabel('Rush',cost)}</button>`; }
+          else if(p.o) st='Delivery in '+mmss(p.o-tn);
           else if (p.s > tn) st = `+${fmt(prodCpm(b, k))}/min · ${mmss(p.s - tn)}`;
-          else { const cost = productRestockCost(t,k); st = 'Empty · ' + (k === 0 ? '1m' : k === 1 ? '15m' : '1h') + ' delivery'; btn = `<button class="pixel-btn pb sm" data-act="order" data-k="${k}" ${S.cash < cost ? 'disabled' : ''}>${stockPriceLabel('Restock',cost)}</button>`; }
+          else st='Awaiting depot delivery';
           rows += `<div class="prod ${k >= b.workers ? 'lock' : ''}"><div><b>${names[k]}</b><span>${st}</span></div>${btn}</div>`; }
         html = head(d.name, `Lv ${lvlOf(t)} · ${fmt(bizCpm(b))}/min`) + statusTags(b) + (d.type === 'svc' ? `<p class="note">${SVC_NAMES[d.svc]} coverage · ${d.rad} tiles with ${d.staff} workers</p>` : '') + (w ? `<p class="note">${w}</p>` : '') + `<div class="prods">${rows}</div>` + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if (d.type === 'home') {
@@ -5702,6 +5794,7 @@ function openSheet(name) { pickingMove=false; snd('open'); document.body.classLi
 function closeSheet() { snd('close'); document.body.classList.remove('sheet-open'); sheet = null; buildTarget = null; sheetEl.classList.remove('open'); scrim.classList.remove('open'); renderCard(true); }
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
+  if(sheet==='depot')return depotHTML();
   if (sheet === 'build') return buildTab + '|' + S.level + '|' + Object.keys(DEFS).map(k => S.cash >= (DEFS[k].cost || 0) ? 1 : 0).join('') + '|' + JSON.stringify(S.items);
   if (sheet === 'bag') return (S.storedBuildings?.length || 0) + '|' + JSON.stringify([S.shopItems,S.coinBoostTokens,S.restockVouchers]);
   if (sheet === 'tasks') return JSON.stringify([S.daily]);
@@ -5710,8 +5803,8 @@ function sheetKey() {
 }
 function renderSheet(force) {
   if (!sheet) return; const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
-  setText($('#sheetTitle'), sheet === 'bag' ? 'My items' : sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
-  sheetBody.innerHTML = sheet === 'bag' ? itemBagHTML() : sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
+  setText($('#sheetTitle'), sheet === 'depot' ? 'Delivery depot' : sheet === 'bag' ? 'My items' : sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
+  sheetBody.innerHTML = sheet === 'depot' ? k : sheet === 'bag' ? itemBagHTML() : sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
   if (sheet === 'build' || sheet === 'bag') drawPreviews();
   paintNewIcons();
   if(sheet==='build' && S.tut && !mg){
@@ -5788,7 +5881,7 @@ function redeemVoucher(i,j) {
   for (const {p,k} of missing) { p.o = 0; p.s = time + P_LAST[k]; }
   S.restockVouchers--;
   choosingVoucher = false;
-  track('restock',missing.length); changed(); save(); updateHUD(); renderSheet(true);
+  track('restock',1); changed(); save(); updateHUD(); renderSheet(true);
   snd('restock'); toast(b.d.name+' restocked');
 }
 function coinBoostHTML() {
@@ -6303,9 +6396,11 @@ function buildMarket() {
   if (S.market.seen !== m.week) { snd('shop'); S.market.seen = m.week; }
   S.market.dailySeen = m.day; S.market.renderedDay = m.day; S.market.renderedWeek = m.week;
   mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">DOSH SHOP</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
+  <section class="msection"><div class="msection-head"><b>DELIVERY DEPOT</b><span>Free · 2×2 · one per city</span></div><div class="mcard"><canvas id="depotPreview" width="220" height="184" style="width:82px;height:69px"></canvas><div class="minfo"><span>Place the depot to supply your businesses.</span><button class="pixel-btn pb" data-depot="${hasB('deliveryDepot')?'open':'place'}">${hasB('deliveryDepot')?'Manage deliveries':'Place free depot'}</button></div></div></section>
   <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pixel-btn pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
   <section class="msection weekly"><div class="msection-head"><b>WEEKLY EXCLUSIVE</b><span>Premium · changes every 7 days</span></div><p class="mgmsg" id="mktCd"></p>${(() => { const id=m.featured,it=MARKET[id],bought=!!S.market.bought[id]; return `<div class="mcard feat"><span data-mic="${id}"></span><div class="minfo"><em>THIS WEEK ONLY</em><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Owned · sold out for this week':'Limited to one per Mayor'}</span><button class="pixel-btn pb" data-act="buy" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; })()}</section>
   <p class="mgmsg" id="mktMsg"></p>`;
+  previewInto($('#depotPreview'),'deliveryDepot');
   const row = $('#starRow'); row.appendChild(iconCanvas('stars', null, 22)); const sp = document.createElement('span'); sp.id = 'starN'; row.appendChild(sp);
   mgPanel.querySelectorAll('[data-star]').forEach(el => el.replaceWith(iconCanvas('stars', null, 18)));
   mgPanel.querySelectorAll('[data-dmic]').forEach(el => { const it=DAILY_DEALS[el.dataset.dmic]; el.replaceWith(iconCanvas(it.icon[0],it.icon[1]||null,48)); });
@@ -6555,7 +6650,7 @@ function pendingRush(tn) {
       }
     });
   }
-  return { orders, cost };
+  return { orders, cost: cost ? Math.max(1,Math.round(cost*.75)) : 0 };
 }
 function rushAll(quoted) {
   const tn = now(), { orders, cost } = pendingRush(tn);
@@ -6579,7 +6674,76 @@ function deliverProduct(t,p,k,tn){
   track(DEFS[t.id].type==='ind'?'industry':'collect',1);
 }
 const bizAcc = new Map(); let bizPopT = 0;
-function bizTick(dt) { const tn = now(); let cpm = 0;
+let nextDepotCheck = 0;
+function depotPlan(tn) {
+  const businesses = D.list.filter(b => isBiz(b.d) && b.workers && !whyNot(b));
+  const queue = [];
+  let arriving = 0, stocked = 0;
+  for (const b of businesses) {
+    const active = ensureProds(b.t).slice(0,b.workers);
+    const empty = active.map((p,k)=>({p,k})).filter(({p})=>!p.o && p.s<=tn);
+    if (active.some(p=>p.o)) arriving++;
+    if (active.every(p=>p.s>tn)) stocked++;
+    if (empty.length) queue.push({b,empty,age:Math.min(...empty.map(({p})=>p.s))});
+  }
+  queue.sort((a,b)=>a.age-b.age);
+  let base=0, vouchers=S.restockVouchers||0, nextFee=0;
+  const selected=[];
+  for(const order of queue){
+    const free=vouchers>0;
+    const price=free?0:order.empty.reduce((sum,{k})=>sum+productRestockCost(order.b.t,k),0);
+    if(Math.round((base+price)*1.1)>S.cash){
+      const fee=Math.round(price*1.1);
+      if(!nextFee || fee<nextFee)nextFee=fee;
+      continue;
+    }
+    base+=price;
+    if(free)vouchers--;
+    selected.push({...order,free});
+  }
+  return {queue,selected,fee:Math.round(base*1.1),nextFee,arriving,stocked};
+}
+function dispatchDepot(plan,tn){
+  if(!plan.selected.length)return;
+  S.cash-=plan.fee;
+  for(const {empty,free} of plan.selected){
+    if(free)S.restockVouchers--;
+    for(const {p,k} of empty)p.o=tn+orderTime(k);
+  }
+  track('restock',plan.selected.length);changed();save();
+}
+function depotHTML(){
+ const tn=now(), plan=depotPlan(tn),rush=pendingRush(tn);
+ return '<div class="sect"><h3>City supply</h3><p>'+plan.stocked+' stocked · '+plan.queue.length+' waiting · '+plan.arriving+' receiving</p>'+
+ '<p>Next dispatch: '+plan.selected.length+' businesses · '+plan.fee+' coins</p>'+
+ (plan.nextFee?'<p>Next waiting order costs '+plan.nextFee+' coins.</p>':'')+
+ '<p>'+ (S.restockVouchers||0)+' free business deliveries. Vouchers are used first.</p>'+
+ '<p>Automatic deliveries charge coins when dispatched. Pause at any time.</p>'+
+ '<button class="pixel-btn pb" data-depot="auto" data-fee="'+plan.fee+'">'+(S.depotAuto?'Pause deliveries':'Enable automatic deliveries')+'</button>'+
+ '<button class="pixel-btn pb rush" data-depot="rush" data-fee="'+rush.cost+'" '+(!rush.cost||S.stars<rush.cost?'disabled':'')+'>Rush pending deliveries · '+rush.cost+' dosh</button></div>';
+}
+document.addEventListener('click',e=>{
+ const btn=e.target.closest('[data-depot]');if(!btn)return;
+ if(btn.dataset.depot==='place'){
+   if(hasB('deliveryDepot'))return;
+   closeMg();sel=null;
+   const ghost=suggestTile('deliveryDepot');
+   placing={id:'deliveryDepot',fromItem:false,ghost};
+   if(ghost)animateTo(ghost.i+1,ghost.j+1);
+   else toast('Clear a 2×2 plot to place your free depot.');
+   renderCard(true);return;
+ }
+ if(!hasB('deliveryDepot'))return;
+ if(btn.dataset.depot==='open'){openSheet('depot');return;}
+ const tn=now(),plan=depotPlan(tn);
+ if(btn.dataset.depot==='rush')rushAll(+btn.dataset.fee);
+ else if(S.depotAuto)S.depotAuto=false;
+ else if(plan.fee===+btn.dataset.fee){S.depotAuto=true;dispatchDepot(plan,tn);}
+ changed();save();renderSheet(true);
+});
+
+function bizTick(dt) { const tn = now();
+  if(S.depotAuto && tn>=nextDepotCheck){nextDepotCheck=tn+1000;if(hasB('deliveryDepot'))dispatchDepot(depotPlan(tn),tn);} let cpm = 0;
   D.list.forEach(b => { if (!isBiz(b.d)) return; const pr = ensureProds(b.t);
     pr.forEach((p, k) => { if (p.o && tn >= p.o) deliverProduct(b.t,p,k,tn); });
     const c = bizCpm(b) * boostMul(); cpm += c; if (c > 0) { const key = b.i + ',' + b.j; bizAcc.set(key, (bizAcc.get(key) || 0) + c / 60 * dt); } });
@@ -6663,7 +6827,7 @@ function claimMission() { const m = MISSIONS[S.mission || 0]; if (!m || !m[2]())
 const dayNum = () => { const d = new Date(); return Math.floor((d.getTime() - d.getTimezoneOffset() * 60000) / 864e5); };
 const STREAK_REW = [{ k: 'stars', n: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 8 }, { k: 'cash', m: 5 }, { k: 'crate', tier: 'steel' }, { k: 'stars', n: 10 }, { k: 'crate', tier: 'steel' }];
 const DAILY_POOL = [
- ['restock','Restock 6 businesses',6],['collect','Collect 4 shop deliveries',4],['upgrade','Upgrade a building',1],['spin','Spin the Lucky Wheel',1],['build','Build 2 new things',2],['road','Place 5 road tiles',5],['crate','Open a crate',1],['rent','Collect rent once',1],['industry','Collect from an industry',1],['collect','Collect 8 shop deliveries',8],['restock','Restock 3 businesses',3],['road','Place 8 road tiles',8]
+ ['restock','Supply 6 businesses',6],['collect','Collect 4 shop deliveries',4],['upgrade','Upgrade a building',1],['spin','Spin the Lucky Wheel',1],['build','Build 2 new things',2],['road','Place 5 road tiles',5],['crate','Open a crate',1],['rent','Collect rent once',1],['industry','Collect from an industry',1],['collect','Collect 8 shop deliveries',8],['restock','Restock 3 businesses',3],['road','Place 8 road tiles',8]
 ];
 function brisbaneTaskCycle() {
  const p=Object.fromEntries(new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Brisbane',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
@@ -6693,13 +6857,14 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
+ {t:'Place your free delivery depot',d:'Tap the highlighted Shop, choose the free Delivery Depot and place it on a clear 2×2 plot.',build:'deliveryDepot',done:()=>hasB('deliveryDepot')},
  {t:'Build a home',d:'TAP THE BLUE BUILD BUTTON BELOW! Then choose Homes, select the Cottage and place it on the yellow plot.',build:'house',tab:'homes',done:()=>countOf('house')>=2},
  {t:'Add electricity',d:'Place a Wind Turbine beside the road to power your town.',build:'wind',tab:'util',done:()=>hasB('wind')},
  {t:'Connect water',d:'Place a Water Tower so your buildings have fresh water.',build:'wtower',tab:'util',done:()=>hasB('wtower')},
  {t:'Open a bakery',d:'Build a Bakery beside the street to earn Coins.',build:'bakery',tab:'businesses',done:()=>hasB('bakery')},
- {t:'Stock your bakery',d:'Tap the Bakery and tap STOCK to start selling. Then your town is ready!',target:'bakery',act:'order',done:()=>tev('restock')}
+ {t:'Supply your bakery',d:'Open Delivery depot above, check the coin fee and enable automatic deliveries.',depot:true,done:()=>!!S.depotAuto}
 ];
-const TUTORIAL_PLOTS={house:[25,24],wind:[26,24],wtower:[27,24],bakery:[28,24]};
+const TUTORIAL_PLOTS={deliveryDepot:[MID+1,MID+2],house:[MID+1,MID],wind:[MID+2,MID],wtower:[MID+3,MID],bakery:[MID+4,MID]};
 let tutHL = null;
 // A separate, non-interactive focus frame stays visible outside pixel button
 // clip-paths (which otherwise clip CSS outlines on iOS WebKit).
@@ -6747,9 +6912,9 @@ function suggestTile(id) {
   if (id === 'road') return suggestRoad();
   const lo = Math.max(S.lo, BEACH), hi = Math.min(N - 1 - S.lo, N - 1 - BEACH); const c = MID - .5; let best = null, bd = 1e9;
   for (let j = lo; j <= hi; j++) for (let i = lo; i <= hi; i++) {
-    if (tileAt(i, j)) continue;
+    if (tileAt(i, j) || (id==='deliveryDepot' && !fpFree(i,j,id))) continue;
     let ok;
-    if (id === 'hall') ok = true;
+    if (id === 'hall' || id==='deliveryDepot') ok = true;
     else if (id === 'road') { const h = findHall(); ok = roadNear(i, j) || (h && Math.abs(h.i - i) + Math.abs(h.j - j) === 1); }
     else ok = roadNear(i, j);
     if (!ok) continue;
@@ -6761,6 +6926,8 @@ function tutTick() {
   const coach=$('#coach');
   if(S.tut && S.tut.step>=TUT.length){finishTut();return;}
   const st=tutStep();
+  if(st?.build==='deliveryDepot' && mg==='market'){setHL('[data-depot="place"]');return;}
+  if(st?.depot && sheet==='depot'){if(S.depotAuto)closeSheet();else {setHL('[data-depot="auto"]');return;}}
   if(!st||S.firstRun||mg||$('#modal').classList.contains('show')||(sheet&&sheet!=='build')){
     coach.classList.remove('show');document.body.classList.remove('tut-on');setHL(null);return;
   }
@@ -6789,7 +6956,7 @@ function tutTick() {
     let message=st.d;
     if(st.build&&placing&&placing.id===st.build)
       message='The building is lined up on the yellow plot. Tap the highlighted BUILD/PLACE button to confirm.';
-    else if(st.build&&st===TUT[0])
+    else if(st.build&&st.build==='house')
       message='Tap the highlighted blue BUILD button below. Choose Homes, then Cottage.';
     else if(st.act&&sel)
       message='Tap the highlighted action on your '+(st.target==='bakery'?'Bakery.':'building.');
@@ -6801,8 +6968,9 @@ function tutTick() {
   if(st.build){
     if(placing&&placing.id===st.build)target=placing.ghost?'[data-act="confirmPlace"]':null;
     else if(sheet==='build')target=st.tab&&buildTab!==st.tab?`[data-act="tab"][data-tab="${st.tab}"]`:`[data-act="choose"][data-id="${st.build}"]`;
-    else target='[data-open="build"]';
-  } else if(st.act){
+    else target=st.build==='deliveryDepot'?'#zmkt':'[data-open="build"]';
+  } else if(st.depot)target='#rsAll';
+  else if(st.act){
     if(card.classList.contains('show'))target='#card [data-act="'+st.act+'"]';
     if(!target&&card.classList.contains('show'))target='#card [data-act="restock"]';
   }
@@ -6953,7 +7121,7 @@ $('#clock').style.cursor = 'pointer';
 $('#clock').addEventListener('click', () => { const tm = SK.times || {}; const f = x => x ? new Date(x).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; toast('Sunrise ' + f(tm.rise) + ' · Sunset ' + f(tm.set) + (LOC.src === 'gps' ? ' · your location' : ' · tap Tasks to use your location')); });
 
 $('#rushAll').addEventListener('click', e => rushAll(+e.currentTarget.dataset.cost));
-$('#rsAll').addEventListener('click', e => restockAll(+e.currentTarget.dataset.cost));
+$('#rsAll').addEventListener('click', ()=>hasB('deliveryDepot') ? openSheet('depot') : openMg('market'));
 $('#moveTool').addEventListener('click',()=>{
   const active=pickingMove||!!placing?.source;
   placing=null;pickingMove=!active;
@@ -7181,13 +7349,15 @@ function drawWalker(w){
   c.restore();
 }
 
+let simulationAcc = 0;
 function frame(t) {
   lightsOn=lightsOnAt(new Date().getHours());
   const dt = Math.min(.1, (t - last) / 1000); last = t;
   if (camAnim) { const e = Math.min(1, (t - camAnim.t0) / 450); const k = 1 - Math.pow(1 - e, 3); V.cx = camAnim.sx + (camAnim.tx - camAnim.sx) * k; V.cy = camAnim.sy + (camAnim.ty - camAnim.sy) * k; if (e >= 1) camAnim = null; }
   skyAcc += dt; if (skyAcc > 10) { skyAcc = 0; updateSky(); }
   if (document.hidden) { requestAnimationFrame(frame); return; }
-  tick(dt);
+  simulationAcc += dt;
+  if (simulationAcc >= .05) { tick(simulationAcc); simulationAcc = 0; }
   updateWalkers(dt);
   if(!document.hidden){
     const elapsed=serviceClock===null?0:Math.max(0,(t-serviceClock)/1000);
@@ -7325,15 +7495,11 @@ S.tiles.forEach((tile, index) => {
 });
 if (S.items) delete S.items.ferris;
 const loadedSaveTime = S.saved || 0;
-if (S.tut && !S.tutDone && S.tut.version!==3) {
-  // Convert old ten-step tutorial saves without replacing established towns.
+if (S.tut && !S.tutDone && S.tut.version!==4) {
   if(!findHall() && S.tiles.every(t=>!t||t.id==='road'))seedTutorialTown(S);
-  S.tut={version:3,step:0,ev:{},started:false};
-  if(countOf('house')>=2)S.tut.step=1;
-  if(S.tut.step>=1&&hasB('wind'))S.tut.step=2;
-  if(S.tut.step>=2&&hasB('wtower'))S.tut.step=3;
-  if(S.tut.step>=3&&hasB('bakery'))S.tut.step=4;
+  S.tut={version:4,step:0,ev:{},started:false};
 }
+for(const task of S.daily||[])if(task.type==='restock')task.text='Supply '+task.n+' businesses';
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
 // Honour the old opening costs and keep partial sets by rounding up once.
 const legacyCrateCosts = { steel: 3, gold: 2, diamond: 1 };
@@ -7463,4 +7629,5 @@ async function playRemodelDemo() {
 </script>
 </body>
 </html>
+
 
