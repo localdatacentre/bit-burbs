@@ -3555,7 +3555,7 @@ const BUILD_TABS = [
   ['homes', 'Homes', ['house', 'house2', 'm3', 'banksiaDuplex', 'q1', 'aptS', 'aptP', 'tower', 'town']],
   ['businesses', 'Businesses', ['bakery', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'spindleCycles', 'gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'police', 'fire', 'clinic', 'school']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'plant', 'solar2', 'nuclear']],
-  ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'tidalBaths', 'civicClock', 'needle', 'space']],
+  ['city', 'City & parks', ['deliveryDepot', 'road', 'tree', 'flowers', 'park', 'tidalBaths', 'civicClock', 'needle', 'space']],
   ['transport', 'Transport', ['hailStop','busShelter']],
   ['items', 'Collectables', ['sakura', 'fountain', 'statue', 'sundrop', 'sunhouse', 'pelicanLight']]
 ];
@@ -5910,7 +5910,7 @@ function buildHTML() {
     const d = DEFS[id]; const item = buildTab === 'items';
     const locked = !item && d.lvl > S.level; const count = item ? (S.shopItems && S.shopItems[id] || 0) : 0;
     const cost = item ? 0 : costOf(id);
-    const cant = locked || (item ? count < 1 : S.cash < cost);
+    const cant = locked || (id === 'deliveryDepot' && hasB(id)) || (item ? count < 1 : S.cash < cost);
     let sub = '';
     if(d.type==='transport') sub='BinLink · '+d.fare+' Coins per visit';
     else if (d.type === 'shop') sub = `~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
@@ -5919,6 +5919,7 @@ function buildHTML() {
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
     else if (d.type === 'svc') sub = `${SVC_NAMES[d.svc]} · ~${fmt(Math.round(bizBase(d) * 4.7))}/min`;
     else if (d.type === 'decor') sub = 'Decoration';
+    else if (d.type === 'depot') sub = hasB(id) ? 'Already placed · 2×2' : 'Free · 2×2 · one per city';
     else if (d.type === 'hall') sub = 'Your city centre, free';
     else sub = 'Connects everything';
     if (isBiz(d) && !item) sub += ` · ${d.jobs || 3} jobs`;
@@ -6398,11 +6399,9 @@ function buildMarket() {
   if (S.market.seen !== m.week) { snd('shop'); S.market.seen = m.week; }
   S.market.dailySeen = m.day; S.market.renderedDay = m.day; S.market.renderedWeek = m.week;
   mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">DOSH SHOP</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
-  <section class="msection"><div class="msection-head"><b>DELIVERY DEPOT</b><span>Free · 2×2 · one per city</span></div><div class="mcard"><canvas id="depotPreview" width="220" height="184" style="width:82px;height:69px"></canvas><div class="minfo"><span>Place the depot to supply your businesses.</span><button class="pixel-btn pb" data-depot="${hasB('deliveryDepot')?'open':'place'}">${hasB('deliveryDepot')?'Manage deliveries':'Place free depot'}</button></div></div></section>
   <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pixel-btn pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
   <section class="msection weekly"><div class="msection-head"><b>WEEKLY EXCLUSIVE</b><span>Premium · changes every 7 days</span></div><p class="mgmsg" id="mktCd"></p>${(() => { const id=m.featured,it=MARKET[id],bought=!!S.market.bought[id]; return `<div class="mcard feat"><span data-mic="${id}"></span><div class="minfo"><em>THIS WEEK ONLY</em><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Owned · sold out for this week':'Limited to one per Mayor'}</span><button class="pixel-btn pb" data-act="buy" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; })()}</section>
   <p class="mgmsg" id="mktMsg"></p>`;
-  previewInto($('#depotPreview'),'deliveryDepot');
   const row = $('#starRow'); row.appendChild(iconCanvas('stars', null, 22)); const sp = document.createElement('span'); sp.id = 'starN'; row.appendChild(sp);
   mgPanel.querySelectorAll('[data-star]').forEach(el => el.replaceWith(iconCanvas('stars', null, 18)));
   mgPanel.querySelectorAll('[data-dmic]').forEach(el => { const it=DAILY_DEALS[el.dataset.dmic]; el.replaceWith(iconCanvas(it.icon[0],it.icon[1]||null,48)); });
@@ -6859,12 +6858,12 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
- {t:'Place your free delivery depot',d:'Tap the highlighted Shop, choose the free Delivery Depot and place it on a clear 2×2 plot.',build:'deliveryDepot',done:()=>hasB('deliveryDepot')},
+ {t:'Place your free delivery depot',d:'Tap Build, choose City & parks, then select the free Delivery Depot and place it on the yellow 2×2 plot.',build:'deliveryDepot',tab:'city',done:()=>hasB('deliveryDepot')},
  {t:'Build a home',d:'TAP THE BLUE BUILD BUTTON BELOW! Then choose Homes, select the Cottage and place it on the yellow plot.',build:'house',tab:'homes',done:()=>countOf('house')>=2},
  {t:'Add electricity',d:'Place a Wind Turbine beside the road to power your town.',build:'wind',tab:'util',done:()=>hasB('wind')},
  {t:'Connect water',d:'Place a Water Tower so your buildings have fresh water.',build:'wtower',tab:'util',done:()=>hasB('wtower')},
  {t:'Open a bakery',d:'Build a Bakery beside the street to earn Coins.',build:'bakery',tab:'businesses',done:()=>hasB('bakery')},
- {t:'Supply your bakery',d:'Open Delivery depot above, check the coin fee and enable automatic deliveries.',depot:true,done:()=>!!S.depotAuto}
+ {t:'Supply your bakery',d:'Tap your delivery depot, choose Manage deliveries, check the coin fee and enable deliveries.',target:'deliveryDepot',depot:true,done:()=>!!S.depotAuto}
 ];
 const TUTORIAL_PLOTS={deliveryDepot:[MID+1,MID+2],house:[MID+1,MID],wind:[MID+2,MID],wtower:[MID+3,MID],bakery:[MID+4,MID]};
 let tutHL = null;
@@ -6928,7 +6927,6 @@ function tutTick() {
   const coach=$('#coach');
   if(S.tut && S.tut.step>=TUT.length){finishTut();return;}
   const st=tutStep();
-  if(st?.build==='deliveryDepot' && mg==='market'){setHL('[data-depot="place"]');return;}
   if(st?.depot && sheet==='depot'){if(S.depotAuto)closeSheet();else {setHL('[data-depot="auto"]');return;}}
   if(!st||S.firstRun||mg||$('#modal').classList.contains('show')||(sheet&&sheet!=='build')){
     coach.classList.remove('show');document.body.classList.remove('tut-on');setHL(null);return;
@@ -6970,8 +6968,8 @@ function tutTick() {
   if(st.build){
     if(placing&&placing.id===st.build)target=placing.ghost?'[data-act="confirmPlace"]':null;
     else if(sheet==='build')target=st.tab&&buildTab!==st.tab?`[data-act="tab"][data-tab="${st.tab}"]`:`[data-act="choose"][data-id="${st.build}"]`;
-    else target=st.build==='deliveryDepot'?'#zmkt':'[data-open="build"]';
-  } else if(st.depot)target='#zmkt';
+    else target='[data-open="build"]';
+  } else if(st.depot)target=card.classList.contains('show')?'#card [data-depot="open"]':null;
   else if(st.act){
     if(card.classList.contains('show'))target='#card [data-act="'+st.act+'"]';
     if(!target&&card.classList.contains('show'))target='#card [data-act="restock"]';
@@ -6992,16 +6990,16 @@ function setHL(sel) {
 }
 function tutMapTarget() {
   const st = tutStep(); if (!st || S.firstRun) return null;
-  if (st.build && placing && placing.id === st.build) { const g = suggestTile(st.build); return g ? { i: g.i, j: g.j, ghost: true } : null; }
+  if (st.build && placing && placing.id === st.build) { const g = placing.ghost || suggestTile(st.build); const [w,h] = fpOf(st.build,placing.turned); return g ? { i: g.i, j: g.j, w, h, ghost: true } : null; }
   if (st.target) { const t = findId(st.target); return t ? { i: t.i, j: t.j } : null; }
   return null;
 }
 function drawTutArrow() {
   const tg = tutMapTarget(); if (!tg) return;
   const c = V.ctx, t = performance.now() / 1000;
-  if (tg.ghost) { const pulse = .35 + .25 * Math.sin(t * 5); poly(diamond(tg.i, tg.j), `rgba(255,201,60,${pulse})`, '#FFF0A6', 2); }
+  if (tg.ghost) { const pulse = .35 + .25 * Math.sin(t * 5); for(let x=0;x<tg.w;x++)for(let y=0;y<tg.h;y++)poly(diamond(tg.i+x,tg.j+y), `rgba(255,201,60,${pulse})`, '#FFF0A6', 2); }
   const tl = tileAt(tg.i, tg.j); const d = tl ? DEFS[tl.id] : null;
-  const top = up(P(tg.i + .5, tg.j + .5), (d && d.h ? d.h * hFac(tl) : 6) * V.z + 46 + Math.round(Math.sin(t * 6) * 4));
+  const top = up(P(tg.i + (tg.w || 1)/2, tg.j + (tg.h || 1)/2), (d && d.h ? d.h * hFac(tl) : 6) * V.z + 46 + Math.round(Math.sin(t * 6) * 4));
   const x = Math.round(top.x), y = Math.round(top.y);
   c.fillStyle = '#0E3A44'; c.fillRect(x - 9, y - 18, 18, 12); c.fillRect(x - 15, y - 6, 30, 3); c.fillRect(x - 12, y - 3, 24, 3); c.fillRect(x - 9, y, 18, 3); c.fillRect(x - 6, y + 3, 12, 3); c.fillRect(x - 3, y + 6, 6, 3);
   c.fillStyle = '#FFC93C'; c.fillRect(x - 6, y - 15, 12, 12); c.fillRect(x - 12, y - 6, 24, 3); c.fillRect(x - 9, y - 3, 18, 3); c.fillRect(x - 6, y, 12, 3); c.fillRect(x - 3, y + 3, 6, 3);
