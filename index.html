@@ -3971,21 +3971,10 @@ function baseState() {
 function newGame() {
   const s=baseState();
   s.cash=8000;
-  s.tut={ version:4, step:0, ev:{}, started:false };
-  seedTutorialTown(s);
-  return s;
-}
-
-/* Only fresh tutorial towns get a prebuilt layout; existing cities are untouched. */
-function seedTutorialTown(s) {
-  const put=(x,y,id)=>{if(x>=s.lo&&x<N-s.lo&&y>=s.lo&&y<N-s.lo&&!s.tiles[y*N+x])s.tiles[y*N+x]=newTile(id);};
-  put(MID,MID,'hall');
-  for(let x=MID;x<=MID+4;x++)put(x,MID+1,'road');
-  put(MID-1,MID+1,'house');
-  put(MID-2,MID+1,'tree');
-  s.pop=2;
-  s.busT=now()+5000;
+  s.tut={ version:5, step:0, ev:{}, started:false };
+  s.pop=0;
   s.tutorialTown=1;
+  return s;
 }
 
 function newTile(id) { const d = DEFS[id]; if (d.type === 'shop') return { id, st: 'idle' }; if (d.type === 'home') return { id, rent: 0 }; if (d.type === 'ind') return { id, stock: 0 }; return { id }; }
@@ -6858,14 +6847,18 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
- {t:'Place your free delivery depot',d:'Tap Build, choose City & parks, then select the free Delivery Depot and place it on the yellow 2×2 plot.',build:'deliveryDepot',tab:'city',done:()=>hasB('deliveryDepot')},
- {t:'Build a home',d:'TAP THE BLUE BUILD BUTTON BELOW! Then choose Homes, select the Cottage and place it on the yellow plot.',build:'house',tab:'homes',done:()=>countOf('house')>=2},
- {t:'Add electricity',d:'Place a Wind Turbine beside the road to power your town.',build:'wind',tab:'util',done:()=>hasB('wind')},
- {t:'Connect water',d:'Place a Water Tower so your buildings have fresh water.',build:'wtower',tab:'util',done:()=>hasB('wtower')},
- {t:'Open a bakery',d:'Build a Bakery beside the street to earn Coins.',build:'bakery',tab:'businesses',done:()=>hasB('bakery')},
+ {t:'Build your Town Hall',d:'Tap Build, select the free Town Hall and place it on the yellow plot.',build:'hall',tab:'city',done:()=>hasB('hall')},
+ ...Array.from({length:5},(_,index)=>({t:'Build road '+(index+1)+' of 5',d:'Tap Build, choose City & parks, select Road and place it on the yellow tile.',build:'road',tab:'city',plot:[MID+index,MID+1],done:()=>isRoad(MID+index,MID+1)})),
+ {t:'Build your first home',d:'Tap Build, choose Homes, then place a Cottage on the yellow plot.',build:'house',tab:'homes',done:()=>hasB('house')},
+ {t:'Add electricity',d:'Tap Build, choose Power & water and place a Wind Turbine on the yellow plot.',build:'wind',tab:'util',done:()=>hasB('wind')},
+ {t:'Connect water',d:'Tap Build, choose Power & water and place a Water Tower on the yellow plot.',build:'wtower',tab:'util',done:()=>hasB('wtower')},
+ {t:'Open a bakery',d:'Tap Build, choose Businesses and place a Bakery on the yellow plot.',build:'bakery',tab:'businesses',done:()=>hasB('bakery')},
+ {t:'Plant a park',d:'Tap Build, choose City & parks and place a Park on the yellow plot.',build:'park',tab:'city',done:()=>hasB('park')},
+ {t:'Plant a tree',d:'Tap Build, choose City & parks and place a Tree on the yellow plot.',build:'tree',tab:'city',done:()=>hasB('tree')},
+ {t:'Place your free delivery depot',d:'Tap Build, choose City & parks, then place the free Delivery Depot on the yellow 2×2 plot.',build:'deliveryDepot',tab:'city',done:()=>hasB('deliveryDepot')},
  {t:'Supply your bakery',d:'Tap your delivery depot, choose Manage deliveries, check the coin fee and enable deliveries.',target:'deliveryDepot',depot:true,done:()=>!!S.depotAuto}
 ];
-const TUTORIAL_PLOTS={deliveryDepot:[MID+1,MID+2],house:[MID+1,MID],wind:[MID+2,MID],wtower:[MID+3,MID],bakery:[MID+4,MID]};
+const TUTORIAL_PLOTS={hall:[MID,MID],house:[MID+1,MID],wind:[MID+2,MID],wtower:[MID+3,MID],bakery:[MID+4,MID],park:[MID,MID+2],tree:[MID-1,MID+1],deliveryDepot:[MID+2,MID+2]};
 let tutHL = null;
 // A separate, non-interactive focus frame stays visible outside pixel button
 // clip-paths (which otherwise clip CSS outlines on iOS WebKit).
@@ -6908,7 +6901,8 @@ function suggestRoad() {
   return null;
 }
 function suggestTile(id) {
-  const spot=S.tut && TUTORIAL_PLOTS[id];
+  const step=tutStep();
+  const spot=S.tut && (step?.build===id && step.plot || TUTORIAL_PLOTS[id]);
   if(spot && fpFree(spot[0],spot[1],id))return {i:spot[0],j:spot[1]};
   if (id === 'road') return suggestRoad();
   const lo = Math.max(S.lo, BEACH), hi = Math.min(N - 1 - S.lo, N - 1 - BEACH); const c = MID - .5; let best = null, bd = 1e9;
@@ -7495,9 +7489,8 @@ S.tiles.forEach((tile, index) => {
 });
 if (S.items) delete S.items.ferris;
 const loadedSaveTime = S.saved || 0;
-if (S.tut && !S.tutDone && S.tut.version!==4) {
-  if(!findHall() && S.tiles.every(t=>!t||t.id==='road'))seedTutorialTown(S);
-  S.tut={version:4,step:0,ev:{},started:false};
+if (S.tut && !S.tutDone && S.tut.version!==5) {
+  S.tut={version:5,step:0,ev:{},started:false};
 }
 for(const task of S.daily||[])if(task.type==='restock')task.text='Supply '+task.n+' businesses';
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
