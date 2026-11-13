@@ -3870,6 +3870,11 @@ function upBenefit(d) { return d.type === 'shop' || d.type === 'ind' ? 'Earnings
 
 /* ================= simulation ================= */
 let D = { list: [], homes: [], shops: [], ind: [], happy: 50, cap: 0, jobs: 0, employed: 0, supP: 0, supW: 0, useP: 0, useW: 0, demand: [0, 0, 0], val: new Float32Array(N * N), svc: new Uint8Array(N * N), poll: new Float32Array(N * N) };
+function jobCapacity(t, d) {
+  const cost = d.cost || 0;
+  const base = cost >= 15000 ? 48 : cost >= 8000 ? 24 : cost >= 4000 ? 12 : 6;
+  return base * lvlOf(t);
+}
 function derive() {
   const list = [];
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
@@ -3892,11 +3897,31 @@ function derive() {
   let left = S.pop; homes.forEach(h => { h.res = h.live ? Math.min(hcap(h.t, h.d), left) : 0; left -= h.res; });
   let free = S.pop, jobs = 0, employed = 0, shopJobs = 0, indJobs = 0;
   list.forEach(b => {
-    if (isBiz(b.d)) { jobs += 3; if (b.d.type === 'shop') shopJobs += 3; else if (b.d.type === 'ind') indJobs += 3; b.works = b.ok && b.pow && b.wat; b.workers = b.works ? Math.max(0, Math.min(3, free)) : 0; free -= b.workers; employed += b.workers; b.staffed = b.workers > 0; return; }
+    if (isBiz(b.d)) {
+      b.jobCapacity = jobCapacity(b.t, b.d);
+      jobs += b.jobCapacity;
+      if (b.d.type === 'shop') shopJobs += b.jobCapacity;
+      else if (b.d.type === 'ind') indJobs += b.jobCapacity;
+      b.works = b.ok && b.pow && b.wat;
+      b.workers = b.works ? Math.max(0, Math.min(3, free)) : 0;
+      b.employees = b.workers;
+      free -= b.workers;
+      employed += b.workers;
+      b.staffed = b.workers > 0;
+      return;
+    }
     if (!b.d.staff) { b.staffed = true; return; }
     jobs += b.d.staff; if (b.d.type === 'shop') shopJobs += b.d.staff; if (b.d.type === 'ind') indJobs += b.d.staff;
     b.works = b.ok && b.pow && b.wat;
     b.staffed = b.works && free >= b.d.staff; if (b.staffed) { free -= b.d.staff; employed += b.d.staff; }
+  });
+  // Fill additional jobs after every business has received operating staff.
+  list.forEach(b => {
+    if (!isBiz(b.d) || !b.works) return;
+    const extra = Math.min(b.jobCapacity - b.employees, free);
+    b.employees += extra;
+    free -= extra;
+    employed += extra;
   });
   const svc = new Uint8Array(N * N), deco = new Float32Array(N * N), poll = new Float32Array(N * N), val = new Float32Array(N * N);
   list.forEach(b => {
@@ -5307,7 +5332,7 @@ function statusTags(b) {
   if (b.d.type !== 'decor' && b.d.type !== 'hall') tags.push(`<span class="tag ${b.ok ? 'ok' : 'bad'}">Road</span>`);
   if (b.d.pw) tags.push(`<span class="tag ${b.pow ? 'ok' : 'bad'}">Power ${b.d.pw}</span>`);
   if (b.d.wa) tags.push(`<span class="tag ${b.wat ? 'ok' : 'bad'}">Water ${b.d.wa}</span>`);
-  if (isBiz(b.d)) tags.push(`<span class="tag ${b.workers >= 3 ? 'ok' : 'bad'}">Workers ${b.workers || 0}/3</span>`); else if (b.d.staff) tags.push(`<span class="tag ${b.staffed ? 'ok' : 'bad'}">Staff ${b.d.staff}</span>`);
+  if (isBiz(b.d)) tags.push(`<span class="tag ${b.workers >= 3 ? 'ok' : 'bad'}">Workers ${b.employees || 0}/${b.jobCapacity}</span>`); else if (b.d.staff) tags.push(`<span class="tag ${b.staffed ? 'ok' : 'bad'}">Staff ${b.d.staff}</span>`);
   return `<div class="tags">${tags.join('')}</div>`;
 }
 function coverageTags(i, j) { const m = D.svc[j * N + i]; return `<div class="tags">${SVC_NAMES.map((n, k) => `<span class="tag ${m & (1 << k) ? 'ok' : ''}">${n}</span>`).join('')}${D.poll[j * N + i] > 0 ? '<span class="tag bad">Pollution</span>' : ''}</div>`; }
