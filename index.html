@@ -5593,11 +5593,13 @@ function updateStockLabel(button,action,cost,empty) {
   if (cost) paintNewIcons();
 }
 function updateHUD() {
-  setText($('#rsAll'), hasB('deliveryDepot') ? 'Delivery depot' : 'Place free depot · Shop');
-  $('#rsAll').disabled=false;
-  $('#rushAll').style.display='none';
-  setText($('#jobsValue'), D.availableJobs || 0);
-  setText(hud.lvl, S.level); setText($('#popValue'), S.pop + ' / ' + (D.cap || 0)); setText($('#cpmValue'), fmt(D.cpm || 0));
+  const restockButton = $('#rsAll'), price = restockCost(businessesToRestock());
+  updateStockLabel(restockButton,'Restock',price,'All stocked');
+  restockButton.disabled = !price || S.cash < price;
+  const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
+  updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
+  rushButton.disabled = !rushPrice || S.stars < rushPrice;
+  setText(hud.lvl, S.level); setText($('#popValue'), S.pop); setText($('#cpmValue'), fmt(D.cpm || 0));
   const targetXP = need(S.level);
   hud.xp.style.width = Math.min(100, S.xp / targetXP * 100) + '%';
   setText(hud.xpCount, S.xp + '/' + targetXP + ' XP');
@@ -6969,7 +6971,7 @@ function tutTick() {
     if(placing&&placing.id===st.build)target=placing.ghost?'[data-act="confirmPlace"]':null;
     else if(sheet==='build')target=st.tab&&buildTab!==st.tab?`[data-act="tab"][data-tab="${st.tab}"]`:`[data-act="choose"][data-id="${st.build}"]`;
     else target=st.build==='deliveryDepot'?'#zmkt':'[data-open="build"]';
-  } else if(st.depot)target='#rsAll';
+  } else if(st.depot)target='#zmkt';
   else if(st.act){
     if(card.classList.contains('show'))target='#card [data-act="'+st.act+'"]';
     if(!target&&card.classList.contains('show'))target='#card [data-act="restock"]';
@@ -7121,7 +7123,7 @@ $('#clock').style.cursor = 'pointer';
 $('#clock').addEventListener('click', () => { const tm = SK.times || {}; const f = x => x ? new Date(x).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—'; toast('Sunrise ' + f(tm.rise) + ' · Sunset ' + f(tm.set) + (LOC.src === 'gps' ? ' · your location' : ' · tap Tasks to use your location')); });
 
 $('#rushAll').addEventListener('click', e => rushAll(+e.currentTarget.dataset.cost));
-$('#rsAll').addEventListener('click', ()=>hasB('deliveryDepot') ? openSheet('depot') : openMg('market'));
+$('#rsAll').addEventListener('click', ()=>restockAll(restockCost(businessesToRestock())));
 $('#moveTool').addEventListener('click',()=>{
   const active=pickingMove||!!placing?.source;
   placing=null;pickingMove=!active;
