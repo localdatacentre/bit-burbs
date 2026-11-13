@@ -1439,6 +1439,9 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 @keyframes bb-focus-pulse{0%,100%{border-color:#ffcf40}50%{border-color:#fff0a6}}
 @media(prefers-reduced-motion:reduce){#bb-tutorial-focus{animation:none}}
 </style>
+<style>
+.town-hall-prompt{box-shadow:inset 0 0 0 4px #ffcf40!important}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -5895,7 +5898,7 @@ function useCoinBoost(min) {
 }
 function buildHTML() {
   let h = (S.tut && tutStep() && tutStep().build ? `<div class="tut-build-tip">TUTORIAL ${S.tut.step+1}/${TUT.length} · ${tutStep().t} — follow the yellow highlight</div>` : '') + `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pixel-btn pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
-  if (!findHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="pixel-btn bcard" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>The heart of your city. Every city needs one.</span><span class="price">Free</span></button></div>`;
+  if (buildTab === 'homes' && !findHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="pixel-btn bcard town-hall-prompt" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>The heart of your city. Every city needs one.</span><span class="price">Free</span></button></div>`;
   if (buildTarget) h += `<p class="note">Building on the plot you picked.</p>`;
   const tab0 = BUILD_TABS.find(t => t[0] === buildTab) || BUILD_TABS[0]; const tab = tab0;
   if(buildTab==='transport') h+='<h3 class="binlink-brand"><canvas data-ibis width="13" height="7" aria-hidden="true"></canvas> BinLink</h3>';
@@ -6853,7 +6856,7 @@ const findId = id => { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
 const roadCount = () => S.tiles.filter(t => t && t.id === 'road').length;
 const tev = k => !!(S.tut && S.tut.ev[k]);
 const TUT = [
- {t:'Build your Town Hall',d:'Tap Build, select the free Town Hall and place it on the yellow plot.',build:'hall',tab:'city',done:()=>hasB('hall')},
+ {t:'Build your Town Hall',d:'Tap Build, choose Homes, then select the highlighted free Town Hall and place it on the yellow plot.',build:'hall',tab:'homes',done:()=>hasB('hall')},
  ...Array.from({length:5},(_,index)=>({t:'Build road '+(index+1)+' of 5',d:'Tap Build, choose City & parks, select Road and place it on the yellow tile.',build:'road',tab:'city',plot:[MID+index,MID+1],done:()=>isRoad(MID+index,MID+1)})),
  {t:'Build your first home',d:'Tap Build, choose Homes, then place a Cottage on the yellow plot.',build:'house',tab:'homes',done:()=>hasB('house')},
  {t:'Add electricity',d:'Tap Build, choose Power & water and place a Wind Turbine on the yellow plot.',build:'wind',tab:'util',done:()=>hasB('wind')},
