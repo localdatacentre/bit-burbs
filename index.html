@@ -36,7 +36,8 @@ body{font-family:'Oswald',ui-rounded,system-ui,-apple-system,'Segoe UI',sans-ser
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ui-deep)}
 button{font:inherit}
 button:focus-visible{outline:3px solid #FFFFFF;outline-offset:2px}
-html,body{touch-action:manipulation;-webkit-text-size-adjust:100%}
+html,body,body *{touch-action:pan-x pan-y}
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;filter:saturate(1.12) contrast(1.05) brightness(1.03)}
 
 /* pixel buttons */
@@ -1486,7 +1487,13 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
 
 <script>
-document.addEventListener('touchend',e=>{const now=Date.now();if(window.__bbLastTouchEnd&&now-window.__bbLastTouchEnd<320)e.preventDefault();window.__bbLastTouchEnd=now;},{passive:false});
+// Leave single-finger scrolling and control taps to the browser.
+function blockPagePinch(event) {
+  if (event.cancelable && (!event.touches || event.touches.length > 1)) event.preventDefault();
+}
+for (const type of ['gesturestart','gesturechange','touchmove']) {
+  document.addEventListener(type, blockPagePinch, {capture:true, passive:false});
+}
 </script>
 <script>
 const SPRK=(function(){let NO_SKIRT=true;
@@ -5195,17 +5202,55 @@ function render() {
 }
 
 /* ================= input ================= */
-const pointers = new Map(); let dragMoved = false, startPt = null, pinchD = 0;
-cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pointers.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pointers.size === 1) { dragMoved = false; startPt = { x: e.clientX, y: e.clientY }; } if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinchD = Math.hypot(a.x - b.x, a.y - b.y); dragMoved = true; } });
-cv.addEventListener('pointermove', e => {
-  if (!pointers.has(e.pointerId)) return;
-  const prev = pointers.get(e.pointerId); const cur = { x: e.clientX, y: e.clientY }; pointers.set(e.pointerId, cur);
-  if (pointers.size === 2) { const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); zoomAnim = null; pinchC = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; if (pinchD > 0) zoomAt(d / pinchD, pinchC.x, pinchC.y); pinchD = d; return; }
-  if (startPt && Math.hypot(cur.x - startPt.x, cur.y - startPt.y) > 8) dragMoved = true;
-  if (dragMoved) { V.cx += cur.x - prev.x; V.cy += cur.y - prev.y; clampCam(); }
+const pointers = new Map();
+let dragMoved = false, startPt = null, pinchD = 0;
+function resetPinch() {
+  pinchC = null;
+  pinchD = 0;
+  if (pointers.size !== 2) return;
+  const [a,b] = pointers.values();
+  pinchD = Math.hypot(a.x-b.x, a.y-b.y);
+  pinchC = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
+}
+cv.addEventListener('pointerdown', e => {
+  clearTimeout(wheelSnapT);
+  zoomAnim = null;
+  cv.setPointerCapture(e.pointerId);
+  const point = {x:e.clientX,y:e.clientY};
+  pointers.set(e.pointerId, point);
+  startPt = pointers.size === 1 ? point : null;
+  dragMoved = pointers.size > 1;
+  resetPinch();
 });
-function endPtr(e) { if (!pointers.has(e.pointerId)) return; if (pointers.size === 2 && pinchC) { snapZoom(pinchC.x, pinchC.y, 0); pinchC = null; } pointers.delete(e.pointerId); if (pointers.size === 0) { if (!dragMoved && startPt) onTap(e.clientX, e.clientY); startPt = null; pinchD = 0; } }
-cv.addEventListener('pointerup', endPtr); cv.addEventListener('pointercancel', e => { pointers.delete(e.pointerId); startPt = null; });
+cv.addEventListener('pointermove', e => {
+  const prev = pointers.get(e.pointerId);
+  if (!prev) return;
+  const cur = {x:e.clientX,y:e.clientY};
+  pointers.set(e.pointerId,cur);
+  if (pointers.size > 2) return;
+  if (pointers.size === 2) {
+    const centre = pinchC, distance = pinchD;
+    resetPinch();
+    if (distance > 0 && pinchD > 0) {
+      zoomAt(pinchD/distance,centre.x,centre.y);
+      V.cx += pinchC.x-centre.x;
+      V.cy += pinchC.y-centre.y;
+      clampCam();
+    }
+    return;
+  }
+  if (startPt && Math.hypot(cur.x-startPt.x,cur.y-startPt.y)>8) dragMoved = true;
+  if (dragMoved) { V.cx += cur.x-prev.x; V.cy += cur.y-prev.y; clampCam(); }
+});
+function endPtr(e) {
+  if (!pointers.delete(e.pointerId)) return;
+  const tap = e.type==='pointerup' && !pointers.size && !dragMoved && startPt;
+  if (e.type!=='pointerup') dragMoved = true;
+  startPt = null;
+  resetPinch();
+  if (tap) onTap(e.clientX,e.clientY);
+}
+for (const type of ['pointerup','pointercancel','lostpointercapture']) cv.addEventListener(type,endPtr);
 cv.addEventListener('wheel', e => { e.preventDefault(); zoomAnim = null; zoomAt(e.deltaY < 0 ? 1.08 : 1 / 1.08, e.clientX, e.clientY); clampCam(); clearTimeout(wheelSnapT); const x = e.clientX, y = e.clientY; wheelSnapT = setTimeout(() => snapZoom(x, y, 0), 160); }, { passive: false });
 function clampCam() {
   const c = P(N / 2, N / 2); const lim = N * TW / 2 * V.z * .6, limY = N * TH / 2 * V.z * .8;
