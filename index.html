@@ -8505,12 +8505,52 @@ function mix(a, b, t) { const A = hexRgb(a), B = hexRgb(b); return rgbHex(A[0] +
 function shade(h, f) { const A = hexRgb(h); return rgbHex(A[0] * f, A[1] * f, A[2] * f); }
 function hash(a, b, c) { let x = (a * 374761393 + b * 668265263 + (c || 0) * 2147483647) | 0; x = (x ^ (x >>> 13)) * 1274126177; return ((x ^ (x >>> 16)) >>> 0) / 4294967295; }
 
-const AVATAR_PALETTE = ['#14202e','#56372f','#dfaa78','#80523c','#70b5d0','#4d9f70','#f4d7a1','#d96c52'];
+const AVATAR_PALETTE = ['#14202e','#56372f','#dfaa78','#80523c','#70b5d0','#4d9f70','#f4d7a1','#d96c52','#ffffff','#b9c1ca','#697483','#322b38','#ffac8e','#bf845e','#935d46','#613b32','#ff525d','#a83252','#ff92b6','#da52ab','#fa943e','#ffcc46','#fff196','#a7da52','#269d64','#135d49','#43d6bf','#188aa4','#3581f0','#344eaa','#a89aff','#8250b6'];
 function makeDefaultAvatar(){const p=Array(256).fill(0),r=(x,y,w,h,c)=>{for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)p[yy*16+xx]=c;};r(4,3,8,7,2);r(5,5,6,7,3);r(5,4,6,2,4);r(6,8,1,1,1);r(9,8,1,1,1);r(7,10,2,1,7);r(4,12,8,3,5);r(3,14,10,2,6);return p;}
-function normaliseAvatar(p){return Array.isArray(p)&&p.length===256?p.map(n=>Number.isInteger(n)&&n>=0&&n<=AVATAR_PALETTE.length?n:0):makeDefaultAvatar();}
-function drawAvatarCanvas(canvas,pixels,grid=true){if(!canvas)return;const size=160,cell=10;canvas.width=size;canvas.height=size;const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.fillStyle='#f4f1e8';c.fillRect(0,0,size,size);for(let i=0;i<256;i++){const color=pixels[i];if(color)c.fillStyle=AVATAR_PALETTE[color-1],c.fillRect((i%16)*cell,Math.floor(i/16)*cell,cell,cell);}if(grid){c.strokeStyle='rgba(20,32,46,.13)';c.lineWidth=1;for(let i=0;i<=16;i++){c.beginPath();c.moveTo(i*cell+.5,0);c.lineTo(i*cell+.5,size);c.stroke();c.beginPath();c.moveTo(0,i*cell+.5);c.lineTo(size,i*cell+.5);c.stroke();}}}
+function normaliseAvatar(p){return Array.isArray(p)&&p.length===256?p.map(n=>typeof n==='string'&&/^#[0-9a-f]{6}$/i.test(n)?n:Number.isInteger(n)&&n>=0&&n<=AVATAR_PALETTE.length?n:0):makeDefaultAvatar();}
+function drawAvatarCanvas(canvas,pixels,grid=true){if(!canvas)return;const size=160,cell=10;canvas.width=size;canvas.height=size;const c=canvas.getContext('2d');c.imageSmoothingEnabled=false;c.fillStyle='#f4f1e8';c.fillRect(0,0,size,size);for(let i=0;i<256;i++){const color=pixels[i];if(color)c.fillStyle=typeof color==='string'?color:AVATAR_PALETTE[color-1],c.fillRect((i%16)*cell,Math.floor(i/16)*cell,cell,cell);}if(grid){c.strokeStyle='rgba(20,32,46,.13)';c.lineWidth=1;for(let i=0;i<=16;i++){c.beginPath();c.moveTo(i*cell+.5,0);c.lineTo(i*cell+.5,size);c.stroke();c.beginPath();c.moveTo(0,i*cell+.5);c.lineTo(size,i*cell+.5);c.stroke();}}}
 function renderAvatarCanvases(){drawAvatarCanvas(document.querySelector('[data-avatar-preview]'),normaliseAvatar(S.avatarPixels),false);drawAvatarCanvas(document.querySelector('#avatarDraft'),avatarDraft||[]);}
-function bindAvatarEditor(){const canvas=document.querySelector('#avatarDraft');if(!canvas||canvas.dataset.bound)return;canvas.dataset.bound='1';let drawing=false;const paint=e=>{const r=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*16),y=Math.floor((e.clientY-r.top)/r.height*16);if(x<0||x>15||y<0||y>15)return;avatarDraft[y*16+x]=avatarTool==='erase'?0:avatarColor;drawAvatarCanvas(canvas,avatarDraft);};canvas.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;canvas.setPointerCapture(e.pointerId);paint(e);});canvas.addEventListener('pointermove',e=>{if(drawing)paint(e);});canvas.addEventListener('pointerup',()=>drawing=false);canvas.addEventListener('pointercancel',()=>drawing=false);}
+function avatarCheckpoint(){
+  avatarUndo.push(avatarDraft.slice());
+  if(avatarUndo.length>32)avatarUndo.shift();
+}
+function avatarFill(start,ink){
+  const original=avatarDraft[start];
+  if(original===ink)return;
+  const queue=[start];avatarDraft[start]=ink;
+  for(let i=0;i<queue.length;i++){
+    const at=queue[i],x=at%16;
+    for(const next of [x?at-1:-1,x<15?at+1:-1,at-16,at+16]){
+      if(next>=0&&next<256&&avatarDraft[next]===original){avatarDraft[next]=ink;queue.push(next);}
+    }
+  }
+}
+function bindAvatarEditor(){
+  const canvas=document.querySelector('#avatarDraft');
+  if(!canvas||canvas.dataset.bound)return;
+  canvas.dataset.bound='1';
+  const picker=document.querySelector('#avatarCustom');
+  picker.onchange=()=>{avatarColor=picker.value;avatarTool='pen';renderSheet(true)};
+  let pointer=null,last=null;
+  function paint(e){
+    const r=canvas.getBoundingClientRect();
+    const x=Math.floor((e.clientX-r.left-canvas.clientLeft)/canvas.clientWidth*16);
+    const y=Math.floor((e.clientY-r.top-canvas.clientTop)/canvas.clientHeight*16);
+    if(x<0||x>15||y<0||y>15){last=null;return}
+    if(avatarTool==='fill')avatarFill(y*16+x,avatarColor);
+    else{
+      const [sx,sy]=last||[x,y],steps=Math.max(1,Math.abs(x-sx),Math.abs(y-sy));
+      for(let i=1;i<=steps;i++){
+        const ix=Math.round(sx+(x-sx)*i/steps),iy=Math.round(sy+(y-sy)*i/steps);
+        avatarDraft[iy*16+ix]=avatarTool==='erase'?0:avatarColor;
+      }
+    }
+    last=[x,y];drawAvatarCanvas(canvas,avatarDraft);
+  }
+  canvas.onpointerdown=e=>{if(pointer!==null)return;e.preventDefault();pointer=e.pointerId;canvas.setPointerCapture(pointer);avatarCheckpoint();paint(e)};
+  canvas.onpointermove=e=>{if(pointer===e.pointerId&&avatarTool!=='fill')paint(e)};
+  canvas.onlostpointercapture=()=>{pointer=null;last=null};
+}
 
 /* ================= state ================= */
 let S;
@@ -11093,6 +11133,7 @@ function animateTo(wx, wy) { const r = rotXY(wx, wy); camAnim = { sx: V.cx, sy: 
 
 /* ================= sheets: build + tasks ================= */
 let sheet = null, sheetKeyVal = '', buildTab = 'homes', buildTarget = null, resetArm = false, taskTab = 'tasks';
+const avatarUndo=[];
 let avatarDraft=null, avatarColor=5, avatarTool='pen';
 const sheetEl = $('#sheet'), sheetBody = $('#sheetBody'), scrim = $('#scrim');
 function openSheet(name) { cityNeedsOpen=false;managingProperty=false;pickingMove=false; snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); }
@@ -11299,8 +11340,10 @@ function tasksHTML() {
 }
 function avatarEditorHTML(){
   if(!avatarDraft)return '';
-  const swatches=AVATAR_PALETTE.map((color,i)=>'<button type="button" class="pixel-btn" data-act="avatarColor" data-color="'+(i+1)+'" aria-label="Choose colour '+(i+1)+'" style="width:30px;height:30px;min-width:30px;padding:0;background:'+color+';border:2px solid '+(avatarColor===i+1?'#14202e':'#aeb7b5')+';box-shadow:'+(avatarColor===i+1?'inset 0 0 0 2px #f4f1e8':'none')+'"></button>').join('');
-  return '<div class="avatar-editor"><canvas id="avatarDraft" aria-label="16 by 16 pixel drawing canvas" style="display:block;width:min(100%,256px);aspect-ratio:1;margin:10px auto;border:2px solid #14202e;background:#f4f1e8;image-rendering:pixelated;touch-action:none;cursor:crosshair"></canvas><div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:10px 0">'+swatches+'</div><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="pixel-btn pb sm '+(avatarTool==='pen'?'teal':'')+'" data-act="avatarTool" data-tool="pen">Pencil</button><button class="pixel-btn pb sm '+(avatarTool==='erase'?'teal':'')+'" data-act="avatarTool" data-tool="erase">Eraser</button><button class="pixel-btn pb sm" data-act="avatarClear">Clear</button><button class="pixel-btn pb sm" data-act="avatarReset">Reset</button></div><div style="display:flex;gap:7px;margin-top:10px"><button class="pixel-btn pb" data-act="avatarSave">Save picture</button><button class="pixel-btn pb sm" data-act="avatarCancel">Cancel</button></div><p class="note">Draw with your finger or mouse. Your 16 × 16 picture is saved with your city.</p></div>';
+  const ink=typeof avatarColor==='string'?avatarColor:AVATAR_PALETTE[avatarColor-1];
+  const swatches=AVATAR_PALETTE.map((color,i)=>`<button type="button" data-act="avatarColor" data-color="${i+1}" aria-label="Choose ${color}" aria-pressed="${ink===color}" style="appearance:none;min-width:0;padding:4px;height:36px;background:transparent;border:0"><span style="display:block;height:100%;background:${color};border:2px solid #232336;outline:${ink===color?'3px solid white':'1px solid #aaa'}"></span></button>`).join('');
+
+  return '<div class="avatar-editor"><canvas id="avatarDraft" aria-label="16 by 16 pixel drawing canvas" style="display:block;width:min(100%,256px);aspect-ratio:1;margin:10px auto;border:2px solid #14202e;background:#f4f1e8;image-rendering:pixelated;touch-action:none;cursor:crosshair"></canvas><div style="display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px;margin:10px 0">'+swatches+'</div><label style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><input id="avatarCustom" type="color" value="'+ink+'">Custom colour · '+ink+'</label><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="pixel-btn pb sm '+(avatarTool==='pen'?'teal':'')+'" data-act="avatarTool" data-tool="pen">Pencil</button><button class="pixel-btn pb sm '+(avatarTool==='erase'?'teal':'')+'" data-act="avatarTool" data-tool="erase">Eraser</button><button class="pixel-btn pb sm '+(avatarTool==='fill'?'teal':'')+'" data-act="avatarTool" data-tool="fill">Fill</button><button class="pixel-btn pb sm" data-act="avatarUndo">Undo</button><button class="pixel-btn pb sm" data-act="avatarClear">Clear</button><button class="pixel-btn pb sm" data-act="avatarReset">Reset</button></div><div style="display:flex;gap:7px;margin-top:10px"><button class="pixel-btn pb" data-act="avatarSave">Save picture</button><button class="pixel-btn pb sm" data-act="avatarCancel">Cancel</button></div><p class="note">Draw with your finger or mouse. Your 16 × 16 picture is saved with your city.</p></div>';
 }
 function settingsHTML() {
   let h='<div class="sect"><h3>Player profile</h3><div style="display:flex;align-items:center;gap:12px"><canvas data-avatar-preview aria-label="Your pixel profile picture" style="width:64px;height:64px;border:2px solid #14202e;image-rendering:pixelated;background:#f4f1e8"></canvas><div><b>Pixel picture</b><p class="note">A tiny picture for your player profile.</p><button class="pixel-btn pb sm" data-act="avatarEdit">'+(avatarDraft?'Keep editing':'Create / edit picture')+'</button></div></div>'+avatarEditorHTML()+'</div>';
@@ -11314,11 +11357,12 @@ function settingsHTML() {
 }
 sheetEl.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
-  if(a==='avatarEdit'){avatarDraft=normaliseAvatar(S.avatarPixels);avatarColor=5;avatarTool='pen';renderSheet(true);return;}
-  if(a==='avatarColor'){avatarColor=Number(b.dataset.color)||1;renderSheet(true);return;}
-  if(a==='avatarTool'){avatarTool=b.dataset.tool==='erase'?'erase':'pen';renderSheet(true);return;}
-  if(a==='avatarClear'){avatarDraft=Array(256).fill(0);drawAvatarCanvas($('#avatarDraft'),avatarDraft);return;}
-  if(a==='avatarReset'){avatarDraft=makeDefaultAvatar();drawAvatarCanvas($('#avatarDraft'),avatarDraft);return;}
+  if(a==='avatarEdit'){if(avatarDraft)return;avatarUndo.length=0;avatarDraft=normaliseAvatar(S.avatarPixels);avatarColor=5;avatarTool='pen';renderSheet(true);return;}
+  if(a==='avatarColor'){avatarColor=Number(b.dataset.color)||1;if(avatarTool==='erase')avatarTool='pen';renderSheet(true);return;}
+  if(a==='avatarTool'){avatarTool=b.dataset.tool;renderSheet(true);return;}
+  if(a==='avatarUndo'){if(avatarUndo.length){avatarDraft=avatarUndo.pop();drawAvatarCanvas($('#avatarDraft'),avatarDraft)}return;}
+  if(a==='avatarClear'){avatarCheckpoint();avatarDraft=Array(256).fill(0);drawAvatarCanvas($('#avatarDraft'),avatarDraft);return;}
+  if(a==='avatarReset'){avatarCheckpoint();avatarDraft=makeDefaultAvatar();drawAvatarCanvas($('#avatarDraft'),avatarDraft);return;}
   if(a==='avatarCancel'){avatarDraft=null;renderSheet(true);return;}
   if(a==='avatarSave'){S.avatarPixels=normaliseAvatar(avatarDraft);avatarDraft=null;save();sheetKeyVal='';renderSheet(true);toast('Profile picture saved.');return;}
   if(a==='saveCityNow'&&namedPlay){
