@@ -2647,6 +2647,10 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #nav>button.pixel-btn[data-open]{height:36px!important;min-height:36px!important;max-height:36px!important}
 }
 @media(max-width:330px){#hud .hrow{gap:5px}#hud .wm{font-size:14px}#hud #xpCount{font-size:11px}#hud .xp{flex-basis:60px}#hud #clock{font-size:14px}#hud .chip{font-size:16px}#hud .stock-actions{flex-direction:column;gap:3px}#hud .stock-actions button{height:27px!important;min-height:27px!important}}
+</style><style id="fixed-compact-dock">
+#nav{height:64px!important;min-height:64px!important;max-height:64px!important;box-sizing:border-box!important;padding-top:10px!important;padding-bottom:10px!important;grid-template-rows:42px!important;align-content:start!important;overflow:visible}
+#nav>button.pixel-btn[data-open]{height:42px!important;min-height:42px!important;max-height:42px!important;align-self:start!important}
+@media(max-height:650px) and (orientation:landscape){#nav{height:50px!important;min-height:50px!important;max-height:50px!important;padding-top:6px!important;padding-bottom:6px!important;grid-template-rows:36px!important}#nav>button.pixel-btn[data-open]{height:36px!important;min-height:36px!important;max-height:36px!important}}
 </style></head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -11415,7 +11419,7 @@ function updateHUD() {
   const count = cityIssues().length;
   const label = count ? 'City needs · ' + count : 'City needs · clear';
   setText($('#advT'), String(count));
-  $('#advisor').hidden=count===0&&!cityNeedsOpen;
+  $('#advisor').hidden=false;
   setText($('#advS'), '');
   $('#advisor').setAttribute('aria-label', label);
   $('#advisor').setAttribute('aria-expanded', String(cityNeedsOpen));
