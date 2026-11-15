@@ -11330,7 +11330,7 @@ function updateHUD() {
   const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
   updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
   rushButton.setAttribute('aria-label',rushPrice?'Rush deliveries for '+rushPrice+' dosh':'No deliveries to rush');
-  rushButton.textContent='rush';
+  rushButton.textContent=rushPrice?'rush '+fmt(rushPrice):'rush';
   rushButton.disabled = !rushPrice || S.stars < rushPrice;
   setText($('#voucherCount'), S.restockVouchers || 0);
   setText(hud.lvl, S.level); setText($('#popValue'), fmt(S.pop));
