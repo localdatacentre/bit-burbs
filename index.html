@@ -8912,7 +8912,7 @@ function nativeClearHTML(){
  const keys=nativeFootprint(t.i,t.j,t.id,t.turned);if(!keys.length)return '';
  const cost=keys.length*nativeClearPrice();
  const [w,h]=t.id?fpOf(t.id,t.turned):[1,1];let valid=true;for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++){const x=t.i+dx,y=t.j+dy;if(!inB(x,y))valid=false;if(tileAt(x,y)){const a=anchorOf(x,y);if(!placing?.source||a.i!==placing.source.i||a.j!==placing.source.j)valid=false;}}
- return '<p class="muted">Native bushland · '+nativeClearPrice()+' Coins per plot · base 10, +0.10% per level (rounded). Wildlife moves safely. Clear only what you need; cleared land stays clear.</p><div class="row"><button class="pixel-btn pb" data-act="clearNative" '+(!valid||S.cash<cost?'disabled':'')+'>Clear '+keys.length+' plot'+(keys.length===1?'':'s')+' · '+cost+' Coins</button></div>';
+ return '<p class="muted">Native bushland · '+nativeClearPrice()+' Coins per plot · base 10, +0.10% per level (rounded). Wildlife moves safely. Remove only what you need; cleared land stays clear.</p><div class="row"><button class="pixel-btn pb" data-act="clearNative" '+(!valid||S.cash<cost?'disabled':'')+'>Remove</button></div>';
 }
 function nativeWalkable(i,j){return Number.isInteger(i)&&Number.isInteger(j)&&inB(i,j)&&!tileAt(i,j);}
 function relocateWildlife(a,exclude=null){
@@ -10913,7 +10913,8 @@ function renderCard(force) {
     const t = tileAt(sel.i, sel.j);
     if (!t) {
       if (!inB(sel.i, sel.j)) html = head('Locked land', 'Expand your city from the Town Hall to build here.') + `<div class="row"><button class="pixel-btn pb" data-act="gotoHall">Go to Town Hall</button></div>`;
-      else html = head(nativeAt(sel.i,sel.j)?'Native bushland':'Empty plot', nativeAt(sel.i,sel.j)?'Clear this plot before building. Keep pockets of habitat for your tiny neighbours.':'Nothing here yet.') + `<div class="row"><button class="pixel-btn pb" data-act="buildHere">Build</button></div>`;
+      else if(nativeAt(sel.i,sel.j))html=head('Native bushland','Remove this plot to make it available for building. Keep pockets of habitat for your tiny neighbours.')+nativeClearHTML();
+      else html = head('Empty plot','Nothing here yet.') + `<div class="row"><button class="pixel-btn pb" data-act="buildHere">Build</button></div>`;
     } else {
       const b = t._; const d = DEFS[t.id];
       if (!b) html = head(d.name, '');
