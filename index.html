@@ -8241,17 +8241,17 @@ async function chooseCity(){
  try{
  const name=f.elements.user.value.trim().toLowerCase();if(!validName(name))throw Error('Use 1–24 letters, numbers, underscores or hyphens.');
  const first=!localStorage.getItem(rosterReady);
- const data=await cityApi({action:'username',name,create:first||e.submitter?.value==='create',fresh:first});
+ const creating=e.submitter?.value==='create';
+ const data=await cityApi({action:'username',name,create:creating,fresh:creating});
  const slot=localSlot(name);
- if(first){
+ if(first&&creating&&!data.city){
    const oldName=localStorage.getItem('bit-burbs:last-username');
    const source=validName(oldName)?legacySlot(oldName):localStorage.getItem(guestSlot)?guestSlot:'blocktown-save-v1';
    const raw=localStorage.getItem(source);
    if(raw){JSON.parse(raw);localStorage.setItem(slot,raw)}
-   localStorage.setItem(rosterReady,'1');
  }
  if(data.city){const old=localStorage.getItem(slot);if(old)localStorage.setItem(slot+':before-cloud-load',old);acceptCity(slot,data)}
- localStorage.setItem(slot+':cloud-key',data.code);localStorage.setItem(slot+':login-name',name);localStorage.setItem(lastUser,name);location.reload();
+ localStorage.setItem(slot+':cloud-key',data.code);localStorage.setItem(slot+':login-name',name);localStorage.setItem(rosterReady,'1');localStorage.setItem(lastUser,name);location.reload();
  }catch(err){f.querySelector('[role=status]').textContent=err.message;delete f.dataset.busy}
  };return new Promise(()=>{});
 }
