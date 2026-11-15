@@ -2607,7 +2607,21 @@ body.sheet-open #fpsCounter,body:has(#mg.show) #fpsCounter,body:has(#modal.show)
 #advisor{left:12px!important}
 @media(max-width:370px){#hud{padding-inline:9px!important}#hud .wm{font-size:16px}#hud .stock-actions{gap:4px}#hud .stock-actions button{min-width:45px;padding-inline:5px!important}#hud #popLbl,#hud #jobsLbl{font-size:14px}#hud #popLbl .stat-unit,#hud #jobsLbl .stat-unit{font-size:11px}#hud .chip{font-size:17px}#hud .chip canvas{width:18px!important;height:18px!important}}
 </style>
-</head>
+<style id="homepage-spacing-fix">
+html,body{background:#243b5b!important}
+:root{padding-bottom:0!important;--hud-surface:#243b5b}
+#hud .chips{display:flex!important;justify-content:space-between!important;align-items:center!important;width:100%!important;column-gap:0!important;grid-template-columns:none!important}
+#hud .chips .chip[aria-label]{flex:0 0 auto!important;width:auto!important;max-width:none!important;min-width:0!important;justify-content:center!important;padding:0!important;gap:4px!important}
+#advisor.pixel-btn{top:calc(var(--bb-hud-bottom) + 12px)!important;left:12px!important;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;max-width:28px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;clip-path:none!important;transform:none!important;display:grid!important;place-items:center}
+#advisor.pixel-btn::before,#advisor.pixel-btn::after{display:none!important}
+#advisor.pixel-btn .adv{display:none!important}
+#advisor.pixel-btn #faceIcon{width:28px!important;height:28px!important;display:block;image-rendering:pixelated}
+#advisor[hidden]{display:none!important}
+#nav{height:auto!important;min-height:0!important;max-height:none!important;box-sizing:border-box!important;align-content:center!important;background:#243b5b!important;background-image:none!important;padding:10px 10px max(10px,env(safe-area-inset-bottom,0px))!important;border-top:2px solid #1a2c46!important}
+#nav::before,#nav::after{display:none!important}
+#nav>button.pixel-btn[data-open]{height:42px!important;min-height:42px!important;max-height:42px!important}
+body::after{background:#243b5b!important}
+</style></head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
 
