@@ -10812,6 +10812,7 @@ function drawBuilding(i, j, id, turned=tileAt(i,j)?.turned, placed=tileAt(i,j), 
 }
 /* ================= badges ================= */
 let badgeHits = [], hulls = [];
+const progressBadgeBounds=[];
 function clearLevelBar(owner, bounds, placed, width, height) {
   if (!owner) return null;
   const w=22,h=15,gap=3;
@@ -10849,6 +10850,7 @@ function progressBadge(x, y, f, label) {
   pxBox(c, bx, by, w, h, '#156E7E', ink); c.fillStyle = '#3EBE7A'; c.fillRect(bx + 2, by + 2, Math.max(2, Math.round((w - 4) * f)), h - 4); c.fillStyle = '#8AF0B0'; c.fillRect(bx + 2, by + 2, Math.max(2, Math.round((w - 4) * f)), 2);
   c.font = "400 10px 'VT323', monospace"; const tw = Math.ceil(c.measureText(label).width); pxBox(c, Math.round(x - tw / 2 - 5), by - 15, tw + 10, 14, '#FFF4DC', ink);
   c.fillStyle = ink; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(label, Math.round(x), by - 7);
+  progressBadgeBounds.push({x:Math.min(bx,Math.round(x-tw/2-5))-3,y:by-18,w:Math.max(w,tw+10)+6,h:31});
 }
 
 /* ================= reward reveal ================= */
@@ -11000,28 +11002,14 @@ function render() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   V.cx = camX; V.cy = camY;
   drawTutArrow();
-  badgeHits = []; const tnow = now(); const hideBadges = !!placing||pickingMove||fadedBuildings();
-  const levelBars=[];
+  badgeHits = []; progressBadgeBounds.length=0; const tnow = now(); const hideBadges = !!placing||pickingMove||fadedBuildings();
+  const levelBars=[],levelCandidates=[];
   const levelBounds=hulls.filter(h=>h.x1>=0&&h.x0<=W&&h.y1>=0&&h.y0<=H);
   D.list.forEach(b => {
     const d = b.d, t = b.t; if (hideBadges || d.type === 'decor' || d.type === 'hall' || d.type === 'transport') return;
     const a = up(P(b.i + .5, b.j + .5), (d.h || 20) * hFac(t) * V.z + 10); let hit = null;
     const detailed = V.z >= 1.45;
-    if (detailed && canUp(d)) {
-      const owner=levelBounds.find(h=>h.i===b.i&&h.j===b.j);
-      const bar=clearLevelBar(owner,levelBounds,levelBars,W,H);
-      if(bar){
-        levelBars.push(bar);
-        const c=V.ctx,level=Math.max(1,Math.min(UP_MAX,lvlOf(t)));
-        const colours=['#35B9E8','#43C77A','#F0B83A','#D66CEB','#F07863'];
-        c.save();
-        pxBox(c,bar.x,bar.y,bar.w,bar.h,colours[level-1],'#18213D');
-        c.font="400 13px 'VT323', monospace";
-        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#102137';
-        c.fillText('L'+level,bar.x+bar.w/2,bar.y+bar.h/2+.5);
-        c.restore();
-      }
-    }
+    if (detailed && canUp(d)) levelCandidates.push(b);
     if (!b.ok) hit = badge(a.x, a.y, 'NO ROAD', '#C9434A', '#FFFFFF');
     else if (d.type === 'util') return;
     else if (!b.pow) hit = badge(a.x, a.y, 'NO POWER', '#C9434A', '#FFFFFF');
@@ -11042,6 +11030,23 @@ function render() {
     } else if (d.type === 'svc') { if (!b.staffed) hit = badge(a.x, a.y, 'NEED STAFF', '#C9434A', '#FFFFFF'); }
     if (hit) badgeHits.push(Object.assign(hit, { i: b.i, j: b.j }));
   });
+  for(const b of levelCandidates){
+      const t=b.t;
+      const owner=levelBounds.find(h=>h.i===b.i&&h.j===b.j);
+      const bar=clearLevelBar(owner,levelBounds,[...badgeHits,...progressBadgeBounds,...levelBars],W,H);
+      if(bar){
+        levelBars.push(bar);
+        const c=V.ctx,level=Math.max(1,Math.min(UP_MAX,lvlOf(t)));
+        const colours=['#35B9E8','#43C77A','#F0B83A','#D66CEB','#F07863'];
+        c.save();
+        pxBox(c,bar.x,bar.y,bar.w,bar.h,colours[level-1],'#18213D');
+        c.font="400 13px 'VT323', monospace";
+        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#102137';
+        c.fillText('L'+level,bar.x+bar.w/2,bar.y+bar.h/2+.5);
+        c.restore();
+      }
+    }
+
   const pn = performance.now(), c = V.ctx;
   for (let k = popups.length - 1; k >= 0; k--) {
     const p = popups[k]; const e = (pn - p.t0) / 1000; if (e > 1.3) { popups.splice(k, 1); continue; }
