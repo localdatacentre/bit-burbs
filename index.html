@@ -12121,6 +12121,8 @@ function openMg(name) { cityNeedsOpen=false;managingProperty=false;pickingMove=f
   mgPanel.className = 'mgp ' + (name === 'dice' ? 'tan' : 'purple') + ' mg-' + name;
   if (name === 'dice') buildDice(); else if (name === 'wheel') buildWheel(); else if (name === 'market') buildMarket(); else buildCrates();
   mgEl.classList.add('show'); paintNewIcons();
+  // The reel is initially built while the modal is hidden; center it after layout.
+  if (name === 'crates') positionCrateReel(performance.now());
   const x = mgPanel.querySelector('.mgx'); if (x) x.focus();
 }
 function closeMg() { if (!mg) return; if (diceAnim || wheelAnim || crateAnim) return; snd('close'); mg = null; mgEl.classList.remove('show'); renderCard(true); }
