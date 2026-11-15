@@ -1,4 +1,4 @@
-const CACHE='bit-burbs-responsive-viewport-v2';
+const CACHE='bit-burbs-crate-reel-v1';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
