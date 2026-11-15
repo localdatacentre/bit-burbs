@@ -10683,6 +10683,7 @@ function paintStreetPole(c,base,arm,z,tint,bulb){
   c.restore();
 }
 function dropPassengers(stop){
+  if(!WALKING_NPCS_ENABLED)return;
   // Start at the kerb, and use only the continuous footpath on this side.
   const x=stop.x+.5+stop.sx*.44,y=stop.y+.5+stop.sy*.44;
   const boarding=walkingKerbs?.get(Math.round(x*1000)+','+Math.round(y*1000));
@@ -13130,6 +13131,9 @@ let last = performance.now(), uiAcc = 0, saveAcc = 0, skyAcc = 99;
 // Follow continuous footpaths from one doorway to another.
 let walkingGraph = null, walkingKerbs=null, nextWalkerIn = .3;
 let walkingDestinations=[];
+// Temporary beta switch: walking NPCs are paused until their clipping is repaired.
+// Set to true to restore NPC activity after testing.
+const WALKING_NPCS_ENABLED = false;
 const walkers = [];
 // A pedestrian's ground position must stay on the narrow kerb-side pavement.
 // Never step into road lanes, building plots, parks or the fountain.
@@ -13302,6 +13306,7 @@ function spawnWalker() {
   startWalker(path);
 }
 function startWalker(path){
+  if(!WALKING_NPCS_ENABLED)return;
   if(path.length<2 || !path.every(p=>safeFootpathPoint(p.x,p.y))
     || path.some((p,i)=>i>0&&!safeFootpathSegment(path[i-1],p))
     || !pedestrianVehicleClear(path[0]) || walkers.some(w=>Math.hypot(w.x-path[0].x,w.y-path[0].y)<.13))return;
@@ -13319,6 +13324,10 @@ function startWalker(path){
     pace:.21+Math.random()*.065,skin:Math.floor(Math.random()*4),facing:1,alpha:0});
 }
 function updateWalkers(dt){
+  if(!WALKING_NPCS_ENABLED){
+    if(walkers.length)walkers.length=0;
+    return;
+  }
   if(document.hidden || dt<=0)return;
   if(!walkingGraph)walkingGraph=makeWalkingGraph();
   const target=Math.min(16,Math.ceil(S.pop/3));
@@ -13379,6 +13388,7 @@ const walkerColours=[
   ['#6b6060','#d5b59c','#91a7b8','#788b9e','#655d64']
 ];
 function drawWalker(w){
+  if(!WALKING_NPCS_ENABLED)return;
   const c=V.ctx,p=P(w.x,w.y),k=V.z*.61;
   const [hair,skin,shirt,shade,trousers]=walkerColours[w.skin];
   const stride=Math.round(w.phase*1.4);
