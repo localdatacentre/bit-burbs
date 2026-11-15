@@ -13249,6 +13249,7 @@ function walkRoute(from,to){
   const raw=[{x:from.kerb.x,y:from.kerb.y},...road.reverse()];
   const pts=[];
   for(const p of raw)if(!pts.length || Math.hypot(p.x-pts.at(-1).x,p.y-pts.at(-1).y)>.003)pts.push(p);
+  if(pts.length<2)return [];
   // Round small turns inside the footpath.
   const rounded=[pts[0]];
   for(let i=1;i<pts.length-1;i++){
