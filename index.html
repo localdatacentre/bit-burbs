@@ -11181,7 +11181,9 @@ function render() {
       depth=vdepth(r.i+w/2,r.j+h/2)+(w+h-2)*.5+(visible?.06:-.06);}
     objs.push({vehicle,d:depth});
   }
-  for(const walker of walkers)objs.push({walker,d:vdepth(walker.x,walker.y)+.015});
+  // Cull invalid walkers before rendering, including after map edits.
+  for(const walker of walkers)if(safeFootpathPoint(walker.x,walker.y))
+    objs.push({walker,d:vdepth(walker.x,walker.y)+.015});
   if (placing && placing.ghost && placing.id !== 'road' && fitsEdit(placing.ghost)) {
     const { i, j } = placing.ghost, [fx, fy] = fpOf(placing.id,placing.turned);
     objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id });
@@ -11200,7 +11202,17 @@ function render() {
     if(o.animal){drawNativeAnimal(o.animal);return;}
     if(o.lamp){drawStreetLamp(o.lamp,false,strength);return;}
     if(o.vehicle){drawVehicle(o.vehicle);return;}
-    if(o.walker){drawWalker(o.walker);return;} // Sort pedestrians with buildings by ground depth.
+    if(o.walker){
+      // A walker must not poke through walls, rooftops or signs.
+      // Boxes come from existing model sprites at current zoom/rotation.
+      const w=o.walker,p=P(w.x,w.y),headY=p.y-9*V.z;
+      const overlaps=hulls.some(h=>
+        p.x+2*V.z>h.x0&&p.x-2*V.z<h.x1
+        &&p.y>h.y0&&headY<h.y1
+      );
+      if(!overlaps)drawWalker(w);
+      return;
+    }
     if(o.signal){drawJunctionSignal(o,signalSeconds);return;}
     if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost,placing.turned,null); V.ctx.restore(); return; }
     if(placing?.object===o.t && placing.ghost && fitsEdit(placing.ghost))return;
@@ -13121,27 +13133,27 @@ let walkingDestinations=[];
 const walkers = [];
 // A pedestrian's ground position must stay on the narrow kerb-side pavement.
 // Never step into road lanes, building plots, parks or the fountain.
+// Collision clearance is calculated from every placed model, not a hardcoded
+// fountain-only exception. Roads remain the sole walking surface.
 function safeFootpathPoint(x,y){
   if(!Number.isFinite(x)||!Number.isFinite(y))return false;
   const i=Math.floor(x),j=Math.floor(y);
   if(i<0||j<0||i>=N||j>=N||!isRoad(i,j))return false;
   const fx=x-i,fy=y-j;
   if(!(fx<=.115||fx>=.885||fy<=.115||fy>=.885))return false;
-  // The 2x2 grand fountain has tall artwork extending towards adjacent
-  // kerbs. Keep pedestrians on the *outer* pavement rather than letting
-  // their sprite overlap the fountain's walls and water basin.
   const checked=new Set();
   for(let yy=Math.max(0,j-2);yy<=Math.min(N-1,j+2);yy++){
     for(let xx=Math.max(0,i-2);xx<=Math.min(N-1,i+2);xx++){
-      const t=tileAt(xx,yy);
-      if(!t)continue;
-      const a=t.id==='_occ'?t.ref:[xx,yy],key=a[1]*N+a[0];
+      const cell=tileAt(xx,yy);
+      if(!cell||cell.id==='road')continue;
+      const a=cell.id==='_occ'?cell.ref:[xx,yy];
+      const key=a[1]*N+a[0];
       if(checked.has(key))continue;
       checked.add(key);
       const model=tileAt(a[0],a[1]);
-      if(model?.id!=='fountain')continue;
-      const [w,h]=fpOf('fountain',model.turned);
-      const clearance=.52;
+      if(!model||model.id==='road')continue;
+      const [w,h]=fpOf(model.id,model.turned,model.compactHall);
+      const clearance=model.id==='fountain'?.52:.20;
       if(x>a[0]-clearance&&x<a[0]+w+clearance
         &&y>a[1]-clearance&&y<a[1]+h+clearance)return false;
     }
