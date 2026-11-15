@@ -8695,7 +8695,6 @@ function completesRoadSquare(i, j, source = null, planned = null) {
   return false;
 }
 function fpFree(i,j,id,turned=false,source=null){
-  if(nativeFootprint(i,j,id,turned).length)return false;
   if(id==='road' && completesRoadSquare(i,j,source))return false;
   if(!Number.isInteger(i)||!Number.isInteger(j)||isStop(id)&&!stopKerb(i,j))return false;
   const [w,h]=fpOf(id,turned);
@@ -8851,25 +8850,20 @@ const info = (i, j) => { const t = tileAt(i, j); return t && t._ ? t._ : null; }
 /* Native world preview: deterministic habitat, additive saves, no live economy changes. */
 const NATIVE_KINDS=['gum','flowering','wattle','lime','banksia','brush','pilly','correa','daisy'];
 const NATIVE_NAMES=['Gum','Flowering gum','Wattle','Finger lime','Banksia','Bottlebrush','Lilly pilly','Correa','Native daisy'];
-// User-requested test curve: 10 Coins at level 1, +0.10% compounded per level.
-// Round the total per-land rate to whole Coins; quote and debit the same value.
-function nativeClearPrice(){const raw=Number(S.level),level=Number.isFinite(raw)?Math.max(1,Math.floor(raw)):1;return Math.min(Number.MAX_SAFE_INTEGER,Math.round(10*Math.pow(1.001,level-1)));}
 let nativeOwner=null,nativePlots=[],nativeRowStart=[],wildlife=[],nativeClock=0;
-function nativeHash(x,y,s=0){let n=Math.imul(x+137,374761393)^Math.imul(y+271,668265263)^Math.imul(s+17,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296;}
+function nativeHash(x,y,s=0){let n=Math.imul(x+137,374761393)^Math.imul(y+271,668265263)^Math.imul(s+17,1274126177)^Math.imul((S.nativeWorld?.seed||0)|0,1597334677);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967296;}
 function ensureNativeWorld(){
  if(nativeOwner===S)return;
  nativeOwner=S;nativePlots=[];nativeRowStart=new Uint32Array(N+1);wildlife=[];nativeClock=0;
- if(!S.nativeWorld||S.nativeWorld.version!==1)S.nativeWorld={version:1,size:N,cleared:{}};
- if(S.nativeWorld.size!==N){const old=S.nativeWorld.size,shift=Math.floor((N-old)/2),next={};for(const key of Object.keys(S.nativeWorld.cleared||{})){const x=Number(key)%old+shift,y=Math.floor(Number(key)/old)+shift;if(x>=0&&y>=0&&x<N&&y<N)next[y*N+x]=1;}S.nativeWorld={version:1,size:N,cleared:next};}
- const cleared=S.nativeWorld.cleared;
+ if(!S.nativeWorld||S.nativeWorld.version!==1)S.nativeWorld={version:1,size:N,seed:Math.floor(Math.random()*2147483647)};
+ if(!Number.isInteger(S.nativeWorld.seed))S.nativeWorld.seed=Math.floor(Math.random()*2147483647);
+ if(S.nativeWorld.size!==N)S.nativeWorld.size=N;
  for(let j=0;j<N;j++)for(let i=0;i<N;i++){
   if(!i)nativeRowStart[j]=nativePlots.length;
   const key=j*N+i;
-  // Existing construction is grandfathered, even after it is subsequently moved.
-  if(tileAt(i,j)){cleared[key]=1;continue;}
-  if(!inB(i,j)||cleared[key])continue;
-  const cluster=nativeHash(Math.floor(i/5),Math.floor(j/5),9);
-  const density=cluster>.55?.62:cluster>.25?.24:.06;
+  if(!inB(i,j)||tileAt(i,j))continue;
+  const cluster=nativeHash(Math.floor(i/6),Math.floor(j/6),9);
+  const density=cluster>.62?.30:cluster>.28?.12:.025;
   if(nativeHash(i,j,1)>density)continue;
   nativePlots.push({i,j,key,kind:Math.floor(nativeHash(i,j,2)*9),scale:.72+nativeHash(i,j,3)*.35});
  }
@@ -8884,36 +8878,9 @@ function ensureNativeWorld(){
  }
 }
 function nativeAt(i,j){
- if(!S.nativeWorld||!inB(i,j)||tileAt(i,j)||S.nativeWorld.cleared[j*N+i])return false;
- const cluster=nativeHash(Math.floor(i/5),Math.floor(j/5),9);
- return nativeHash(i,j,1)<=(cluster>.55?.62:cluster>.25?.24:.06);
-}
-function nativeFootprint(i,j,id,turned=false){
- const [w,h]=id?fpOf(id,turned):[1,1],plots=[];
- for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++)if(nativeAt(i+dx,j+dy))plots.push((j+dy)*N+i+dx);
- return plots;
-}
-function nativeClearTarget(){const g=placing?.ghost||(!placing&&sel);return g?{i:g.i,j:g.j,id:placing?.id,turned:placing?.turned}:null;}
-function clearNativePlots(target){
- if(!target)return false;
- ensureNativeWorld();
- const {i,j,id,turned}=target,[w,h]=id?fpOf(id,turned):[1,1];
- // Entire intended footprint must be land; no partial charge on invalid edge clicks.
- for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++){const x=i+dx,y=j+dy;if(!inB(x,y))return false;if(tileAt(x,y)){const a=anchorOf(x,y);if(!placing?.source||a.i!==placing.source.i||a.j!==placing.source.j){toast('Choose a footprint without existing buildings.');return false;}}}
- const keys=nativeFootprint(i,j,id,turned),cost=keys.length*nativeClearPrice();
- if(!keys.length)return false;
- if(S.cash<cost){toast('Clearing needs '+cost+' Coins. No Dosh required.');return false;}
- S.cash-=cost;for(const key of keys)S.nativeWorld.cleared[key]=1;
- // Animals step out of the whole construction footprint before it becomes buildable.
- for(const a of wildlife)if((a.x>=i&&a.x<i+w&&a.y>=j&&a.y<j+h)||(a.tx>=i&&a.tx<i+w&&a.ty>=j&&a.ty<j+h))relocateWildlife(a,{i,j,w,h});
- changed();save();toast('Cleared '+keys.length+' native plot'+(keys.length===1?'':'s')+' · '+cost+' Coins. Wildlife moved safely.');return true;
-}
-function nativeClearHTML(){
- const t=nativeClearTarget();if(!t)return '';
- const keys=nativeFootprint(t.i,t.j,t.id,t.turned);if(!keys.length)return '';
- const cost=keys.length*nativeClearPrice();
- const [w,h]=t.id?fpOf(t.id,t.turned):[1,1];let valid=true;for(let dx=0;dx<w;dx++)for(let dy=0;dy<h;dy++){const x=t.i+dx,y=t.j+dy;if(!inB(x,y))valid=false;if(tileAt(x,y)){const a=anchorOf(x,y);if(!placing?.source||a.i!==placing.source.i||a.j!==placing.source.j)valid=false;}}
- return '<p class="muted">'+nativeClearPrice()+' Coins per plot. Wildlife moves safely.</p><div class="row"><button class="pixel-btn pb" data-act="clearNative" '+(!valid||S.cash<cost?'disabled':'')+'>Remove · '+cost+' Coins</button></div>';
+ if(!S.nativeWorld||!inB(i,j)||tileAt(i,j))return false;
+ const cluster=nativeHash(Math.floor(i/6),Math.floor(j/6),9);
+ return nativeHash(i,j,1)<=(cluster>.62?.30:cluster>.28?.12:.025);
 }
 function nativeWalkable(i,j){return Number.isInteger(i)&&Number.isInteger(j)&&inB(i,j)&&!tileAt(i,j);}
 function relocateWildlife(a,exclude=null){
@@ -8946,7 +8913,7 @@ function addNativeObjects(objs,left,right,top,bottom){
  for(let j=top;j<=bottom;j++)for(let n=nativeRowStart[j];n<nativeRowStart[j+1];n++){
    const p=nativePlots[n];
    if(p.i>right)break;
-   if(p.i<left||S.nativeWorld.cleared[p.key]||tileAt(p.i,p.j))continue;
+   if(p.i<left||tileAt(p.i,p.j))continue;
    const q=P(p.i+.5,p.j+.5),pad=44*V.z;
    if(q.x < -pad || q.x>W+pad || q.y < -pad || q.y>H+pad)continue;
    objs.push({native:p,d:vdepth(p.i+.5,p.j+.5)});
@@ -9151,7 +9118,7 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (!inB(i, j)) { snd('error'); toast('That land is locked. Expand from the Town Hall.'); return false; }
   if(isStop(id)&&!stopKerb(i,j)){toast('Choose a clear plot beside the middle of a straight road.');return false;}
   if (id === 'road' && completesRoadSquare(i,j)) { toast(roadWidthMessage); return false; }
-  if(nativeFootprint(i,j,id,turned).length){toast('Clear the native bushland first: select its plot, then Clear.');return false;}
+  
   if (!fpFree(i, j, id, turned)) { snd('error'); const [fx, fy] = fpOf(id,turned); toast(fx * fy > 1 ? 'This needs a clear ' + fx + '×' + fy + ' space here.' : 'Something is already built there.'); return false; }
   const cost = fromItem ? 0 : costOf(id);
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
@@ -10879,7 +10846,7 @@ function renderCard(force) {
   }
   ensureNativeWorld();
   const needsHTML = cityNeedsOpen ? cityNeedsHTML() : '';
-  const k = cityNeedsOpen ? needsHTML : cardState()+'|nature|'+S.level+'|'+S.cash+'|'+Object.keys(S.nativeWorld.cleared).length;
+  const k = cityNeedsOpen ? needsHTML : cardState()+'|nature|'+S.level+'|'+S.cash+'|'+S.nativeWorld.seed;
   if (!force && k === cardKey) { liveCard(); return; }
   cardKey = k;
   let html = '';
@@ -10914,8 +10881,7 @@ function renderCard(force) {
     const t = tileAt(sel.i, sel.j);
     if (!t) {
       if (!inB(sel.i, sel.j)) html = head('Locked land', 'Expand your city from the Town Hall to build here.') + `<div class="row"><button class="pixel-btn pb" data-act="gotoHall">Go to Town Hall</button></div>`;
-      else if(nativeAt(sel.i,sel.j))html=head('Native bushland','Remove this plot to build here.')+nativeClearHTML();
-      else html = head('Empty plot','Nothing here yet.') + `<div class="row"><button class="pixel-btn pb" data-act="buildHere">Build</button></div>`;
+      else html = head('Empty plot',nativeAt(sel.i,sel.j)?'Native trees will be cleared when you build here.':'Nothing here yet.') + `<div class="row"><button class="pixel-btn pb" data-act="buildHere">Build</button></div>`;
     } else {
       const b = t._; const d = DEFS[t.id];
       if (!b) html = head(d.name, '');
@@ -10941,8 +10907,6 @@ function renderCard(force) {
     }
     if (t && t.id === 'road') html = head('Road', 'Shops, homes and services need a road next to them.') + `<div class="row"><button class="pixel-btn pb red" data-act="demolish">Remove road</button></div>`;
   }
-  const selectedNativePlot=sel&&!placing&&!tileAt(sel.i,sel.j)&&nativeAt(sel.i,sel.j);
-  if(!cityNeedsOpen&&!pickingMove&&!selectedNativePlot)html+=nativeClearHTML();
   card.innerHTML = html; paintNewIcons(); card.classList.toggle('show', !!html); liveCard();
 }
 function managePanel(d){
@@ -11010,7 +10974,6 @@ function liveCard() {
 }
 card.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
-  if(a==='clearNative'){clearNativePlots(nativeClearTarget());renderCard(true);return;}
   if(a==='locateNeed'||a==='needsRestock'){
     const i=Number(b.dataset.i),j=Number(b.dataset.j);
     if(!tileAt(i,j))return;
@@ -12593,7 +12556,7 @@ function fitSavedTownHall(city,previousSize){
       if(!inB(col,row))return false;
       const index=row*N+col,tile=city.tiles[index];
       if(oldIndex>=0&&(index===oldIndex||(tile?.id==='_occ'&&tile.ref[0]===ox&&tile.ref[1]===oy)))continue;
-      if(tile||nativeAt(col,row))return false;
+      if(tile)return false;
     }
     return true;
   }
