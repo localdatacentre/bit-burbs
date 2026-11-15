@@ -8317,8 +8317,8 @@ try {
 }catch{}
 function modelReady(id){return !deletedModelIds.has(id)&&finishedModels.has(id==='deliveryDepot'?'delivery-depot':id);}
 const DEFS = {deliveryDepot:{name:'Delivery Depot',type:'depot',fx:2,fy:2,lvl:1,cost:0},
-  hailStop: {name:'BinLink Hail Stop',type:'transport',cost:600,fare:25,lvl:1},
-  busShelter: {name:'BinLink Bus Stop',type:'transport',cost:1800,fare:75,lvl:1},
+  hailStop: {name:'BinLink Hail Stop',type:'transport',cost:600,fare:40,lvl:1},
+  busShelter: {name:'BinLink Bus Stop',type:'transport',cost:1800,fare:120,lvl:1},
   road:     { name: 'Road', type: 'road', cost: 20, lvl: 1 },
   house:    { name: 'Modern House', type: 'home', cost: 800, lvl: 1, cap: 3, h: 18, wall: '#E8E1D4', side: '#C9C1B3', roof: '#6B5A52', pw: 1, wa: 1 },
   aptS:     { name: 'Brick Apartments', type: 'home', fx: 2, fy: 2, cost: 4000, buildCost: 5200, lvl: 3, cap: 10, h: 46, wall: '#CFC9BF', side: '#ABA59B', roof: '#62656C', pw: 2, wa: 2 },
@@ -9508,7 +9508,12 @@ function collectInd(i, j) {
   if (amt < 1) { toast('Nothing produced yet.'); return; }
   S.cash += amt; t.stock = 0; grindAdd(1); snd('coins'); track('industry'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
 }
-function schoolLimitMessage(id, restoring=false) {
+function stopCount(id, includeStored=false) {
+  const placed=S.tiles.reduce((total,t)=>total+Number(t?.id===id),0);
+  return placed+(includeStored?(S.storedBuildings||[]).filter(e=>e.building?.id===id).length:0);
+}
+function buildingLimitMessage(id, restoring=false) {
+  if(isStop(id)&&stopCount(id,!restoring)>=5)return 'Limit of 5 per city.';
   if (id !== 'school') return '';
   if (hasB('school')) return 'Your city already has a school.';
   if (!restoring && S.storedBuildings?.some(entry => entry.building.id === 'school'))
@@ -9517,7 +9522,7 @@ function schoolLimitMessage(id, restoring=false) {
 }
 function placeAt(i, j, id, fromItem, turned=false) {
   const d = DEFS[id];
-  const limit = schoolLimitMessage(id);
+  const limit = buildingLimitMessage(id);
   if (limit) { toast(limit); return false; }
   if (id === 'deliveryDepot' && hasB(id)) return false;
   if(id==='hall'&&(findHall()||storedHall()))return false;
@@ -10258,7 +10263,8 @@ function stopSprite(id,dir){
   img.width=base.w;img.height=base.h+52;
   const c=img.getContext('2d');c.drawImage(base.img,0,52);
   const [dx,dy]=directions[dir],x=.5-.35*dy,y=.5+.35*dx;
-  stampStreetFrame(c,(id==='hailStop'?72:76)+dir,base.gMinX+64+(x-y)*64,52+base.gMinY+(x+y)*32,1);
+  c.imageSmoothingEnabled=false;
+  stampStreetFrame(c,(id==='hailStop'?72:76)+dir,Math.round(base.gMinX+64+(x-y)*64),Math.round(52+base.gMinY+(x+y)*32),1);
   const emission=[],data=c.getImageData(0,0,img.width,img.height).data;
   for(let i=0;i<data.length;i+=4){
     if(data[i+3]!==255)continue;
@@ -10266,7 +10272,7 @@ function stopSprite(id,dir){
     if(target)emission.push(i/4,target);
   }
   const sp={...base,img,emission:new Uint32Array(emission),h:img.height,gMinY:base.gMinY+52};
-  stopSprites.set(key,sp);return sp;
+  if(streetArt.naturalWidth)stopSprites.set(key,sp);return sp;
 }
 function facilityCell(x,y,turn){
   return [[x,y],[7-y,x],[9-x,7-y],[y,9-x]][Number(turn||0)%4];
@@ -10471,9 +10477,9 @@ function dropPassengers(stop){
     if(path.length>1)startWalker(path);
   }
 }
-const shelterUpgradePrice = 1380;
+const shelterUpgradePrice = 1200;
 function upgradeStop(i,j){
-  const t=tileAt(i,j);if(!modelReady('busShelter')||t?.id!=='hailStop'||S.cash<shelterUpgradePrice)return false;
+  const t=tileAt(i,j);if(buildingLimitMessage('busShelter')){toast('Shelter limit reached · 5 per city.');return false;}if(!modelReady('busShelter')||t?.id!=='hailStop'||S.cash<shelterUpgradePrice)return false;
   S.cash-=shelterUpgradePrice;t.id='busShelter';streetNetwork=null;changed();save();return true;
 }
 function serviceBuses(dt){
@@ -11302,7 +11308,7 @@ function renderCard(force) {
       } else if (d.type === 'util') {
         html = head(d.name, `Level ${lvlOf(t)} · ` + (d.supP ? `+${Math.round(d.supP * upMul(t))} power` : `+${Math.round(d.supW * upMul(t))} water`) + ` · city power ${D.useP}/${D.supP}, water ${D.useW}/${D.supW}`) + statusTags(b) + (t.id==='wtower'?towerPaintMenu(t,sel.i,sel.j):'') + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if(d.type==='transport'){
-        const upgrade=t.id==='hailStop'&&modelReady('busShelter')?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(S.cash<shelterUpgradePrice?'disabled':'')+'>Upgrade to shelter · '+fmt(shelterUpgradePrice)+' Coins</button>':'';
+        const upgrade=t.id==='hailStop'&&modelReady('busShelter')?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(S.cash<shelterUpgradePrice||buildingLimitMessage('busShelter')?'disabled':'')+'>Upgrade to shelter · '+fmt(shelterUpgradePrice)+' Coins</button>':'';
         html=head(d.name,d.fare+' Coins per visit · every 10 active minutes')
           +'<p class="note" id="stopTime"></p><div class="row">'+upgrade+demoBtn()+'</div>';
       } else if (d.type === 'hall') {
@@ -11507,9 +11513,10 @@ function restoreBuilding(entry,i,j,turned=entry.building.turned) {
   const index = S.storedBuildings.indexOf(entry);
   const tile = entry.building;
   if(tile.id==='hall'&&findHall())return false;
-  const limit = schoolLimitMessage(tile.id, true);
+  const limit = buildingLimitMessage(tile.id, true);
   if (limit) { toast(limit); return false; }
   if (!modelReady(tile.id) || index < 0 || !fpFree(i,j,tile.id,turned)) return false;
+  if(isStop(tile.id)&&!stopKerb(i,j)) {toast('Choose a clear plot beside a straight road.');return false;}
   if (turned || tile.turned) tile.turned=Number(turned)||0;
   occupy(i,j,tile);
   S.storedBuildings.splice(index,1);
@@ -11585,10 +11592,10 @@ function buildHTML() {
   cards.forEach(({id, cost}) => {
     const d = DEFS[id];
     const locked = !item && d.lvl > S.level; const count = item ? (S.shopItems && S.shopItems[id] || 0) : 0;
-    const limit = schoolLimitMessage(id);
+    const limit = buildingLimitMessage(id);
     const cant = locked || !!limit || (id === 'deliveryDepot' && hasB(id)) || (item ? count < 1 : S.cash < cost);
     let sub = '';
-    if(d.type==='transport') sub='BinLink · '+d.fare+' Coins per visit';
+    if(d.type==='transport') sub=stopCount(id,true)+'/5 owned · '+d.fare+' Coins per visit';
     else if (isBiz(d)) sub = `${d.type==='svc'?SVC_NAMES[d.svc]+' · ':''}Up to ${fmt(catalogueIncome(d))} coins/min`;
     else if (d.type === 'home') sub = `${d.cap} residents`;
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
@@ -11702,14 +11709,14 @@ sheetEl.addEventListener('click', e => {
   if (a === 'restore' && sheet === 'bag') {
     const entry = S.storedBuildings[Number(b.dataset.index)];
     if (!entry) return;
-    const limit = schoolLimitMessage(entry.building.id, true);
+    const limit = buildingLimitMessage(entry.building.id, true);
     if (limit) { toast(limit); return; }
     placing = {id:entry.building.id, turned:Number(entry.building.turned)||0, stored:entry};
     closeSheet(); sel=null; renderCard(true); return;
   }
   if (a === 'choose') {
     const id = b.dataset.id, d = DEFS[id], fromItem = sheet === 'bag' || (buildTab === 'items' && id !== 'hall');
-    const limit = schoolLimitMessage(id);
+    const limit = buildingLimitMessage(id);
     if (limit) { toast(limit); return; }
     if (b.getAttribute('aria-disabled') === 'true') { toast(fromItem ? 'Purchase this weekly exclusive in the Dosh Shop.' : d.lvl > S.level ? 'Unlocks at Lv ' + d.lvl + '.' : 'You need ' + fmt(costOf(id)) + ' Coins.'); return; }
     if (buildTarget && id !== 'road') { const tg = buildTarget; if (placeAt(tg.i, tg.j, id, fromItem)) { closeSheet(); select(tg.i, tg.j); } return; }
