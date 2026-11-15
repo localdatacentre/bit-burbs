@@ -2537,7 +2537,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <style>
 #hud .chips{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 #hud #voucherChip{appearance:none;background:transparent;border:0;color:white;font:inherit;cursor:pointer;pointer-events:auto;align-self:stretch}
-</style><style>.city-auth{width:min(360px,90vw);padding:22px;border:1px solid #bfcdc0;border-radius:14px;background:#fff;color:#153829;font:16px/1.4 system-ui}.city-auth::backdrop{background:#13271f99}.city-auth form,.city-auth label{display:grid;gap:8px}.city-auth form{gap:12px}.city-auth h2,.city-auth p{margin:0}.city-auth .hint,.city-auth details{font-size:14px;color:#425749}.city-auth input,.city-auth button{box-sizing:border-box;width:100%;padding:10px;font:inherit;border-radius:7px;border:1px solid #b5c7bb;background:white;color:#153829}.city-auth button.primary{background:#174731;color:white;font-weight:bold}.city-auth [hidden],.city-auth p:empty{display:none}@media (pointer:coarse){input,textarea,select{font-size:max(16px,1em)!important}}</style></head>
+</style><style>.city-auth{width:min(360px,90vw);padding:22px;border:1px solid #bfcdc0;border-radius:14px;background:#fff;color:#153829;font:16px/1.4 system-ui}.city-auth::backdrop{background:#13271f99}.city-auth form,.city-auth label{display:grid;gap:8px}.city-auth form{gap:12px}.city-auth h2,.city-auth p{margin:0}.city-auth .hint,.city-auth details{font-size:14px;color:#425749}.city-auth input,.city-auth button{box-sizing:border-box;width:100%;padding:10px;font:inherit;border-radius:7px;border:1px solid #b5c7bb;background:white;color:#153829}.city-auth button.primary{background:#174731;color:white;font-weight:bold}.city-auth [hidden],.city-auth p:empty{display:none}@media (pointer:coarse){input,textarea,select{font-size:max(16px,1em)!important}}</style><style>#card .stock-pixels{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:2px;padding:3px;height:18px;border:2px solid #14202e;border-radius:0;background:#172b3b;box-shadow:inset 2px 2px #0005}#card .stock-pixels i{display:block;min-width:0;height:8px;margin:0;border-radius:0;background:#354453}#card .stock-pixels i.on{background:#83dc6c;box-shadow:inset 0 2px #c8f29a,inset 0 -2px #369c54}</style></head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
 
@@ -11353,17 +11353,18 @@ function businessPanel(b){
   const missing=goods.some(g=>g.s<=tn&&!g.o);
   const blocked=!b.ok?'Needs road access':!b.pow?'Needs power':!b.wat?'Needs water':!b.workers?'Needs workers':'';
   const order=ensureProds(t)[0], rush=order.o?rushCost(t,0,tn):0;
-  const state=order.o?'Arrives in '+mmss(Math.max(0,order.o-tn)):blocked||(filled?'Fully stocked':'Out of stock');
+  const stockRatio=Math.max(0,Math.min(1,(order.s-tn)/stockDuration(t)));
+  const state=order.o?'Arrives in '+mmss(Math.max(0,order.o-tn)):blocked||(filled?Math.ceil(stockRatio*100)+'% stock · '+mmss(Math.max(0,order.s-tn))+' left':'Out of stock');
   const cost=S.restockVouchers>0?0:restockCost([b],tn);
   const coin=n=>fmt(n)+' <canvas data-icon="cash" width="32" height="32" aria-label="coins"></canvas>';
   const buyLabel=missing&&!blocked?(cost?'Restock '+coin(cost):'Use voucher'):(waiting?'In transit':blocked?'Restock':'Stocked');
-  const gauge=goods.map(g=>'<i class="'+(g.s>tn?'on':'')+'"></i>').join('');
+  const gauge=Array.from({length:20},(_,i)=>'<i class="'+(stockRatio>i/20?'on':'')+'"></i>').join('');
   const upgrade=upCost(d,L),max=L>=UP_MAX;
   const price=max?'Max level':'Upgrade '+coin(upgrade.coins)+(upgrade.deeds?' + '+upgrade.deeds+' <canvas data-icon="deed" width="32" height="32" aria-label="deeds"></canvas>':'');
   const pct=max?0:Math.round((UP_MULS[L+1]/UP_MULS[L]-1)*100);
   return head(d.name,'Level '+L+' · '+productName(t.id)+(missing?' · '+mmss(orderTime(t))+' restock':''))+'<div class="stat-pair"><div class="inset"><b>'+fmt(bizCpm(b)*boostMul())+' / min</b><small>Coin income</small></div>'+
     '<div class="inset"><b>'+b.employees+' / '+b.jobCapacity+'</b><small>Workers</small></div></div>'+
-    '<div class="preview-row"><div class="grow"><b class="strong">'+state+'</b><div class="strip">'+gauge+'</div></div>'+
+    '<div class="preview-row"><div class="grow"><b class="strong">'+state+'</b><div class="strip stock-pixels" role="progressbar" aria-label="Remaining stock" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.ceil(stockRatio*100)+'">'+gauge+'</div></div>'+
     (order.o?'<button class="pixel-btn pb rush grow" data-act="rush" data-k="0" data-cost="'+rush+'" '+(!rush||S.stars<rush?'disabled':'')+'>'+stockPriceLabel('Rush',rush)+'</button>':
       '<button class="pixel-btn pb grow" data-act="businessStock" data-voucher="'+(cost===0 && missing && S.restockVouchers>0)+'" data-fee="'+cost+'" '+(blocked||!missing||S.cash<cost?'disabled':'')+'>'+buyLabel+'</button>')+'</div>'+
     '<div class="preview-row"><button class="pixel-btn pb gold buy grow" data-act="upgrade" '+(max||S.cash<upgrade.coins||S.deeds<upgrade.deeds?'disabled':'')+'>'+price+'</button>'+
@@ -12517,33 +12518,45 @@ document.addEventListener('click',e=>{
   if(btn.dataset.depot==='restock')manualRestock(+btn.dataset.fee,btn.dataset.key==='all'?null:+btn.dataset.key);
 });
 
-function bizTick(dt) { const tn = now();
-  let cpm = 0;
-  D.list.forEach(b => { if (!isBiz(b.d)) return; const pr = ensureProds(b.t);
-    pr.forEach((p, k) => { if (p.o && tn >= p.o) deliverProduct(b.t,p,k,tn); });
-    const c = bizCpm(b) * boostMul(); cpm += c; if (c > 0) { const key = b.i + ',' + b.j; bizAcc.set(key, (bizAcc.get(key) || 0) + c / 60 * dt); } });
-  D.cpm = cpm; S.cash += cpm / 60 * dt;
-  bizPopT += dt; if (bizPopT >= 4) { bizPopT = 0; for (const [key, v] of bizAcc) { if (v >= 1) { const [i, j] = key.split(',').map(Number); popup(i, j, '+' + fmt(Math.floor(v)), '#FFE066'); bizAcc.set(key, v - Math.floor(v)); } } } }
-function bizOffline(from, to) {
-  derive();
-  const cutoff = Math.min(to, from + 30 * 60000);
-  const overlap = (start,end) => Math.max(0, Math.min(end,cutoff) - Math.max(start,from));
-  let earned = 0;
-  for (const b of D.list) {
-    if (!isBiz(b.d)) continue;
-    const eligible = !whyNot(b);
-    ensureProds(b.t).forEach((p,k) => {
-      let stockedMs = overlap(from,p.s);
-      if (p.o && p.o <= to) {
-        const start = Math.max(p.s,p.o);
-        p.s = start + stockDuration(b.t);
-        p.o = 0;
-        stockedMs += overlap(start,p.s);
-      }
-      if (eligible && k < b.workers) earned += prodCpm(b,k) * stockedMs / 60000;
-    });
-  }
-  return Math.floor(earned * D.schoolMultiplier * .10);
+function businessEarnings(b,from,to,live=false){
+ const p=ensureProds(b.t)[0],duration=stockDuration(b.t);
+ let milliseconds=0,boosted=0;
+ const add=(start,end)=>{
+   const lo=Math.max(from,start),hi=Math.min(to,end);
+   if(hi<=lo)return;
+   milliseconds+=hi-lo;
+   boosted+=Math.max(0,Math.min(hi,S.boostUntil||0)-lo);
+ };
+ add(p.s-duration,p.s);
+ if(p.o&&p.o<=to){
+   const start=Math.max(p.s,p.o);
+   if(live)deliverProduct(b.t,p,0,start);else{p.s=start+duration;p.o=0;}
+   add(start,p.s);
+ }
+ if(!b.workers||whyNot(b))return 0;
+ return prodCpm(b)*D.schoolMultiplier*(milliseconds+boosted)/60000;
+}
+function bizTick(dt) {
+ const tn=now();let earned=0,cpm=0;
+ for(const b of D.list){
+   if(!isBiz(b.d))continue;
+   const coins=businessEarnings(b,tn-dt*1000,tn,true);
+   earned+=coins;cpm+=bizCpm(b)*boostMul();
+   if(coins>0){const key=b.i+','+b.j;bizAcc.set(key,(bizAcc.get(key)||0)+coins)}
+ }
+ D.cpm=cpm;S.cash+=earned;
+ bizPopT+=dt;
+ if(bizPopT>=4){
+   bizPopT=0;
+   for(const [key,value] of bizAcc)if(value>=1){
+     const [i,j]=key.split(',').map(Number);
+     popup(i,j,'+'+fmt(Math.floor(value)),'#FFE066');bizAcc.set(key,value-Math.floor(value));
+   }
+ }
+}
+function bizOffline(from,to){
+ derive();
+ return D.list.reduce((sum,b)=>sum+(isBiz(b.d)?businessEarnings(b,from,to):0),0);
 }
 
 /* ================= engagement: restock all, missions, daily, rating, events ================= */
@@ -13273,7 +13286,7 @@ for(const tile of S.tiles){
 }
 (function catchUp() {
   const el = Math.max(0, now() - (S.saved || now()));
-  if (el > 10000) {
+  if (el > 0) {
     derive(); S.pop = Math.min(D.cap, S.pop + Math.min(20, Math.floor(el / 45000)) * 2);
     const got = bizOffline(S.saved, now()); S.cash += got; save();
     if (el > 60000 && !S.upgraded && got > 0) setTimeout(() => toast('Welcome back! Your businesses earned ' + fmt(got) + ' Coins while you were away.'), 600);
