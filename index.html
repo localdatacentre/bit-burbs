@@ -13126,7 +13126,27 @@ function safeFootpathPoint(x,y){
   const i=Math.floor(x),j=Math.floor(y);
   if(i<0||j<0||i>=N||j>=N||!isRoad(i,j))return false;
   const fx=x-i,fy=y-j;
-  return fx<=.115||fx>=.885||fy<=.115||fy>=.885;
+  if(!(fx<=.115||fx>=.885||fy<=.115||fy>=.885))return false;
+  // The 2x2 grand fountain has tall artwork extending towards adjacent
+  // kerbs. Keep pedestrians on the *outer* pavement rather than letting
+  // their sprite overlap the fountain's walls and water basin.
+  const checked=new Set();
+  for(let yy=Math.max(0,j-2);yy<=Math.min(N-1,j+2);yy++){
+    for(let xx=Math.max(0,i-2);xx<=Math.min(N-1,i+2);xx++){
+      const t=tileAt(xx,yy);
+      if(!t)continue;
+      const a=t.id==='_occ'?t.ref:[xx,yy],key=a[1]*N+a[0];
+      if(checked.has(key))continue;
+      checked.add(key);
+      const model=tileAt(a[0],a[1]);
+      if(model?.id!=='fountain')continue;
+      const [w,h]=fpOf('fountain',model.turned);
+      const clearance=.52;
+      if(x>a[0]-clearance&&x<a[0]+w+clearance
+        &&y>a[1]-clearance&&y<a[1]+h+clearance)return false;
+    }
+  }
+  return true;
 }
 function safeFootpathSegment(a,b){
   const length=Math.hypot(b.x-a.x,b.y-a.y);
@@ -13296,7 +13316,10 @@ function updateWalkers(dt){
   }
   for(let k=walkers.length-1;k>=0;k--){
     const w=walkers[k];
-    if(w.retire || !safeFootpathPoint(w.x,w.y)){w.alpha=Math.max(0,w.alpha-dt*4);if(!w.alpha)walkers.splice(k,1);continue;}
+    // Remove old invalid walkers immediately so they cannot remain visibly
+    // embedded in fountain models while fading out.
+    if(!safeFootpathPoint(w.x,w.y)){walkers.splice(k,1);continue;}
+    if(w.retire){w.alpha=Math.max(0,w.alpha-dt*4);if(!w.alpha)walkers.splice(k,1);continue;}
     const lastPoint=w.path.at(-1);
     const nearEnd=w.index>=w.path.length-2?Math.hypot(w.x-lastPoint.x,w.y-lastPoint.y):1;
     const ease=Math.min(1,.45+5*Math.min(w.travel,nearEnd));
@@ -13311,7 +13334,7 @@ function updateWalkers(dt){
       candidate.x+=(b.y-a.y)/length*futureMargin;candidate.y-=(b.x-a.x)/length*futureMargin;
       if(!safeFootpathPoint(candidate.x,candidate.y)
         || !safeFootpathSegment({x:w.x,y:w.y},candidate)){
-        w.retire=true;remaining=0;break;
+        w.alpha=0;w.retire=true;remaining=0;break;
       }
       if(!pedestrianVehicleClear(candidate)){
         w.blockedFor=(w.blockedFor||0)+dt;
