@@ -2553,10 +2553,16 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 .city-welcome::backdrop{background:#172b43}.beta-shell{box-sizing:border-box;min-height:100%;width:min(100%,580px);margin:auto;padding:calc(24px + env(safe-area-inset-top)) 22px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:center;gap:20px}.beta-brand{display:flex;align-items:center;justify-content:center;gap:11px;color:#f5ecd9;text-decoration:none;font:22px/1.2 'Silkscreen',monospace}.beta-brand img{image-rendering:pixelated}.beta-card{background:#f5efdf;padding:28px;border:3px solid #0f1d30;box-shadow:inset 0 3px #fff9ee,inset 0 -5px #d8d0bc;clip-path:var(--bb-cut)}.beta-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#237256;background:#deeadc;padding:5px 8px;border:1px solid #abc6ac}.city-welcome h2:focus{outline:none}.city-welcome h2{font:clamp(25px,6vw,34px)/1.28 'Silkscreen',monospace;letter-spacing:-.035em;margin:20px 0 13px;color:#172b43}.city-welcome .beta-intro{font-size:14px;color:#465769;margin:0}.beta-info{list-style:none;margin:21px 0;padding:0;display:grid;gap:13px}.beta-info li{padding-left:14px;border-left:3px solid #80aa91}.beta-info b{display:block;font-size:12px;color:#233e4e}.beta-info span{display:block;font-size:12px;color:#5b6870;margin-top:2px}.city-welcome form{display:block;border-top:1px solid #d6d3c5;padding-top:20px}.city-welcome form label{display:block;font-size:12px;font-weight:750;color:#233e4e;margin:0 0 7px}.city-welcome form input{box-sizing:border-box;width:100%;min-height:48px;font:16px/1.3 system-ui,sans-serif;color:#193149;background:#fffdf6;border:2px solid #a3b2b4;border-radius:0;padding:11px 12px;margin:0;outline-offset:3px}.city-welcome form input:focus-visible{outline:3px solid #1ca8db;border-color:#0e6192}.city-welcome .beta-help{font-size:11px;line-height:1.5;margin:8px 0 15px;color:#617078}.beta-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.city-welcome .beta-actions button{width:100%;min-height:48px;margin:0;padding:10px 8px;font:21px/1 'VT323',monospace;border:2px solid var(--bb-edge);border-radius:0;color:#fff;background:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)}.city-welcome .beta-actions .beta-create{--bb-face:#43a875;--bb-top:#7bc79b;--bb-bottom:#2e8259;--bb-edge:#236644}.city-welcome .beta-status{font-size:12px;font-weight:600;line-height:1.4;color:#8b3f30;min-height:17px;margin:10px 0 0}.city-welcome .beta-access{font-size:10px;line-height:1.5;color:#697675;margin:13px 0 0}.beta-footer{text-align:center;font-size:11px;color:#abbac5;margin:0}
 @media(max-width:380px){.beta-shell{padding-inline:13px;gap:14px}.beta-card{padding:21px}.city-welcome h2{font-size:25px}.beta-info{gap:10px;margin-block:17px}}
 </style>
+<style id="responsive-performance">/* Keep controls immediate without changing map pan/pinch gestures. */
+button,a,input,select,summary{touch-action:manipulation}
+#sheetBody,#mgPanel{contain:layout style}
+#fpsCounter{position:fixed;top:max(3px,env(safe-area-inset-top));right:6px;z-index:110;pointer-events:none;padding:2px 5px;background:#173a42e8;color:#d7f8c7;border:1px solid #709687;font:11px/1.2 monospace;font-variant-numeric:tabular-nums;min-width:56px;text-align:right;border-radius:3px}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
 
+<output id="fpsCounter" aria-label="Rendered frames per second">— fps</output>
 <header id="hud">
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
@@ -9728,7 +9734,7 @@ const lowOut = low.getContext('2d');
 const mid = document.createElement('canvas');
 const lowCtx = mid.getContext('2d');
 const cv = $('#game'); const ctx = cv.getContext('2d');
-let W = 0, H = 0, DPR = 1;
+let W = 0, H = 0, DPR = 1, hudBottom = 0;
 const V = { ctx, z: 1.15, cx: 0, cy: 0 };
 let ROT = 0;
 function rotXY(x, y) { return ROT === 0 ? [x, y] : ROT === 1 ? [N - y, x] : ROT === 2 ? [N - x, N - y] : [y, N - x]; }
@@ -9820,7 +9826,7 @@ function windowCol(i, j, k, side) {
 
 /* ================= world drawing ================= */
 function drawSky() {
-  const c = V.ctx; const top = $('#hud').getBoundingClientRect().bottom;
+  const c = V.ctx; const top = hudBottom;
   const horizon = top + 260;
   const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, SK.top); g.addColorStop(Math.min(.9, horizon / H * .7), SK.mid); g.addColorStop(Math.min(.98, horizon / H), SK.bot); g.addColorStop(1, SK.bot);
   c.fillStyle = g; c.fillRect(0, 0, W, H);
@@ -10541,8 +10547,10 @@ function upgradeStop(i,j){
   S.cash-=shelterUpgradePrice;t.id='busShelter';streetNetwork=null;changed();save();return true;
 }
 function serviceBuses(dt){
-  buses=[];
-  for(const stop of streetMap().stops){
+  buses.length=0;
+  const map=streetMap();
+  const stopCounts=map.stopCounts||(map.stopCounts=map.buildings.reduce((counts,b)=>{if(b.t.id==='busShelter')counts[0]++;if(b.t.id==='hailStop')counts[1]++;return counts},[0,0]));
+  for(const stop of map.stops){
     const t=stop.t;
     let elapsed=(t.serviceElapsed||0)+dt;
     if(elapsed>=stopInterval){
@@ -10565,13 +10573,12 @@ function serviceBuses(dt){
       return tiles+.48;
     }
     const rear=clearRun(-1),front=clearRun(1);
-    const metro=t.id==='busShelter'&&rear>=2.4&&front>=2.4;
+    const metro=stopCounts[0]===5&&stopCounts[1]===5&&rear>=2.4&&front>=2.4;
     const half=metro?1.45:.72,door=metro?0:.42;
     // Stay within the straight and stop short of any intersecting traffic.
     if(rear+front<half*2)continue;
     const dock=Math.max(-rear+half,Math.min(front-half,-door));
-    const entry=Math.max(0,Math.min(2,rear+dock-half)),exit=Math.max(0,Math.min(2,front-dock-half));
-    const along=time<0?dock-entry*(time/4)**2:time<=5?dock:dock+exit*((time-5)/4)**2;
+    const along=dock; // Short service visits fade at the kerb; no route-wide bus movement.
     buses.push({x:stop.x+.5+stop.sx*.19+stop.dx*along,y:stop.y+.5+stop.sy*.19+stop.dy*along,
       dir:stop.dir,half,angle:stop.dir*Math.PI/2,base:metro?68:64,frames:4,alpha:Math.min(1,time+4,9-time)});
   }
@@ -10616,6 +10623,7 @@ function updateCars(dt,seconds){
           frames:16,base:16*Math.floor(Math.random()*4),alpha:0});
     }
   }
+  const vehicles=traffic.concat(buses);
   for(let n=traffic.length-1;n>=0;n--){
     const car=traffic[n];
     if(car.visit){if(!updateDriveVisit(car,map,dt,seconds))traffic.splice(n,1);continue;}
@@ -10632,7 +10640,7 @@ function updateCars(dt,seconds){
         if(!car.plan || car.plan.road!==next)car.plan=nextSegment(next,s.outDir);
         if(car.plan){
           const exit=car.plan.point(1);
-          const blocked=traffic.concat(buses).some(v=>v!==car &&
+          const blocked=vehicles.some(v=>v!==car &&
             Math.cos(v.angle-exit.angle)>.5 && Math.hypot(v.x-exit.x,v.y-exit.y)<v.half+car.half+.07);
           if(!reserved&&!blocked)car.committed=next.j*N+next.i;
         }
@@ -10640,7 +10648,7 @@ function updateCars(dt,seconds){
       if(car.committed==null)room=Math.max(0,left-.34);
     }
     const fx=Math.cos(car.angle),fy=Math.sin(car.angle);
-    for(const other of traffic.concat(buses)){
+    for(const other of vehicles){
       if(other===car)continue;
       const x=other.x-car.x,y=other.y-car.y,ahead=x*fx+y*fy;
       if(ahead>0 && Math.abs(x*fy-y*fx)<.25 && Math.cos(other.angle-car.angle)>.45)
@@ -10906,12 +10914,18 @@ function render() {
     const d = DEFS[placing.id];
     if (ok && d.rad) poly([P(gi.i - d.rad, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j + d.rad + 1), P(gi.i - d.rad, gi.j + d.rad + 1)], d.poll ? 'rgba(229,59,59,.15)' : 'rgba(62,123,250,.15)', d.poll ? '#E53B3B' : '#7FB2FF', 2);
   }
-  const objs = [];
-  for(const sig of network.signals){
-    const q=P(sig.x,sig.y),pad=32*V.z;
-    if(q.x>=-pad&&q.x<=W+pad&&q.y>=-pad&&q.y<=H+pad)objs.push({...sig,d:vdepth(sig.x,sig.y)});
+  // The network and rotation determine static depth. Reuse these objects
+  // between edits instead of rebuilding every building and lamp every frame.
+  if(network.renderRotation!==ROT){
+    network.renderRotation=ROT;
+    network.renderObjects=[
+      ...network.signals.map(sig=>({...sig,d:vdepth(sig.x,sig.y)})),
+      ...streetLamps.map(lamp=>({lamp,d:vdepth(lamp.x,lamp.y)})),
+      ...network.buildings.map(({i,j,t})=>{const [fx,fy]=fpOf(t.id,t.turned,t.compactHall);
+        return {d:vdepth(i+fx/2,j+fy/2)+(fx+fy-2)*.5,i,j,t};})
+    ].sort((a,b)=>a.d-b.d);
   }
-  for(const lamp of streetLamps)objs.push({lamp,d:vdepth(lamp.x,lamp.y)});
+  const objs = [];
   for(const vehicle of [...traffic,...buses]){
     let depth=vdepth(vehicle.x,vehicle.y)+.04;
     if(vehicle.visit){const r=vehicle.visit.drive,[w,h]=fpOf(r.t.id,r.turn);
@@ -10922,19 +10936,20 @@ function render() {
     objs.push({vehicle,d:depth});
   }
   for(const walker of walkers)objs.push({walker,d:vdepth(walker.x,walker.y)+.015});
-  for(const {i,j,t} of network.buildings){
-    const [fx,fy]=fpOf(t.id,t.turned,t.compactHall);
-    objs.push({d:vdepth(i+fx/2,j+fy/2)+(fx+fy-2)*.5,i,j,t});
-  }
   if (placing && placing.ghost && placing.id !== 'road' && fitsEdit(placing.ghost)) {
     const { i, j } = placing.ghost, [fx, fy] = fpOf(placing.id,placing.turned);
     objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id });
   }
   addNativeObjects(objs,left,right,top,bottom);
   objs.sort((a, b) => a.d - b.d);
+  const ordered=[];let staticIndex=0,dynamicIndex=0;
+  while(staticIndex<network.renderObjects.length||dynamicIndex<objs.length){
+    if(dynamicIndex>=objs.length||(staticIndex<network.renderObjects.length&&network.renderObjects[staticIndex].d<=objs[dynamicIndex].d))ordered.push(network.renderObjects[staticIndex++]);
+    else ordered.push(objs[dynamicIndex++]);
+  }
   hulls = [];
   const signalSeconds=performance.now()/1000;
-  objs.forEach(o => {
+  ordered.forEach(o => {
     if(o.native){drawNativePlot(o.native);return;}
     if(o.animal){drawNativeAnimal(o.animal);return;}
     if(o.lamp){drawStreetLamp(o.lamp,false,strength);return;}
@@ -11267,7 +11282,7 @@ $('#advisor').addEventListener('click',()=>{
 });
 function dot(el, n) { el.hidden = !(n > 0); if (n > 0) setText(el, n > 99 ? '99+' : n); }
 function layoutUI() {
-  const hb = $('#hud').getBoundingClientRect().bottom;
+  const hb = hudBottom = $('#hud').getBoundingClientRect().bottom;
   document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
   $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 10) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
   const nt = $('#nav').getBoundingClientRect().top; const panel = $('#card');
@@ -13041,6 +13056,15 @@ function drawWalker(w){
 }
 
 let simulationAcc = 0;
+const fpsCounter=document.getElementById('fpsCounter');
+let fpsStart=null,fpsFrames=0;
+function sampleFPS(t){
+  if(fpsStart===null){fpsStart=t;fpsFrames=0;return;}
+  fpsFrames++;
+  const elapsed=t-fpsStart;
+  if(elapsed>=1000){fpsCounter.textContent=Math.round(fpsFrames*1000/elapsed)+' fps';fpsStart=t;fpsFrames=0;}
+}
+document.addEventListener('visibilitychange',()=>{fpsStart=null;fpsFrames=0;last=performance.now();});
 function frame(t) {
   lightsOn=lightsOnAt(new Date().getHours());
   const dt = Math.min(.1, (t - last) / 1000); last = t;
@@ -13057,6 +13081,7 @@ function frame(t) {
   }
   pumpRewardPopup();
   render();
+  sampleFPS(t);
   // Keep the pixel focus ring attached to its button during resize and scroll.
 
   if (mg === 'dice') drawBoard(); else if (mg === 'wheel') drawWheel(); else if (mg === 'crates') drawChestScene();
