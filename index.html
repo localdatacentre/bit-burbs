@@ -10814,7 +10814,7 @@ function drawBuilding(i, j, id, turned=tileAt(i,j)?.turned, placed=tileAt(i,j), 
 let badgeHits = [], hulls = [];
 function clearLevelBar(owner, bounds, placed, width, height) {
   if (!owner) return null;
-  const w=21,h=5,gap=5;
+  const w=22,h=15,gap=5;
   const x=Math.round((owner.x0+owner.x1-w)/2);
   if(x<0||x+w>width)return null;
   let y=Math.floor(owner.y0-h-gap);
@@ -11013,17 +11013,19 @@ function render() {
     const d = b.d, t = b.t; if (hideBadges || d.type === 'decor' || d.type === 'hall' || d.type === 'transport') return;
     const a = up(P(b.i + .5, b.j + .5), (d.h || 20) * hFac(t) * V.z + 10); let hit = null;
     const detailed = V.z >= 1.45;
-    if (detailed && canUp(d) && lvlOf(t) > 1) {
+    if (detailed && canUp(d)) {
       const owner=levelBounds.find(h=>h.i===b.i&&h.j===b.j);
       const bar=clearLevelBar(owner,levelBounds,levelBars,W,H);
       if(bar){
         levelBars.push(bar);
-        const c=V.ctx,x=bar.x+1,y=bar.y+1;
-        c.fillStyle='#302b50';c.fillRect(bar.x,bar.y,bar.w,bar.h);
-        for(let n=0;n<UP_MAX;n++){
-          c.fillStyle=n<lvlOf(t)?'#ffdb79':'#625b7c';
-          c.fillRect(x+n*4,y,3,3);
-        }
+        const c=V.ctx,level=Math.max(1,Math.min(UP_MAX,lvlOf(t)));
+        const colours=['#35B9E8','#43C77A','#F0B83A','#D66CEB','#F07863'];
+        c.save();
+        pxBox(c,bar.x,bar.y,bar.w,bar.h,colours[level-1],'#18213D');
+        c.font="400 13px 'VT323', monospace";
+        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#102137';
+        c.fillText('L'+level,bar.x+bar.w/2,bar.y+bar.h/2+.5);
+        c.restore();
       }
     }
     if (!b.ok) hit = badge(a.x, a.y, 'NO ROAD', '#C9434A', '#FFFFFF');
