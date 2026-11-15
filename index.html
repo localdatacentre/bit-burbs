@@ -3,7 +3,7 @@
 <head>
 <script>if(location.pathname==='/beta/play.html')document.write('<base href="/"><link rel="apple-touch-icon" href="/beta/icon-180.png">');</script>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bit-Burbs — Build Your Block</title>
 <meta name="theme-color" content="#172320">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
@@ -39,7 +39,7 @@ body{font-family:'Oswald',ui-rounded,system-ui,-apple-system,'Segoe UI',sans-ser
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ui-deep)}
 button{font:inherit}
 button:focus-visible{outline:3px solid #FFFFFF;outline-offset:2px}
-html,body,body *{touch-action:pan-x pan-y}
+html,body{touch-action:manipulation}
 html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;image-rendering:pixelated;filter:saturate(1.12) contrast(1.05) brightness(1.03)}
 
@@ -2537,7 +2537,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <style>
 #hud .chips{grid-template-columns:repeat(5,minmax(0,1fr))!important}
 #hud #voucherChip{appearance:none;background:transparent;border:0;color:white;font:inherit;cursor:pointer;pointer-events:auto;align-self:stretch}
-</style><style>.city-auth{width:min(360px,90vw);padding:22px;border:1px solid #bfcdc0;border-radius:14px;background:#fff;color:#153829;font:16px/1.4 system-ui}.city-auth::backdrop{background:#13271f99}.city-auth form,.city-auth label{display:grid;gap:8px}.city-auth form{gap:12px}.city-auth h2,.city-auth p{margin:0}.city-auth .hint,.city-auth details{font-size:14px;color:#425749}.city-auth input,.city-auth button{box-sizing:border-box;width:100%;padding:10px;font:inherit;border-radius:7px;border:1px solid #b5c7bb;background:white;color:#153829}.city-auth button.primary{background:#174731;color:white;font-weight:bold}.city-auth [hidden],.city-auth p:empty{display:none}</style></head>
+</style><style>.city-auth{width:min(360px,90vw);padding:22px;border:1px solid #bfcdc0;border-radius:14px;background:#fff;color:#153829;font:16px/1.4 system-ui}.city-auth::backdrop{background:#13271f99}.city-auth form,.city-auth label{display:grid;gap:8px}.city-auth form{gap:12px}.city-auth h2,.city-auth p{margin:0}.city-auth .hint,.city-auth details{font-size:14px;color:#425749}.city-auth input,.city-auth button{box-sizing:border-box;width:100%;padding:10px;font:inherit;border-radius:7px;border:1px solid #b5c7bb;background:white;color:#153829}.city-auth button.primary{background:#174731;color:white;font-weight:bold}.city-auth [hidden],.city-auth p:empty{display:none}@media (pointer:coarse){input,textarea,select{font-size:max(16px,1em)!important}}</style></head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
 
@@ -2609,7 +2609,7 @@ function blockPagePinch(event) {
   if (event.cancelable && (!event.touches || event.touches.length > 1)) event.preventDefault();
 }
 for (const type of ['gesturestart','gesturechange','touchmove']) {
-  document.addEventListener(type, blockPagePinch, {capture:true, passive:false});
+  document.querySelector('canvas#game')?.addEventListener(type, blockPagePinch, {passive:false});
 }
 </script>
 <script>
