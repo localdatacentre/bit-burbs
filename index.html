@@ -8164,7 +8164,7 @@ const oldProfilePrefix='bit-burbs:username:',profilePrefix='bit-burbs:roster2:',
 const rosterReady='bit-burbs:roster2:ready';
 const legacySlot=n=>n===localStorage.getItem('bit-burbs:first-username')?'blocktown-save-v1':oldProfilePrefix+n;
 const localSlot=n=>profilePrefix+n;
-let username='',cityCode='',cityRevision=null,cityConflict=false,cityRequest=null,lastCityPush=0;
+let username='',cityCode='',cityRevision=null,cityConflict=false,cityRequest=null,lastCityPush=0,cityRenaming=false;
 const validName=n=>typeof n==='string'&&/^[a-z0-9_-]{1,24}$/.test(n);
 const randomKey=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
 
@@ -8244,6 +8244,39 @@ function showPasswordChange(){
  };
 }
 
+function copyUsernameSlot(fromName,toName){
+ if(fromName===toName)return;
+ const from=localSlot(fromName),to=localSlot(toName);
+ for(const suffix of ['',':cloud-key',':cloud-revision',':progress-id',':last-sync',':before-cloud-load']){
+  const value=localStorage.getItem(from+suffix);if(value!==null)localStorage.setItem(to+suffix,value);
+ }
+ localStorage.setItem(to+':login-name',toName);
+}
+function showUsernameChange(){
+ if(!username||cityRenaming)return;
+ const d=document.createElement('dialog');d.className='city-auth';
+ d.innerHTML='<form><h2>Change username</h2><p>Your city, buildings, coins and inventory stay with you. Use your new username to log in on another device.</p><label>New username<input name="nextName" required minlength="1" maxlength="24" pattern="[a-zA-Z0-9_-]+" autocomplete="off" autocapitalize="none" spellcheck="false"></label><p>1–24 letters, numbers, underscores or hyphens. Previous usernames stay reserved for your city.</p><button class="pixel-btn primary" type="submit">Save username</button><button class="pixel-btn" type="button" data-cancel>Cancel</button><p role="status" aria-live="polite"></p></form>';
+ document.body.append(d);const form=d.querySelector('form'),field=form.elements.nextName;field.value=username;
+ const close=()=>{if(!cityRenaming){d.close();d.remove()}};d.querySelector('[data-cancel]').onclick=close;d.oncancel=e=>{e.preventDefault();close()};d.showModal();field.focus();field.select();
+ form.onsubmit=async e=>{
+  e.preventDefault();if(cityRenaming)return;
+  const nextName=field.value.trim().toLowerCase(),status=form.querySelector('[role=status]');
+  if(!validName(nextName)){status.textContent='Use 1–24 letters, numbers, underscores or hyphens.';return}
+  if(nextName===username){status.textContent='That is already your username.';return}
+  cityRenaming=true;for(const b of form.querySelectorAll('button'))b.disabled=true;field.disabled=true;
+  try{
+   status.textContent='Saving your city…';S.saved=now();localStorage.setItem(SAVE_KEY,saveJSON());
+   if(!await pushCity(true))throw Error('Your city could not sync. Connect to the internet and try again.');
+   status.textContent='Updating username…';const data=await cityApi({action:'rename',name:username,code:cityCode,nextName});
+   if(!validName(data.name)||data.name!==nextName)throw Error('Could not confirm the new username. Reopen the game before trying again.');
+   // Sync once more to include any game timers that advanced during the request.
+   S.saved=now();localStorage.setItem(SAVE_KEY,saveJSON());await pushCity(true);
+   copyUsernameSlot(username,data.name);localStorage.setItem(localSlot(data.name)+':cloud-key',data.code);localStorage.setItem(lastUser,data.name);
+   cityConflict=true;status.textContent='Username updated. Reopening your city…';location.reload();
+  }catch(err){status.textContent=err.message;cityRenaming=false;for(const b of form.querySelectorAll('button'))b.disabled=false;field.disabled=false;field.focus()}
+ };
+}
+
 async function chooseCity(){
  const d=document.createElement('dialog');d.className='city-auth';
  d.innerHTML='<form><h2>Your city</h2><p>Enter a username to start or continue your city. Choose Log in to open an existing city, or Create city to start with a new username.</p><p>Your progress autosaves. Use the same username to play on another phone, computer or browser.</p><label>Username<input name="user" required maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false"></label><button class="primary" value="open">Log in</button><button value="create">Create city</button><p role="status"></p></form>';
@@ -8255,7 +8288,8 @@ async function chooseCity(){
  const first=!localStorage.getItem(rosterReady);
  const creating=e.submitter?.value==='create';
  const data=await cityApi({action:'username',name,create:creating,fresh:creating});
- const slot=localSlot(name);
+ const resolvedName=validName(data.name)?data.name:name;
+ const slot=localSlot(resolvedName);
  if(first&&creating&&!data.city){
    const oldName=localStorage.getItem('bit-burbs:last-username');
    const source=validName(oldName)?legacySlot(oldName):localStorage.getItem(guestSlot)?guestSlot:'blocktown-save-v1';
@@ -8263,7 +8297,7 @@ async function chooseCity(){
    if(raw){JSON.parse(raw);localStorage.setItem(slot,raw)}
  }
  if(data.city){const old=localStorage.getItem(slot);if(old)localStorage.setItem(slot+':before-cloud-load',old);acceptCity(slot,data)}
- localStorage.setItem(slot+':cloud-key',data.code);localStorage.setItem(slot+':login-name',name);localStorage.setItem(rosterReady,'1');localStorage.setItem(lastUser,name);location.reload();
+ localStorage.setItem(slot+':cloud-key',data.code);localStorage.setItem(slot+':login-name',resolvedName);localStorage.setItem(rosterReady,'1');localStorage.setItem(lastUser,resolvedName);location.reload();
  }catch(err){f.querySelector('[role=status]').textContent=err.message;delete f.dataset.busy}
  };return new Promise(()=>{});
 }
@@ -8278,9 +8312,10 @@ if(namedPlay){
    const remembered=localStorage.getItem(lastUser);
    if(!localStorage.getItem(rosterReady)||!validName(remembered))await chooseCity();
    username=remembered;
-   const slot=localSlot(username),oldCode=localStorage.getItem(slot+':cloud-key');
+   let slot=localSlot(username);const oldCode=localStorage.getItem(slot+':cloud-key');
    try{
      const data=await cityApi({action:'username',name:username,create:true,legacy:oldCode});
+     if(validName(data.name)&&data.name!==username){copyUsernameSlot(username,data.name);username=data.name;slot=localSlot(username);localStorage.setItem(lastUser,username)}
      cityCode=data.code;cityRevision=data.revision||null;
      if(data.city&&(!localStorage.getItem(slot)||localStorage.getItem(slot+':cloud-revision')!==data.revision)){
        const old=localStorage.getItem(slot);if(old)localStorage.setItem(slot+':before-cloud-load',old);acceptCity(slot,data);
@@ -8955,7 +8990,7 @@ function lastSyncLabel(slot){
  return 'Last synced: '+new Date(at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'});
 }
 async function pushCity(force=false){
- if(!namedPlay||!username||(!force&&document.hidden))return false;
+ if(!namedPlay||!username||(!force&&(document.hidden||cityRenaming)))return false;
  if(cityConflict){if(force)toast('Another browser saved. Reopen to load its city.');return false}
  if(cityRequest){if(!force)return cityRequest;await cityRequest;if(cityConflict)return false;return pushCity(true)}
  if(!force&&Date.now()-lastCityPush<10000)return false;
@@ -11678,7 +11713,7 @@ function settingsHTML() {
   if(namedPlay){
     const login=localStorage.getItem(SAVE_KEY+':login-name');
     const display=validName(login)?login:'Guest';
-    h='<div class="sect"><h3>'+display+'</h3><p class="note">'+(username?'Autosaves online':'Saved on this device')+'</p>'+(username?'<p class="note" id="cityLastSync">'+lastSyncLabel(SAVE_KEY)+'</p>':'')+'<button class="pixel-btn pb" data-act="saveCityNow">Save now</button> '+(username?'<button class="pixel-btn pb sm" data-act="switchUsername">Switch account</button> <button class="pixel-btn pb sm" data-act="cityLogout">Log out</button>':'<button class="pixel-btn pb sm" data-act="switchUsername">Log in / Create account</button>')+'</div>';
+    h='<div class="sect"><h3>'+display+'</h3><p class="note">'+(username?'Autosaves online':'Saved on this device')+'</p>'+(username?'<p class="note" id="cityLastSync">'+lastSyncLabel(SAVE_KEY)+'</p>':'')+'<button class="pixel-btn pb" data-act="saveCityNow">Save now</button> '+(username?'<button class="pixel-btn pb sm" data-act="changeUsername">Change username</button> <button class="pixel-btn pb sm" data-act="switchUsername">Switch account</button> <button class="pixel-btn pb sm" data-act="cityLogout">Log out</button>':'<button class="pixel-btn pb sm" data-act="switchUsername">Log in / Create account</button>')+'</div>';
   }
   else if(betaMode)h+='<div class="sect"><h3>Player account</h3><p class="note" id="accountStatus"></p><button class="pixel-btn pb" data-act="accountSave">Save to account</button> <a href="/beta/">My account</a></div>';
   h+=profile;
@@ -11709,6 +11744,7 @@ sheetEl.addEventListener('click', e => {
     if(avatarDraft)renderAvatarCanvases();
     toast('City and profile picture saved on this device.');void reportProgress();void pushCity(true);return;
   }
+  if(a==='changeUsername'&&namedPlay&&username){showUsernameChange();return;}
   if(a==='changePassword'&&namedPlay&&username){showPasswordChange();return;}
   if((a==='switchUsername'||a==='cityLogout')&&namedPlay){
     try{S.saved=now();localStorage.setItem(SAVE_KEY,saveJSON());

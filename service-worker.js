@@ -1,4 +1,4 @@
-const CACHE='bit-burbs-daily-task-pixel-bars';
+const CACHE='bit-burbs-change-username';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
