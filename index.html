@@ -8228,65 +8228,22 @@ function showPasswordChange(){
  };
 }
 
-async function chooseCity(legacy=''){
- const dialog=document.createElement('dialog');dialog.className='city-auth';
- dialog.innerHTML='<form><h2></h2><p class="hint"></p><label>Username<input name="user" autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false" required></label><label>Password<input name="secret" type="password" autocomplete="current-password" maxlength="256" required></label><button class="primary" type="submit"></button><button type="button" data-toggle></button><button type="button" data-guest>Play as guest</button><details><summary>Forgot password?</summary>Ask the beta owner for a reset link using your login username.</details><p role="status"></p></form>';
- document.body.append(dialog);dialog.showModal();dialog.oncancel=e=>e.preventDefault();
- const form=dialog.querySelector('form'),status=form.querySelector('[role=status]'),submit=form.querySelector('[type=submit]'),toggle=form.querySelector('[data-toggle]'),guest=form.querySelector('[data-guest]');
- let mode=legacy?'upgrade':'login';
- function draw(){
-   form.querySelector('h2').textContent=mode==='upgrade'?'Set your password':mode==='login'?'Log in':'Create account';
-   form.querySelector('.hint').textContent=mode==='upgrade'?'Keep your existing city and play it on other devices.':mode==='create'?'Use at least 8 characters. Named city progress appears on the owner’s dashboard.':'Open your saved city.';
-   form.elements.secret.autocomplete=mode==='login'?'current-password':'new-password';
-   form.elements.secret.minLength=mode==='login'?1:8;
-   submit.textContent=mode==='upgrade'?'Save password and play':mode==='login'?'Log in':'Create account';
-   toggle.textContent=mode==='upgrade'?'Use another account':mode==='login'?'Create account':'Back to login';
-   guest.hidden=mode==='upgrade';form.querySelector('details').hidden=mode!=='login';
- }
- form.elements.user.value=legacy||'';form.elements.user.readOnly=!!legacy;draw();
- toggle.onclick=()=>{if(form.dataset.busy)return;if(legacy){localStorage.removeItem(lastUser);location.reload();return}mode=mode==='login'?'create':'login';status.textContent='';draw()};
- guest.onclick=()=>{if(!form.dataset.busy){localStorage.setItem(lastUser,'@guest');location.reload()}};
- form.onsubmit=async e=>{
-  e.preventDefault();if(form.dataset.busy)return;
-  const name=form.elements.user.value.trim().toLowerCase();
-  try{
-   if(!validName(name))throw Error('Use 1–24 letters, numbers, underscores or hyphens.');
-   if(mode!=='upgrade'&&localStorage.getItem(localSlot(name))&&!localStorage.getItem(localSlot(name)+':login-name')){
-     localStorage.setItem(lastUser,name);location.reload();return;
-   }
-   form.dataset.busy='1';status.textContent='Opening city…';
-   let actualName=name,slot=localSlot(name);const password=form.elements.secret.value;
-   if(mode==='upgrade'){
-     const original=localSlot(legacy),code=localStorage.getItem(original+':cloud-key')||randomKey();
-     localStorage.setItem(original+':cloud-key',code);
-     try{await registerLogin(name,password,legacy,code)}catch(err){
-       if(err.status!==409)throw err;
-       const existing=await openLogin(name,password).catch(()=>null);
-       if(!existing||existing.code!==code){form.elements.user.readOnly=false;throw Error('That login is taken. Choose another username for this city.')}
-     }
-     localStorage.setItem(original+':login-name',name);actualName=legacy;
-   }else if(mode==='login'){
-     const account=await openLogin(name,password),code=account.code;actualName=account.name;slot=localSlot(actualName);
-     let data;try{data=await cityApi({action:'open',account:name,name:actualName,code})}catch(err){if(err.status!==404)throw err}
-     if(localStorage.getItem(slot)&&localStorage.getItem(slot+':cloud-key')!==code&&(!data?.progress||localStorage.getItem(slot+':progress-id')!==data.progress))throw Error('A different local city already uses this name in this browser.');
-     if(data&&localStorage.getItem(slot)&&localStorage.getItem(slot+':cloud-revision')!==data.revision)localStorage.setItem(slot+':before-cloud-load',localStorage.getItem(slot));
-     if(data)acceptCity(slot,data);localStorage.setItem(slot+':cloud-key',code);localStorage.setItem(slot+':login-name',name);
-   }else{
-     if(localStorage.getItem(slot))throw Error('This username already has a city here. Choose Log in.');
-     const code=randomKey();await registerLogin(name,password,name,code);
-     let target=slot;
-     if(!localStorage.getItem('bit-burbs:first-username')&&!localStorage.getItem(guestSlot)){
-       localStorage.setItem('bit-burbs:first-username',name);target=localSlot(name);
-     }
-     const guest=sessionStorage.getItem('bit-burbs:link-guest')?localStorage.getItem(guestSlot):null;
-     if(guest)localStorage.setItem(target,guest);
-     localStorage.setItem(target+':cloud-key',code);localStorage.setItem(target+':login-name',name);
-   }
-   sessionStorage.removeItem('bit-burbs:link-guest');localStorage.setItem(lastUser,actualName);location.reload();
-  }catch(err){status.textContent=err.message;delete form.dataset.busy}
- };
- return new Promise(()=>{});
+async function chooseCity(){
+ const d=document.createElement('dialog');d.className='city-auth';
+ d.innerHTML='<form><h2>Your city</h2><label>Username<input name="user" required maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false"></label><button class="primary" value="open">Log in</button><button value="create">Create city</button><p role="status"></p></form>';
+ document.body.append(d);d.showModal();d.oncancel=e=>e.preventDefault();
+ const f=d.querySelector('form');f.onsubmit=async e=>{
+ e.preventDefault();if(f.dataset.busy)return;f.dataset.busy='1';
+ try{
+ const name=f.elements.user.value.trim().toLowerCase();if(!validName(name))throw Error('Use 1–24 letters, numbers, underscores or hyphens.');
+ const data=await cityApi({action:'username',name,create:e.submitter?.value==='create'});
+ const slot=localSlot(name);
+ if(data.city){const old=localStorage.getItem(slot);if(old)localStorage.setItem(slot+':before-cloud-load',old);acceptCity(slot,data)}
+ localStorage.setItem(slot+':cloud-key',data.code);localStorage.setItem(slot+':login-name',name);localStorage.setItem(lastUser,name);location.reload();
+ }catch(err){f.querySelector('[role=status]').textContent=err.message;delete f.dataset.busy}
+ };return new Promise(()=>{});
 }
+
 if(namedPlay){
  try{
    const reset=new URLSearchParams(location.hash.slice(1));
@@ -8295,27 +8252,18 @@ if(namedPlay){
      if(validName(reset.get('user'))&&/^[0-9a-f]{64}$/.test(reset.get('reset')))await resetCityPassword(reset.get('user'),reset.get('reset'));
    }
    const remembered=localStorage.getItem(lastUser);
-   if(remembered!=='@guest'&&!validName(remembered))await chooseCity();
-   if(validName(remembered)){
-     const slot=localSlot(remembered);
-     if(!localStorage.getItem(slot+':login-name'))await chooseCity(remembered);
-     if(!localStorage.getItem(slot+':cloud-key')){localStorage.removeItem(lastUser);await chooseCity()}
-     username=remembered;
-   }
-   if(username){
-     const slot=localSlot(username);cityCode=localStorage.getItem(slot+':cloud-key');
-     if(!cityCode){cityCode=randomKey();localStorage.setItem(slot+':cloud-key',cityCode)}
-     cityRevision=localStorage.getItem(slot+':cloud-revision');
-     if(cityRevision){
-       try{
-         const data=await cityApi({action:'open',name:username,code:cityCode});
-         if(data.revision!==cityRevision||!localStorage.getItem(slot)){
-           const old=localStorage.getItem(slot);if(old)localStorage.setItem(slot+':before-cloud-load',old);
-           acceptCity(slot,data);cityRevision=data.revision;
-         }
-       }catch(err){if(!localStorage.getItem(slot))throw err}
+   if(!validName(remembered))await chooseCity();
+   username=remembered;
+   const slot=localSlot(username),oldCode=localStorage.getItem(slot+':cloud-key');
+   try{
+     const data=await cityApi({action:'username',name:username,create:true,legacy:oldCode});
+     cityCode=data.code;cityRevision=data.revision||null;
+     if(data.city&&(!localStorage.getItem(slot)||localStorage.getItem(slot+':cloud-revision')!==data.revision)){
+       const old=localStorage.getItem(slot);if(old)localStorage.setItem(slot+':before-cloud-load',old);acceptCity(slot,data);
      }
-   }
+     localStorage.setItem(slot+':cloud-key',cityCode);localStorage.setItem(slot+':login-name',username);
+   }catch(err){cityCode=oldCode;cityRevision=localStorage.getItem(slot+':cloud-revision');if(!cityCode||!localStorage.getItem(slot))throw err}
+
  }catch(err){alert('Could not open city: '+err.message);return}
 }
 const SAVE_KEY = namedPlay ? (username?localSlot(username):guestSlot) : betaMode ? accountKey : liveMigrationDemo ? 'blocktown-save-v1' : testCity ? "bit-burbs-full-test-city-v1" : micksDriveDemo ? 'bit-burbs-micks-drive-review' : facilityRoadDemo ? 'bit-burbs-facility-road-review' : remodelDemo ? 'bit-burbs-remodel-demo' : new URLSearchParams(location.search).get('demo') === 'tutorial' ? 'bit-burbs-private-tutorial-test' : 'blocktown-save-v1';
@@ -11705,7 +11653,7 @@ function settingsHTML() {
   if(namedPlay){
     const login=localStorage.getItem(SAVE_KEY+':login-name');
     const display=validName(login)?login:'Guest';
-    h='<div class="sect"><h3>'+display+'</h3><p class="note">'+(username?'Autosaves online':'Saved on this device')+'</p>'+(username?'<p class="note" id="cityLastSync">'+lastSyncLabel(SAVE_KEY)+'</p>':'')+'<button class="pixel-btn pb" data-act="saveCityNow">Save now</button> '+(username?'<button class="pixel-btn pb sm" data-act="switchUsername">Switch account</button> <button class="pixel-btn pb sm" data-act="cityLogout">Log out</button> <button class="pixel-btn pb sm" data-act="changePassword">Change password</button>':'<button class="pixel-btn pb sm" data-act="switchUsername">Log in / Create account</button>')+'</div>';
+    h='<div class="sect"><h3>'+display+'</h3><p class="note">'+(username?'Autosaves online':'Saved on this device')+'</p>'+(username?'<p class="note" id="cityLastSync">'+lastSyncLabel(SAVE_KEY)+'</p>':'')+'<button class="pixel-btn pb" data-act="saveCityNow">Save now</button> '+(username?'<button class="pixel-btn pb sm" data-act="switchUsername">Switch account</button> <button class="pixel-btn pb sm" data-act="cityLogout">Log out</button>':'<button class="pixel-btn pb sm" data-act="switchUsername">Log in / Create account</button>')+'</div>';
   }
   else if(betaMode)h+='<div class="sect"><h3>Player account</h3><p class="note" id="accountStatus"></p><button class="pixel-btn pb" data-act="accountSave">Save to account</button> <a href="/beta/">My account</a></div>';
   h+=profile;
