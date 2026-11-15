@@ -2647,7 +2647,18 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #nav>button.pixel-btn[data-open]{height:36px!important;min-height:36px!important;max-height:36px!important}
 }
 @media(max-width:330px){#hud .hrow{gap:5px}#hud .wm{font-size:14px}#hud #xpCount{font-size:11px}#hud .xp{flex-basis:60px}#hud #clock{font-size:14px}#hud .chip{font-size:16px}#hud .stock-actions{flex-direction:column;gap:3px}#hud .stock-actions button{height:27px!important;min-height:27px!important}}
-</style><style id="fixed-compact-dock">
+</style>
+<style id="bb-boost-and-stock-availability">
+/* Keep the active 2x timer grouped with clock/FPS instead of squeezing the title. */
+#hud .clock-stack{min-width:0;align-items:flex-end}
+#hud #boost:not([hidden]){display:inline-flex!important;align-items:center;justify-content:center;align-self:flex-end;flex:0 0 auto;gap:4px;padding:3px 6px;background:#4a9cdd;border:2px solid #397bb0;border-radius:5px;white-space:nowrap;font:17px/1 'VT323',monospace;box-sizing:border-box}
+#hud #boost .coin-boost-icon{width:17px!important;height:17px!important;flex:0 0 17px}
+#hud #boost b{font:20px/1 'VT323',monospace}
+#hud #boostT{font:16px/1 'VT323',monospace;font-variant-numeric:tabular-nums}
+#hud .stock-actions #rsAll:disabled,#hud .stock-actions #rushAll:disabled{filter:grayscale(1)!important;opacity:.48!important;cursor:not-allowed!important;pointer-events:none!important}
+@media(max-width:370px){#hud #boost:not([hidden]){padding:2px 4px;gap:3px}#hud #boost .coin-boost-icon{width:14px!important;height:14px!important;flex-basis:14px}#hud #boost b{font-size:17px}#hud #boostT{font-size:14px}}
+</style>
+<style id="fixed-compact-dock">
 #nav{height:64px!important;min-height:64px!important;max-height:64px!important;box-sizing:border-box!important;padding-top:10px!important;padding-bottom:10px!important;grid-template-rows:42px!important;align-content:start!important;overflow:visible}
 #nav>button.pixel-btn[data-open]{height:42px!important;min-height:42px!important;max-height:42px!important;align-self:start!important}
 @media(max-height:650px) and (orientation:landscape){#nav{height:50px!important;min-height:50px!important;max-height:50px!important;padding-top:6px!important;padding-bottom:6px!important;grid-template-rows:36px!important}#nav>button.pixel-btn[data-open]{height:36px!important;min-height:36px!important;max-height:36px!important}}
@@ -2660,8 +2671,7 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
     <div class="cname"><b class="wm">BIT-BURBS</b><small style="display:block;font:700 8px/1 monospace;letter-spacing:1px;color:#ffda85">BETA</small><div class="xp-row"><div class="xp" aria-hidden="true"><i id="xpFill"></i></div><span id="xpCount">0/60 XP</span></div></div>
-    <div id="boost" hidden aria-label="Double coin earnings"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><b>2×</b> <span id="boostT"></span></div>
-    <div class="clock-stack"><output id="fpsCounter" aria-label="Rendered frames per second">— fps</output><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
+    <div class="clock-stack"><output id="fpsCounter" aria-label="Rendered frames per second">— fps</output><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div><div id="boost" hidden aria-label="Double coin earnings"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><b>2×</b> <span id="boostT"></span></div></div>
   </div>
   <div class="cpmbar">
     <div class="city-stats">
@@ -11395,8 +11405,9 @@ function updateStockLabel(button,action,cost,empty) {
 function updateHUD() {
   const restockButton=$('#rsAll');
   setText(restockButton,'restock');
-  restockButton.setAttribute('aria-label','Restock businesses');
-  restockButton.disabled=false;
+  const restockAvailable=depotPlan(now()).queue.length>0;
+  restockButton.setAttribute('aria-label',restockAvailable?'Restock businesses':'No businesses need restocking');
+  restockButton.disabled=!restockAvailable;
   const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
   updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
   rushButton.setAttribute('aria-label',rushPrice?'Rush deliveries for '+rushPrice+' dosh':'No deliveries to rush');
