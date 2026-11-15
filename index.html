@@ -5795,6 +5795,66 @@ function clinicSideView(k,turn){
 for(let turn=1;turn<4;turn++)M['clinic-turn'+turn]={fx:1,fy:1,H:46,d:k=>clinicSideView(k,turn)};
 
 civicShop('record','#83566D','#514050','#633B59','SIDE B','record');
+function drawTreadShed(k,turn){
+ const {bounds,groundKit,point}=houseView(k,turn,16,16);
+ const navy={top:'#52626D',L:'#354853',R:'#2C3D47'};
+ function box(x,y,X,Y,z,Z,mat){const [a,b,c,d]=bounds(x,y,X,Y);return k.box(a,b,z,c,d,Z,mat);}
+ const cladding={top:'#888C80',L:'#CECAB5',R:'#ACB0A2'};
+ const metal={top:'#68747A',L:'#52616A',R:'#45515B'};
+ const part=(x,y,X,Y,draw)=>k.add(...bounds(x,y,X,Y),draw);
+ const faces=(w,draw)=>{draw(k.L,turn,w.W);draw(k.Rf,(turn+1)%4,w.D);};
+ groundKit.ground((x,y)=>{
+   if(y>=10.5&&x>=10&&x<15)return y>=11&&Math.floor(y)%3===0?'#BEBBAF':'#D8D3C3';
+   return x<10&&y>6?'#AAAFA9':'#C7C1B2';
+ });
+ // Three separate solids enclose the bay. Sort their vertical faces before the lintel.
+ part(1,1,15,7,()=>{
+   const rear=box(1,1,15,7,0,13,cladding);
+   faces(rear,(face,side,w)=>{
+     if(side===0)k.rect(face,rear,0,0,w-1,12,'#637276');
+     if(side===2){k.door(face,rear,4,5,9,'#677777');exteriorLamp(k,face,rear,12,10);}
+   });
+ });
+ part(1,7,1.75,11,()=>box(1,7,1.75,11,0,13,metal));
+ part(2,7,9,8,()=>{
+   for(const x of [2,8.5])box(x,7, x+.5,8,0,11,metal);
+   for(const z of [1,6]){
+     box(2,7,9,8,z,z+1,{top:'#DAC391',L:'#B6915B',R:'#877553'});
+     const rack=box(2.5,7.1,8.5,7.8,z+1,z+5,{top:'#475056',L:'#505E60',R:'#40494D'});
+     faces(rack,(face,side,w)=>{if(side!==0)return;
+       for(const u of [1,7])['.XX.','X..X','X..X','.XX.'].forEach((row,y)=>
+         [...row].forEach((c,x)=>{if(c==='X')face(rack,u+x,3-y,'#232C31');}));
+     });
+   }
+ });
+ // Reception is a separate volume with a continuous level path to its glazed door.
+ part(9.5,7,15,11,()=>{
+   const entry=box(9.5,7,15,11,0,13,cladding);
+   faces(entry,(face,side,w)=>{
+     if(side===0){
+       k.rect(face,entry,1,0,9,11,'#354851');
+       k.rect(face,entry,2,1,8,10,k.light('#90ADB0','#E1C296'));
+       k.rect(face,entry,2,1,8,2,'#596B70');
+       k.rect(face,entry,2,8,8,8,'#53666C');
+       k.rect(face,entry,7,4,7,6,'#E6D5A9');
+     }
+   });
+ });
+ k.flush();
+ const lintel=box(1,1,15,11,13,19,navy);
+ faces(lintel,(face,side,w)=>{
+   if(side===0)textF(k,face,lintel,Math.floor((w-19)/2),1,'TYRES',k.light('#F7C971','#FFE0A1'));
+   if(side===1)textF(k,face,lintel,Math.floor((w-11)/2),1,'AIR',k.light('#F7C971','#FFE0A1'));
+ });
+ box(1,1,15,11,19,20,{top:'#F4BF62',L:'#DC9F4B',R:'#B88541'});
+ box(1,1,15,11,20,21,navy);
+ for(let y=2;y<11;y+=2)box(1.5,y,14.5,y+.5,21,21.5,navy);
+ k.flush();
+}
+for(let turn=0;turn<4;turn++)M[turn?'factory-turn'+turn:'factory']={
+ fx:1,fy:1,H:40,name:'Tread Shed Tyres',d:k=>drawTreadShed(k,turn)
+};
+
 function drawFlix(k,turn){
  const {bounds,groundKit}=houseView(k,turn,16,16);
  const charcoal={top:'#515358',L:'#35353B',R:'#303036'};
@@ -8160,7 +8220,7 @@ const DEFS = {deliveryDepot:{name:'Delivery Depot',type:'depot',fx:2,fy:2,lvl:1,
   hardware: { name: 'Ironbark Hardware', fx: 3, fy: 2, type: 'shop', cat: 'Retail', cost: 8500, buildCost: 10800, lvl: 5, jobs: 25, staff: 3, rc: 420, earn: 1180, time: 90, h: 26, wall: '#DACFB8', side: '#BAAF98', roof: '#55504A', awn: ['#B0662E', '#EDE4D4'], pw: 3, wa: 1 },
   cinema:   { name: 'Flix Cinemas', type: 'shop', cat: 'Leisure', cost: 15000, buildCost: 21000, lvl: 7, jobs: 48, staff: 4, rc: 800, earn: 2450, time: 120, h: 38, wall: '#BDB7C8', side: '#9D97A8', roof: '#3E3A48', awn: ['#4A3E6E', '#D9C98A'], pw: 4, wa: 2 },
   workshop: { name: 'Patch Repairs', fx: 2, fy: 2, type: 'ind', cost: 2000, lvl: 2, jobs: 7, staff: 3, rate: .9, h: 24, wall: '#D2C0AE', side: '#AE9C8A', roof: '#6B5B4E', pw: 3, wa: 1 },
-  factory:  { name: 'Rivet Works', type: 'ind', cost: 9000, buildCost: 22000, lvl: 6, jobs: 60, staff: 6, rate: 2.6, h: 34, wall: '#B8C1CA', side: '#8E979F', roof: '#4E565E', pw: 6, wa: 2 },
+  factory:  { name: 'Tread Shed Tyres', type: 'ind', cost: 9000, buildCost: 22000, lvl: 6, jobs: 60, staff: 6, rate: 2.6, h: 34, wall: '#B8C1CA', side: '#8E979F', roof: '#4E565E', pw: 6, wa: 2 },
   wind:     { name: 'Wind Turbine', type: 'util', cost: 1200, lvl: 1, supP: 12, h: 52 },
   wtower:   { name: 'Water Tower', type: 'util', cost: 1000, lvl: 1, supW: 12, h: 46 },
   pump:     { name: 'Water Pump', type: 'util', cost: 5000, lvl: 4, supW: 45, h: 20, wall: '#A8DCF0', side: '#7FB3C8', roof: '#3E7B9A' },
@@ -9871,7 +9931,7 @@ const SPR_KEY = {'red-ibis':'micksBurgers','southerly-tower':'southerlyTower','d
   flowers: 'flowers',
 };
 const SPR = new Map();
-const fourSidedModels=new Set(['cinema','books','red-ibis','southerly-tower','dune-keeper-cottage','quay','hall','pelicanLight','sunhouse','fountain','sundrop','civicClock','tidalBaths','space','record','needle','school','town','workshop','hardware','police','fire','orbital-gym','spindleCycles','skyscraper','wtower','gas','clinic','deliveryDepot','house','house2','m3','banksiaDuplex','q1','aptS','aptP','tower','bakery','coffee']);
+const fourSidedModels=new Set(['factory','cinema','books','red-ibis','southerly-tower','dune-keeper-cottage','quay','hall','pelicanLight','sunhouse','fountain','sundrop','civicClock','tidalBaths','space','record','needle','school','town','workshop','hardware','police','fire','orbital-gym','spindleCycles','skyscraper','wtower','gas','clinic','deliveryDepot','house','house2','m3','banksiaDuplex','q1','aptS','aptP','tower','bakery','coffee']);
 function spriteOf(id, turn=0, paint=5) {
  if(id==='wtower' && (Number.isInteger(paint)&&paint>0&&paint<=5)){
   const key='watertower-paint'+paint+(turn?'-turn'+turn:'');
@@ -12144,7 +12204,7 @@ const PRODUCT = {
   cinema: 'Popcorn',
   gas: 'Snacks',
   workshop: 'Repairs',
-  factory: 'Bolts',
+  factory: 'Tyres',
   warehouse: 'Parcels',
   skyscraper: 'Consulting'
 };
