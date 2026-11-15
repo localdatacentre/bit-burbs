@@ -8317,8 +8317,11 @@ if(namedPlay){
      history.replaceState(null,'',location.pathname+location.search);
      if(validName(reset.get('user'))&&/^[0-9a-f]{64}$/.test(reset.get('reset')))await resetCityPassword(reset.get('user'),reset.get('reset'));
    }
-   await chooseCity();
-   const remembered=localStorage.getItem(lastUser);
+   let remembered=localStorage.getItem(lastUser);
+   if(!localStorage.getItem(rosterReady)||!validName(remembered)){
+     await chooseCity();
+     remembered=localStorage.getItem(lastUser);
+   }
    username=remembered;
    let slot=localSlot(username);const oldCode=localStorage.getItem(slot+':cloud-key');
    try{
