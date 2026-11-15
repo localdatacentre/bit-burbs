@@ -1047,3 +1047,8 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #mapctl button.pixel-btn.sq[aria-pressed="true"]{
  --bb-face:#328c79;--bb-top:#68b8a0;--bb-bottom:#246d64;--bb-edge:#184f49;
 }
+
+/* Keep controls immediate without changing map pan/pinch gestures. */
+button,a,input,select,summary{touch-action:manipulation}
+#sheetBody,#mgPanel{contain:layout style}
+#fpsCounter{position:fixed;top:max(3px,env(safe-area-inset-top));right:6px;z-index:110;pointer-events:none;padding:2px 5px;background:#173a42e8;color:#d7f8c7;border:1px solid #709687;font:11px/1.2 monospace;font-variant-numeric:tabular-nums;min-width:56px;text-align:right;border-radius:3px}
