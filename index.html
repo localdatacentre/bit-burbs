@@ -10802,7 +10802,7 @@ function safeVehicleTravel(car,distance){
   return safe;
 }
 function updateCars(dt,seconds){
-  const map=streetMap(),target=Math.min(12,Math.ceil(S.pop/5));
+  const map=streetMap(),target=Math.min(8,Math.ceil(S.pop/6));
   nextCar-=dt;
   if(traffic.length<target && nextCar<=0 && map.starts.length){
     nextCar=2+Math.random()*3;
@@ -10863,6 +10863,11 @@ function updateCars(dt,seconds){
     const requested=Math.min(room,Math.max(0,car.speed)*dt,left);
     const permitted=safeVehicleTravel(car,requested);
     car.travel+=permitted;
+    // Never let a blocked car permanently freeze the road network.
+    // Intersections can legitimately hold for several signal cycles, so only
+    // retire vehicles after a sustained stationary interval.
+    car.stalledFor=permitted<.003 ? (car.stalledFor||0)+dt : 0;
+    if(car.stalledFor>18){traffic.splice(n,1);continue;}
     if(permitted+1e-8<requested)car.speed=0;
     car.alpha=Math.min(1,car.alpha+dt*1.8);
     if(next.arms.length===1)car.alpha=Math.min(car.alpha,Math.max(0,left/.45));
@@ -11161,7 +11166,7 @@ function render() {
     if(o.animal){drawNativeAnimal(o.animal);return;}
     if(o.lamp){drawStreetLamp(o.lamp,false,strength);return;}
     if(o.vehicle){drawVehicle(o.vehicle);return;}
-    if(o.walker)return; // Pedestrians are drawn above model artwork below.
+    if(o.walker){drawWalker(o.walker);return;} // Sort pedestrians with buildings by ground depth.
     if(o.signal){drawJunctionSignal(o,signalSeconds);return;}
     if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost,placing.turned,null); V.ctx.restore(); return; }
     if(placing?.object===o.t && placing.ghost && fitsEdit(placing.ghost))return;
@@ -11174,8 +11179,6 @@ function render() {
     if (sb) hulls.push({ i: o.i, j: o.j, x0: sb.x, x1: sb.x + sb.w, y0: sb.y, y1: sb.groundY, box:sb, multi: true });
     else { const hgt = (d.h || 16) * hFac(o.t) * V.z; const dm = diamond(o.i, o.j); const xs = dm.map(q => q.x), ys = dm.map(q => q.y); hulls.push({ i: o.i, j: o.j, x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys) - hgt, y1: Math.max(...ys) }); }
   });
-  // Keep every pedestrian visible over buildings, fountains and other props.
-  for(const o of ordered)if(o.walker)drawWalker(o.walker);
   lowOut.imageSmoothingEnabled = false; lowOut.clearRect(0, 0, lw, lh); lowOut.drawImage(mid, 0, 0, lw * 2, lh * 2, 0, 0, lw, lh);
   V.ctx = ctx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
   ctx.drawImage(low, 0, 0, lw, lh, 0, 0, lw * PXD, lh * PXD);
