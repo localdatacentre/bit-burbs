@@ -12548,6 +12548,17 @@ function buildCrates() {
   #mg #mgPanel.mg-crates .crate-count{color:#b8cbd1}
   #mg #mgPanel.mg-crates .crate-feature #openBtn{--bb-face:var(--vault-light);--bb-top:#e9f5ef;--bb-bottom:#73999d;--bb-edge:#385c68;width:100%!important;max-width:none!important}
   #mg #mgPanel.mg-crates .crate-notice{height:auto;white-space:normal;color:#eaf3eb;font-size:19px;line-height:1.15}
+  #mg #mgPanel.mg-crates .crate-notice.crate-result{width:100%;display:flex;flex-direction:column;gap:8px;margin-top:9px}
+  #mg #mgPanel.mg-crates .crate-result-title{font:12px/1.4 'Silkscreen',monospace;color:#f3e3a0;text-align:left}
+  #mg #mgPanel.mg-crates .crate-prizes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%}
+  #mg #mgPanel.mg-crates .crate-prizes.single{grid-template-columns:minmax(0,1fr)}
+  #mg #mgPanel.mg-crates .crate-prize{display:flex;min-width:0;align-items:center;gap:7px;background:#1b3441;border:2px solid #3a5664;padding:7px;text-align:left}
+  #mg #mgPanel.mg-crates .crate-prize canvas{width:30px!important;height:30px!important;flex:0 0 30px}
+  #mg #mgPanel.mg-crates .crate-prize-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+  #mg #mgPanel.mg-crates .crate-prize-copy small{font:10px/1.2 'Silkscreen',monospace;color:#b2c8d3}
+  #mg #mgPanel.mg-crates .crate-prize-copy b{font:18px/1.05 'VT323',monospace;color:#f7f6ed;overflow-wrap:anywhere}
+  #mg #mgPanel.mg-crates .crate-prize.bonus{border-color:var(--vault-light)}
+  @media(max-width:350px){#mg #mgPanel.mg-crates .crate-prizes{grid-template-columns:minmax(0,1fr)}}
   #mg #mgPanel.mg-crates .crate-bonus,#mg #mgPanel.mg-crates .odds{background:#182a37;border:0;color:#d4e2e5;text-align:left;padding:12px}
   #mg #mgPanel.mg-crates .odds summary{color:#d9e9ec}#mg #mgPanel.mg-crates .crate-bonus progress{accent-color:#ffc17b}
   </style>
@@ -12556,17 +12567,42 @@ function buildCrates() {
 
   <div class="crate-feature">
     <button class="pixel-btn pb" data-act="openCrate" id="openBtn">Open ${TIER[crateSel]} crate</button>
-    <div class="crate-notice" id="crateMsg" role="status"></div>
+    <div class="crate-notice" id="crateMsg" role="status" aria-live="polite"></div>
   </div>
   <div class="crate-bonus"><span>Gold crate bonus</span><b>${S.wheelPips}/${SPINS_PER_GOLD_CRATE} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_GOLD_CRATE}" aria-label="Spins towards a Gold crate"></progress></div>
   <details class="odds"><summary>${TIER[crateSel]} reward odds</summary>${guaranteed ? '<p>Always inside · '+guaranteed+'</p><p>Plus one bonus</p>' : ''}${odds}</details>`;
   mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 36)));
   mgPanel.querySelectorAll('[data-oic]').forEach(el => { const r = C.table[+el.dataset.oic][2]; el.replaceWith(iconCanvas(rewIconKind(r), r.tier, 22)); });
   mgPanel.querySelectorAll('[data-reward-icon]').forEach(el => el.replaceWith(iconCanvas(el.dataset.rewardIcon, el.dataset.tier, 32)));
-  if (crateReveal) $('#crateMsg').replaceChildren(iconCanvas(rewIconKind(crateReveal.r), crateReveal.r.tier, 24), document.createTextNode(crateReveal.label));
+  if (crateReveal) renderCrateRewardNotice();
   updateCrateUI();
   paintNewIcons();
   drawChestSceneInner($('#chest'), performance.now());
+}
+function renderCrateRewardNotice() {
+  const notice = $('#crateMsg');
+  if (!notice || !crateReveal) return;
+  const rewards = crateReveal.entries || [{r:crateReveal.r,label:crateReveal.label,guaranteed:false}];
+  const title = document.createElement('strong');
+  title.className = 'crate-result-title';
+  title.textContent = 'REWARDS COLLECTED';
+  const grid = document.createElement('div');
+  grid.className = 'crate-prizes' + (rewards.length === 1 ? ' single' : '');
+  for (const reward of rewards) {
+    const cell = document.createElement('div');
+    cell.className = 'crate-prize' + (reward.guaranteed ? '' : ' bonus');
+    const copy = document.createElement('span');
+    copy.className = 'crate-prize-copy';
+    const kind = document.createElement('small');
+    kind.textContent = reward.guaranteed ? 'GUARANTEED' : 'BONUS';
+    const value = document.createElement('b');
+    value.textContent = reward.label;
+    copy.append(kind,value);
+    cell.append(iconCanvas(rewIconKind(reward.r),reward.r.tier,30),copy);
+    grid.append(cell);
+  }
+  notice.classList.add('crate-result');
+  notice.replaceChildren(title,grid);
 }
 function updateCrateUI() {
   if (mg !== 'crates') return;
@@ -12587,8 +12623,8 @@ function finishCrateReveal() {
   mgPanel.classList.add('crate-revealed');
   snd('win');
   buzz(isBig(rew.r) ? [20,35,35] : 18);
+  renderCrateRewardNotice();
   const notice = $('#crateMsg');
-  notice.replaceChildren(iconCanvas(rewIconKind(rew.r), rew.r.tier, 24), document.createTextNode(rew.label));
   if (!reduceMotion) notice.classList.add('reward-in');
   $('#openBtn').textContent = S.crates[crateSel] ? 'Open another ' + TIER[crateSel] + ' crate' : 'No ' + TIER[crateSel] + ' crates left';
   updateCrateUI();
@@ -12672,10 +12708,13 @@ function openCrate() {
   const rewards = drawCrateRewards(C);
   const rew = rewards[rewards.length-1];
   S.crates[tier]--;
-  const label = rewards.map(grant).join(' + '); track('crate'); addXP(10);
+  const labels = rewards.map(grant);
+  const label = labels.join(' + ');
+  const entries = rewards.map((r, i) => ({r, label:labels[i], guaranteed:i < C.guaranteed.length}));
+  track('crate'); addXP(10);
   crateReveal = null;
   crateSceneFrame = -1;
-  crateAnim = { t0: performance.now(), tier, reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, rew: { r: rew, label } };
+  crateAnim = { t0: performance.now(), tier, reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, rew: { r: rew, label, tier, entries } };
   buildCrates();
   snd('open'); buzz(12);
   save();
