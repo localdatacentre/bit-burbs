@@ -10597,8 +10597,9 @@ function serviceBuses(dt){
     if(rear+front<half*2)continue;
     const dock=Math.max(-rear+half,Math.min(front-half,-door));
     const along=dock; // Short service visits fade at the kerb; no route-wide bus movement.
-    buses.push({x:stop.x+.5+stop.sx*.19+stop.dx*along,y:stop.y+.5+stop.sy*.19+stop.dy*along,
-      dir:stop.dir,half,angle:stop.dir*Math.PI/2,base:metro?68:64,frames:4,alpha:Math.min(1,time+4,9-time)});
+    const bus={x:stop.x+.5+stop.sx*.19+stop.dx*along,y:stop.y+.5+stop.sy*.19+stop.dy*along,
+      dir:stop.dir,half,angle:stop.dir*Math.PI/2,base:metro?68:64,frames:4,alpha:Math.min(1,time+4,9-time)};
+    if(vehiclePedestrianClear(bus))buses.push(bus);
   }
 }
 function carSegment(road,inDir,outDir){
@@ -10626,6 +10627,38 @@ function nextSegment(road,inDir){
   if(!exits.length)return null;
   return carSegment(road,inDir,exits[Math.floor(Math.random()*exits.length)]);
 }
+// Shared ground-space clearance for pedestrians, road cars and driveway traffic.
+function pedestrianInsideVehicle(person,vehicle){
+  const dx=person.x-vehicle.x,dy=person.y-vehicle.y;
+  const fx=Math.cos(vehicle.angle),fy=Math.sin(vehicle.angle);
+  const along=Math.abs(dx*fx+dy*fy),across=Math.abs(dx*fy-dy*fx);
+  return along<(vehicle.half||.36)+.085 && across<(vehicle.frames===4?.18:.16)+.065;
+}
+function pedestrianVehicleClear(point){
+  return !traffic.concat(buses).some(v=>pedestrianInsideVehicle(point,v));
+}
+function vehiclePedestrianClear(pose){
+  return !walkers.some(w=>pedestrianInsideVehicle(w,pose));
+}
+function vehicleSweepClear(from,to){
+  const distance=Math.hypot(to.x-from.x,to.y-from.y);
+  let turn=Math.atan2(Math.sin(to.angle-from.angle),Math.cos(to.angle-from.angle));
+  const steps=Math.max(1,Math.ceil((distance+Math.abs(turn)*(from.half||.36))/.025));
+  for(let n=0;n<=steps;n++){
+    const f=n/steps,pose={...to,x:from.x+(to.x-from.x)*f,y:from.y+(to.y-from.y)*f,angle:from.angle+turn*f};
+    if(!vehiclePedestrianClear(pose))return false;
+  }
+  return true;
+}
+function safeVehicleTravel(car,distance){
+  const steps=Math.max(1,Math.ceil(distance/.025));let safe=0,previous=car;
+  for(let n=1;n<=steps;n++){
+    const amount=distance*n/steps,pose={...car,...carPosition({...car,travel:car.travel+amount})};
+    if(!vehicleSweepClear(previous,pose))break;
+    safe=amount;previous=pose;
+  }
+  return safe;
+}
 function updateCars(dt,seconds){
   const map=streetMap(),target=Math.min(12,Math.ceil(S.pop/5));
   nextCar-=dt;
@@ -10636,7 +10669,7 @@ function updateCars(dt,seconds){
     // Enter through a connected arm.
     if(seg && r.arms.includes((seg.inDir+2)%4)){
       const p=seg.point(0);
-      if(!traffic.concat(buses).some(v=>Math.hypot(p.x-v.x,p.y-v.y)<(v.half||.32)+.55))
+      if(vehiclePedestrianClear({...p,half:.36,frames:16})&&!traffic.concat(buses).some(v=>Math.hypot(p.x-v.x,p.y-v.y)<(v.half||.32)+.55))
         traffic.push({...p,seg,travel:0,speed:0,cruise:.63+Math.random()*.13,half:.36,
           frames:16,base:16*Math.floor(Math.random()*4),alpha:0});
     }
@@ -10644,7 +10677,13 @@ function updateCars(dt,seconds){
   const vehicles=traffic.concat(buses);
   for(let n=traffic.length-1;n>=0;n--){
     const car=traffic[n];
-    if(car.visit){if(!updateDriveVisit(car,map,dt,seconds))traffic.splice(n,1);continue;}
+    if(car.visit){
+      const before={...car,visit:{...car.visit}};
+      const keep=updateDriveVisit(car,map,dt,seconds);
+      if(!vehicleSweepClear(before,car)){Object.assign(car,before);car.speed=0;}
+      else if(!keep)traffic.splice(n,1);
+      continue;
+    }
     const s=car.seg,[dx,dy]=directions[s.outDir];
     const next=map.roads.get((s.road.j+dy)*N+s.road.i+dx);
     if(!next || !map.roads.get(s.road.j*N+s.road.i)?.arms.includes(s.outDir)){traffic.splice(n,1);continue;}
@@ -10672,9 +10711,17 @@ function updateCars(dt,seconds){
       if(ahead>0 && Math.abs(x*fy-y*fx)<.25 && Math.cos(other.angle-car.angle)>.45)
         room=Math.min(room,Math.max(0,ahead-car.half-other.half-.07));
     }
+    for(const person of walkers){
+      const px=person.x-car.x,py=person.y-car.y,ahead=px*fx+py*fy;
+      if(ahead>0&&Math.abs(px*fy-py*fx)<.26)
+        room=Math.min(room,Math.max(0,ahead-car.half-.11));
+    }
     const desired=Math.min(car.cruise,Math.sqrt(2*1.5*room));
     car.speed+=Math.max(-1.5*dt,Math.min(.9*dt,desired-car.speed));
-    car.travel+=Math.min(room,Math.max(0,car.speed)*dt);
+    const requested=Math.min(room,Math.max(0,car.speed)*dt,left);
+    const permitted=safeVehicleTravel(car,requested);
+    car.travel+=permitted;
+    if(permitted+1e-8<requested)car.speed=0;
     car.alpha=Math.min(1,car.alpha+dt*1.8);
     if(next.arms.length===1)car.alpha=Math.min(car.alpha,Math.max(0,left/.45));
     if(car.travel>=s.length){
@@ -13012,7 +13059,7 @@ function spawnWalker() {
   startWalker(path);
 }
 function startWalker(path){
-  if(path.length<2 || walkers.some(w=>Math.hypot(w.x-path[0].x,w.y-path[0].y)<.13))return;
+  if(path.length<2 || !pedestrianVehicleClear(path[0]) || walkers.some(w=>Math.hypot(w.x-path[0].x,w.y-path[0].y)<.13))return;
   const p=path[0], routeTiles=new Set();
   for(let k=1;k<path.length;k++){
     const a=path[k-1],b=path[k],steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)*4));
@@ -13045,6 +13092,11 @@ function updateWalkers(dt){
       const a=w.path[w.index-1],b=w.path[w.index];
       const length=Math.hypot(b.x-a.x,b.y-a.y);
       const step=Math.min(remaining,length-w.progress);
+      const nextProgress=w.progress+step,nextTravel=w.travel+step,future=nextProgress/length;
+      const candidate={x:a.x+(b.x-a.x)*future,y:a.y+(b.y-a.y)*future};
+      const futureMargin=.026*Math.min(1,nextTravel/.12,Math.hypot(lastPoint.x-candidate.x,lastPoint.y-candidate.y)/.12);
+      candidate.x+=(b.y-a.y)/length*futureMargin;candidate.y-=(b.x-a.x)/length*futureMargin;
+      if(!pedestrianVehicleClear(candidate)){remaining=0;break;}
       w.progress+=step;w.travel+=step;remaining-=step;
       const f=w.progress/length;
       w.x=a.x+(b.x-a.x)*f;w.y=a.y+(b.y-a.y)*f;
