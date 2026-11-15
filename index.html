@@ -10914,7 +10914,7 @@ function renderCard(force) {
     const t = tileAt(sel.i, sel.j);
     if (!t) {
       if (!inB(sel.i, sel.j)) html = head('Locked land', 'Expand your city from the Town Hall to build here.') + `<div class="row"><button class="pixel-btn pb" data-act="gotoHall">Go to Town Hall</button></div>`;
-      else if(nativeAt(sel.i,sel.j))html=head('Native bushland','Remove this plot to build here. Wildlife moves safely.')+nativeClearHTML();
+      else if(nativeAt(sel.i,sel.j))html=head('Native bushland','Remove this plot to build here.')+nativeClearHTML();
       else html = head('Empty plot','Nothing here yet.') + `<div class="row"><button class="pixel-btn pb" data-act="buildHere">Build</button></div>`;
     } else {
       const b = t._; const d = DEFS[t.id];
