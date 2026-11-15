@@ -1223,6 +1223,13 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 .daily-task-card .daily-progress::after{display:none}
 .daily-progress-step{display:block;min-width:0;height:100%;background:#2d2952;overflow:hidden}
 .daily-progress-step i{display:block;height:100%;background:var(--task-accent)}
+
+/* Compact needs indicator; details stay in the tap-to-open panel. */
+#advisor.pixel-btn{min-height:30px!important;height:30px!important;min-width:44px!important;max-width:64px!important;padding:3px 6px!important;gap:4px}
+#advisor #faceIcon{width:16px!important;height:16px!important}
+#advisor .adv b{font-size:15px!important;line-height:1;white-space:nowrap}
+#advisor .adv small{display:none}
+#advisor[hidden]{display:none!important}
 </style>
 <style>
 /* BIT BURBS / Pocket Pixel UI
@@ -11305,7 +11312,8 @@ function updateHUD() {
   if (lastFace !== 9) { lastFace = 9; const c = $('#faceIcon').getContext('2d'); c.clearRect(0, 0, 56, 56); drawIcon(c, 'info', 28, 28, 56); }
   const count = cityIssues().length;
   const label = count ? 'City needs · ' + count : 'City needs · clear';
-  setText($('#advT'), label);
+  setText($('#advT'), String(count));
+  $('#advisor').hidden=count===0&&!cityNeedsOpen;
   setText($('#advS'), '');
   $('#advisor').setAttribute('aria-label', label);
   $('#advisor').setAttribute('aria-expanded', String(cityNeedsOpen));
