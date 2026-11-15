@@ -8601,6 +8601,19 @@ async function reportProgress(force=false){
    if(!key){key=Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem(keyName,key);}
    const summary={key,username,saved:S.saved,level:S.level,xp:Math.floor(S.xp||0),coins:Math.floor(S.cash),dosh:Math.floor(S.stars||0),residents:S.pop||0,
      placed:S.tiles.reduce((n,t)=>n+Number(!!t&&t.id!=='_occ'),0),bag:S.storedBuildings?.length||0};
+   const buildings=new Map();
+   function countBuilding(tile,location){
+     if(!tile||tile.id==='_occ')return;
+     const level=tile.lvl||1, id=tile.id, group=id+':'+level;
+     if(!buildings.has(group))buildings.set(group,{id,name:DEFS[id]?.name||id,level,placed:0,stored:0});
+     buildings.get(group)[location]++;
+   }
+   S.tiles.forEach(tile=>countBuilding(tile,'placed'));
+   (S.storedBuildings||[]).forEach(tile=>countBuilding(tile,'stored'));
+   summary.details={buildings:[...buildings.values()],resources:[]};
+   for(const [group,values] of Object.entries({Supplies:{dice:S.dice,tickets:S.tickets,deeds:S.deeds},Crates:S.crates,Items:S.items,Shop:S.shopItems})){
+     for(const [name,count] of Object.entries(values||{}))if(Number.isSafeInteger(count)&&count>=0)summary.details.resources.push({group,name,count});
+   }
    const r=await fetch('https://bit-burbs-banksia-playtest.enchantingdish1.chatgpt.site/api/live-progress',{method:'POST',credentials:'omit',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json'},body:JSON.stringify(summary),keepalive:true});
    if(!r.ok)throw Error();if(force)toast('Player dashboard updated.');
  }catch{if(force)toast('City saved locally. Dashboard update will retry.');}
