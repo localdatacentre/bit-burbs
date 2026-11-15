@@ -2659,11 +2659,29 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 @media(max-width:370px){#hud #boost:not([hidden]){padding:2px 4px;gap:3px}#hud #boost .coin-boost-icon{width:14px!important;height:14px!important;flex-basis:14px}#hud #boost b{font-size:17px}#hud #boostT{font-size:14px}}
 </style>
 <style id="fixed-compact-dock">
-/* Slim six-slot dock: reserve iOS home-indicator inset inside the bar, not below it. */
-#nav{height:calc(52px + env(safe-area-inset-bottom,0px))!important;min-height:0!important;max-height:none!important;box-sizing:border-box!important;padding-top:7px!important;padding-bottom:calc(9px + env(safe-area-inset-bottom,0px))!important;grid-template-rows:36px!important;align-content:start!important;overflow:hidden!important;gap:clamp(3px,1vw,7px)!important}
-#nav>button.pixel-btn[data-open]{height:36px!important;min-height:36px!important;max-height:36px!important;align-self:start!important;min-width:0!important}
-#nav .dock-icon{width:clamp(20px,5.2vw,25px)!important;height:clamp(20px,5.2vw,25px)!important;object-fit:contain!important}
-@media(max-height:650px) and (orientation:landscape){#nav{height:calc(44px + env(safe-area-inset-bottom,0px))!important;padding-top:5px!important;padding-bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;grid-template-rows:32px!important}#nav>button.pixel-btn[data-open]{height:32px!important;min-height:32px!important;max-height:32px!important}}
+/* The standalone iOS safe-area can report an oversized bottom inset.
+   Cap only the dock's reserved inset so the home screen has no giant empty footer. */
+#nav{
+  --dock-safe-bottom:clamp(0px,env(safe-area-inset-bottom,0px),22px);
+  height:calc(60px + var(--dock-safe-bottom))!important;
+  min-height:0!important;max-height:none!important;
+  box-sizing:border-box!important;
+  padding-top:8px!important;
+  padding-bottom:calc(10px + var(--dock-safe-bottom))!important;
+  grid-template-rows:42px!important;
+  align-content:start!important;align-items:start!important;
+  overflow:hidden!important;
+  gap:clamp(3px,1vw,7px)!important;
+}
+#nav>button.pixel-btn[data-open]{
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+  align-self:start!important;min-width:0!important;
+}
+#nav .dock-icon{width:24px!important;height:24px!important;object-fit:contain!important}
+@media(max-height:650px) and (orientation:landscape){
+  #nav{height:calc(48px + var(--dock-safe-bottom))!important;padding-top:6px!important;padding-bottom:calc(6px + var(--dock-safe-bottom))!important;grid-template-rows:36px!important}
+  #nav>button.pixel-btn[data-open]{height:36px!important;min-height:36px!important;max-height:36px!important}
+}
 </style></head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
