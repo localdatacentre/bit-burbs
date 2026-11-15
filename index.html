@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bit-Burbs — Build Your Block</title>
-<meta name="theme-color" content="#172320">
+<meta name="theme-color" content="#243b5b">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="Bit-Burbs">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2621,6 +2621,32 @@ html,body{background:#243b5b!important}
 #nav::before,#nav::after{display:none!important}
 #nav>button.pixel-btn[data-open]{height:42px!important;min-height:42px!important;max-height:42px!important}
 body::after{background:#243b5b!important}
+</style><style id="responsive-game-viewport">
+html{width:100%!important;height:100%!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#243b5b}
+body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!important;top:var(--app-top,0px)!important;width:var(--app-width,100vw)!important;height:var(--app-height,100dvh)!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;transform:translateZ(0);background:#243b5b!important}
+#game{inset:0!important;width:100%!important;height:100%!important}
+#hud{left:0!important;right:0!important;top:0!important;width:100%!important;box-sizing:border-box!important;padding-left:max(12px,env(safe-area-inset-left,0px))!important;padding-right:max(12px,env(safe-area-inset-right,0px))!important}
+#nav{left:0!important;right:0!important;bottom:0!important;width:100%!important;max-width:none!important;margin:0!important;border-radius:0!important;padding-left:max(10px,env(safe-area-inset-left,0px))!important;padding-right:max(10px,env(safe-area-inset-right,0px))!important;padding-bottom:max(10px,env(safe-area-inset-bottom,0px))!important}
+#advisor.pixel-btn{left:max(12px,env(safe-area-inset-left,0px))!important}
+#mapctl{right:max(12px,env(safe-area-inset-right,0px))!important}
+#scrim,#mg,#modal{inset:0!important;max-height:100%!important;box-sizing:border-box}
+#sheet{max-height:calc(var(--app-height,100dvh) - var(--main-dock-height,70px) - env(safe-area-inset-top,0px) - 8px)!important}
+#sheet .sbody{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+.city-auth.city-welcome{width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important}
+@media(min-width:800px){#hud>.hrow,#hud>.chips,#hud>.cpmbar{width:min(100%,1100px)!important;margin-inline:auto!important}#nav{padding-inline:max(16px,calc((100% - 660px)/2))!important}}
+@media(max-height:650px) and (orientation:landscape){
+#hud{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px!important;row-gap:4px!important;padding-top:calc(env(safe-area-inset-top,0px) + 5px)!important;padding-bottom:6px!important}
+#hud>.hrow{grid-row:1;grid-column:1;margin:0!important}#hud>.chips{grid-row:1;grid-column:2;margin:0!important;padding:0!important}
+#hud>.cpmbar{grid-row:2;grid-column:1/-1;margin:0!important}
+#hud .city-stats{display:flex!important;flex-wrap:wrap;align-items:center;gap:4px 12px}
+#hud .lvl{width:28px;height:28px;flex-basis:28px}#hud .wm{font-size:15px}
+#hud .cname>small{display:none!important}#hud .clock-stack #clock{font-size:13px}
+#hud .stock-actions button{height:28px!important;min-height:28px!important}
+#mapctl{display:grid!important;grid-template-columns:repeat(2,34px);gap:6px!important}
+#nav{padding-top:6px!important;padding-bottom:max(6px,env(safe-area-inset-bottom,0px))!important}
+#nav>button.pixel-btn[data-open]{height:36px!important;min-height:36px!important;max-height:36px!important}
+}
+@media(max-width:330px){#hud .hrow{gap:5px}#hud .wm{font-size:14px}#hud #xpCount{font-size:11px}#hud .xp{flex-basis:60px}#hud #clock{font-size:14px}#hud .chip{font-size:16px}#hud .stock-actions{flex-direction:column;gap:3px}#hud .stock-actions button{height:27px!important;min-height:27px!important}}
 </style></head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -9814,8 +9840,34 @@ function unrotXY(vx, vy) { return ROT === 0 ? [vx, vy] : ROT === 1 ? [vy, N - vx
 function Pv(vx, vy) { return { x: V.cx + (vx - vy) * (TW / 2) * V.z, y: V.cy + (vx + vy) * (TH / 2) * V.z }; }
 function P(x, y) { const r = rotXY(x, y); return Pv(r[0], r[1]); }
 const vdepth = (x, y) => { const r = rotXY(x, y); return r[0] + r[1]; };
-function resize() { DPR = Math.min(3, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); layoutUI(); }
-function mapMidY() { const top = $('#hud').getBoundingClientRect().bottom; const bot = $('#nav').getBoundingClientRect().top; return (top + bot) / 2; }
+let previousMapMid=null,viewportResizeFrame=0;
+function readGameViewport(){
+  const v=window.visualViewport;
+  return {width:Math.max(1,Math.round(v?.width||window.innerWidth||document.documentElement.clientWidth)),
+    height:Math.max(1,Math.round(v?.height||window.innerHeight||document.documentElement.clientHeight)),
+    left:Math.max(0,v?.offsetLeft||0),top:Math.max(0,v?.offsetTop||0)};
+}
+function resize() {
+  const focus=W&&H?screenToWorld(W/2,previousMapMid??H/2):null;
+  const view=readGameViewport(),style=document.documentElement.style;
+  style.setProperty('--app-width',view.width+'px');style.setProperty('--app-height',view.height+'px');
+  style.setProperty('--app-left',view.left+'px');style.setProperty('--app-top',view.top+'px');
+  DPR=Math.min(3,window.devicePixelRatio||1);W=view.width;H=view.height;
+  const pixelW=Math.round(W*DPR),pixelH=Math.round(H*DPR);
+  if(cv.width!==pixelW||cv.height!==pixelH){cv.width=pixelW;cv.height=pixelH;}
+  layoutUI();
+  if(focus){zoomAnim=null;camAnim=null;centerOn(focus.x,focus.y);}
+  previousMapMid=mapMidY();
+}
+function queueViewportResize(){
+  if(viewportResizeFrame)return;
+  viewportResizeFrame=requestAnimationFrame(()=>{viewportResizeFrame=0;resize();clampCam();});
+}
+function canvasPoint(e){
+  const r=cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};
+}
+function mapMidY() { const top = $('#hud').getBoundingClientRect().bottom; const bot = $('#nav').getBoundingClientRect().top; return (top + bot) / 2 - cv.getBoundingClientRect().top; }
 function centerOn(wx, wy) { const r = rotXY(wx, wy); V.cx = W / 2 - (r[0] - r[1]) * (TW / 2) * V.z; V.cy = mapMidY() - (r[0] + r[1]) * (TH / 2) * V.z; }
 const ZLEVELS = [.15, .2, .25, .35, .5, .7, 1, 1.4, 2, 2.8]; let zoomAnim = null, wheelSnapT = 0, pinchC = null;
 function snapZoom(sx, sy, dir) { camAnim = null; let target; if (dir > 0) target = ZLEVELS.find(z => z > V.z + .01) || ZLEVELS[ZLEVELS.length - 1]; else if (dir < 0) target = [...ZLEVELS].reverse().find(z => z < V.z - .01) || ZLEVELS[0]; else target = ZLEVELS.reduce((a, b) => Math.abs(Math.log(b / V.z)) < Math.abs(Math.log(a / V.z)) ? b : a);
@@ -11193,7 +11245,7 @@ cv.addEventListener('pointerdown', e => {
   zoomAnim = null;
   camAnim = null;
   cv.setPointerCapture(e.pointerId);
-  const point = {x:e.clientX,y:e.clientY};
+  const point = canvasPoint(e);
   pointers.set(e.pointerId, point);
   if(pointers.size===1 && placing?.id==='road' && !placing.source && !placing.stored){
     roadStroke={tail:roadPoint(point),planned:new Set(),tiles:[]};
@@ -11205,7 +11257,7 @@ cv.addEventListener('pointerdown', e => {
 cv.addEventListener('pointermove', e => {
   const prev = pointers.get(e.pointerId);
   if (!prev) return;
-  const cur = {x:e.clientX,y:e.clientY};
+  const cur = canvasPoint(e);
   pointers.set(e.pointerId,cur);
   if (pointers.size > 2) return;
   if (pointers.size === 2) {
@@ -11229,7 +11281,7 @@ function endPtr(e) {
   if (!pointers.delete(e.pointerId)) return;
   const tap = e.type==='pointerup' && !pointers.size && !dragMoved && startPt;
   if(roadStroke && dragMoved && e.type==='pointerup' && placing?.id==='road'){
-    extendRoadStroke(roadPoint({x:e.clientX,y:e.clientY}));
+    extendRoadStroke(roadPoint(canvasPoint(e)));
     if(roadStroke.error){placing.ghost=roadStroke.invalid;toast(roadStroke.error);}
     else{
       for(const {i,j} of roadStroke.tiles)if(!placeAt(i,j,'road',false))break;
@@ -11241,10 +11293,10 @@ function endPtr(e) {
   if (e.type!=='pointerup') dragMoved = true;
   startPt = null;
   resetPinch();
-  if (tap) onTap(e.clientX,e.clientY);
+  if (tap) {const point=canvasPoint(e);onTap(point.x,point.y);}
 }
 for (const type of ['pointerup','pointercancel','lostpointercapture']) cv.addEventListener(type,endPtr);
-cv.addEventListener('wheel', e => { e.preventDefault(); zoomAnim = null; zoomAt(e.deltaY < 0 ? 1.08 : 1 / 1.08, e.clientX, e.clientY); clampCam(); clearTimeout(wheelSnapT); const x = e.clientX, y = e.clientY; wheelSnapT = setTimeout(() => snapZoom(x, y, 0), 160); }, { passive: false });
+cv.addEventListener('wheel', e => { e.preventDefault(); zoomAnim = null; const point=canvasPoint(e); zoomAt(e.deltaY < 0 ? 1.08 : 1 / 1.08, point.x, point.y); clampCam(); clearTimeout(wheelSnapT); const x = point.x, y = point.y; wheelSnapT = setTimeout(() => snapZoom(x, y, 0), 160); }, { passive: false });
 function clampCam() {
   // Let every edge tile reach the usable viewport centre, with room for
   // tall sprites and shoreline panning. The old centre-radius limits cut
@@ -11415,13 +11467,14 @@ $('#advisor').addEventListener('click',()=>{
 });
 function dot(el, n) { el.hidden = !(n > 0); if (n > 0) setText(el, n > 99 ? '99+' : n); }
 function layoutUI() {
-  const hb = hudBottom = $('#hud').getBoundingClientRect().bottom;
+  const origin=cv.getBoundingClientRect().top;
+  const hb = hudBottom = $('#hud').getBoundingClientRect().bottom-origin;
   document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
   $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 12) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
-  const nt = $('#nav').getBoundingClientRect().top; const panel = $('#card');
+  const nt = $('#nav').getBoundingClientRect().top-origin; const panel = $('#card');
   document.documentElement.style.setProperty('--main-dock-height', (H - nt) + 'px');
   panel.style.bottom = (H - nt + 10) + 'px';
-  panel.style.maxHeight = Math.max(140, nt - $('#eyeTool').getBoundingClientRect().bottom - 18) + 'px';
+  panel.style.maxHeight = Math.max(140, nt - ($('#eyeTool').getBoundingClientRect().bottom-origin) - 18) + 'px';
 }
 
 /* ================= info card ================= */
@@ -13526,7 +13579,18 @@ for(const tile of S.tiles){
 })();
 updateSky(true);
 if (LOC.src !== 'gps') askLocation(false);
-addEventListener('resize', () => { resize(); clampCam(); });
+addEventListener('resize',queueViewportResize);
+addEventListener('orientationchange',queueViewportResize);
+addEventListener('pageshow',queueViewportResize);
+document.addEventListener('fullscreenchange',queueViewportResize);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)queueViewportResize();});
+window.visualViewport?.addEventListener('resize',queueViewportResize);
+window.visualViewport?.addEventListener('scroll',queueViewportResize);
+if(typeof ResizeObserver!=='undefined'){
+  const viewportObserver=new ResizeObserver(queueViewportResize);
+  viewportObserver.observe(document.getElementById('hud'));
+  viewportObserver.observe(document.getElementById('nav'));
+}
 let hiddenSince = document.hidden ? now() : 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { hiddenSince = now(); save(); return; }
@@ -13620,6 +13684,6 @@ async function playRemodelDemo() {
 
 <script>
 </script>
-<script>if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));</script>
+<script>if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js",{updateViaCache:"none"}).then(reg=>reg.update()).catch(()=>{}));</script>
 </body>
 </html>
