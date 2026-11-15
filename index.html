@@ -8650,6 +8650,7 @@ async function reportProgress(force=false){
    }
    S.tiles.forEach(tile=>countBuilding(tile,'placed'));
    (S.storedBuildings||[]).forEach(entry=>countBuilding(entry.building||entry,'stored'));
+   summary.portrait=normaliseAvatar(S.avatarPixels).map(pixel=>pixel===0?'00000000':(typeof pixel==='string'?pixel:AVATAR_PALETTE[pixel-1]).slice(1)+'ff').join('');
    summary.details={buildings:[...buildings.values()],resources:[]};
    for(const [group,values] of Object.entries({Supplies:{dice:S.dice,tickets:S.tickets,deeds:S.deeds},Crates:S.crates,Items:S.items,Shop:S.shopItems})){
      for(const [name,count] of Object.entries(values||{}))if(Number.isSafeInteger(count)&&count>=0)summary.details.resources.push({group,name,count});
