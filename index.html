@@ -1230,6 +1230,12 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 #advisor .adv b{font-size:15px!important;line-height:1;white-space:nowrap}
 #advisor .adv small{display:none}
 #advisor[hidden]{display:none!important}
+
+#hud .city-stats{min-width:0;gap:3px}
+#hud #popLbl,#hud #jobsLbl{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 4px;font-size:16px;line-height:1.12}
+#hud #popLbl>span,#hud #jobsLbl>span{white-space:nowrap}
+#hud #popLbl .stat-unit,#hud #jobsLbl .stat-unit{font-size:12px}
+#hud .stat-divider{opacity:.6}
 </style>
 <style>
 /* BIT BURBS / Pocket Pixel UI
@@ -2590,8 +2596,8 @@ body.sheet-open #fpsCounter,body:has(#mg.show) #fpsCounter,body:has(#modal.show)
   </div>
   <div class="cpmbar">
     <div class="city-stats">
-      <span id="popLbl"><span class="stat-value" id="popValue">0</span> <span class="stat-unit">residents</span></span>
-      <span id="jobsLbl"><span class="stat-value" id="jobsValue">0</span> <span class="stat-unit">available jobs</span></span>
+      <span id="popLbl"><span><span class="stat-value" id="employedValue">0</span> <span class="stat-unit">working</span></span><span class="stat-divider">/</span><span><span class="stat-value" id="popValue">0</span> <span class="stat-unit">residents</span></span></span>
+      <span id="jobsLbl"><span><span class="stat-value" id="unemployedValue">0</span> <span class="stat-unit">unemployed</span></span><span class="stat-divider">/</span><span><span class="stat-value" id="jobsValue">0</span> <span class="stat-unit">open jobs</span></span></span>
       <b id="cpmLbl"><span class="stat-value" id="cpmValue">0</span> <span class="stat-unit">coins/min</span></b>
     </div>
     <div class="stock-actions">
@@ -11299,7 +11305,9 @@ function updateHUD() {
   updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
   rushButton.disabled = !rushPrice || S.stars < rushPrice;
   setText($('#voucherCount'), S.restockVouchers || 0);
-  setText(hud.lvl, S.level); setText($('#popValue'), S.pop); setText($('#cpmValue'), fmt(D.cpm || 0));
+  setText(hud.lvl, S.level); setText($('#popValue'), fmt(S.pop));
+  setText($('#employedValue'), fmt(D.employed || 0));
+  setText($('#unemployedValue'), fmt(Math.max(0,S.pop-(D.employed||0)))); setText($('#cpmValue'), fmt(D.cpm || 0));
   const targetXP = need(S.level);
   hud.xp.style.width = Math.min(100, S.xp / targetXP * 100) + '%';
   setText(hud.xpCount, S.xp + '/' + targetXP + ' XP');
@@ -11317,7 +11325,7 @@ function updateHUD() {
   setText($('#advS'), '');
   $('#advisor').setAttribute('aria-label', label);
   $('#advisor').setAttribute('aria-expanded', String(cityNeedsOpen));
-  setText($('#jobsValue'), D.availableJobs || 0);
+  setText($('#jobsValue'), fmt(D.availableJobs || 0));
 
   dot(hud.dotWheel, S.tickets + (now() - S.wheelT >= WHEEL_CD ? 1 : 0));
   dot(hud.dotCrates, S.crates.steel + S.crates.gold + S.crates.diamond + S.crates.premium);
@@ -11367,7 +11375,7 @@ function dot(el, n) { el.hidden = !(n > 0); if (n > 0) setText(el, n > 99 ? '99+
 function layoutUI() {
   const hb = hudBottom = $('#hud').getBoundingClientRect().bottom;
   document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
-  $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 10) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
+  $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 3) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
   const nt = $('#nav').getBoundingClientRect().top; const panel = $('#card');
   document.documentElement.style.setProperty('--main-dock-height', (H - nt) + 'px');
   panel.style.bottom = (H - nt + 10) + 'px';
