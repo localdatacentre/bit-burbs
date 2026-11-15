@@ -8609,7 +8609,7 @@ async function reportProgress(force=false){
      buildings.get(group)[location]++;
    }
    S.tiles.forEach(tile=>countBuilding(tile,'placed'));
-   (S.storedBuildings||[]).forEach(tile=>countBuilding(tile,'stored'));
+   (S.storedBuildings||[]).forEach(entry=>countBuilding(entry.building||entry,'stored'));
    summary.details={buildings:[...buildings.values()],resources:[]};
    for(const [group,values] of Object.entries({Supplies:{dice:S.dice,tickets:S.tickets,deeds:S.deeds},Crates:S.crates,Items:S.items,Shop:S.shopItems})){
      for(const [name,count] of Object.entries(values||{}))if(Number.isSafeInteger(count)&&count>=0)summary.details.resources.push({group,name,count});
