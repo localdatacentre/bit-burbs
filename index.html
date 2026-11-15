@@ -8117,8 +8117,10 @@ function drawDeliveryDepot(k,turn){
     box(x,y,z,x+2.4,y+2,z+3,cardboard);
     box(x+.9,y,z+3,x+1.4,y+2,z+3.3,{top:'#ebd0a0',L:'#cfac7e',R:'#aa875e'});
   }
-  k.add(...bounds(24,23,29,25),()=>{carton(24,23,0);carton(26.6,23,0);carton(25,23,3);});
-  k.add(...bounds(26.8,25.2,29.2,27.2),()=>carton(26.8,25.2,0));
+  // Rear storage keeps the front loading bays and pedestrian door clear.
+  k.add(...bounds(20,.3,27.6,2.3),()=>{
+    carton(20,.3,0);carton(22.6,.3,0);carton(25.2,.3,0);carton(21,.3,3);
+  });
   k.flush();
 }
 for(let turn=0;turn<4;turn++){
