@@ -10881,6 +10881,60 @@ function updateCars(dt,seconds){
     Object.assign(car,carPosition(car));
   }
 }
+/* Warm vehicle lighting. Cached light textures keep the night scene smooth on phones. */
+const vehicleGlowTextures=new Map();
+function vehicleGlowTexture(kind){
+  if(vehicleGlowTextures.has(kind))return vehicleGlowTextures.get(kind);
+  const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
+  const g=canvas.getContext('2d'),head=kind==='head';
+  const halo=g.createRadialGradient(32,32,0,32,32,31);
+  if(head){
+    halo.addColorStop(0,'rgba(255,246,211,.78)');
+    halo.addColorStop(.15,'rgba(255,228,168,.43)');
+    halo.addColorStop(.47,'rgba(255,193,116,.14)');
+  }else{
+    halo.addColorStop(0,'rgba(255,91,72,.72)');
+    halo.addColorStop(.18,'rgba(230,52,49,.33)');
+    halo.addColorStop(.5,'rgba(180,30,40,.11)');
+  }
+  halo.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=halo;g.fillRect(0,0,64,64);
+  vehicleGlowTextures.set(kind,canvas);return canvas;
+}
+function drawVehicleLights(v,front){
+  if(!lightsOn || v.alpha<=0)return;
+  const c=V.ctx,z=V.z;
+  const dx=Math.cos(v.angle),dy=Math.sin(v.angle);
+  const half=v.frames===4?(v.half||.72):.29;
+  const spread=v.frames===4?.13:.095;
+  const extent=front?half*.82:-half*.82;
+  const center=P(v.x+dx*extent,v.y+dy*extent);
+  const ahead=P(v.x+dx*(extent+.2),v.y+dy*(extent+.2));
+  const right=P(v.x-dy*spread,v.y+dx*spread);
+  const left=P(v.x+dy*spread,v.y-dx*spread);
+  const origin=P(v.x,v.y);
+  const sideways={x:(right.x-left.x)*.5,y:(right.y-left.y)*.5};
+  const lensY=center.y-(v.frames===4?5:3)*z;
+  const px=Math.max(.75,z*.85),halo=vehicleGlowTexture(front?'head':'tail');
+  const opacity=c.globalAlpha;
+  c.save();
+  // Diffuse light reaches the road in front, never a solid triangular beam.
+  if(front){
+    const beamX=ahead.x-center.x,beamY=ahead.y-center.y;
+    c.globalAlpha=opacity*.37;
+    c.drawImage(halo,center.x+beamX*.6-12*z,center.y+beamY*.6-6*z,24*z,12*z);
+  }
+  c.globalAlpha=opacity*.8;
+  for(const sign of [-1,1]){
+    const x=center.x+sideways.x*sign,y=lensY+sideways.y*sign;
+    const size=(front?11:9)*z;
+    c.drawImage(halo,x-size/2,y-size/2,size,size);
+    // Crisp pixel centre sits on the vehicle's existing sprite lighting.
+    c.fillStyle=front?'#fff0c9':'#ff7465';
+    c.fillRect(Math.round(x-px/2),Math.round(y-px/2),px,px);
+  }
+  c.restore();
+}
 function drawVehicle(v){
   const c=V.ctx,p=P(v.x,v.y),frames=v.frames;
   const index=(Math.round((v.angle+ROT*Math.PI/2)*frames/(2*Math.PI))%frames+frames)%frames;
@@ -10890,9 +10944,11 @@ function drawVehicle(v){
     c.ellipse(p.x+V.z,p.y+.6*V.z,7.8*V.z,3.3*V.z,0,0,2*Math.PI);c.fill();
   }
   const frame=v.base+index,stage=Math.round(DARK*20),scale=V.z/2;
+  if(lightsOn)drawVehicleLights(v,true);
   if((stage||lightsOn)&&streetArt.naturalWidth){
     c.drawImage(vehicleFrame(frame,stage),p.x-112*scale,p.y-88*scale,224*scale,144*scale);
   }else stampStreetFrame(c,frame,p.x,p.y,scale);
+  if(lightsOn){drawVehicleLights(v,true);drawVehicleLights(v,false);}
   c.restore();
 }
 document.addEventListener('visibilitychange',()=>{serviceClock=null;});
