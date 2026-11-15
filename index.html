@@ -11021,7 +11021,7 @@ function render() {
     if(o.animal){drawNativeAnimal(o.animal);return;}
     if(o.lamp){drawStreetLamp(o.lamp,false,strength);return;}
     if(o.vehicle){drawVehicle(o.vehicle);return;}
-    if(o.walker){drawWalker(o.walker);return;}
+    if(o.walker)return; // Pedestrians are drawn above model artwork below.
     if(o.signal){drawJunctionSignal(o,signalSeconds);return;}
     if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost,placing.turned,null); V.ctx.restore(); return; }
     if(placing?.object===o.t && placing.ghost && fitsEdit(placing.ghost))return;
@@ -11034,6 +11034,8 @@ function render() {
     if (sb) hulls.push({ i: o.i, j: o.j, x0: sb.x, x1: sb.x + sb.w, y0: sb.y, y1: sb.groundY, box:sb, multi: true });
     else { const hgt = (d.h || 16) * hFac(o.t) * V.z; const dm = diamond(o.i, o.j); const xs = dm.map(q => q.x), ys = dm.map(q => q.y); hulls.push({ i: o.i, j: o.j, x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys) - hgt, y1: Math.max(...ys) }); }
   });
+  // Keep every pedestrian visible over buildings, fountains and other props.
+  for(const o of ordered)if(o.walker)drawWalker(o.walker);
   lowOut.imageSmoothingEnabled = false; lowOut.clearRect(0, 0, lw, lh); lowOut.drawImage(mid, 0, 0, lw * 2, lh * 2, 0, 0, lw, lh);
   V.ctx = ctx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = false;
   ctx.drawImage(low, 0, 0, lw, lh, 0, 0, lw * PXD, lh * PXD);
