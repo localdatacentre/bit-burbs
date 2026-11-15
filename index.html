@@ -12541,89 +12541,161 @@ function buyMarket(id) {
   addXP(10); snd('rare'); confetti(24); toast(it.name + ' added to your collectables.'); changed(); save(); buildMarket();
 }
 
-/* ----- crates ----- */
+/* ----- crates: colourful pixel case-opening reel ----- */
+const CRATE_REEL_STYLES="\n#mg #mgPanel.mg-crates{background:#292d51!important;color:#f5f6ff!important;gap:10px!important;--vault-light:#a1eddf}\n#mg #mgPanel.mg-crates .mg-screen-head{background:#343a68!important;border-bottom:3px solid #191d3b!important}\n#mg #mgPanel.mg-crates .vault-stage{position:relative;box-sizing:border-box;width:100%;min-height:166px;max-height:185px;display:grid;place-items:center;overflow:hidden;background:#172438;border:2px solid #52627c;box-shadow:inset 0 4px #233652,inset 0 -4px #101c30}\n#mg #mgPanel.mg-crates .vault-stage #chest{position:relative!important;display:block!important;width:min(314px,100%)!important;height:auto!important;max-height:174px!important;image-rendering:pixelated!important;filter:none!important;transform:none!important;margin:0 auto!important}\n#mg #mgPanel.mg-crates .vault-caption{position:absolute;left:9px;top:8px;z-index:2;pointer-events:none;text-align:left;display:grid;gap:2px}\n#mg #mgPanel.mg-crates .vault-caption strong{font:12px/1.1 'Silkscreen',monospace;text-transform:uppercase;color:#f6f3e9;text-shadow:1px 2px #0b1524}\n#mg #mgPanel.mg-crates .vault-caption small{font:16px/1 'VT323',monospace;color:var(--vault-light);text-shadow:1px 1px #0b1524}\n#mg #mgPanel.mg-crates .crate-shelf{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;width:100%!important;margin:0!important}\n#mg #mgPanel.mg-crates button.crate-slot{--case:#a6d8f2;box-sizing:border-box;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;width:100%!important;min-width:0!important;min-height:83px!important;padding:5px 2px!important;background:#3b446d!important;border:2px solid #596685!important;border-bottom:4px solid #1a2444!important;box-shadow:none!important;color:#f6f7ff!important;transform:none!important}\n#mg #mgPanel.mg-crates button.crate-slot[data-tier=gold]{--case:#ffd66f}\n#mg #mgPanel.mg-crates button.crate-slot[data-tier=diamond]{--case:#60e4f0}\n#mg #mgPanel.mg-crates button.crate-slot[data-tier=premium]{--case:#f6a7ed}\n#mg #mgPanel.mg-crates button.crate-slot[aria-pressed=true]{background:#545a81!important;border-color:var(--case)!important;border-bottom-color:var(--case)!important}\n#mg #mgPanel.mg-crates button.crate-slot:focus-visible{outline:3px solid #ffe67d!important;outline-offset:2px}\n#mg #mgPanel.mg-crates button.crate-slot canvas{display:block;flex:none;grid-row:auto!important;width:33px!important;height:33px!important;margin:0!important;image-rendering:pixelated}\n#mg #mgPanel.mg-crates button.crate-slot b{font:clamp(11px,3vw,14px)/1 'Silkscreen',monospace!important;align-self:center;justify-self:center;text-transform:uppercase;letter-spacing:-.5px;color:#fff!important}\n#mg #mgPanel.mg-crates button.crate-slot .crate-count{font:15px/1 'VT323',monospace!important;color:#cbd6f0!important;align-self:center;justify-self:center}\n#mg #mgPanel.mg-crates .crate-drop-heading{width:100%;display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:3px 0 0;text-align:left;color:#f9f7ff}\n#mg #mgPanel.mg-crates .crate-drop-heading b{font:12px/1 'Silkscreen',monospace}\n#mg #mgPanel.mg-crates .crate-drop-heading small{font:15px/1 'VT323',monospace;color:#b8c5e2}\n#mg #mgPanel.mg-crates .crate-reel-shell{box-sizing:border-box;width:100%;position:relative;isolation:isolate;padding:5px 0;background:#161d37;border:2px solid #52638b;box-shadow:inset 0 4px #0c1530,inset 0 -4px #0c1530;overflow:hidden}\n#mg #mgPanel.mg-crates .crate-reel-viewport{position:relative;box-sizing:border-box;overflow:hidden;width:100%;height:116px}\n#mg #mgPanel.mg-crates .crate-reel-track{display:flex;align-items:stretch;gap:8px;position:absolute;left:0;top:0;width:max-content;height:116px;transform:translate3d(0,0,0)}\n#mg #mgPanel.mg-crates.crate-opening .crate-reel-track{will-change:transform}\n#mg #mgPanel.mg-crates .crate-reel-item{box-sizing:border-box;--drop:#53d6a7;--drop-bg:#28545c;flex:0 0 104px;width:104px;height:116px;padding:6px 5px 7px;background:var(--drop-bg);border:2px solid #223344;border-bottom:5px solid var(--drop);display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:2px;text-align:center}\n#mg #mgPanel.mg-crates .loot-mint{--drop:#57e2ad;--drop-bg:#22515d}\n#mg #mgPanel.mg-crates .loot-blue{--drop:#77baff;--drop-bg:#29477b}\n#mg #mgPanel.mg-crates .loot-violet{--drop:#c297fa;--drop-bg:#514272}\n#mg #mgPanel.mg-crates .loot-pink{--drop:#ff88d3;--drop-bg:#713c6a}\n#mg #mgPanel.mg-crates .loot-gold{--drop:#ffe178;--drop-bg:#71603b}\n#mg #mgPanel.mg-crates .crate-reel-item .crate-reel-art{display:grid;place-items:center;height:53px;min-height:53px;width:100%}\n#mg #mgPanel.mg-crates .crate-reel-item .crate-reel-art canvas{width:43px!important;height:43px!important;image-rendering:pixelated}\n#mg #mgPanel.mg-crates .crate-reel-item .crate-reel-label{font:10px/1.25 'Silkscreen',monospace;color:#fff;letter-spacing:-.6px;overflow-wrap:anywhere}\n#mg #mgPanel.mg-crates .crate-reel-item .crate-reel-rarity{font:14px/1 'VT323',monospace;color:var(--drop);text-transform:uppercase}\n#mg #mgPanel.mg-crates .crate-reel-marker{position:absolute;top:0;bottom:0;left:calc(50% - 2px);width:4px;z-index:2;pointer-events:none;background:#ffe88d;box-shadow:0 0 0 1px #513b36}\n#mg #mgPanel.mg-crates .crate-reel-marker:before{content:'';position:absolute;top:0;left:-8px;border-left:10px solid transparent;border-right:10px solid transparent;border-top:12px solid #ffe88d}\n#mg #mgPanel.mg-crates .crate-reel-marker:after{content:'';position:absolute;bottom:0;left:-8px;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:12px solid #ffe88d}\n#mg #mgPanel.mg-crates .crate-always{box-sizing:border-box;width:100%;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;background:#353b65;border-left:3px solid #7fdfb6;padding:7px 10px;text-align:left}\n#mg #mgPanel.mg-crates .crate-always strong{font:11px 'Silkscreen',monospace;color:#a6f1c9}\n#mg #mgPanel.mg-crates .crate-always span{font:17px 'VT323',monospace;color:#f6f8ff}\n#mg #mgPanel.mg-crates .crate-feature{width:100%!important;display:flex;flex-direction:column;align-items:stretch;gap:5px;margin:0!important}\n#mg #mgPanel.mg-crates .crate-feature #openBtn{--bb-face:#f5bb51;--bb-top:#ffde8b;--bb-bottom:#d59237;--bb-edge:#9b632d;box-sizing:border-box;width:100%!important;max-width:none!important;min-height:48px!important;margin:0!important;color:#332b22!important;font:20px/1 'VT323',monospace!important}\n#mg #mgPanel.mg-crates .crate-feature #openBtn:disabled{opacity:.72}\n#mg #mgPanel.mg-crates .crate-feature #skipCrateBtn{box-sizing:border-box;align-self:center;min-height:28px!important;padding:3px 12px!important;font:16px/1 'VT323',monospace!important;--bb-face:#5a658d;--bb-top:#7d89af;--bb-bottom:#455078;--bb-edge:#30375d}\n#mg #mgPanel.mg-crates #skipCrateBtn[hidden]{display:none!important}\n#mg #mgPanel.mg-crates #crateMsg{font:18px/1.15 'VT323',monospace!important;color:#fff2c1!important;text-align:center;min-height:0!important;display:block!important}\n#mg #mgPanel.mg-crates #crateMsg:empty{display:none!important}\n#mg #mgPanel.mg-crates .crate-results{width:100%;box-sizing:border-box;display:grid;gap:7px;margin:2px 0}\n#mg #mgPanel.mg-crates .crate-results:empty{display:none!important}\n#mg #mgPanel.mg-crates .crate-result-head{text-align:center;font:12px/1.3 'Silkscreen',monospace;color:#ffe27e;letter-spacing:0}\n#mg #mgPanel.mg-crates .crate-result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:6px;width:100%}\n#mg #mgPanel.mg-crates .crate-result-item{--drop:#57e2ad;--drop-bg:#22515d;box-sizing:border-box;display:flex;align-items:center;gap:8px;min-width:0;background:#373e6b;border:2px solid #5a668d;border-left:5px solid var(--drop);padding:7px;text-align:left}\n#mg #mgPanel.mg-crates .crate-result-item.featured{background:#4c456e;border-color:var(--drop)}\n#mg #mgPanel.mg-crates .crate-result-item canvas{width:34px!important;height:34px!important;flex:none;image-rendering:pixelated}\n#mg #mgPanel.mg-crates .crate-result-copy{display:grid;gap:2px;min-width:0}\n#mg #mgPanel.mg-crates .crate-result-copy b{font:11px/1.1 'Silkscreen',monospace;color:var(--drop)}\n#mg #mgPanel.mg-crates .crate-result-copy span{font:17px/1.1 'VT323',monospace;color:#f6f5ff;overflow-wrap:anywhere}\n#mg #mgPanel.mg-crates .crate-results.reward-in{animation:bbCrateRewardSlide .25s ease-out both}\n#mg #mgPanel.mg-crates .crate-bonus{box-sizing:border-box;width:100%!important;margin:2px 0 0;padding:9px 10px!important;background:#3b416d!important;border:2px solid #59658b;color:#f7ebc9!important}\n#mg #mgPanel.mg-crates .crate-bonus progress{height:8px}\n#mg #mgPanel.mg-crates details.odds{box-sizing:border-box;width:100%!important;background:#373e69!important;border:2px solid #59658b!important;color:#e8eaf8!important;padding:9px 10px!important}\n#mg #mgPanel.mg-crates details.odds summary{font:17px/1.1 'VT323',monospace;color:#fff3b6!important;cursor:pointer}\n#mg #mgPanel.mg-crates details.odds .orow{font:16px/1.1 'VT323',monospace}\n#mg #mgPanel.mg-crates details.odds .orow b{font-size:16px}\n@media(max-width:360px){#mg #mgPanel.mg-crates .crate-shelf{gap:3px!important}#mg #mgPanel.mg-crates button.crate-slot b{font-size:10px!important}#mg #mgPanel.mg-crates .vault-stage{min-height:154px}}\n@media(prefers-reduced-motion:reduce){#mg #mgPanel.mg-crates .crate-results.reward-in{animation:none!important}#mg #mgPanel.mg-crates .crate-reel-track{will-change:auto!important}}\n";
 let crateSel = 'steel', crateAnim = null, crateReveal = null;
-function buildCrates() {
-  const C = CRATES[crateSel];
-  mgPanel.style.setProperty('--vault-light',crateDesigns[crateSel].colours[4]);
-  mgPanel.classList.toggle('diamond-chest', crateSel === 'diamond'); mgPanel.classList.toggle('gold-chest', crateSel === 'gold'); mgPanel.classList.toggle('silver-chest', crateSel === 'steel'); mgPanel.classList.toggle('crate-opening', !!crateAnim); mgPanel.classList.toggle('crate-revealed', !!crateReveal);
-  const tiers = Object.keys(CRATES).map(tier => `<button class="pixel-btn crate-slot" data-act="crsel" data-tier="${tier}" aria-pressed="${crateSel === tier}"><span data-tic="${tier}"></span><b>${TIER[tier]}</b><span class="crate-count">${S.crates[tier]} owned</span></button>`).join('');
-  const guaranteed = C.guaranteed.map(r => crateAmountLabel(r)).join(' + ');
-  const odds = C.table.map(([weight, label, r], i) => `<div class="orow"><span data-oic="${i}"></span><span class="oname">${crateAmountLabel(r,label)}</span><b>${weight}%</b></div>`).join('');
-  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">THE VAULT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
-  <style>
-  #mg #mgPanel.mg-crates{background:#0e1924!important;color:#e1edf1;gap:12px!important}
-  #mg #mgPanel.mg-crates .mg-screen-head{background:#172937!important;border-bottom-color:#385060!important}
-  .vault-stage{width:100%;position:relative;isolation:isolate;overflow:hidden;border:1px solid #334b59;box-sizing:border-box;background:#101d28}
-  #mg #mgPanel .vault-stage #chest{width:100%!important;height:auto!important;max-height:none!important;display:block;position:static!important;animation:none!important;transform:none!important;filter:none!important;image-rendering:pixelated;margin:0!important}
-  .vault-caption{position:absolute;top:12px;left:14px;text-align:left;z-index:2;display:grid;gap:4px}
-  .vault-caption strong{font:24px/1 'Silkscreen',monospace;color:#f1f5ef;letter-spacing:-1px}
-  .vault-caption small{font:17px/1 'VT323',monospace;color:var(--vault-light)}
-  #mg #mgPanel.mg-crates .crate-shelf{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
-  #mg #mgPanel.mg-crates .crate-slot{display:flex;flex-direction:column;align-items:center;background:#192b38!important;border-bottom-color:#314654!important;min-height:72px}
-  #mg #mgPanel.mg-crates .crate-slot canvas{width:38px!important;height:38px!important;margin:-4px auto}
-  #mg #mgPanel.mg-crates .crate-slot[aria-pressed=true]{background:#2a3d4c!important;border-bottom-color:var(--vault-light)!important}
-  #mg #mgPanel.mg-crates .crate-count{color:#b8cbd1}
-  #mg #mgPanel.mg-crates .crate-feature #openBtn{--bb-face:var(--vault-light);--bb-top:#e9f5ef;--bb-bottom:#73999d;--bb-edge:#385c68;width:100%!important;max-width:none!important}
-  #mg #mgPanel.mg-crates .crate-notice{height:auto;white-space:normal;color:#eaf3eb;font-size:19px;line-height:1.15}
-  #mg #mgPanel.mg-crates .crate-bonus,#mg #mgPanel.mg-crates .odds{background:#182a37;border:0;color:#d4e2e5;text-align:left;padding:12px}
-  #mg #mgPanel.mg-crates .odds summary{color:#d9e9ec}#mg #mgPanel.mg-crates .crate-bonus progress{accent-color:#ffc17b}
-  </style>
-  <div class="vault-stage"><div class="vault-caption"><strong>${TIER[crateSel]} crate</strong><small>${S.crates[crateSel]} in collection</small></div><canvas id="chest" width="288" height="156" aria-hidden="true"></canvas></div>
-  <div class="crate-shelf">${tiers}</div>
-
-  <div class="crate-feature">
-    <button class="pixel-btn pb" data-act="openCrate" id="openBtn">Open ${TIER[crateSel]} crate</button>
-    <div class="crate-notice" id="crateMsg" role="status"></div>
-  </div>
-  <div class="crate-bonus"><span>Gold crate bonus</span><b>${S.wheelPips}/${SPINS_PER_GOLD_CRATE} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_GOLD_CRATE}" aria-label="Spins towards a Gold crate"></progress></div>
-  <details class="odds"><summary>${TIER[crateSel]} reward odds</summary>${guaranteed ? '<p>Always inside · '+guaranteed+'</p><p>Plus one bonus</p>' : ''}${odds}</details>`;
-  mgPanel.querySelectorAll('[data-tic]').forEach(el => el.replaceWith(iconCanvas('crate', el.dataset.tic, 36)));
-  mgPanel.querySelectorAll('[data-oic]').forEach(el => { const r = C.table[+el.dataset.oic][2]; el.replaceWith(iconCanvas(rewIconKind(r), r.tier, 22)); });
-  mgPanel.querySelectorAll('[data-reward-icon]').forEach(el => el.replaceWith(iconCanvas(el.dataset.rewardIcon, el.dataset.tier, 32)));
-  if (crateReveal) $('#crateMsg').replaceChildren(iconCanvas(rewIconKind(crateReveal.r), crateReveal.r.tier, 24), document.createTextNode(crateReveal.label));
-  updateCrateUI();
-  paintNewIcons();
-  drawChestSceneInner($('#chest'), performance.now());
-}
-function updateCrateUI() {
-  if (mg !== 'crates') return;
-  const owned = S.crates[crateSel];
-  $('#openBtn').disabled = owned < 1 || !!crateAnim;
-  if (!crateAnim && !crateReveal) setText($('#crateMsg'), owned ? '' : 'No ' + TIER[crateSel] + ' crates owned. Try the Lucky Wheel.');
-}
-// A single time-based animation drives the chest; avoid competing CSS shakes,
-// repeated full-size canvas redraws, and duplicate timeout-driven reveals.
 let crateSceneFrame = -1;
 const crateEase = x => { x = Math.max(0, Math.min(1, x)); return 1-Math.pow(1-x,3); };
+function crateRarity(r) {
+  if (r.k === 'crate') return r.tier === 'premium' ? 'gold' : r.tier === 'diamond' ? 'pink' : r.tier === 'gold' ? 'violet' : 'blue';
+  if (r.k === 'cash') return 'mint';
+  if (r.k === 'stars') return 'blue';
+  if (r.k === 'boost' || r.k === 'deed' || r.k === 'voucher') return 'violet';
+  if (r.k === 'ticket') return 'pink';
+  return 'mint';
+}
+function crateRarityName(r) {
+  if (r.k === 'crate' && r.tier === 'premium') return 'MYTHIC';
+  return {mint:'COMMON', blue:'UNCOMMON', violet:'RARE', pink:'EPIC', gold:'MYTHIC'}[crateRarity(r)];
+}
+function crateRewardName(r) {
+  switch(r.k) {
+    case 'cash': return 'COINS';
+    case 'stars': return 'DOSH';
+    case 'deed': return 'DEEDS';
+    case 'boost': return '2X COINS';
+    case 'ticket': return 'WHEEL SPIN';
+    case 'voucher': return 'RESTOCK';
+    case 'crate': return (TIER[r.tier] || 'BONUS') + ' CRATE';
+    default: return 'PRIZE';
+  }
+}
+function cratePreviewReel(tier) {
+  const entries = CRATES[tier].table.map(row => row[2]);
+  return Array.from({length:15},(_,i) => entries[(i+3)%entries.length]);
+}
+function crateReelHTML(rewards) {
+  return rewards.map((r,i) => `<div class="crate-reel-item loot-${crateRarity(r)}"><span class="crate-reel-art" data-reel-icon="${i}"></span><span class="crate-reel-label">${crateRewardName(r)}</span><span class="crate-reel-rarity">${crateRarityName(r)}</span></div>`).join('');
+}
+function paintCrateReel(rewards) {
+  mgPanel.querySelectorAll('[data-reel-icon]').forEach(el => {
+    const r = rewards[Number(el.dataset.reelIcon)];
+    if(r) el.replaceWith(iconCanvas(rewIconKind(r),r.tier,43));
+  });
+}
+function renderCrateResults(result) {
+  const target=$('#crateResults');
+  if(!target) return;
+  const {rewards,labels}=result;
+  target.innerHTML=`<div class="crate-result-head">UNBOXED · ADDED TO YOUR CITY</div><div class="crate-result-grid">${rewards.map((r,i)=>`<div class="crate-result-item loot-${crateRarity(r)} ${i===rewards.length-1?'featured':''}"><span data-result-icon="${i}"></span><span class="crate-result-copy"><b>${crateRewardName(r)}</b><span>${labels[i]}</span></span></div>`).join('')}</div>`;
+  target.querySelectorAll('[data-result-icon]').forEach(el => {
+    const r=rewards[Number(el.dataset.resultIcon)];
+    el.replaceWith(iconCanvas(rewIconKind(r),r.tier,34));
+  });
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches) target.classList.add('reward-in');
+}
+function buildCrates() {
+  const C=CRATES[crateSel];
+  const items=crateAnim?.reel || crateReveal?.reel || cratePreviewReel(crateSel);
+  mgPanel.style.setProperty('--vault-light',crateDesigns[crateSel].colours[4]);
+  mgPanel.classList.toggle('diamond-chest',crateSel==='diamond');
+  mgPanel.classList.toggle('gold-chest',crateSel==='gold');
+  mgPanel.classList.toggle('silver-chest',crateSel==='steel');
+  mgPanel.classList.toggle('crate-opening',!!crateAnim);
+  mgPanel.classList.toggle('crate-revealed',!!crateReveal);
+  const tiers=Object.keys(CRATES).map(tier=>`<button class="pixel-btn crate-slot" data-act="crsel" data-tier="${tier}" aria-pressed="${crateSel===tier}"><span data-tic="${tier}"></span><b>${TIER[tier]}</b><span class="crate-count">${S.crates[tier]} owned</span></button>`).join('');
+  const guaranteed=C.guaranteed.map(r=>crateAmountLabel(r)).join(' + ');
+  const odds=C.table.map(([weight,label,r],i)=>`<div class="orow"><span data-oic="${i}"></span><span class="oname">${crateAmountLabel(r,label)}</span><b>${weight}%</b></div>`).join('');
+  mgPanel.innerHTML=`<style>${CRATE_REEL_STYLES}</style>
+  <div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How crates work"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">THE VAULT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
+  <div class="vault-stage"><div class="vault-caption"><strong>${TIER[crateSel]} crate</strong><small>${S.crates[crateSel]} READY</small></div><canvas id="chest" width="288" height="156" aria-label="${TIER[crateSel]} pixel crate"></canvas></div>
+  <div class="crate-shelf">${tiers}</div>
+  <div class="crate-drop-heading"><b>DROP REEL</b><small>${C.guaranteed.length?'one random bonus':'one random reward'}</small></div>
+  <div class="crate-reel-shell"><div class="crate-reel-viewport" id="crateViewport" aria-hidden="true"><div class="crate-reel-track" id="crateTrack">${crateReelHTML(items)}</div></div><div class="crate-reel-marker" aria-hidden="true"></div></div>
+  ${guaranteed?`<div class="crate-always"><strong>ALWAYS INCLUDED</strong><span>${guaranteed}</span></div>`:''}
+  <div class="crate-feature"><button class="pixel-btn pb" data-act="openCrate" id="openBtn">OPEN ${TIER[crateSel].toUpperCase()} CRATE</button><button class="pixel-btn pb" data-act="skipCrate" id="skipCrateBtn" hidden>Skip animation</button><div class="crate-notice" id="crateMsg" role="status" aria-live="polite"></div><div class="crate-results" id="crateResults"></div></div>
+  <div class="crate-bonus"><span>Gold crate bonus</span><b>${S.wheelPips}/${SPINS_PER_GOLD_CRATE} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_GOLD_CRATE}" aria-label="Spins towards a Gold crate"></progress></div>
+  <details class="odds"><summary>${TIER[crateSel]} drop rates · tap to view</summary>${guaranteed?'<p>Every crate includes: '+guaranteed+'</p><p>Plus one random reward:</p>':''}${odds}</details>`;
+  mgPanel.querySelectorAll('[data-tic]').forEach(el=>el.replaceWith(iconCanvas('crate',el.dataset.tic,33)));
+  mgPanel.querySelectorAll('[data-oic]').forEach(el=>{
+    const r=C.table[Number(el.dataset.oic)][2];
+    el.replaceWith(iconCanvas(rewIconKind(r),r.tier,22));
+  });
+  paintCrateReel(items);
+  if(crateReveal) renderCrateResults(crateReveal);
+  updateCrateUI();
+  paintNewIcons();
+  drawChestSceneInner($('#chest'),performance.now());
+  positionCrateReel(performance.now());
+}
+function positionCrateReel(t) {
+  const view=$('#crateViewport'),track=$('#crateTrack');
+  if(!view||!track||!track.firstElementChild) return;
+  const active=crateAnim||crateReveal;
+  const vw=view.clientWidth;
+  let metrics=active?.metrics;
+  if(!metrics||metrics.vw!==vw) {
+    const cw=track.firstElementChild.offsetWidth;
+    const gap=parseFloat(getComputedStyle(track).gap)||0;
+    const step=cw+gap;
+    const startX=vw/2-cw/2;
+    const winner=active?.winnerIndex??7;
+    metrics={vw,step,startX,endX:startX-winner*step};
+    if(active)active.metrics=metrics;
+  }
+  let x;
+  if(crateAnim){
+    const progress=crateAnim.reduceMotion?1:Math.max(0,Math.min(1,(t-crateAnim.t0)/crateAnim.duration));
+    const eased=1-Math.pow(1-progress,4);
+    x=metrics.startX+(metrics.endX-metrics.startX)*eased;
+    const at=Math.max(0,Math.floor((metrics.startX-x)/metrics.step));
+    if(at>crateAnim.lastTick) {
+      crateAnim.lastTick=at;
+      if(progress<1) snd('tick');
+    }
+  }else if(crateReveal){
+    x=metrics.endX;
+  }else{
+    x=metrics.startX-7*metrics.step;
+  }
+  track.style.transform=`translate3d(${Math.round(x)}px,0,0)`;
+}
+function updateCrateUI() {
+  if(mg!=='crates')return;
+  const owned=S.crates[crateSel]||0;
+  const btn=$('#openBtn'),notice=$('#crateMsg'),skip=$('#skipCrateBtn');
+  if(!btn||!notice)return;
+  btn.disabled=owned<1||!!crateAnim;
+  btn.textContent=crateAnim?'OPENING…':owned>0?(crateReveal?'OPEN ANOTHER '+TIER[crateSel].toUpperCase():'OPEN '+TIER[crateSel].toUpperCase()+' CRATE'):'NO CRATES LEFT';
+  if(skip)skip.hidden=!crateAnim||crateAnim.reduceMotion;
+  if(crateAnim) setText(notice,'Finding your drop…');
+  else if(crateReveal) setText(notice,'Rewards have been added to your city.');
+  else setText(notice,owned?'':'No '+TIER[crateSel]+' crates owned. Earn more from the wheel, tasks or Dosh Shop.');
+}
 function finishCrateReveal() {
-  if (!crateAnim) return;
-  const { rew, reduceMotion } = crateAnim;
-  crateAnim = null;
-  crateReveal = rew;
+  if(!crateAnim)return;
+  const {rew,reduceMotion}=crateAnim;
+  crateAnim=null;
+  crateReveal=rew;
   mgPanel.classList.remove('crate-opening');
   mgPanel.classList.add('crate-revealed');
-  snd('win');
-  buzz(isBig(rew.r) ? [20,35,35] : 18);
-  const notice = $('#crateMsg');
-  notice.replaceChildren(iconCanvas(rewIconKind(rew.r), rew.r.tier, 24), document.createTextNode(rew.label));
-  if (!reduceMotion) notice.classList.add('reward-in');
-  $('#openBtn').textContent = S.crates[crateSel] ? 'Open another ' + TIER[crateSel] + ' crate' : 'No ' + TIER[crateSel] + ' crates left';
+  positionCrateReel(performance.now());
+  renderCrateResults(rew);
+  const big=isBig(rew.r);
+  snd(big?(rew.r.k==='crate'&&['diamond','premium'].includes(rew.r.tier)?'diamond':'rare'):'win');
+  buzz(big?[25,40,40]:18);
+  if(big&&!reduceMotion)confetti(65);
   updateCrateUI();
-  drawChestSceneInner($('#chest'), performance.now());
+  drawChestSceneInner($('#chest'),performance.now());
   changed();
 }
 function drawChestScene() {
   const cvs=$('#chest');
-  if(!cvs || !crateAnim) return;
+  if(!cvs||!crateAnim)return;
   const t=performance.now();
-  if(crateAnim && t-crateAnim.t0 >= (crateAnim.reduceMotion?80:950)){
-    finishCrateReveal();
-    return;
-  }
-  // Pixel art reads best at ~30 fps on mobile; static states need just 6 fps.
-  const interval=crateAnim?33:160;
-  if(crateSceneFrame>=0 && t-crateSceneFrame<interval)return;
+  positionCrateReel(t);
+  if(t-crateAnim.t0>=crateAnim.duration){finishCrateReveal();return;}
+  if(crateSceneFrame>=0&&t-crateSceneFrame<33)return;
   crateSceneFrame=t;
   drawChestSceneInner(cvs,t);
 }
@@ -12631,9 +12703,9 @@ function drawChestSceneInner(cvs,t) {
   const c=cvs.getContext('2d');
   c.clearRect(0,0,288,156);
   const anim = crateAnim;
-  const progress = crateReveal ? 1 : anim && !anim.reduceMotion ? Math.min(1,(t-anim.t0)/950) : 0;
-  const lid = crateEase((progress-.22)/.30);
-  const rise = crateEase((progress-.34)/.52);
+  const progress = crateReveal ? 1 : anim && !anim.reduceMotion ? Math.min(1,(t-anim.t0)/anim.duration) : 0;
+  const lid = crateEase((progress-.73)/.23);
+  const rise = crateReveal ? 1 : 0;
   const accent = crateDesigns[crateSel].colours[4];
   c.imageSmoothingEnabled = false;
   function rect(x,y,w,h,colour) { c.fillStyle=colour; c.fillRect(x,y,w,h); }
@@ -12684,21 +12756,32 @@ function drawChestSceneInner(cvs,t) {
     }
   }
 }
+
 function openCrate() {
-  if (crateAnim) return; const tier = crateSel, C = CRATES[tier];
-  if (S.crates[tier] < 1) { snd('error'); updateCrateUI(); return; }
-  const rewards = drawCrateRewards(C);
-  const rew = rewards[rewards.length-1];
+  if(crateAnim)return;
+  const tier=crateSel,C=CRATES[tier];
+  if((S.crates[tier]||0)<1){snd('error');updateCrateUI();return;}
+  const rewards=drawCrateRewards(C);
+  const winner=rewards[rewards.length-1];
+  const reel=Array.from({length:35},()=>rollReward(C.table));
+  const winnerIndex=29;
+  reel[winnerIndex]=winner;
   S.crates[tier]--;
-  const label = rewards.map(grant).join(' + '); track('crate'); addXP(10);
-  crateReveal = null;
-  crateSceneFrame = -1;
-  crateAnim = { t0: performance.now(), tier, reduceMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, rew: { r: rew, label } };
+  const labels=rewards.map(grant);
+  track('crate');
+  addXP(10);
+  crateReveal=null;
+  crateSceneFrame=-1;
+  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  crateAnim={t0:performance.now(),duration:reduceMotion?80:3800,reduceMotion,tier,lastTick:0,winnerIndex,reel,rew:{r:winner,label:labels.join(' + '),rewards,labels,reel,winnerIndex,tier}};
   buildCrates();
-  snd('open'); buzz(12);
+  snd('crateShake');
+  buzz(12);
   save();
-  setText($('#openBtn'), 'Opening…');
-  updateCrateUI(); changed();
+  changed();
+}
+function skipCrate() {
+  if(crateAnim)finishCrateReveal();
 }
 mgPanel.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
@@ -12707,6 +12790,7 @@ mgPanel.addEventListener('click', e => {
   else if (a === 'spin') spin();
   else if (a === 'crsel') { if (crateAnim) return; snd('tab'); crateSel = b.dataset.tier; crateReveal = null; crateSceneFrame=-1; buildCrates(); }
   else if (a === 'openCrate') openCrate();
+  else if (a === 'skipCrate') skipCrate();
   else if (a === 'buy') buyMarket(b.dataset.id);
   else if (a === 'buyDaily') buyDailyMarket(b.dataset.id);
   else if (a === 'info') showInfo(b.dataset.k);
@@ -13051,7 +13135,7 @@ const INFO = {
   bag: ['My items', ['Buildings moved during a remodel keep their level and can be placed again for free.', 'Your purchased collectables are also available in Build › Collectables.']],
   dice: ['City Dice', ['Tap ROLL to move around the board.', 'You win whatever tile you land on.', 'Green arrows jump you forward, red arrows push you back.', 'The ??? tile gives a mystery prize.', 'You get a free roll every 30 minutes, and you earn more by collecting from shops, homes and industry.']],
   wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'Fill the ticket bar by collecting from your buildings.', 'Every 10 spins wins a free Gold crate.']],
-  crates: ['Crates', ['Select a tier to see its rewards and odds.', 'Opening uses one crate from your collection.', 'Win crates on the Lucky Wheel. Every 10 completed spins also awards a Gold crate.']],
+  crates: ['The Vault', ['Choose a Silver, Gold, Diamond or Premium crate.', 'Opening consumes one crate and spins a colourful reward reel. The prize is selected using the listed drop rates, not by where you tap.', 'Diamond and Premium crates also include the guaranteed prizes listed above the reel.', 'All rewards are awarded immediately and saved, even if you skip the animation.', 'Win crates on the Lucky Wheel. Every 10 spins also awards a Gold crate.']],
   market: ['Dosh Shop', ['New stock every Monday.', 'Each item has limited stock for the week.', 'Spend Dosh, the green notes you earn from tasks, dice, the wheel and crates.', 'Buildings you buy appear in Build › Collectables and your item bag.']],
   build: ['Building', ['Everything needs a road next to it.', 'Most buildings need power and water too: build a Wind Turbine and a Water Tower.', 'Shops need workers, so build homes to bring people in.', 'Tap any building to upgrade it. Levels 4 and 5 need Deeds.']],
   tasks: ['Tasks', ['Finish tasks to win dice, tickets, crates, Dosh and Deeds.', 'When you claim one, a new task appears.', 'Upgrading buildings, restocking and collecting all count.']],
