@@ -10692,11 +10692,10 @@ function dropPassengers(stop){
     let path;
     if(destinations.length){
       const dest=destinations[Math.floor(Math.random()*destinations.length)];
-      path=walkRoute({path:[origin,boarding],kerb:boarding},dest);
+      path=walkRoute({path:[boarding],kerb:boarding},dest);
     }else{
-      // Even a standalone stop has a landing pad on its own lot.
-      path=[origin,{x:x+stop.sx*.12,y:y+stop.sy*.12},
-        {x:x+stop.sx*.26+stop.dx*side*.23,y:y+stop.sy*.26+stop.dy*side*.23}];
+      // No connected kerbside destination: avoid spawning into a lot or road.
+      continue;
     }
     if(path.length>1)startWalker(path);
   }
@@ -10780,7 +10779,8 @@ function pedestrianVehicleClear(point){
   return !traffic.concat(buses).some(v=>pedestrianInsideVehicle(point,v));
 }
 function vehiclePedestrianClear(pose){
-  return !walkers.some(w=>pedestrianInsideVehicle(w,pose));
+  // Pedestrians are constrained to pavement; never immobilise road traffic.
+  return true;
 }
 function vehicleSweepClear(from,to){
   const distance=Math.hypot(to.x-from.x,to.y-from.y);
@@ -10853,12 +10853,7 @@ function updateCars(dt,seconds){
       if(ahead>0 && Math.abs(x*fy-y*fx)<.25 && Math.cos(other.angle-car.angle)>.45)
         room=Math.min(room,Math.max(0,ahead-car.half-other.half-.07));
     }
-    for(const person of walkers){
-      const px=person.x-car.x,py=person.y-car.y,ahead=px*fx+py*fy;
-      if(ahead>0&&Math.abs(px*fy-py*fx)<.26)
-        room=Math.min(room,Math.max(0,ahead-car.half-.11));
-    }
-    const desired=Math.min(car.cruise,Math.sqrt(2*1.5*room));
+     const desired=Math.min(car.cruise,Math.sqrt(2*1.5*room));
     car.speed+=Math.max(-1.5*dt,Math.min(.9*dt,desired-car.speed));
     const requested=Math.min(room,Math.max(0,car.speed)*dt,left);
     const permitted=safeVehicleTravel(car,requested);
@@ -13124,6 +13119,24 @@ let last = performance.now(), uiAcc = 0, saveAcc = 0, skyAcc = 99;
 let walkingGraph = null, walkingKerbs=null, nextWalkerIn = .3;
 let walkingDestinations=[];
 const walkers = [];
+// A pedestrian's ground position must stay on the narrow kerb-side pavement.
+// Never step into road lanes, building plots, parks or the fountain.
+function safeFootpathPoint(x,y){
+  if(!Number.isFinite(x)||!Number.isFinite(y))return false;
+  const i=Math.floor(x),j=Math.floor(y);
+  if(i<0||j<0||i>=N||j>=N||!isRoad(i,j))return false;
+  const fx=x-i,fy=y-j;
+  return fx<=.115||fx>=.885||fy<=.115||fy>=.885;
+}
+function safeFootpathSegment(a,b){
+  const length=Math.hypot(b.x-a.x,b.y-a.y);
+  const steps=Math.max(1,Math.ceil(length/.025));
+  for(let n=0;n<=steps;n++){
+    const t=n/steps;
+    if(!safeFootpathPoint(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t))return false;
+  }
+  return true;
+}
 function makeWalkingGraph() {
   const nodes = new Map(), stops = [];
   function node(x,y) {
@@ -13132,7 +13145,7 @@ function makeWalkingGraph() {
     return nodes.get(key);
   }
   function link(a,b) {
-    if (a===b || a.links.includes(b)) return;
+    if (a===b || a.links.includes(b) || !safeFootpathSegment(a,b)) return;
     a.links.push(b); b.links.push(a);
   }
   const sides=[[0,-1],[1,0],[0,1],[-1,0]];
@@ -13231,7 +13244,9 @@ function walkRoute(from,to){
   for(let n=to.kerb;n!==from.kerb;){
     road.push({x:n.x,y:n.y});n=parent.get(n);
   }
-  const raw=[...from.path,...road.reverse(),...to.path.slice(0,-1).reverse()];
+  // Use kerb nodes exclusively. Doors and internal plot rims are not public
+  // pavement: drawing NPCs there caused clipping through tall models/fountains.
+  const raw=[{x:from.kerb.x,y:from.kerb.y},...road.reverse()];
   const pts=[];
   for(const p of raw)if(!pts.length || Math.hypot(p.x-pts.at(-1).x,p.y-pts.at(-1).y)>.003)pts.push(p);
   // Round small turns inside the footpath.
@@ -13243,6 +13258,7 @@ function walkRoute(from,to){
     rounded.push(p,{x:(p.x+2*b.x+q.x)/4,y:(p.y+2*b.y+q.y)/4},q);
   }
   rounded.push(pts.at(-1));
+  for(let i=1;i<rounded.length;i++)if(!safeFootpathSegment(rounded[i-1],rounded[i]))return [];
   return rounded;
 }
 function spawnWalker() {
@@ -13253,7 +13269,9 @@ function spawnWalker() {
   startWalker(path);
 }
 function startWalker(path){
-  if(path.length<2 || !pedestrianVehicleClear(path[0]) || walkers.some(w=>Math.hypot(w.x-path[0].x,w.y-path[0].y)<.13))return;
+  if(path.length<2 || !path.every(p=>safeFootpathPoint(p.x,p.y))
+    || path.some((p,i)=>i>0&&!safeFootpathSegment(path[i-1],p))
+    || !pedestrianVehicleClear(path[0]) || walkers.some(w=>Math.hypot(w.x-path[0].x,w.y-path[0].y)<.13))return;
   const p=path[0], routeTiles=new Set();
   for(let k=1;k<path.length;k++){
     const a=path[k-1],b=path[k],steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)*4));
@@ -13277,7 +13295,7 @@ function updateWalkers(dt){
   }
   for(let k=walkers.length-1;k>=0;k--){
     const w=walkers[k];
-    if(w.retire){w.alpha=Math.max(0,w.alpha-dt*4);if(!w.alpha)walkers.splice(k,1);continue;}
+    if(w.retire || !safeFootpathPoint(w.x,w.y)){w.alpha=Math.max(0,w.alpha-dt*4);if(!w.alpha)walkers.splice(k,1);continue;}
     const lastPoint=w.path.at(-1);
     const nearEnd=w.index>=w.path.length-2?Math.hypot(w.x-lastPoint.x,w.y-lastPoint.y):1;
     const ease=Math.min(1,.45+5*Math.min(w.travel,nearEnd));
@@ -13290,7 +13308,16 @@ function updateWalkers(dt){
       const candidate={x:a.x+(b.x-a.x)*future,y:a.y+(b.y-a.y)*future};
       const futureMargin=.026*Math.min(1,nextTravel/.12,Math.hypot(lastPoint.x-candidate.x,lastPoint.y-candidate.y)/.12);
       candidate.x+=(b.y-a.y)/length*futureMargin;candidate.y-=(b.x-a.x)/length*futureMargin;
-      if(!pedestrianVehicleClear(candidate)){remaining=0;break;}
+      if(!safeFootpathPoint(candidate.x,candidate.y)
+        || !safeFootpathSegment({x:w.x,y:w.y},candidate)){
+        w.retire=true;remaining=0;break;
+      }
+      if(!pedestrianVehicleClear(candidate)){
+        w.blockedFor=(w.blockedFor||0)+dt;
+        if(w.blockedFor>.8)w.retire=true;
+        remaining=0;break;
+      }
+      w.blockedFor=0;
       w.progress+=step;w.travel+=step;remaining-=step;
       const f=w.progress/length;
       w.x=a.x+(b.x-a.x)*f;w.y=a.y+(b.y-a.y)*f;
