@@ -10940,7 +10940,8 @@ function renderCard(force) {
     }
     if (t && t.id === 'road') html = head('Road', 'Shops, homes and services need a road next to them.') + `<div class="row"><button class="pixel-btn pb red" data-act="demolish">Remove road</button></div>`;
   }
-  if(!cityNeedsOpen&&!pickingMove)html+=nativeClearHTML();
+  const selectedNativePlot=sel&&!placing&&!tileAt(sel.i,sel.j)&&nativeAt(sel.i,sel.j);
+  if(!cityNeedsOpen&&!pickingMove&&!selectedNativePlot)html+=nativeClearHTML();
   card.innerHTML = html; paintNewIcons(); card.classList.toggle('show', !!html); liveCard();
 }
 function managePanel(d){
