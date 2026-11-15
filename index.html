@@ -10906,33 +10906,16 @@ function drawVehicleLights(v,front){
   const c=V.ctx,z=V.z;
   const dx=Math.cos(v.angle),dy=Math.sin(v.angle);
   const half=v.frames===4?(v.half||.72):.29;
-  const spread=v.frames===4?.13:.095;
-  const extent=front?half*.82:-half*.82;
-  const center=P(v.x+dx*extent,v.y+dy*extent);
-  const ahead=P(v.x+dx*(extent+.2),v.y+dy*(extent+.2));
-  const right=P(v.x-dy*spread,v.y+dx*spread);
-  const left=P(v.x+dy*spread,v.y-dx*spread);
-  const origin=P(v.x,v.y);
-  const sideways={x:(right.x-left.x)*.5,y:(right.y-left.y)*.5};
-  const lensY=center.y-(v.frames===4?5:3)*z;
-  const px=Math.max(.75,z*.85),halo=vehicleGlowTexture(front?'head':'tail');
-  const opacity=c.globalAlpha;
+  const extent=(front?1:-1)*half*.8;
+  const centre=P(v.x+dx*extent,v.y+dy*extent);
+  const pool=front?P(v.x+dx*(extent+.22),v.y+dy*(extent+.22)):centre;
+  const halo=vehicleGlowTexture(front?'head':'tail');
   c.save();
-  // Diffuse light reaches the road in front, never a solid triangular beam.
-  if(front){
-    const beamX=ahead.x-center.x,beamY=ahead.y-center.y;
-    c.globalAlpha=opacity*.37;
-    c.drawImage(halo,center.x+beamX*.6-12*z,center.y+beamY*.6-6*z,24*z,12*z);
-  }
-  c.globalAlpha=opacity*.8;
-  for(const sign of [-1,1]){
-    const x=center.x+sideways.x*sign,y=lensY+sideways.y*sign;
-    const size=(front?11:9)*z;
-    c.drawImage(halo,x-size/2,y-size/2,size,size);
-    // Crisp pixel centre sits on the vehicle's existing sprite lighting.
-    c.fillStyle=front?'#fff0c9':'#ff7465';
-    c.fillRect(Math.round(x-px/2),Math.round(y-px/2),px,px);
-  }
+  // Soft road illumination only. The sprite owns the actual lamp pixels;
+  // drawing additional light lenses here made them appear doubled.
+  c.globalAlpha*=front?.42:.29;
+  const width=(front?20:12)*z,height=(front?11:7)*z;
+  c.drawImage(halo,pool.x-width/2,pool.y-height/2,width,height);
   c.restore();
 }
 function drawVehicle(v){
@@ -10944,11 +10927,11 @@ function drawVehicle(v){
     c.ellipse(p.x+V.z,p.y+.6*V.z,7.8*V.z,3.3*V.z,0,0,2*Math.PI);c.fill();
   }
   const frame=v.base+index,stage=Math.round(DARK*20),scale=V.z/2;
-  if(lightsOn)drawVehicleLights(v,true);
+  // Ground glows go behind the existing headlights and taillights, never on top.
+  if(lightsOn){drawVehicleLights(v,true);drawVehicleLights(v,false);}
   if((stage||lightsOn)&&streetArt.naturalWidth){
     c.drawImage(vehicleFrame(frame,stage),p.x-112*scale,p.y-88*scale,224*scale,144*scale);
   }else stampStreetFrame(c,frame,p.x,p.y,scale);
-  if(lightsOn){drawVehicleLights(v,true);drawVehicleLights(v,false);}
   c.restore();
 }
 document.addEventListener('visibilitychange',()=>{serviceClock=null;});
