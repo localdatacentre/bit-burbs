@@ -2565,19 +2565,21 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 <style id="responsive-performance">/* Keep controls immediate without changing map pan/pinch gestures. */
 button,a,input,select,summary{touch-action:manipulation}
 #sheetBody,#mgPanel{contain:layout style}
-#fpsCounter{position:fixed;top:max(3px,env(safe-area-inset-top));right:6px;z-index:110;pointer-events:none;padding:2px 5px;background:#173a42e8;color:#d7f8c7;border:1px solid #709687;font:11px/1.2 monospace;font-variant-numeric:tabular-nums;min-width:56px;text-align:right;border-radius:3px}
+.clock-stack{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+#fpsCounter{position:static;pointer-events:none;display:block;padding:1px 5px;background:#385A81;color:#FFFFFF;border:1px solid #86A9D0;font:11px/1.1 'VT323',monospace;font-variant-numeric:tabular-nums;min-width:43px;text-align:center;border-radius:0;box-shadow:none}
+body.sheet-open #fpsCounter,body:has(#mg.show) #fpsCounter,body:has(#modal.show) #fpsCounter,body:has(dialog[open]) #fpsCounter{display:none!important}
 </style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
 
-<output id="fpsCounter" aria-label="Rendered frames per second">— fps</output>
+
 <header id="hud">
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
     <div class="cname"><b class="wm">BIT-BURBS</b><small style="display:block;font:700 8px/1 monospace;letter-spacing:1px;color:#ffda85">BETA</small><div class="xp-row"><div class="xp" aria-hidden="true"><i id="xpFill"></i></div><span id="xpCount">0/60 XP</span></div></div>
     <div id="boost" hidden aria-label="Double coin earnings"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><b>2×</b> <span id="boostT"></span></div>
-    <div style="display:flex;align-items:center;gap:6px"><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
+    <div class="clock-stack"><output id="fpsCounter" aria-label="Rendered frames per second">— fps</output><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div></div>
   </div>
   <div class="cpmbar">
     <div class="city-stats">
