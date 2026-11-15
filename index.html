@@ -11366,10 +11366,15 @@ sheetEl.addEventListener('click', e => {
   if(a==='avatarCancel'){avatarDraft=null;renderSheet(true);return;}
   if(a==='avatarSave'){S.avatarPixels=normaliseAvatar(avatarDraft);avatarDraft=null;save();sheetKeyVal='';renderSheet(true);toast('Profile picture saved.');return;}
   if(a==='saveCityNow'&&namedPlay){
-    const previous=S.saved;
-    try{S.saved=now();localStorage.setItem(SAVE_KEY,saveJSON());}
-    catch{S.saved=previous;toast('Save failed. Keep the game open and try again.');return;}
-    toast('City saved on this device.');void reportProgress(true);return;
+    const previous=S.saved,previousPicture=S.avatarPixels;
+    try{
+      if(avatarDraft)S.avatarPixels=normaliseAvatar(avatarDraft);
+      S.saved=now();
+      localStorage.setItem(SAVE_KEY,saveJSON());
+    }
+    catch{S.avatarPixels=previousPicture;S.saved=previous;toast('Save failed. Keep the game open and try again.');return;}
+    if(avatarDraft)renderAvatarCanvases();
+    toast('City and profile picture saved on this device.');void reportProgress(true);return;
   }
   if(a==='switchUsername'&&namedPlay){try{S.saved=now();localStorage.setItem(SAVE_KEY,saveJSON());localStorage.removeItem('bit-burbs:last-username');location.reload();}catch{toast('Could not save. Please retry before switching.');}return;}
   if(a==='accountSave'&&betaMode){S.saved=now();const raw=saveJSON();localStorage.setItem(SAVE_KEY,raw);betaSync.sync(raw,true);return;}
