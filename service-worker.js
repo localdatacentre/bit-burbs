@@ -1,5 +1,5 @@
-const CACHE='bit-burbs-v98-library';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./bitburbs-icon.svg','./binlink-streets.png?v=88'];
+const CACHE='bit-burbs-v98-library-wattle';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
