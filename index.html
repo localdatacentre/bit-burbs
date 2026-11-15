@@ -2582,6 +2582,31 @@ button,a,input,select,summary{touch-action:manipulation}
 #fpsCounter{position:static;pointer-events:none;display:block;padding:1px 5px;background:#385A81;color:#FFFFFF;border:1px solid #86A9D0;font:11px/1.1 'VT323',monospace;font-variant-numeric:tabular-nums;min-width:43px;text-align:center;border-radius:0;box-shadow:none}
 body.sheet-open #fpsCounter,body:has(#mg.show) #fpsCounter,body:has(#modal.show) #fpsCounter,body:has(dialog[open]) #fpsCounter{display:none!important}
 </style>
+<style id="approved-home-layout">
+:root{--home-blue:#243b5b;--home-edge:#1a2c46}
+#hud{display:flex!important;flex-direction:column;gap:8px!important;background:var(--home-blue)!important;border:0!important;border-bottom:2px solid var(--home-edge)!important;box-shadow:none!important;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 12px!important}
+#hud .hrow{order:0;gap:9px;align-items:center}
+#hud .lvl{width:34px;height:34px;flex:0 0 34px;font:22px 'VT323',monospace}
+#hud .cname{min-width:0;flex:1}
+#hud .wm{font-family:'Silkscreen',monospace;font-size:19px;letter-spacing:.025em}
+#hud .cname>small{font-family:'VT323',monospace!important;font-size:11px!important;margin:2px 0}
+#hud .xp-row{gap:6px}#hud .xp{flex:0 1 86px;height:6px}#hud #xpCount{font:13px 'VT323',monospace;white-space:nowrap}
+#hud .clock-stack{gap:3px}#hud #clock{padding:3px 6px;font:16px 'VT323',monospace;background:#243b5b;border:1px solid #54708d;border-radius:0;white-space:nowrap}#hud #fpsCounter{background:#243b5b;border-color:#54708d;font-family:'VT323',monospace}
+#hud .chips{order:1;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;border:0!important;background:none!important;padding:5px 0!important;gap:3px!important;justify-items:stretch}
+#hud .chip{background:none!important;border:0!important;box-shadow:none!important;min-width:0;padding:0!important;gap:4px;font:19px 'VT323',monospace;justify-content:center}
+#hud .chip canvas{width:21px!important;height:21px!important;flex-shrink:0}
+#hud .cpmbar{order:2;display:flex;align-items:center;gap:8px;padding:0!important}
+#hud .city-stats{flex:1;min-width:0;gap:3px}#hud #popLbl,#hud #jobsLbl{font:15px/1.1 'VT323',monospace;gap:0 3px}
+#hud #popLbl .stat-unit,#hud #jobsLbl .stat-unit{font-size:12px}#hud #cpmLbl{font:16px/1.1 'VT323',monospace;color:#f2d16d}
+#hud .stock-actions{display:flex!important;gap:6px;flex-shrink:0}
+#hud .stock-actions button{font:15px 'VT323',monospace!important;min-height:32px!important;height:32px!important;min-width:54px;padding:4px 8px!important;white-space:nowrap}
+#nav{background:var(--home-blue)!important;background-image:none!important;border:0!important;border-top:2px solid var(--home-edge)!important;box-shadow:none!important;padding:12px 10px calc(12px + env(safe-area-inset-bottom,0px))!important;gap:6px!important}
+#nav>button.pixel-btn[data-open]{height:44px!important;min-height:44px!important;max-height:44px!important;padding:0!important}
+#nav .dock-icon{width:26px;height:26px}
+#mapctl{right:12px!important;gap:9px!important}#mapctl button.pixel-btn.sq{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+#advisor{left:12px!important}
+@media(max-width:370px){#hud{padding-inline:9px!important}#hud .wm{font-size:16px}#hud .stock-actions{gap:4px}#hud .stock-actions button{min-width:45px;padding-inline:5px!important}#hud #popLbl,#hud #jobsLbl{font-size:14px}#hud #popLbl .stat-unit,#hud #jobsLbl .stat-unit{font-size:11px}#hud .chip{font-size:17px}#hud .chip canvas{width:18px!important;height:18px!important}}
+</style>
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -11299,10 +11324,13 @@ function updateStockLabel(button,action,cost,empty) {
 }
 function updateHUD() {
   const restockButton=$('#rsAll');
-  setText(restockButton,'Restock businesses');
+  setText(restockButton,'restock');
+  restockButton.setAttribute('aria-label','Restock businesses');
   restockButton.disabled=false;
   const rushButton = $('#rushAll'), rushPrice = pendingRush(now()).cost;
   updateStockLabel(rushButton,'Rush',rushPrice,'No deliveries to rush');
+  rushButton.setAttribute('aria-label',rushPrice?'Rush deliveries for '+rushPrice+' dosh':'No deliveries to rush');
+  rushButton.textContent='rush';
   rushButton.disabled = !rushPrice || S.stars < rushPrice;
   setText($('#voucherCount'), S.restockVouchers || 0);
   setText(hud.lvl, S.level); setText($('#popValue'), fmt(S.pop));
@@ -11375,7 +11403,7 @@ function dot(el, n) { el.hidden = !(n > 0); if (n > 0) setText(el, n > 99 ? '99+
 function layoutUI() {
   const hb = hudBottom = $('#hud').getBoundingClientRect().bottom;
   document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
-  $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 3) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
+  $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 12) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
   const nt = $('#nav').getBoundingClientRect().top; const panel = $('#card');
   document.documentElement.style.setProperty('--main-dock-height', (H - nt) + 'px');
   panel.style.bottom = (H - nt + 10) + 'px';
