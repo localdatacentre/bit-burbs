@@ -1214,6 +1214,15 @@ button.pixel-btn[data-act="sound"]{--bb-face:#9553D9;--bb-top:#BA84F5;--bb-botto
 
 
 }
+
+/* Match task segments to the number of actions; large goals use at most 20 chunks. */
+.daily-task-card .daily-progress{
+ display:grid;grid-template-columns:repeat(var(--task-steps,1),minmax(0,1fr));gap:2px;
+ background:var(--p-deep);padding:1px;height:10px;
+}
+.daily-task-card .daily-progress::after{display:none}
+.daily-progress-step{display:block;min-width:0;height:100%;background:#2d2952;overflow:hidden}
+.daily-progress-step i{display:block;height:100%;background:var(--task-accent)}
 </style>
 <style>
 /* BIT BURBS / Pocket Pixel UI
@@ -11754,6 +11763,15 @@ function previewInto(cvs, id) {
     V.ctx = saved.ctx; V.z = saved.z; V.cx = saved.cx; V.cy = saved.cy; DARK = saved.dark;
   }
 }
+function dailyTaskProgress(t) {
+  const target=Math.max(1,Number(t.n)||1),progress=Math.max(0,Math.min(target,Number(t.p)||0));
+  const steps=Math.min(20,Math.ceil(target));
+  const chunks=Array.from({length:steps},(_,i)=>{
+    const fill=Math.max(0,Math.min(100,(progress/target*steps-i)*100));
+    return '<span class="daily-progress-step"><i style="width:'+fill+'%"></i></span>';
+  }).join('');
+  return '<div class="daily-progress" role="progressbar" aria-label="Task progress" aria-valuemin="0" aria-valuemax="'+target+'" aria-valuenow="'+progress+'" style="--task-steps:'+steps+'">'+chunks+'</div>';
+}
 function tasksHTML() {
   const tasks = S.daily || [];
   const complete = tasks.filter(t => t.done).length;
@@ -11761,7 +11779,7 @@ function tasksHTML() {
   tasks.forEach((t,q) => {
     const done = t.p >= t.n;
     const pct = Math.max(0, Math.min(100, Math.round(t.p / t.n * 100)));
-    h += `<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} of ${fmt(t.n)} completed</small></div><span class="daily-reward"><canvas data-icon="${rewIconKind(t.rew)}" ${t.rew.tier ? `data-tier="${t.rew.tier}"` : ''} width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><b>${rewAmt(t.rew)}</b></span></div><div class="daily-progress"><i style="width:${pct}%"></i></div><button class="pixel-btn pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done || !done ? 'disabled' : ''}>${t.done ? 'REWARD CLAIMED' : done ? 'COLLECT REWARD' : 'IN PROGRESS'}</button></div>`;
+    h += `<div class="daily-task-card task-col-${q%5}"><div class="daily-task-top"><div class="daily-task-copy"><b>${t.text}</b><small>${fmt(t.p)} of ${fmt(t.n)} completed</small></div><span class="daily-reward"><canvas data-icon="${rewIconKind(t.rew)}" ${t.rew.tier ? `data-tier="${t.rew.tier}"` : ''} width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas><b>${rewAmt(t.rew)}</b></span></div>${dailyTaskProgress(t)}<button class="pixel-btn pb sm daily-claim" data-act="dclaim" data-k="${q}" ${t.done || !done ? 'disabled' : ''}>${t.done ? 'REWARD CLAIMED' : done ? 'COLLECT REWARD' : 'IN PROGRESS'}</button></div>`;
   });
   h += `</div>`;
   return h;
