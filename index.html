@@ -8526,7 +8526,7 @@ function seedFullTestCity(){
 function newGame() {
   return Object.assign(baseState(),{
     island:'banksia-bay',cash:8000,pop:0,lo:0,
-    tut:null,tutDone:true,firstRun:false,welcomeBonus:true
+    tut:null,tutDone:true,firstRun:false,welcomeBonus:true,migrationVersion:1
   });
 }
 
@@ -8587,7 +8587,7 @@ function relocateLiveCity(old) {
     tiles:Array(BAY_SIZE*BAY_SIZE).fill(null),
     storedBuildings:bag,
     returningResidents:Math.max(0,Math.floor(old.pop||0)),pop:0,
-    firstRun:false,tut:null,tutDone:true,foundingGrant:false,
+    firstRun:false,tut:null,tutDone:true,foundingGrant:false,migrationVersion:1,
     bagUnread:bag.length>0,bagPopupPending:bag.length,
     betaRelocation:{bonus:500000,count:bag.length,sourceVersion:old.v},
     saved:now()
@@ -8607,7 +8607,8 @@ function load() {
     if(raw){
       const d=JSON.parse(raw);
       if(d&&Array.isArray(d.tiles)&&(d.v===1||d.v===2)){
-        if((liveMigrationDemo||sourceKey!==SAVE_KEY||sourceKey==='blocktown-save-v1')&&!d.betaRelocation){
+        const freshStarter=d.cash===8000&&d.level===1&&d.xp===0&&d.pop===0&&d.tiles.every(tile=>!tile);
+        if((liveMigrationDemo||sourceKey!==SAVE_KEY||sourceKey==='blocktown-save-v1')&&!d.betaRelocation&&d.migrationVersion!==1&&!freshStarter){
           const backup=sourceKey+':before-banksia-migration-v1';
           if(!localStorage.getItem(backup))localStorage.setItem(backup,raw);
           const moved=relocateLiveCity(migrate(d));
