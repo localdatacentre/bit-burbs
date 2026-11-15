@@ -10812,6 +10812,30 @@ function drawBuilding(i, j, id, turned=tileAt(i,j)?.turned, placed=tileAt(i,j), 
 }
 /* ================= badges ================= */
 let badgeHits = [], hulls = [];
+function clearLevelBar(owner, bounds, placed, width, height) {
+  if (!owner) return null;
+  const w=21,h=5,gap=5;
+  const x=Math.round((owner.x0+owner.x1-w)/2);
+  if(x<0||x+w>width)return null;
+  let y=Math.floor(owner.y0-h-gap);
+  // Keep the bar above its own roof, then lift it past any taller neighbour.
+  // If there is no visible space, the building menu still shows its level.
+  for(let step=0;step<=bounds.length+placed.length;step++){
+    if(y<0||y+h>height)return null;
+    let next=y;
+    for(const box of bounds){
+      if(x<box.x1+gap&&x+w>box.x0-gap&&y<box.y1+gap&&y+h>box.y0-gap)
+        next=Math.min(next,Math.floor(box.y0-h-gap));
+    }
+    for(const box of placed){
+      if(x<box.x+box.w+gap&&x+w>box.x-gap&&y<box.y+box.h+gap&&y+h>box.y-gap)
+        next=Math.min(next,Math.floor(box.y-h-gap));
+    }
+    if(next===y)return {x,y,w,h};
+    y=next;
+  }
+  return null;
+}
 function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 const BADGE_STYLE = { 'NO POWER': ['#FF7A5A', 'bolt'], 'NO WATER': ['#2EB6E8', 'drop'], 'NO ROAD': ['#8A94A6', null], 'NEED STAFF': ['#F25AA0', 'people'], 'RESTOCK': ['#329BD6', null, '#195881'], 'TIP': ['#F2B21A', 'cash'] };
 function pxBox(c, x, y, w, h, fill, ink) { c.fillStyle = ink; c.fillRect(x + 2, y, w - 4, h); c.fillRect(x, y + 2, w, h - 4); c.fillRect(x + 1, y + 1, w - 2, h - 2); c.fillStyle = fill; c.fillRect(x + 2, y + 2, w - 4, h - 4); c.fillStyle = 'rgba(255,255,255,.28)'; c.fillRect(x + 2, y + 2, w - 4, 2); c.fillStyle = 'rgba(0,0,0,.16)'; c.fillRect(x + 2, y + h - 4, w - 4, 2); }
@@ -10983,17 +11007,23 @@ function render() {
   V.cx = camX; V.cy = camY;
   drawTutArrow();
   badgeHits = []; const tnow = now(); const hideBadges = !!placing||pickingMove||fadedBuildings();
+  const levelBars=[];
+  const levelBounds=hulls.filter(h=>h.x1>=0&&h.x0<=W&&h.y1>=0&&h.y0<=H);
   D.list.forEach(b => {
     const d = b.d, t = b.t; if (hideBadges || d.type === 'decor' || d.type === 'hall' || d.type === 'transport') return;
     const a = up(P(b.i + .5, b.j + .5), (d.h || 20) * hFac(t) * V.z + 10); let hit = null;
     const detailed = V.z >= 1.45;
     if (detailed && canUp(d) && lvlOf(t) > 1) {
-      const foot = P(b.i + .5, b.j + 1), c = V.ctx;
-      const x = Math.round(foot.x)-10, y = Math.round(foot.y)-4;
-      c.fillStyle = '#302b50'; c.fillRect(x-1,y-1,21,5);
-      for (let n=0;n<UP_MAX;n++) {
-        c.fillStyle = n < lvlOf(t) ? '#ffdb79' : '#625b7c';
-        c.fillRect(x+n*4,y,3,3);
+      const owner=levelBounds.find(h=>h.i===b.i&&h.j===b.j);
+      const bar=clearLevelBar(owner,levelBounds,levelBars,W,H);
+      if(bar){
+        levelBars.push(bar);
+        const c=V.ctx,x=bar.x+1,y=bar.y+1;
+        c.fillStyle='#302b50';c.fillRect(bar.x,bar.y,bar.w,bar.h);
+        for(let n=0;n<UP_MAX;n++){
+          c.fillStyle=n<lvlOf(t)?'#ffdb79':'#625b7c';
+          c.fillRect(x+n*4,y,3,3);
+        }
       }
     }
     if (!b.ok) hit = badge(a.x, a.y, 'NO ROAD', '#C9434A', '#FFFFFF');
