@@ -8950,6 +8950,11 @@ async function reportProgress(force=false){
  finally{progressBusy=false;}
 }
 
+function lastSyncLabel(slot){
+ const at=Number(localStorage.getItem(slot+':last-sync'));
+ if(!Number.isFinite(at)||at<=0)return 'Waiting for a confirmed cloud save';
+ return 'Last synced: '+new Date(at).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'});
+}
 async function pushCity(force=false){
  if(!namedPlay||!username||(!force&&document.hidden))return false;
  if(cityConflict){if(force)toast('Another browser saved. Reopen to load its city.');return false}
@@ -8963,6 +8968,8 @@ async function pushCity(force=false){
    const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
    const data=await cityApi({action:'save',name:username,code:cityCode,revision:cityRevision,progress,city:JSON.parse(raw)});
    cityRevision=data.revision;localStorage.setItem(SAVE_KEY+':cloud-revision',cityRevision);
+   localStorage.setItem(SAVE_KEY+':last-sync',String(Date.now()));
+   const label=document.getElementById('cityLastSync');if(label)label.textContent=lastSyncLabel(SAVE_KEY);
    if(force)toast('City synced across browsers.');return true;
   }catch(err){
    cityConflict=err.status===409;
@@ -11671,7 +11678,7 @@ function settingsHTML() {
   if(namedPlay){
     const login=localStorage.getItem(SAVE_KEY+':login-name');
     const display=validName(login)?login:'Guest';
-    h='<div class="sect"><h3>'+display+'</h3><p class="note">'+(username?'Autosaves online':'Saved on this device')+'</p><button class="pixel-btn pb" data-act="saveCityNow">Save now</button> '+(username?'<button class="pixel-btn pb sm" data-act="switchUsername">Switch account</button> <button class="pixel-btn pb sm" data-act="cityLogout">Log out</button>':'<button class="pixel-btn pb sm" data-act="switchUsername">Log in / Create account</button>')+'</div>';
+    h='<div class="sect"><h3>'+display+'</h3><p class="note">'+(username?'Autosaves online':'Saved on this device')+'</p>'+(username?'<p class="note" id="cityLastSync">'+lastSyncLabel(SAVE_KEY)+'</p>':'')+'<button class="pixel-btn pb" data-act="saveCityNow">Save now</button> '+(username?'<button class="pixel-btn pb sm" data-act="switchUsername">Switch account</button> <button class="pixel-btn pb sm" data-act="cityLogout">Log out</button>':'<button class="pixel-btn pb sm" data-act="switchUsername">Log in / Create account</button>')+'</div>';
   }
   else if(betaMode)h+='<div class="sect"><h3>Player account</h3><p class="note" id="accountStatus"></p><button class="pixel-btn pb" data-act="accountSave">Save to account</button> <a href="/beta/">My account</a></div>';
   h+=profile;
