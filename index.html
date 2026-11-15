@@ -10997,7 +10997,13 @@ function render() {
     const a = up(P(b.i + .5, b.j + .5), (d.h || 20) * hFac(t) * V.z + 10); let hit = null;
     const detailed = V.z >= 1.45;
     if (detailed && canUp(d) && lvlOf(t) > 1) {
-      const foot = P(b.i + .5, b.j + 1), c = V.ctx;
+      let foot = P(b.i + .5, b.j + 1);
+      const [levelWidth,levelDepth]=fpOf(t.id,t.turned);
+      if(levelWidth===1&&levelDepth===1){
+        const roof=spriteBox(b.i,b.j,t.id,t.turned,t);
+        if(roof)foot={x:roof.x+roof.w/2,y:roof.y+Math.min(roof.h*.2,18*V.z)};
+      }
+      const c = V.ctx;
       const x = Math.round(foot.x)-10, y = Math.round(foot.y)-4;
       c.fillStyle = '#302b50'; c.fillRect(x-1,y-1,21,5);
       for (let n=0;n<UP_MAX;n++) {
