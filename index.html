@@ -5393,20 +5393,38 @@ function sawRoof(k,x0,y0,x1,y1,z,teeth,h,col,glass){const w=(x1-x0)/teeth;for(le
 function sail(k,pts,col){polyW(k,pts,col);for(let i=0;i<pts.length;i++)edgeW(k,pts[i],pts[(i+1)%pts.length],sh(col,.75));}
 function screenSprite(k,cx,cy,map,pal){const H=map.length,Wd=map[0].length;for(let r=0;r<H;r++)for(let c=0;c<Wd;c++){const ch=map[r][c];if(ch!=='.')k.px(cx-Math.floor(Wd/2)+c,cy-H+r,pal[ch]);}}
 /* --- Fish & Chips: little beach shack with a giant fish on the roof --- */
-M.fishchips={fx:1,fy:1,H:40,name:'Fish & Chips',d(k){
- k.ground((wx,wy)=>{if(wy>=12.6||wx<1||wy<1)return k.walk(wx,wy);if(wx>=11.4)return (k.hash(R(wx*2),R(wy*2))<.2)?'#E8D49A':'#EEDCA8';return k.grass(wx,wy);});
- k.add(3.6,3.6,10.8,10,()=>{const b=k.box(3.6,3.6,0,10.8,10,10,{Lfn:(u,v)=>v%2?'#F4F2EC':'#E6E2D8',Rfn:(u,v)=>v%2?'#D2CEC4':'#C6C2B8',top:'#8EA4B8'});
-  k.rect(k.L,b,1,3,9,8,'#1E5A8A');k.rect(k.L,b,2,4,8,7,'#FFE3A0');k.rect(k.L,b,2,4,8,4,'#C98A3E');for(let u=3;u<8;u+=2)k.L(b,u,6,'#E0A85A');
-  k.door(k.L,b,11,2,8,'#1E5A8A',{frame:'#F4F2EC'});k.win(k.Rf,b,4,3,5,4,{frame:'#1E5A8A'});
-  k.box(3.4,10,7,10.8,11.6,7.6,{topFn:(wx)=>Math.floor((wx-3.4)/1.2)%2?'#FFFFFF':'#1E7AC8',L:'#1E7AC8',R:'#155A96',noRim:true});
-  k.box(3.4,11.3,6,10.8,11.6,7,{Lfn:(u)=>Math.floor(u/2.4)%2?'#FFFFFF':'#1E7AC8',R:'#155A96',top:'#1E7AC8',noRim:true});
-  gableRoof(k,3.6,3.6,10.8,10,10,5,'#9AB0C4','#E6E2D8',.5);
-  brandSign(k,{...b,y1:11.65,z0:6,h:5},'TIDE','#225B78','#FFF1CD',0);const top=k.sc(7.2,6.8,15.8);k.ctx.fillStyle='#3A3550';k.ctx.fillRect(R(top.x),R(top.y)-4,1,4);
-  screenSprite(k,top.x+1,top.y-3,['....aaaa....b','..aaaaaaaa.bb','.aacaaaaaaabb','aaaaaaaaaaab.','.aaaaaaaaa.bb','...aaaaa...b.'],{a:'#FF8A1F',b:'#E06A10',c:'#15122E'});});
- k.add(4.4,13,6.6,13.6,()=>{k.box(4.6,13.05,0,6.4,13.55,5,{top:'#2A2440',Lfn:(u,v)=>v>0&&v<4?'#2E4A3E':'#5A3A22',R:'#3A2A1A'});});
- k.add(11.8,4,14.8,7.2,()=>{k.box(11.8,4.6,1.8,14.8,6.6,2.4,{top:'#C9A87A',L:'#B58A5A',R:'#9C7A50'});for(const y of [4,6.8])k.box(11.8,y,0,14.8,y+.4,1.4,{top:'#B58A5A',L:'#9C7A50',R:'#7A5E3E'});for(const x of [12,14.4])k.box(x,5.4,0,x+.3,5.8,1.8,{top:'#7A5E3E',L:'#7A5E3E',R:'#5E4630'});});
- k.add(12.4,8.6,13.2,9.4,()=>{const p=k.sc(12.8,9,0);for(let y=0;y<12;y++){const w=y<2||y>9?1:2;k.ctx.fillStyle=y%4===0?'#FF5A7A':'#FFE066';k.ctx.fillRect(R(p.x)+1-w+R(y*.3),R(p.y)-y-1,w*2,1);}});
- k.flush();}};
+// Tide & Salt uses the same tile coordinates and pixel materials as the game.
+for(let turn=0;turn<4;turn++){
+ M['fishchips'+(turn?'-turn'+turn:'')]={fx:1,fy:1,H:38,name:'Tide & Salt Fish Bar',d(k){
+  const {bounds,groundKit}=houseView(k,turn,16,16);
+  groundKit.ground((x,y)=>k.walk(x,y));
+  const box=(x,y,z,X,Y,Z,mat)=>{const [a,b,c,d]=bounds(x,y,X,Y);return k.box(a,b,z,c,d,Z,mat)};
+  const blue='#20545C',milk='#FFF0D4', coral='#D76A49';
+  k.add(...bounds(2,2,14,12),()=>{
+   const wall=box(2,2,0,14,12,15,{Lfn:(u,v)=>v<3?blue:v%3?'#F6EBD3':'#DECFB5',Rfn:(u,v)=>v<3?'#17454E':v%3?'#D9D2BD':'#C8BFAD',top:milk});
+   for(const [face,side] of [[k.L,turn],[k.Rf,(turn+1)%4]]){
+    if(side===0){
+     k.rect(face,wall,1,4,15,11,blue);
+     k.rect(face,wall,2,5,14,10,k.light('#556E6A','#FFD794'));
+     k.rect(face,wall,3,5,13,5,'#D8AD72');
+     for(const u of [4,8,12])face(wall,u,6,'#FAE7AE');
+     k.door(face,wall,18,4,11,'#538B8C',{frame:blue});
+    }else if(side===2){k.door(face,wall,3,6,10,'#54817C',{frame:blue});exteriorLamp(k,face,wall,12,11)}
+    else {k.win(face,wall,4,5,11,6,{glass:'#9DCAC4',frame:blue,mullion:true});}
+   }
+   const fascia=box(1.8,1.8,15,14.2,12.2,22,{L:blue,R:'#174750',top:'#36818A'});
+   for(const [face,side] of [[k.L,turn],[k.Rf,(turn+1)%4]])if(side===0)signBoard(k,face,fascia,2,0,20,7,blue,milk,'TIDE');
+   box(1.7,1.7,22,14.3,12.3,22.8,{top:'#BBD5CB',L:milk,R:'#DDD3B9'});
+   box(2,2,22.8,14,12,23.1,{topFn:(x,y)=>Math.floor(x*2)%5?'#648F8B':'#7EA39B',L:blue,R:blue});
+  });
+  k.add(...bounds(2.4,12.1,10,14),()=>{
+   box(2.4,12,12,10,14,12.7,{topFn:x=>Math.floor(x*1.2)%2?coral:milk,L:coral,R:'#B05E48'});
+   box(2.4,12,4,10,13.1,4.8,{top:'#E5BB84',L:'#AD8159',R:'#947151'});
+  });
+  k.flush();
+ }};
+}
+
 /* --- Aussie Post: heritage post office with clock tower parapet --- */
 M.auspost={fx:1,fy:1,H:52,name:'Aussie Post',d(k){shopLot(k,10.6);
  k.add(3,3,13,10.6,()=>{const b=k.box(3,3,0,13,10.6,22,{Lfn:k.brick('#C8402E'),Rfn:k.brick('#A6352A'),top:'#5E4E48'});
@@ -10306,7 +10324,7 @@ const SPR_KEY = {'red-ibis':'micksBurgers','southerly-tower':'southerlyTower','d
   flowers: 'flowers',
 };
 const SPR = new Map();
-const fourSidedModels=new Set(['factory','cinema','books','red-ibis','southerly-tower','dune-keeper-cottage','quay','hall','pelicanLight','sunhouse','fountain','sundrop','civicClock','tidalBaths','space','record','needle','school','town','workshop','hardware','police','fire','orbital-gym','spindleCycles','skyscraper','wtower','gas','clinic','deliveryDepot','house','house2','m3','banksiaDuplex','q1','aptS','aptP','tower','bakery','coffee']);
+const fourSidedModels=new Set(['fishchips','factory','cinema','books','red-ibis','southerly-tower','dune-keeper-cottage','quay','hall','pelicanLight','sunhouse','fountain','sundrop','civicClock','tidalBaths','space','record','needle','school','town','workshop','hardware','police','fire','orbital-gym','spindleCycles','skyscraper','wtower','gas','clinic','deliveryDepot','house','house2','m3','banksiaDuplex','q1','aptS','aptP','tower','bakery','coffee']);
 function spriteOf(id, turn=0, paint=5) {
  if(id==='wtower' && (Number.isInteger(paint)&&paint>0&&paint<=5)){
   const key='watertower-paint'+paint+(turn?'-turn'+turn:'');
