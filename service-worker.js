@@ -1,4 +1,4 @@
-const CACHE='bit-burbs-binlink-free-20261117-v1';
+const CACHE='bit-burbs-binlink-free-20261117-v2';
 const ASSETS=['./','./index.html','./economy-core.js?v=balance2','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{

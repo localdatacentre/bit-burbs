@@ -29,11 +29,16 @@ service(1);
 service(1200);
 assert.equal(S.cash,0);
 assert.deepEqual(tiles.map(t=>t.visits),[3,3]);
-let capped=true;
-const upgrade=gameFunction('upgradeStop',{S,tileAt:()=>tiles[0],modelReady:()=>true,
-  buildingLimitMessage:()=>capped?'limit':'',streetNetwork:null,changed:noop,save:noop});
-assert.equal(upgrade(0,0),false);
-capped=false;
-assert.equal(upgrade(0,0),true);
-assert.equal(tiles[0].id,'busShelter');
-assert.equal(S.cash,0);
+assert.deepEqual(tiles.map(t=>t.id),['hailStop','busShelter']);
+assert(!html.includes('shelterUpgrade') && !html.includes('function upgradeStop('));
+const config=JSON.parse(html.match(/window.BB_ECONOMY=(\{.*?\});<\/script>/)[1]);
+const DEFS=Function('ECON',html.slice(html.indexOf('const DEFS ='),html.indexOf('const SVC_NAMES ='))+';return DEFS;')(config);
+const canUp=Function('return '+html.match(/^const canUp = (.*);$/m)[1])();
+const upRow=gameFunction('upRow',{canUp});
+for(const id of ['hailStop','busShelter','parkSmall','parkLarge','parkXL']) {
+  const tile={id,lvl:1};
+  assert.equal(canUp(DEFS[id]),false);
+  assert.equal(upRow(tile,DEFS[id]),'');
+  gameFunction('upgrade',{tileAt:()=>tile,DEFS,canUp})(0,0);
+  assert.deepEqual(tile,{id,lvl:1});
+}
