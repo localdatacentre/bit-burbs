@@ -1,3 +1,54 @@
+# Latest user direction — 17 November 2026
+
+This section supersedes conflicting combined-page or Vault terminology below.
+
+- The pages are named **Crates** and **Lucky Wheel**. They remain separate pages,
+  with separate existing game entry points. Do not merge them into tabs or call
+  them The Vault. Revamp and review each page individually. Preserve all current
+  access points when adapting navigation; the preview rail is not production navigation.
+- Each Diamond model gets a Steam-inspired item market detail page, implemented
+  with original Bit-Burbs art and styling. Show a timeline with a price-history
+  line, actual completed sale history and current listings separately.
+- Range choices: 24h, 7d, 30d and All. Hover/tap a point to show time, sale price
+  in the chosen market currency and completed volume. Use the currency actually
+  selected for the market; Dosh remains a proposal until decided.
+- Display **last sold** (latest eligible completed transaction), **typical sold
+  price** (median of eligible completed sales over the selected window), volume,
+  lowest current ask and highest funded buy order (when buy orders exist).
+  These are distinct values, never a guaranteed item value or buyback price.
+- With sparse data show individual sale points and the sale count; connect only
+  real observations, without fabricated interpolation across empty periods.
+  Use sensible time buckets at higher volume with median price and volume bars.
+  A single completed sale is a point, not a manufactured trend line.
+- Never populate the graph from unsold listings, guide prices, direct item swaps,
+  gifts or a guessed Dosh value of an item-for-item trade. A last sale is still
+  shown as last sold if excluded from the reference series, with its flagged
+  status; suspicious trades must not silently establish a baseline.
+- Price reference eligibility excludes self-trades and flagged linked-account or
+  repeated-pair manipulation. Keep the full transaction audit privately. Publish
+  only aggregate market data and permitted public seller information.
+- With no reliable sales show **No sales yet** or **Not enough sales to show a
+  reliable market price**. Launch guide prices, if approved, are separately
+  labelled. Do not raise listing caps automatically from a few high sales.
+- Server records need model/edition identity (only if editions are approved),
+  asset and transaction IDs, integer executed price/currency, fee, completed-at
+  timestamp and eligibility/review state. Count each transaction once. Query
+  ranges and buckets on the server; timestamps render in the player's locale.
+- Inspect → price history → current asks → review exact purchase stays within
+  the trading hub. Existing buyer/seller receipts and personal account activity
+  remain separate from the model-wide history.
+- Acceptance checks: last sale versus median differs correctly; no sale data
+  invents no price; listing-only changes never move the chart; duplicate receipts
+  count once; suspicious paired sales do not move the reference; swaps do not
+  receive artificial prices; range selection, touch tooltip, dates, volume,
+  zero-volume gaps and late/corrected transactions behave correctly.
+
+The graph specification is now part of the agreed market direction. Production
+history aggregation, graph rendering and manipulation controls still need to be
+implemented and tested; the split page mockups do not make them live.
+
+---
+
 # Bit-Burbs — rewards, inventory, pages and player market
 
 17 November 2026. Design and implementation handoff, not a production release.
@@ -7,7 +58,7 @@ baseline `83fee17bd4793ec5ae470445002d299caadceef2`.
 ## What is ready to review
 
 `rewards-ui-review.html` is a seven-page interactive prototype. It uses extracted
-live Bit-Burbs model artwork and pixel icons, Silkscreen/VT323 fonts, dark Vault
+live Bit-Burbs model artwork and pixel icons, Silkscreen/VT323 fonts, dark crate-page
 colours and compact mobile cards. Its data is explicitly a local demonstration,
 not player balances or real marketplace orders. `bit-burbs-art.js` is generated
 from the pinned HTML by `tests/build-design-art.cjs`. It is an art-only bundle;
@@ -110,7 +161,7 @@ cyan Diamond accents, thin black edges and restrained bevels. Use small
 colour-matched diamond emblems on crates. Use colour and text together for
 disabled, ready, claimed, pending, placed and listed states.
 
-### The Vault and Lucky Wheel
+### Crates and Lucky Wheel — separate pages
 
 Show selected crate name, price, vouchers available, number affordable, full odds
 and a single `Buy & open` action. Keep all five tier choices visible. The crate
@@ -128,7 +179,7 @@ resume/reveal the original receipt. If the animation fails, ownership still
 exists; if the transaction fails, no opening is shown as successful. Avoid fake
 near-misses that misrepresent the item's actual odds.
 
-The Wheel tab shows one free opportunity, next-ready time, banked tickets,
+The separate Lucky Wheel page shows one free opportunity, next-ready time, banked tickets,
 one-spin action, exact odds and the carried tenth-spin bonus. No keys or obsolete
 rent-collection ticket bar. Never add a second two-tickets-per-playtime source
 on top of task milestone tickets.
