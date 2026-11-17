@@ -8793,7 +8793,7 @@ let N = remodelDemo ? 48 : BAY_SIZE;
 let MID = N / 2;
 const INK = '#14202E';
 const TIER = { steel: 'Silver', gold: 'Gold', diamond: 'Diamond', premium: 'Premium' };
-const SPINS_PER_GOLD_CRATE = 10;
+const SPINS_PER_VOUCHER_BONUS = 10;
 const CHEST = {
   steel:   { b: '#AEB9C9', d: '#66728A', s: '#3E4652', l: '#FFC21A' },
   gold:    { b: '#FFCB3A', d: '#C07A08', s: '#7A4E08', l: '#E53B3B' },
@@ -9003,16 +9003,16 @@ const BOARD = [
 const MYSTERY = [[10, 'Deed', { k: 'deed', n: 1 }], [15, 'Gold crate', { k: 'crate', tier: 'gold' }], [15, '1 Wheel ticket', { k: 'ticket', n: 1 }], [20, '2 Wheel tickets', { k: 'ticket', n: 2 }], [30, 'Silver crate', { k: 'crate', tier: 'steel' }], [20, '15 Dosh', { k: 'stars', n: 15 }]];
 
 const WHEEL = [
-  { c: '#FFC93C', w: 19, r: { k: 'cash', m: 8 } },
-  { c: '#399FA4', w: 12, r: { k: 'voucher', n: 1 } },
-  { c: '#2EB6E8', w: 19.8, r: { k: 'stars', n: 12 } },
-  { c: '#9AA6B8', w: 7, r: { k: 'crate', tier: 'steel' } },
-  { c: '#3EBE7A', w: 17, r: { k: 'cash', m: 25 } },
-  { c: '#8E5CF7', w: 14, r: { k: 'boost', min: 15 } },
-  { c: '#F2B21A', w: 4.5, r: { k: 'crate', tier: 'gold' } },
-  { c: '#C9A86A', w: 4.5, r: { k: 'deed', n: 1 } },
-  { c: '#7FE3FF', w: 2, r: { k: 'crate', tier: 'diamond' } },
-  { c: '#824BA8', w: 0.2, r: { k: 'crate', tier: 'premium' } }
+  { c: '#FFC93C', w: 15, r: { k: 'voucher', n: 1 } },
+  { c: '#399FA4', w: 10, r: { k: 'voucher', n: 2 } },
+  { c: '#2EB6E8', w: 5, r: { k: 'cash', n: 6000 } },
+  { c: '#9AA6B8', w: 10, r: { k: 'stars', n: 10 } },
+  { c: '#3EBE7A', w: 5, r: { k: 'stars', n: 25 } },
+  { c: '#8E5CF7', w: 10, r: { k: 'deed', n: 1 } },
+  { c: '#F2B21A', w: 2, r: { k: 'deed', n: 2 } },
+  { c: '#C9A86A', w: 20, r: { k: 'crateVoucher', n: 1 } },
+  { c: '#7FE3FF', w: 15, r: { k: 'crateVoucher', n: 2 } },
+  { c: '#824BA8', w: 8, r: { k: 'crateVoucher', n: 5 } }
 ];
 const WTOT = WHEEL.reduce((a, sg) => a + sg.w, 0); WHEEL.forEach((sg, q) => { sg.span = Math.PI * 2 / WHEEL.length; sg.a = q * sg.span; });
 const WHEEL_CD = 12 * 3600 * 1000;
@@ -9033,9 +9033,10 @@ const DAILY_DEALS = {
 
 
 /* ================= pixel art kit ================= */
-const PX_PAL = {k:'#15122E',W:'#FFFFFF',B:'#3E7BFA',b:'#2A55C4',Y:'#FFD23F',y:'#F2B32C',o:'#C98A0C',w:'#FFF6C8',R:'#E53B3B',r:'#A8202A',G:'#4BE34B',g:'#2E9E2E',O:'#FF8A1F',S:'#9AA6B8',s:'#D9DFE8',L:'#E8ECF4',N:'#C9965A',n:'#8A5A2A',T:'#F4E2B0',P:'#F6C9A0',C:'#6ADAF6',c:'#2B7FB0',V:'#8E5CF7',v:'#5A2FC0',D:'#3A3F4A',H:'#B8860B',q:'#FFFFFF',x:'#8A1620',X:'#D9343F',l:'#A8875A',p:'#C9A86A',K:'#36C9D2',E:'#8AE07A',F:'#3FB52E',f:'#2A8A22',Z:'#1E5A1A',t:'#FFE066',U:'#FF5A7A',u:'#C42F55'};
+const PX_PAL = {k:'#15122E',W:'#FFFFFF',B:'#3E7BFA',b:'#2A55C4',Y:'#FFD23F',y:'#F2B32C',o:'#C98A0C',w:'#FFF6C8',R:'#E53B3B',r:'#A8202A',G:'#4BE34B',g:'#2E9E2E',O:'#FF8A1F',S:'#9AA6B8',s:'#D9DFE8',L:'#E8ECF4',N:'#C9965A',n:'#8A5A2A',T:'#F4E2B0',P:'#F6C9A0',C:'#6ADAF6',c:'#2B7FB0',V:'#8E5CF7',v:'#5A2FC0',D:'#3A3F4A',H:'#B8860B',q:'#FFFFFF',x:'#8A1620',X:'#D9343F',l:'#A8875A',p:'#C9A86A',K:'#36C9D2',E:'#8AE07A',F:'#3FB52E',f:'#2A8A22',Z:'#1E5A1A',t:'#FFE066',U:'#FF5A7A',u:'#C42F55',A:'#D8B5FF'};
 const PX_MAP = {
-  voucher:['................','..kkkkkkkkkkkk..','.kCCCCCCCCCCCCk.','.kCcccccccccCCk.','.kCckkWWkkccsCk.','..kcWWWWWWccsCk.','...kWWkkWWccsCk.','..kcWWcccccccck.','.kCcWWccWWccsCk.','.kCccWWWWWccsCk.','.kCcckkWWkccsCk.','.kCCCCCCCCCCCCk.','..kkkkkkkkkkkk..','................','................','................'],
+  crateVoucher:['..............','.kkkkkkkkkkkk.','kAWAAAAAAAAAAk','kAAAAvAAAAkAAk','kAAAvvvAAAAAAk','.kAvvvvvAAkAk.','..kAvvvAAAAk..','..kAAvAAvAkk..','.kAAAAAAAAAAk.','kAAAAAAAAAkAAk','kVVVVVVVVVVVVk','.kkkkkkkkkkkk.','..............','..............'],
+  voucher:['..............','.kkkkkkkkk.kk.','kCWCCCCCCCkCCk','kCCcccccCCkCCk','kCCCCCCCCCCCCk','kCCcccCCCCkCk.','kCCCCCCCCCCCk.','kCCccCCCCCkCCk','kCCCCCCCCCCCCk','kCCCCCCCCCkCCk','kccccccccckcck','.kkkkkkkkk.kk.','..............','..............'],
 moveTurn:[
   '........................',
   '..........kkkkk.........',
@@ -9067,7 +9068,7 @@ cash:['....kkkkkk....','..kkYYYYYYkk..','.kYYwwYYYYyyk.','.kYwYYooooYyk.','kYwYY
 dosh:['..............','..kkkkkkkkkkkk','..kEEEEEEEEEEk','kkkkkkkkkkkkEk','kEEEEEEEEEEkEk','kEFFFFFFFFEkfk','kFFFFkkFFFFkfk','kFFFkEEkFFFkkk','kFFFkEEkFFFk..','kFFFFkkFFFFk..','kEFFFFFFFFEk..','kffffffffffk..','kkkkkkkkkkkk..','..............'],
 deed:['..............','.kkkkkkkkkkkk.','kTTTTTTTTTTTTk','kpkkkkkkkkkkpk','.kTTTTTTTTTTk.','.kTlllllllTTk.','.kTTTTTTTTTTk.','.kTllllllTTTk.','.kTTTTTTTTTTk.','.kTlllTTTXXTk.','.kTTTTTTXXXXk.','kpkkkkkkkXXkpk','kTTTTTTTTxTTTk','.kkkkkkkkxkkk.'],
 dice:['..............','.kkkkkkkkkkkk.','kWWWWWWWWWWWWk','kWkkWWWWWWkkWk','kWkkWWWWWWkkWk','kWWWWWWWWWWWWk','kWWWWWkkWWWWWk','kWWWWWkkWWWWWk','kWWWWWWWWWWWWk','kWkkWWWWWWkkWk','kWkkWWWWWWkkWk','kSSSSSSSSSSSSk','.kkkkkkkkkkkk.','..............'],
-ticket:['..............','kkkkkkkkkkkkkk','kUUUUUUUUkUUUk','kUttttUUUUUUUk','kUtUUtUUUkUUUk','.kUttUUUUUUUk.','..kUUUUUUkUUk.','..kUUUUUUUUUk.','.kUUUUUUUkUUUk','kUUUUUUUUUUUUk','kUuuuuuuukuuuk','kkkkkkkkkkkkkk','..............','..............'],
+ticket:['..............','.kkkkkkkkkkkk.','kUPUUUUUUUUUUk','kUUUUUUttUkUUk','.kUUUUttUUUUk.','..kUUttUUUkk..','.kUUttUUtUUUk.','kUUttUUttUkUUk','kUUUUUUUUUUUUk','kUUUUUUUUUkUUk','kuuuuuuuuuuuuk','.kkkkkkkkkkkk.','..............','..............'],
 hammer:['..............','..kkkkkkk.....','.kSSSSSSSk....','.kssssssSSk...','..kkkkkkkk....','.....kNk......','.....kNk......','.....kNk......','.....kNk......','.....kNk......','.....kNk......','.....kkk......','..............','..............'],
 clip:['....kkkkkk....','.kkkSSSSSSkkk.','.kTTkkkkkkTTk.','.kTTTTTTTTTTk.','.kTGTlllllTTk.','.kTTTTTTTTTTk.','.kTGTlllllTTk.','.kTTTTTTTTTTk.','.kTGTlllllTTk.','.kTTTTTTTTTTk.','.kkkkkkkkkkkk.','..............','..............','..............'],
 shop:['..............','.kkkkkkkkkkkk.','kRWRWRWRWRWRWk','kRWRWRWRWRWRWk','.kkkkkkkkkkkk.','.kTTTTTTTTTTk.','.kTkkkTTkkkTk.','.kTkCkTTkCkTk.','.kTkkkTTkkkTk.','.kTTTTkkTTTTk.','.kTTTTkNkTTTk.','.kkkkkkkkkkkk.','..............','..............'],
@@ -10019,9 +10020,12 @@ function grant(r) {
     case 'dice': S.tickets += r.n; return r.n + ' Wheel ticket' + (r.n > 1 ? 's' : '');
     case 'crate': { const tier = r.tier === 'wood' ? 'steel' : r.tier; S.crates[tier] += n; return rewLabel(r); }
     case 'ticket': S.tickets += n; return n + ' Wheel ticket' + (n > 1 ? 's' : '');
+    case 'crateVoucher':
+      S.crateVouchers = (S.crateVouchers || 0) + n;
+      return rewLabel(r);
     case 'voucher':
       S.restockVouchers = (S.restockVouchers || 0) + n;
-      return 'Restock voucher saved to My items';
+      return rewLabel(r);
     case 'boost': {
       const tokens = S.coinBoostTokens ||= {};
       tokens[r.min] = (tokens[r.min] || 0) + 1;
@@ -10035,6 +10039,7 @@ function rewAmt(r) { r = resolveR(r); const n = r.n || 1; return r.k === 'cash' 
 function rewLabel(r) {
   r = resolveR(r); const n = r.n || 1;
   switch (r.k) {
+    case 'crateVoucher': return n + ' crate voucher' + (n === 1 ? '' : 's');
     case 'voucher': return n + ' restock voucher' + (n === 1 ? '' : 's');
     case 'cash': return fmt(r.n) + ' Coins';
     case 'stars': return r.n + ' Dosh';
@@ -10064,8 +10069,7 @@ function restock(i, j) {
 function grindAdd(n) {
 if (!S.grind) S.grind = { d: 0, t: 0 };
 if (S.deeds == null) S.deeds = 2;
-  S.grind.d += n; S.grind.t += n;
-  if (S.grind.t >= GRIND_T) { S.grind.t -= GRIND_T; S.tickets++; toast('All that work earned you a Wheel ticket!'); }
+  S.grind.d += n;
 }
 function collectShop(i, j) {
   if (S.tut) S.tut.ev.shopCollect = 1;
@@ -12050,7 +12054,7 @@ function drawIcon(c, kind, x, y, s, tier) {
   const k = map[kind] || kind;
   pixDraw(c, pixImg(k), x - s / 2, y - s / 2, s, s);
 }
-function rewIconKind(r) { r = resolveR(r); return { cash: 'cash', stars: 'stars', deed: 'deed', dice: 'dice', crate: 'crate', ticket: 'ticket', boost: 'boost', voucher: 'voucher', item: 'item' }[r.k] || 'item'; }
+function rewIconKind(r) { r = resolveR(r); return { cash: 'cash', stars: 'stars', deed: 'deed', dice: 'dice', crate: 'crate', ticket: 'ticket', boost: 'boost', voucher: 'voucher', crateVoucher: 'crateVoucher', item: 'item' }[r.k] || 'item'; }
 function iconCanvas(kind, tier, px) { const cvs = document.createElement('canvas'); cvs.width = px * 2; cvs.height = px * 2; cvs.style.width = px + 'px'; cvs.style.height = px + 'px'; const c = cvs.getContext('2d'); c.scale(2, 2); drawIcon(c, kind, px / 2, px / 2, px, tier); cvs.setAttribute('aria-hidden', 'true'); return cvs; }
 function paintStaticIcons() {
   document.querySelectorAll('canvas[data-icon]').forEach(cvs => { const c = cvs.getContext('2d'); const s = cvs.width; c.clearRect(0, 0, s, cvs.height); drawIcon(c, cvs.dataset.icon, s / 2, cvs.height / 2, s * (cvs.dataset.icon === 'crate' ? .9 : 1), cvs.dataset.tier || 'steel'); });
@@ -12975,13 +12979,13 @@ const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
   mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg">${wheelMsg}</p><div class="wheel-rewards">
-    <div class="wheel-goal"><span id="ticketArt"></span><strong>Wheel ticket</strong><small>+1 point per rent collection</small><b id="gTt"></b><progress id="ticketMeter" aria-label="Points towards a ticket" max="${GRIND_T}"></progress></div>
-    <div class="wheel-goal"><span id="goldArt"></span><strong>Gold crate</strong><small>+1 per wheel spin</small><b id="spinCount"></b><progress id="spinMeter" aria-label="Spins towards a gold crate" max="${SPINS_PER_GOLD_CRATE}"></progress></div>
+    <div class="wheel-goal"><span id="ticketArt"></span><strong>Wheel ticket</strong><small>Daily task milestones</small></div>
+    <div class="wheel-goal"><span id="goldArt"></span><strong>2 crate vouchers</strong><small>Every tenth spin</small><b id="spinCount"></b><progress id="spinMeter" aria-label="Spins towards two crate vouchers" max="${SPINS_PER_VOUCHER_BONUS}"></progress></div>
   </div>`;
   { const odds = WHEEL.map(w => `<div class="orow"><span class="oname">${rewLabel(w.r)}</span><b>${Number((w.w / WTOT * 100).toFixed(1))}%</b></div>`).join(''); mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary>${odds}</details>`); }
   const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
   $('#ticketArt').appendChild(iconCanvas('ticket', null, 26));
-  $('#goldArt').appendChild(iconCanvas('crate', 'gold', 26));
+  $('#goldArt').appendChild(iconCanvas('crateVoucher', null, 26));
   updateWheelUI();
 }
 function updateWheelUI() {
@@ -12989,12 +12993,9 @@ function updateWheelUI() {
   const ready = now() - S.wheelT >= WHEEL_CD;
   setText($('#tixN'), S.tickets + (S.tickets === 1 ? ' ticket' : ' tickets'));
   const b = $('#spinBtn'); if (b) { setText(b, ready ? 'Free spin' : 'Spin · 1 ticket'); b.disabled = !!wheelAnim || (!ready && S.tickets < 1); }
-  const gt = (S.grind || { t: 0 }).t;
-  if ($('#ticketMeter').value !== gt) $('#ticketMeter').value = gt;
-  setText($('#gTt'), gt + '/' + GRIND_T);
   setText($('#wheelCd'), ready ? 'Your free spin is ready!' : 'Next free spin in ' + mmss(WHEEL_CD - (now() - S.wheelT)));
   if ($('#spinMeter').value !== S.wheelPips) $('#spinMeter').value = S.wheelPips;
-  setText($('#spinCount'), S.wheelPips + '/' + SPINS_PER_GOLD_CRATE);
+  setText($('#spinCount'), S.wheelPips + '/' + SPINS_PER_VOUCHER_BONUS);
 }
 function drawWheel() { const cvs = $('#wheel'); if (!cvs) return; drawWheelInner(cvs); if (TXTQ) pxEnd(cvs); }
 let wheelFlap = 0, wheelLastPeg = null, wheelLastClick = 0;
@@ -13048,7 +13049,7 @@ function drawWheelInner(cvs) {
 function spin() {
   if (wheelAnim) return;
   const ready = now() - S.wheelT >= WHEEL_CD;
-  if (ready) S.wheelT = now(); else if (S.tickets > 0) S.tickets--; else { snd('error'); toast('No tickets left. Earn more by collecting from your buildings.'); return; }
+  if (ready) S.wheelT = now(); else if (S.tickets > 0) S.tickets--; else { snd('error'); toast('Earn a wheel ticket at a daily task milestone.'); return; }
   let k = 0; { let x = Math.random() * WTOT; for (let q = 0; q < WHEEL.length; q++) { if (x < WHEEL[q].w) { k = q; break; } x -= WHEEL[q].w; } } const off = (Math.random() - .5) * WHEEL[k].span * .6;
   const from = ((S.wheelAng || 0) % TAU + TAU) % TAU;
   const want = ((-(WHEEL[k].a + WHEEL[k].span / 2 + off)) % TAU + TAU) % TAU;
@@ -13058,7 +13059,7 @@ function spin() {
   const wonLabel = grant(WHEEL[k].r); let msg = 'You won ' + wonLabel + '!';
   S.wheelPips++; track('spin'); track('roll'); addXP(5);
   let bonus = '';
-  if (S.wheelPips >= SPINS_PER_GOLD_CRATE) { S.wheelPips = 0; grant({ k: 'crate', tier: 'gold' }); msg += ' Bar full: +1 Gold crate!'; bonus = '10-spin bonus: +1 Gold crate'; }
+  if (S.wheelPips >= SPINS_PER_VOUCHER_BONUS) { S.wheelPips = 0; grant({ k: 'crateVoucher', n: 2 }); msg += ' +2 bonus crate vouchers!'; bonus = '10-spin bonus: +2 crate vouchers'; }
   save();
   wheelAnim = { from, to, t0: performance.now(), wind: reduce ? 1 : 380, dur: reduce ? 10 : 5400, settle: reduce ? 1 : 480, over: reduce ? 0 : .07, onDone: () => {
     snd('wheelStop'); celebrate(WHEEL[k].r);
@@ -13218,7 +13219,7 @@ function buildCrates() {
   <div class="crate-reel-shell"><div class="crate-reel-viewport" id="crateViewport" aria-hidden="true"><div class="crate-reel-track" id="crateTrack">${crateReelHTML(items)}</div></div><div class="crate-reel-marker" aria-hidden="true"></div></div>
   ${guaranteed?`<div class="crate-always"><strong>ALWAYS INCLUDED</strong><span>${guaranteed}</span></div>`:''}
   <div class="crate-feature"><button class="pixel-btn pb" data-act="openCrate" id="openBtn">OPEN ${TIER[crateSel].toUpperCase()} CRATE</button><button class="pixel-btn pb" data-act="skipCrate" id="skipCrateBtn" hidden>Skip animation</button><div class="crate-notice" id="crateMsg" role="status" aria-live="polite"></div><div class="crate-results" id="crateResults"></div></div>
-  <div class="crate-bonus"><span>Gold crate bonus</span><b>${S.wheelPips}/${SPINS_PER_GOLD_CRATE} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_GOLD_CRATE}" aria-label="Spins towards a Gold crate"></progress></div>
+  <div class="crate-bonus"><span>Crate voucher bonus</span><b>${S.wheelPips}/${SPINS_PER_VOUCHER_BONUS} spins</b><progress value="${S.wheelPips}" max="${SPINS_PER_VOUCHER_BONUS}" aria-label="Spins towards two crate vouchers"></progress></div>
   <details class="odds"><summary>${TIER[crateSel]} drop rates · tap to view</summary>${guaranteed?'<p>Every crate includes: '+guaranteed+'</p><p>Plus one random reward:</p>':''}${odds}</details>`;
   mgPanel.querySelectorAll('[data-tic]').forEach(el=>el.replaceWith(iconCanvas('crate',el.dataset.tic,33)));
   mgPanel.querySelectorAll('[data-oic]').forEach(el=>{
@@ -13697,7 +13698,7 @@ function drawTutArrow() {}
 const INFO = {
   bag: ['My items', ['Buildings moved during a remodel keep their level and can be placed again for free.', 'Your purchased collectables are also available in Build › Collectables.']],
   dice: ['City Dice', ['Tap ROLL to move around the board.', 'You win whatever tile you land on.', 'Green arrows jump you forward, red arrows push you back.', 'The ??? tile gives a mystery prize.', 'You get a free roll every 30 minutes, and you earn more by collecting from shops, homes and industry.']],
-  wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'Fill the ticket bar by collecting from your buildings.', 'Every 10 spins wins a free Gold crate.']],
+  wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'Earn wheel tickets by claiming daily task milestones.', 'Every 10 spins pays two extra crate vouchers.']],
   crates: ['The Vault', ['Choose a Silver, Gold, Diamond or Premium crate.', 'Opening consumes one crate and spins a colourful reward reel. The prize is selected using the listed drop rates, not by where you tap.', 'Diamond and Premium crates also include the guaranteed prizes listed above the reel.', 'All rewards are awarded immediately and saved, even if you skip the animation.', 'Win crates on the Lucky Wheel. Every 10 spins also awards a Gold crate.']],
   market: ['Dosh Shop', ['New stock every Monday.', 'Each item has limited stock for the week.', 'Spend Dosh, the green notes you earn from tasks, dice, the wheel and crates.', 'Buildings you buy appear in Build › Collectables and your item bag.']],
   build: ['Building', ['Everything needs a road next to it.', 'Most buildings need power and water too: build a Wind Turbine and a Water Tower.', 'Shops need workers, so build homes to bring people in.', 'Tap any building to upgrade it. Levels 4 and 5 need Deeds.']],
@@ -14384,7 +14385,7 @@ for(const task of S.daily||[])if(task.type==='restock')task.text='Supply '+task.
 if (S.loginClaimDay == null) S.loginClaimDay = -1;
 // Honour the old opening costs and keep partial sets by rounding up once.
 const legacyCrateCosts = { steel: 3, gold: 2, diamond: 1 };
-S.wheelPips = Math.max(0, Math.floor(Number(S.wheelPips) || 0)) % SPINS_PER_GOLD_CRATE;
+S.wheelPips = Math.max(0, Math.floor(Number(S.wheelPips) || 0)) % SPINS_PER_VOUCHER_BONUS;
 const ownedCrates = S.crates || {};
 ownedCrates.premium = Math.max(0, Math.floor(Number(ownedCrates.premium) || 0));
 for (const [tier, cost] of Object.entries(legacyCrateCosts)) {
