@@ -22,7 +22,7 @@ for(const tile of tiles) {
 }
 const stops=tiles.map(t=>({t,x:0,y:0,dx:1,dy:0}));
 const service=gameFunction('serviceBuses',{S,buses:[],streetMap:()=>({stops,buildings:[],roads:new Map()}),
-  stopInterval:600,dropPassengers:noop,changed:noop,N:32});
+  stopInterval:600,dailyEvent:noop,now:()=>0,document:{hidden:false},labState:()=>({lastAction:0}),dropPassengers:noop,changed:noop,N:32});
 service(599);
 assert.equal(tiles[0].visits,undefined);
 service(1);
