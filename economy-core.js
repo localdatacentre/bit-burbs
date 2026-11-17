@@ -1,6 +1,6 @@
 (function(root){
 'use strict';
-const LEVELS=[1,1,1.25,1.6,2.05,2.6], VERSION=1;
+const LEVELS=[1,1,1.25,1.6,2.05,2.6], VERSION=1, BALANCE_VERSION=2, AWAY_RATE=.5;
 const need=l=>Math.round(60+5.7*Math.pow(l,1.34));
 const legacyNeed=l=>Math.round(60*Math.pow(l,1.55)*(1+Math.min(.25,Math.max(0,l-5)*.01)));
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -29,21 +29,46 @@ function migrate(city,defs,config,ms){
 }
 function originalGross(d,t,rates){return [1,1.5,2.2].reduce((s,m)=>s+Math.max(1,Math.round((rates[d.jobs]||0)*m*(LEVELS[t?.lvl||1]||1))),0);}
 function gross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
-function fee(d,t,employees,p,rates){return Math.round(gross(d,t,employees,p,rates)*p.stock*p.fee);}
+function fee(d,t,employees,p,rates){return Math.round(gross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}
+function configFor(city,config){
+ if(city.economyLab?.balanceVersion>=BALANCE_VERSION)return config;
+ return Object.fromEntries(Object.entries(config).map(([id,p])=>[id,p.previous?{...p,...p.previous}:p]));
+}
+function rebalance(city,config,at=city.economyLab?.settled){
+ const e=city.economyLab;if(!e||e.balanceVersion>=BALANCE_VERSION)return false;
+ if(!Number.isFinite(at))throw Error('Balance migration requires a settled timestamp');
+ let adjusted=0;
+ const visit=t=>{
+  const p=config[t?.id];if(!p?.previous||!t.pr?.length)return;
+  const duration=p.previous.stock*60000;
+  for(const product of t.pr){
+   if(product.s>at){const fraction=clamp((product.s-at)/duration,0,1);product.s=at+fraction*p.stock*60000;adjusted++;}
+  }
+ };
+ for(const t of city.tiles||[])visit(t);for(const entry of city.storedBuildings||[])visit(entry.building||entry);
+ e.balanceVersion=BALANCE_VERSION;e.balanceMigration={version:BALANCE_VERSION,at,adjusted};
+ return true;
+}
 function intervals(p,duration,from,to){const ranges=[];const add=(start,end)=>{const lo=Math.max(start,from),hi=Math.min(end,to);if(hi>lo)ranges.push([lo,hi]);};add(p.s-duration,p.s);if(p.o&&p.o<=to){const start=Math.max(p.s,p.o);p.s=start+duration;p.o=0;add(start,p.s);}return ranges;}
 function unionMs(ranges){ranges.sort((a,b)=>a[0]-b[0]);let end=-Infinity,sum=0;for(const [lo,hi]of ranges){sum+=Math.max(0,hi-Math.max(lo,end));end=Math.max(hi,end);}return sum;}
 function settle(city,list,to,config,rates,{offline=false,school=1}={}){
  const e=city.economyLab;if(!e)throw Error('Economy state missing');const from=e.settled;if(!Number.isFinite(to)||to<=from)return {coins:0,minutes:0,clockRollback:to<from};
+ const balanced=e.balanceVersion>=BALANCE_VERSION;
+ config=configFor(city,config);
+ // Visible idle cities keep selling at the full rate. Only recent interaction
+ // earns operation XP; closing/hiding the game uses the lower away rate.
+ const idleRate=balanced?(offline?AWAY_RATE:1):1/3;
  const deadline=offline?from:Math.min(to,(e.lastAction||0)+600000);let coins=0,onlineCoins=0;const active=[];
  for(const b of list){const p=config[b.t.id];if(!p)continue;if(!b.t.pr?.length)b.t.pr=[{s:0,o:0}];const pr=b.t.pr[0],ranges=intervals(pr,p.stock*60000,from,to);
   const employees=b.employees??b.workers??0;if(!employees||!b.ok||!b.pow||!b.wat)continue;
   const rate=gross(b.d,b.t,employees,p,rates)*school;
-  for(const [lo,hi]of ranges){const fullEnd=Math.max(lo,Math.min(hi,deadline)),full=fullEnd-lo,away=hi-fullEnd;const boost=city.boostUntil||0;const bonusFull=Math.max(0,Math.min(fullEnd,boost)-lo),bonusAway=Math.max(0,Math.min(hi,boost)-fullEnd);const paid=rate*(full+bonusFull+(away+bonusAway)/3)/60000;coins+=paid;onlineCoins+=rate*(full+bonusFull)/60000;if(full>0)active.push([lo,fullEnd]);if(paid>0)b.t.labSold=(b.t.labSold||0)+paid;}
+  for(const [lo,hi]of ranges){const fullEnd=Math.max(lo,Math.min(hi,deadline)),full=fullEnd-lo,away=hi-fullEnd;const boost=city.boostUntil||0;const bonusFull=Math.max(0,Math.min(fullEnd,boost)-lo),bonusAway=Math.max(0,Math.min(hi,boost)-fullEnd);const paid=rate*(full+bonusFull+(away+bonusAway)*idleRate)/60000;coins+=paid;onlineCoins+=rate*(full+bonusFull)/60000;if(full>0)active.push([lo,fullEnd]);if(paid>0)b.t.labSold=(b.t.labSold||0)+paid;}
  }
  e.settled=to;const minutes=unionMs(active)/60000;return {coins,minutes,onlineCoins,from,to};
 }
 function award(city,n){n=Math.max(0,Number(n)||0);if(!n)return [];if(city.level>=100){city.xp=Math.min(city.xp||0,need(100)-1);return [];}city.xp=(city.xp||0)+n;const gained=[];while(city.level<100&&city.xp>=need(city.level)){city.xp-=need(city.level);city.level++;if(API.onLevel)API.onLevel(city,city.level);city.stars=(city.stars||0)+2;if(city.level%5===0){city.deeds=(city.deeds||0)+1;city.tickets=(city.tickets||0)+1;}gained.push(city.level);}city.xp=Math.round(city.xp*1000)/1000;return gained;}
 function development(city,key,n,ms){const e=ensure(city,ms);if(e.claims[key])return 0;e.claims[key]=true;const paid=Math.max(0,Math.min(n,100-e.development));e.development+=paid;award(city,paid);return paid;}
 function operation(city,minutes,onlineCoins,ms,services=true){const e=ensure(city,ms),before=e.minutes,after=before+minutes;const first=Math.max(0,Math.min(120,after)-Math.min(120,before));const extra=Math.max(0,Math.min(240,after)-Math.max(120,before));e.minutes=after;e.weekMinutes+=minutes;if(services){e.serviceMinutes=(e.serviceMinutes||0)+minutes;e.weekServiceMinutes=(e.weekServiceMinutes||0)+minutes;}e.onlineCoins+=onlineCoins;const xp=first*6+extra;award(city,xp);return xp;}
-const API={VERSION,need,legacyNeed,cycle,week,ensure,migrate,originalGross,gross,fee,intervals,unionMs,settle,award,development,operation};root.LabCore=API;if(typeof module!=='undefined')module.exports=API;
+const API={VERSION,BALANCE_VERSION,AWAY_RATE,need,legacyNeed,cycle,week,ensure,migrate,originalGross,gross,fee,configFor,rebalance,intervals,unionMs,settle,award,development,operation};root.LabCore=API;if(typeof module!=='undefined')module.exports=API;
 })(typeof globalThis!=='undefined'?globalThis:this);
+

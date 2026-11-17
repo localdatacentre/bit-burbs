@@ -1,5 +1,5 @@
-const CACHE='bit-burbs-demolition-10percent-20261117-v3';
-const ASSETS=['./','./index.html','./economy-core.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
+const CACHE='bit-burbs-business-balance-20261117-v4';
+const ASSETS=['./','./index.html','./economy-core.js?v=balance2','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
@@ -55,3 +55,4 @@ self.addEventListener('fetch',event=>{
     }
   })());
 });
+
