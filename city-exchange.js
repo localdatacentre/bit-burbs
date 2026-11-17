@@ -39,4 +39,23 @@ function settleCityExchange(city, playerId, entry) {
   } else throw Error('Unknown exchange entry');
   return next;
 }
-if (typeof module !== 'undefined') module.exports={settleCityExchange};
+// Called by the server after it reads a committed entry from its ledger.
+// A returned revision means the city already includes this sequence.
+async function deliverCityExchangeEntry(bucket, playerId, entry) {
+  if (typeof playerId !== 'string' || !/^[a-f0-9]{64}$/.test(playerId) ||
+      entry?.playerId !== playerId) throw Error('City mismatch');
+  const key = 'live-city/roster2/' + playerId;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const current = await bucket.get(key);
+    if (!current?.etag) throw Error('Linked cloud city missing');
+    const envelope = await current.json();
+    const city = settleCityExchange(envelope.city, playerId, entry);
+    if (city === envelope.city) return current.etag;
+    const saved = await bucket.put(key, JSON.stringify({...envelope, city}), {
+      onlyIf: {etagMatches: current.etag}
+    });
+    if (saved) return saved.etag;
+  }
+  throw Error('Cloud city busy. Retry the pending exchange entry.');
+}
+if (typeof module !== 'undefined') module.exports={settleCityExchange, deliverCityExchangeEntry};
