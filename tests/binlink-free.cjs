@@ -64,3 +64,16 @@ for(const id of ids) {
   assert(buildingLimitMessage(id,true));
   S.tiles=[];
 }
+
+for(const length of [1,5]) {
+  const roads=new Map();
+  for(let x=-length;x<=length;x++)roads.set(x,{arms:[0,2]});
+  const legacyStops=Array.from({length:10},(_,i)=>({
+    t:{id:i<5?'hailStop':'busShelter',visits:1},x:0,y:0,dx:1,dy:0,sx:0,sy:1,dir:0
+  }));
+  const buses=[];
+  const map={roads,stops:legacyStops,buildings:legacyStops};
+  gameFunction('serviceBuses',{buses,streetMap:()=>map,stopInterval:600,N:32})(0);
+  assert.equal(buses.length,legacyStops.length);
+  assert(buses.every(bus=>bus.base===64 && bus.half===.72));
+}

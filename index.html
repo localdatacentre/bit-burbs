@@ -11074,7 +11074,6 @@ function dropPassengers(stop){
 function serviceBuses(dt){
   buses.length=0;
   const map=streetMap();
-  const stopCounts=map.stopCounts||(map.stopCounts=map.buildings.reduce((counts,b)=>{if(b.t.id==='busShelter')counts[0]++;if(b.t.id==='hailStop')counts[1]++;return counts},[0,0]));
   for(const stop of map.stops){
     const t=stop.t;
     let elapsed=(t.serviceElapsed||0)+dt;
@@ -11097,14 +11096,13 @@ function serviceBuses(dt){
       return tiles+.48;
     }
     const rear=clearRun(-1),front=clearRun(1);
-    const metro=stopCounts[0]===5&&stopCounts[1]===5&&rear>=2.4&&front>=2.4;
-    const half=metro?1.45:.72,door=metro?0:.42;
+    const half=.72,door=.42;
     // Stay within the straight and stop short of any intersecting traffic.
     if(rear+front<half*2)continue;
     const dock=Math.max(-rear+half,Math.min(front-half,-door));
     const along=dock; // Short service visits fade at the kerb; no route-wide bus movement.
     buses.push({x:stop.x+.5+stop.sx*.19+stop.dx*along,y:stop.y+.5+stop.sy*.19+stop.dy*along,
-      dir:stop.dir,half,angle:stop.dir*Math.PI/2,base:metro?68:64,frames:4,alpha:Math.min(1,time+4,9-time)});
+      dir:stop.dir,half,angle:stop.dir*Math.PI/2,base:64,frames:4,alpha:Math.min(1,time+4,9-time)});
   }
 }
 function carSegment(road,inDir,outDir){
@@ -12308,7 +12306,7 @@ function buildHTML() {
   h += '</div>';
   if (buildTab === 'items') h += `<p class="note">Place collectables you own from the Dosh Shop for free.</p>`;
   if (buildTab === 'items' && !visibleIds.length) h += `<p class="note">You haven't purchased any cosmetic items yet. Visit the Dosh Shop to find a collectable.</p>`;
-  if(buildTab==='transport') h+='<p class="note">Build beside a straight road at least three tiles long. Each stop receives a bus every 10 minutes of active play. Longer shelter corridors also serve the M1 Riverline.</p>';
+  if(buildTab==='transport') h+='<p class="note">Build beside a straight road at least three tiles long. Each stop receives a bus every 10 minutes of active play.</p>';
   if (buildTab === 'util') h += `<p class="note">City power ${D.useP}/${D.supP} · water ${D.useW}/${D.supW}. Buildings without power or water stop working.</p>`;
   return h;
 }
