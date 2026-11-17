@@ -12518,7 +12518,7 @@ function coinBoostHTML() {
   return '<h3>Coin boosts</h3>' + (rows.join('') || '<p class="note">Earn boosts from rewards, then tap Use here to start the timer.</p>');
 }
 function useCoinBoost(min) {
-  if (min!==15 || !(S.coinBoostTokens?.[min]>0)) return;
+  if (![10,15].includes(min) || !(S.coinBoostTokens?.[min]>0)) return;
   if (--S.coinBoostTokens[min]===0) delete S.coinBoostTokens[min];
   S.boostUntil = Math.max(now(), S.boostUntil || 0) + min*60000;
   changed(); save(); updateHUD(); renderSheet(true); snd('confirm');
@@ -14278,10 +14278,17 @@ function replaceLegacyGyms(city) {
 
 function standardiseCoinBoosts(city) {
   const saved = Object.entries(city.coinBoostTokens || {});
-  if (!saved.some(([duration]) => duration !== '15')) return;
-  const minutes = saved.reduce((sum,[duration,count]) =>
+  const legacy = saved.filter(([duration]) => duration !== '10' && duration !== '15');
+  if (!legacy.length) return;
+  const minutes = legacy.reduce((sum,[duration,count]) =>
     sum + (Number(duration)>0 && Number.isSafeInteger(count) && count>0 ? Number(duration)*count : 0),0);
-  city.coinBoostTokens = minutes ? {15:Math.ceil(minutes/15)} : {};
+  const keep = {};
+  for (const duration of [10,15]) {
+    const count = city.coinBoostTokens[duration];
+    if (Number.isSafeInteger(count) && count > 0) keep[duration] = count;
+  }
+  if (minutes) keep[15] = (keep[15] || 0) + Math.ceil(minutes/15);
+  city.coinBoostTokens = keep;
 }
 SPRK.facilityRoadArt={facilityStreetTiles,directions,paintRoadSurface,makeRoadSurface,addJunctionSignals,signalLamp,paintJunctionSignal,signalLensColours,signalOn,streetLampSites,paintStreetPole};
 S = remodelDemo || micksDriveDemo ? newGame() : load() || newGame();
