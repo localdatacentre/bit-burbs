@@ -1,0 +1,491 @@
+{
+  "baseline": "83fee17bd4793ec5ae470445002d299caadceef2",
+  "profiles": {
+    "oneBusiness": {
+      "status": "blocked",
+      "count": 3,
+      "upperBound": 8,
+      "candidates": 66,
+      "searchExhausted": false,
+      "tasks": [
+        {
+          "template": "29",
+          "difficulty": "challenging",
+          "metric": "suppliedHomeMinutes",
+          "scope": [
+            "home-1"
+          ],
+          "target": 90,
+          "estimatedMinutes": 90
+        },
+        {
+          "template": "25",
+          "difficulty": "challenging",
+          "metric": "staffedMinutes",
+          "scope": [
+            "bakery-0"
+          ],
+          "target": 90,
+          "estimatedMinutes": 90
+        },
+        {
+          "template": "07",
+          "difficulty": "challenging",
+          "metric": "sellingMinutes",
+          "scope": [
+            "bakery-0"
+          ],
+          "target": 90,
+          "estimatedMinutes": 93
+        }
+      ],
+      "simulation": null
+    },
+    "brandNew": {
+      "status": "blocked",
+      "count": 0,
+      "upperBound": 0,
+      "candidates": 0,
+      "searchExhausted": false,
+      "tasks": [],
+      "simulation": null
+    },
+    "growing": {
+      "status": "ready",
+      "count": 10,
+      "upperBound": 10,
+      "candidates": 174,
+      "searchExhausted": false,
+      "tasks": [
+        {
+          "template": "08",
+          "difficulty": "challenging",
+          "metric": "sellingMinutes",
+          "scope": [
+            "workshop-2"
+          ],
+          "target": 90,
+          "estimatedMinutes": 95
+        },
+        {
+          "template": "08",
+          "difficulty": "challenging",
+          "metric": "sellingMinutes",
+          "scope": [
+            "bakery-0"
+          ],
+          "target": 90,
+          "estimatedMinutes": 93
+        },
+        {
+          "template": "30",
+          "difficulty": "challenging",
+          "metric": "powerMinutes",
+          "scope": [
+            "bakery-0",
+            "books-3",
+            "coffee-1",
+            "grocery-4",
+            "workshop-2"
+          ],
+          "target": 90,
+          "estimatedMinutes": 90
+        },
+        {
+          "template": "20",
+          "difficulty": "standard",
+          "metric": "delivery",
+          "scope": [
+            "grocery-4"
+          ],
+          "target": 1,
+          "estimatedMinutes": 35
+        },
+        {
+          "template": "24",
+          "difficulty": "standard",
+          "metric": "sellingMinutes",
+          "scope": [
+            "grocery-4"
+          ],
+          "target": 35,
+          "estimatedMinutes": 40
+        },
+        {
+          "template": "16",
+          "difficulty": "standard",
+          "metric": "order",
+          "scope": [
+            "coffee-1"
+          ],
+          "target": 1,
+          "estimatedMinutes": 35
+        },
+        {
+          "template": "33",
+          "difficulty": "standard",
+          "metric": "visits",
+          "scope": [
+            "stop-1"
+          ],
+          "target": 4,
+          "estimatedMinutes": 40
+        },
+        {
+          "template": "01",
+          "difficulty": "straightforward",
+          "metric": "sales",
+          "scope": [
+            "bakery-0",
+            "books-3",
+            "coffee-1",
+            "grocery-4",
+            "workshop-2"
+          ],
+          "target": 3208,
+          "estimatedMinutes": 20
+        },
+        {
+          "template": "12",
+          "difficulty": "straightforward",
+          "metric": "sellingMinutes",
+          "scope": [
+            "coffee-1"
+          ],
+          "target": 12,
+          "estimatedMinutes": 12
+        },
+        {
+          "template": "19",
+          "difficulty": "straightforward",
+          "metric": "delivery",
+          "scope": [
+            "bakery-0"
+          ],
+          "target": 1,
+          "estimatedMinutes": 33
+        }
+      ],
+      "simulation": {
+        "completeAtMinute": 95,
+        "coinsAfterSession": 118209,
+        "dailyRewards": {
+          "crateVouchers": 14,
+          "dosh": 12,
+          "xp": 220,
+          "restockVouchers": 2,
+          "wheelTickets": 2
+        }
+      }
+    },
+    "fullyStockedLate": {
+      "status": "blocked",
+      "count": 8,
+      "upperBound": 8,
+      "candidates": 391,
+      "searchExhausted": false,
+      "tasks": [
+        {
+          "template": "07",
+          "difficulty": "challenging",
+          "metric": "sellingMinutes",
+          "scope": [
+            "cinema-7",
+            "gym-5",
+            "orbital-gym-4"
+          ],
+          "target": 90,
+          "estimatedMinutes": 90
+        },
+        {
+          "template": "04",
+          "difficulty": "challenging",
+          "metric": "sales",
+          "scope": [
+            "fire-11"
+          ],
+          "target": 2820,
+          "estimatedMinutes": 60
+        },
+        {
+          "template": "08",
+          "difficulty": "challenging",
+          "metric": "sellingMinutes",
+          "scope": [
+            "books-20"
+          ],
+          "target": 90,
+          "estimatedMinutes": 90
+        },
+        {
+          "template": "24",
+          "difficulty": "standard",
+          "metric": "sellingMinutes",
+          "scope": [
+            "warehouse-15"
+          ],
+          "target": 35,
+          "estimatedMinutes": 35
+        },
+        {
+          "template": "28",
+          "difficulty": "standard",
+          "metric": "staffedMinutes",
+          "scope": [
+            "fishchips-21"
+          ],
+          "target": 35,
+          "estimatedMinutes": 35
+        },
+        {
+          "template": "33",
+          "difficulty": "standard",
+          "metric": "visits",
+          "scope": [
+            "stop-1"
+          ],
+          "target": 4,
+          "estimatedMinutes": 40
+        },
+        {
+          "template": "10",
+          "difficulty": "standard",
+          "metric": "sellingMinutes",
+          "scope": [
+            "bakery-1",
+            "red-ibis-0"
+          ],
+          "target": 36,
+          "estimatedMinutes": 36
+        },
+        {
+          "template": "12",
+          "difficulty": "straightforward",
+          "metric": "sellingMinutes",
+          "scope": [
+            "orbital-gym-4"
+          ],
+          "target": 18,
+          "estimatedMinutes": 18
+        }
+      ],
+      "simulation": null
+    },
+    "withoutBinLink": {
+      "status": "ready",
+      "count": 10,
+      "upperBound": 10,
+      "candidates": 162,
+      "searchExhausted": false,
+      "tasks": [
+        {
+          "template": "08",
+          "difficulty": "challenging",
+          "metric": "sellingMinutes",
+          "scope": [
+            "workshop-2"
+          ],
+          "target": 90,
+          "estimatedMinutes": 95
+        },
+        {
+          "template": "08",
+          "difficulty": "challenging",
+          "metric": "sellingMinutes",
+          "scope": [
+            "bakery-0"
+          ],
+          "target": 90,
+          "estimatedMinutes": 93
+        },
+        {
+          "template": "30",
+          "difficulty": "challenging",
+          "metric": "powerMinutes",
+          "scope": [
+            "bakery-0",
+            "books-3",
+            "coffee-1",
+            "grocery-4",
+            "workshop-2"
+          ],
+          "target": 90,
+          "estimatedMinutes": 90
+        },
+        {
+          "template": "20",
+          "difficulty": "standard",
+          "metric": "delivery",
+          "scope": [
+            "grocery-4"
+          ],
+          "target": 1,
+          "estimatedMinutes": 35
+        },
+        {
+          "template": "24",
+          "difficulty": "standard",
+          "metric": "sellingMinutes",
+          "scope": [
+            "grocery-4"
+          ],
+          "target": 35,
+          "estimatedMinutes": 40
+        },
+        {
+          "template": "16",
+          "difficulty": "standard",
+          "metric": "order",
+          "scope": [
+            "coffee-1"
+          ],
+          "target": 1,
+          "estimatedMinutes": 35
+        },
+        {
+          "template": "16",
+          "difficulty": "standard",
+          "metric": "order",
+          "scope": [
+            "bakery-0"
+          ],
+          "target": 1,
+          "estimatedMinutes": 33
+        },
+        {
+          "template": "01",
+          "difficulty": "straightforward",
+          "metric": "sales",
+          "scope": [
+            "bakery-0",
+            "books-3",
+            "coffee-1",
+            "grocery-4",
+            "workshop-2"
+          ],
+          "target": 3208,
+          "estimatedMinutes": 20
+        },
+        {
+          "template": "12",
+          "difficulty": "straightforward",
+          "metric": "sellingMinutes",
+          "scope": [
+            "coffee-1"
+          ],
+          "target": 12,
+          "estimatedMinutes": 12
+        },
+        {
+          "template": "12",
+          "difficulty": "straightforward",
+          "metric": "sellingMinutes",
+          "scope": [
+            "books-3"
+          ],
+          "target": 12,
+          "estimatedMinutes": 12
+        }
+      ],
+      "simulation": {
+        "completeAtMinute": 95,
+        "coinsAfterSession": 118209,
+        "dailyRewards": {
+          "crateVouchers": 14,
+          "dosh": 12,
+          "xp": 220,
+          "restockVouchers": 2,
+          "wheelTickets": 2
+        }
+      }
+    }
+  },
+  "completionWeek": {
+    "oneBusiness": {
+      "completedDays": 0,
+      "taskVouchers": 0,
+      "completionMinutes": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "assumption": "fixed owned portfolio, two active hours daily, overnight stock expires; each day has a different deterministic seed"
+    },
+    "brandNew": {
+      "completedDays": 0,
+      "taskVouchers": 0,
+      "completionMinutes": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "assumption": "fixed owned portfolio, two active hours daily, overnight stock expires; each day has a different deterministic seed"
+    },
+    "growing": {
+      "completedDays": 7,
+      "taskVouchers": 98,
+      "completionMinutes": [
+        90,
+        95,
+        98,
+        95,
+        93,
+        95,
+        95
+      ],
+      "assumption": "fixed owned portfolio, two active hours daily, overnight stock expires; each day has a different deterministic seed"
+    },
+    "fullyStockedLate": {
+      "completedDays": 6,
+      "taskVouchers": 84,
+      "completionMinutes": [
+        null,
+        95,
+        102,
+        65,
+        102,
+        110,
+        95
+      ],
+      "assumption": "fixed owned portfolio, two active hours daily, overnight stock expires; each day has a different deterministic seed"
+    },
+    "withoutBinLink": {
+      "completedDays": 7,
+      "taskVouchers": 98,
+      "completionMinutes": [
+        90,
+        95,
+        98,
+        95,
+        93,
+        95,
+        95
+      ],
+      "assumption": "fixed owned portfolio, two active hours daily, overnight stock expires; each day has a different deterministic seed"
+    }
+  },
+  "weekly": {
+    "fullCompletion": {
+      "crateVouchers": 98,
+      "dosh": 84,
+      "restockVouchers": 14,
+      "wheelTickets": 14,
+      "xp": 1540
+    },
+    "wheelVoucherEV": 1.1,
+    "with7Free": 121.1,
+    "with14Free": 128.8,
+    "legacyWeeklyTicketsExtra": 3.3000000000000003,
+    "levelTickets": "1 every five levels; variable, excluded",
+    "shopSpins": "0.66 expected vouchers if the five free offers are uniform",
+    "completionGuaranteed": false
+  }
+}
