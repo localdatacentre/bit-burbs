@@ -9835,8 +9835,7 @@ function stopCount(id, includeStored=false) {
   return placed+(includeStored?(S.storedBuildings||[]).filter(e=>e.building?.id===id).length:0);
 }
 function buildingLimitMessage(id, restoring=false) {
-  if(parkSizes[id]&&stopCount(id,!restoring)>=1)return 'Limit of one per city.';
-  if(isStop(id)&&stopCount(id,!restoring)>=5)return 'Limit of 5 per city.';
+  if((parkSizes[id]||isStop(id))&&stopCount(id,!restoring)>=1)return 'Limit of one per city.';
   if (id !== 'school') return '';
   if (hasB('school')) return 'Your city already has a school.';
   if (!restoring && S.storedBuildings?.some(entry => entry.building.id === 'school'))
@@ -12291,7 +12290,7 @@ function buildHTML() {
     const limit = buildingLimitMessage(id);
     const cant = locked || !!limit || (id === 'deliveryDepot' && hasB(id)) || (item ? count < 1 : S.cash < cost);
     let sub = '';
-    if(d.type==='transport') sub=stopCount(id,true)+'/5 owned · straight road required';
+    if(d.type==='transport') sub='Free · One per city';
     else if (isBiz(d)) sub = `${d.type==='svc'?SVC_NAMES[d.svc]+' · ':''}Up to ${fmt(catalogueIncome(d))} coins/min`;
     else if (d.type === 'home') sub = `${d.cap} residents`;
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
@@ -12303,7 +12302,7 @@ function buildHTML() {
     if (id==='school') sub += ' · +1–5% city coins/min · one per city';
     if (isBiz(d)) sub += ` · ${jobCapacity(null, d)} jobs`;
     if (locked) sub += ` · Unlocks at Lv ${d.lvl}`;
-    const price = limit || (item ? `You have ${count}` : isStop(id) ? 'Free' : coinSvg() + cost.toLocaleString('en-AU'));
+    const price = isStop(id) ? (limit ? 'Owned' : 'Place beside a straight road') : limit || (item ? `You have ${count}` : coinSvg() + cost.toLocaleString('en-AU'));
     h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
   });
   h += '</div>';
