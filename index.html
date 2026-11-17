@@ -9858,7 +9858,7 @@ function placeAt(i, j, id, fromItem, turned=false) {
   const cost = fromItem ? 0 : costOf(id);
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
   if (fromItem && !(S.shopItems && S.shopItems[id] > 0)) { snd('error'); toast('You have none of this Dosh Shop item left.'); return false; }
-  S.cash -= cost; const tile=newTile(id);tile.labId='new-'+(++labState().nextId);if(turned)tile.turned=Number(turned);occupy(i,j,tile); if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
+  S.cash -= cost; const tile=newTile(id);tile.purchaseCoins=cost;tile.labId='new-'+(++labState().nextId);if(turned)tile.turned=Number(turned);occupy(i,j,tile); if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
   if (id === 'hall' && S.foundingGrant) {
     delete S.foundingGrant; S.cash += 8000; save(); toast('Town founded · 8,000 starter coins');
   }
@@ -9867,12 +9867,19 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
 }
+function demolitionRefund(tile) {
+  if (!tile || tile.id === 'road' || tile.id === 'hall' || MARKET[tile.id]) return 0;
+  const paid = Number.isFinite(tile.purchaseCoins) && tile.purchaseCoins >= 0
+    ? tile.purchaseCoins
+    : (parkSizes[tile.id] ? 0 : BUILDING_QUOTES[tile.id]?.first ?? DEFS[tile.id]?.cost ?? 0);
+  return Math.floor(paid / 10);
+}
 function demolish(i, j) {
   ({ i, j } = anchorOf(i, j)); const t = tileAt(i, j); if (!t || t.id === 'hall') return;
   vacate(i,j,t);
   const d = DEFS[t.id];
   if (MARKET[t.id]) { S.items[t.id] = (S.items[t.id] || 0) + 1; S.shopItems[t.id] = (S.shopItems[t.id] || 0) + 1; toast(d.name + ' packed into My items.'); }
-  else if (t.id !== 'road') { const back = Math.round(d.cost * .5); S.cash += back; toast('Demolished. Refunded ' + fmt(back) + ' Coins.'); }
+  else if (t.id !== 'road') { const back = demolitionRefund(t); S.cash += back; toast('Demolished. Refunded ' + fmt(back) + ' Coins.'); }
   sel = null; changed();
 }
 function expand() {
@@ -12072,7 +12079,7 @@ function upRow(t, d) {
   return `<div class="uprow"><div class="lvbars">${bars}</div><button class="pixel-btn pb gold" data-act="upgrade" ${ok ? '' : 'disabled'}>Upgrade · ${fmt(c.coins)}${c.deeds ? ' + ' + c.deeds + ' Deed' + (c.deeds > 1 ? 's' : '') : ''}</button></div>`;
 }
 function head(t, p) { return `<div class="chead"><div><h2>${t}</h2><p>${p}</p></div><button class="pixel-btn pb red sq x pixel-close" data-act="closeCard" aria-label="Close">✕</button></div>`; }
-function demoBtn(label) { return `<button class="pixel-btn pb red sm" data-act="demolish">${demoArm ? 'Tap again to confirm' : (label || 'Demolish')}</button>`; }
+function demoBtn(label) { const refund=sel?demolitionRefund(tileAt(sel.i,sel.j)):0; return `<button class="pixel-btn pb red sm" data-act="demolish">${demoArm ? 'Tap again to confirm'+(refund?' · '+fmt(refund)+' Coins refund':'') : (label || 'Demolish')}</button>`; }
 function liveCard() {
   if (!sel || placing) return; const t = tileAt(sel.i, sel.j); if (!t) return; const d = DEFS[t.id];
   if (d.type === 'shop' && t.st === 'sell') { const bar = $('#liveBar'), tm = $('#liveTime'); const el = now() - t.t; if (bar) bar.style.width = Math.min(100, el / stime(t, d) * 100) + '%'; if (tm) setText(tm, mmss(stime(t, d) - el) + ' left'); }

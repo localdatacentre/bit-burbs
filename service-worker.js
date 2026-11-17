@@ -1,4 +1,4 @@
-const CACHE='bit-burbs-economy-earnings-20261117-v2';
+const CACHE='bit-burbs-demolition-10percent-20261117-v3';
 const ASSETS=['./','./index.html','./economy-core.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
