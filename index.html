@@ -11072,10 +11072,6 @@ function dropPassengers(stop){
     if(path.length>1)startWalker(path);
   }
 }
-function upgradeStop(i,j){
-  const t=tileAt(i,j);if(!modelReady('busShelter')||t?.id!=='hailStop'||buildingLimitMessage('busShelter'))return false;
-  t.id='busShelter';streetNetwork=null;changed();save();return true;
-}
 function serviceBuses(dt){
   buses.length=0;
   const map=streetMap();
@@ -12008,9 +12004,8 @@ function renderCard(force) {
       } else if (d.type === 'util') {
         html = head(d.name, `Level ${lvlOf(t)} · ` + (d.supP ? `+${Math.round(d.supP * upMul(t))} power` : `+${Math.round(d.supW * upMul(t))} water`) + ` · city power ${D.useP}/${D.supP}, water ${D.useW}/${D.supW}`) + statusTags(b) + (t.id==='wtower'?towerPaintMenu(t,sel.i,sel.j):'') + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if(d.type==='transport'){
-        const upgrade=t.id==='hailStop'&&modelReady('busShelter')?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(buildingLimitMessage('busShelter')?'disabled':'')+'>Upgrade to shelter · Free</button>':'';
         html=head(d.name,'Bus service every 10 active minutes')
-          +'<p class="note" id="stopTime"></p><div class="row">'+upgrade+demoBtn()+'</div>';
+          +'<p class="note" id="stopTime"></p><div class="row">'+demoBtn()+'</div>';
       } else if (d.type === 'hall') {
         const e = EXPAND[expIdx()];
         html = head('Town Hall', stage(S.level) + ' · Lv ' + S.level) + `<button class="pixel-btn pb purple sm" data-act="info" data-k="hall">How it works</button><div class="tags"><span class="tag">Residents ${S.pop}/${D.cap}</span><span class="tag">Jobs ${D.employed}/${D.jobs}</span><span class="tag ${D.useP <= D.supP ? 'ok' : 'bad'}">Power ${D.useP}/${D.supP}</span><span class="tag ${D.useW <= D.supW ? 'ok' : 'bad'}">Water ${D.useW}/${D.supW}</span></div>` + (e ? `<div class="row"><button class="pixel-btn pb" data-act="expand" ${S.level >= e.lvl && S.cash >= e.cost && (S.deeds || 0) >= e.deeds ? '' : 'disabled'}>Expand land · ${fmt(e.cost)} + ${e.deeds} Deed${e.deeds > 1 ? 's' : ''}${S.level < e.lvl ? ' (Lv ' + e.lvl + ')' : ''}</button></div>` : '<p class="note">Your city has all the land there is!</p>');
@@ -12072,6 +12067,7 @@ function businessPanel(b){
     (t.id==='school' ? '<span class="micro">City coins/min +'+L+'%'+(max?' · max level':' → +'+(L+1)+'% at level '+(L+1))+' · one school per city</span>' : max?'':'<span class="micro">Level '+(L+1)+' · +'+pct+'% sales rate</span>');
 }
 function upRow(t, d) {
+  if (!canUp(d)) return '';
   const L = lvlOf(t); const bars = Array.from({ length: UP_MAX }, (_, k) => `<i class="${k < L ? 'on' : ''}"></i>`).join('');
   if (L >= UP_MAX) return `<div class="uprow"><div class="lvbars">${bars}</div><span class="note">Max level reached!</span></div>`;
   const c = upCost(d, L); const ok = S.cash >= c.coins && (S.deeds || 0) >= c.deeds;
@@ -12124,7 +12120,6 @@ card.addEventListener('click', e => {
     if(ok){placing=null;select(g.i,g.j);}return;
   }
   if (!sel) return;
-  if(a==='shelterUpgrade')upgradeStop(sel.i,sel.j);
   else if (a === 'collect') collectShop(sel.i, sel.j);
   else if (a === 'upgrade') upgrade(sel.i, sel.j);
   else if (a === 'order') restockBiz(info(sel.i,sel.j));
