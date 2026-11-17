@@ -33,15 +33,18 @@ assert.equal(report.profiles.brandNew.status,'blocked');
 assert.equal(C.cycle(at-1),'2026-11-16');assert.equal(C.cycle(at),'2026-11-17');
 // Feed actual live-economy settlements into the isolated progress reducer.
 function replaySession(s,emit) {
-  const list=s.businesses.map(b=>({t:{id:b.model,labId:b.id,lvl:1,pr:[{s:at+b.remaining*M,o:0}]},d:defs[b.model],employees:b.employees,ok:true,pow:true,wat:true}));
-  const city={cash:s.cash,level:1,xp:0,economyLab:{version:1,balanceVersion:2,settled:at,lastAction:at}};
+  const list=s.businesses.map(b=>({t:{id:b.model,labId:b.id,lvl:1,pr:[{s:at+b.remaining*M,o:b.pending===null?0:at+b.pending*M}]},d:defs[b.model],employees:b.employees,ok:true,pow:true,wat:true}));
+  const city={cash:s.cash,restockVouchers:s.restockVouchers||0,level:1,xp:0,economyLab:{version:1,balanceVersion:2,settled:at,lastAction:at}};
   let event=0;
   const apply=e=>emit({id:'sim-'+(++event),...e});
   for(let m=0;m<120;m++) {
     const from=at+m*M,to=from+M;
     for(const b of list)if(b.t.pr[0].s<=from&&!b.t.pr[0].o) {
-      const p=config[b.t.id],fee=C.fee(b.d,b.t,b.employees,p,rates);assert(city.cash>=fee);
-      city.cash-=fee;b.t.pr[0].o=from+p.delivery*M;
+      const p=config[b.t.id],fee=C.fee(b.d,b.t,b.employees,p,rates);
+      if(city.restockVouchers>0)city.restockVouchers--;
+      else if(city.cash>=fee)city.cash-=fee;
+      else continue;
+      b.t.pr[0].o=from+p.delivery*M;
       apply({type:'order',subject:b.t.labId,at:from});
     }
     const facts={'home-1':{suppliedHomeMinutes:true}};
@@ -56,7 +59,7 @@ function replaySession(s,emit) {
     city.cash+=C.settle(city,list,to,config,rates).coins;
     apply({type:'interval',from,at:to,active:true,foreground:true,facts});
     for(const subject of arrivals)apply({type:'delivery',subject,at:to});
-    if((m+1)%10===0)for(const stop of s.stops||[])apply({type:'busVisit',subject:stop.id,fare:stop.fare,at:to,active:true,foreground:true});
+    if((m+1)%10===0)for(const stop of (s.stops||[]).filter(stop=>stop.connected))apply({type:'busVisit',subject:stop.id,fare:stop.fare,at:to,active:true,foreground:true});
   }
   return city;
 }
@@ -90,6 +93,75 @@ assert.equal(capacityResults.withoutBinLink,10);
 assert(capacityResults.fullyStockedLate>5 && capacityResults.fullyStockedLate<10);
 assert.deepEqual(T.sessionGoals(profiles.growing,at,[]),[]);
 console.log('Verified session capacity',capacityResults);
+
+
+// Each row uses one wallet and the same two-hour trace for all candidate goals.
+const capacityMatrix=[];
+for(const ids of [['bakery'],['bakery','bakery'],['bakery','coffee'],['bakery','coffee','books']]) {
+  for(const remaining of [0,30,75,76,240])for(const cash of [0,1000])for(const stops of [false,true]) {
+    const s=profile(ids,{remaining,cash,stops});
+    const events=[];
+    const wallet=replaySession(s,event=>events.push(event));
+    assert(wallet.cash>=0);
+    const goals=T.sessionGoals(s,at,events);
+    const orders=events.filter(event=>event.type==='order');
+    if(!cash&&!remaining)assert.equal(orders.length,0);
+    if(!stops)assert(!goals.some(goal=>goal.transport));
+    if(remaining>75)assert(!goals.some(goal=>goal.orderIds));
+    let replay={status:'ready',day:C.cycle(at),assignedAt:at,
+      tasks:goals.map(goal=>({...goal,assignedAt:at,progress:0}))};
+    let finishMinute=null;
+    for(const event of events) {
+      replay=T.progress(replay,event);
+      if(goals.length && replay.tasks.every(goal=>goal.progress>=goal.target)) {
+        finishMinute=(event.at-at)/M;
+        break;
+      }
+    }
+    assert(finishMinute>=90 && finishMinute<=120, "expected a 90–120 minute set for this fixture");
+    capacityMatrix.push({ids,remaining,cash,stops,count:goals.length,finishMinute});
+  }
+}
+report.capacityMatrix=capacityMatrix;
+// Empty bakery and no coins. One voucher should start exactly one initial order.
+for(const vouchers of [0,1]) {
+  const s=profile(['bakery'],{remaining:0,cash:0,stops:false});
+  s.restockVouchers=vouchers;
+  const events=[];
+  const wallet=replaySession(s,event=>events.push(event));
+  const initial=events.filter(event=>event.type==='order'&&event.at===at);
+  assert.equal(initial.length,vouchers);
+  assert.equal(wallet.restockVouchers,0);
+  const goals=T.sessionGoals(s,at,events);
+  assert.equal(goals.some(goal=>goal.metric==='sellingMinutes'||goal.metric==='sales'||goal.metric==='tradingCoverage'),!!vouchers);
+}
+
+// Candidate scope aliases must not give the same sales a second job.
+const overlapProfile=profile(['bakery','coffee'],{remaining:30,cash:1000,stops:false});
+const salesPool=T.candidates(overlapProfile).filter(t=>t.metric==='sellingMinutes');
+const bakeryOnly=salesPool.find(t=>t.ids.length===1&&t.ids[0]==='bakery-0');
+const coffeeOnly=salesPool.find(t=>t.ids.length===1&&t.ids[0]==='coffee-1');
+const bothShops=salesPool.find(t=>t.ids.length===2);
+assert(!T.compatible(bakeryOnly,bothShops));
+assert(T.compatible(bakeryOnly,coffeeOnly));
+// An already paid delivery can land with an empty wallet. Crossing the
+// two-hour cutoff by a minute must leave the delivery out of the set.
+for(const pending of [119,120,121]) {
+  const s=profile(['bakery'],{remaining:0,cash:0,stops:false});
+  s.businesses[0].pending=pending;
+  const events=[];
+  replaySession(s,event=>events.push(event));
+  assert(!events.some(e=>e.type==='order'));
+  const goals=T.sessionGoals(s,at,events);
+  assert.equal(goals.some(t=>t.metric==='delivery'),pending<=120);
+}
+// A disconnected bus stop cannot supply the sixth goal.
+const busCity=profile(['bakery','coffee'],{remaining:76,cash:1000,stops:true});
+busCity.stops[0].connected=false;
+const busEvents=[];
+replaySession(busCity,event=>busEvents.push(event));
+assert(!busEvents.some(e=>e.type==='busVisit'));
+assert(!T.sessionGoals(busCity,at,busEvents).some(t=>t.transport));
 
 // Exercise daily variation, previous-day preference, and actual same-rank swaps.
 let replacements=0;

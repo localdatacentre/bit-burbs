@@ -115,7 +115,7 @@ function candidates(s) {
 function compatible(a,b) {
   if(a.signature===b.signature)return false;
   const salesMetrics=['sales','sellingMinutes','tradingCoverage'];
-  if(scope(a.ids)===scope(b.ids)&&salesMetrics.includes(a.metric)&&salesMetrics.includes(b.metric))return false;
+  if(salesMetrics.includes(a.metric)&&salesMetrics.includes(b.metric)&&a.ids.some(id=>b.ids.includes(id)))return false;
   if(a.money&&b.money||a.improvement&&b.improvement)return false;
   if(a.orderIds&&b.orderIds&&a.orderIds.some(id=>b.orderIds.includes(id)))return false;
   if(a.transport&&b.transport)return false; // fare/visit variants share actual visits
@@ -228,13 +228,19 @@ function sessionGoals(snapshot,at,events) {
   const pool=candidates(snapshot);
   let state={status:'ready',day:Core.cycle(at),assignedAt:at,
     tasks:pool.map(t=>({...t,assignedAt:at,progress:0}))};
+  const finishedAt=new Map();
   for(const event of events) {
-    if(event.at<=at+120*M)state=progress(state,event);
+    if(event.at>at+120*M)continue;
+    state=progress(state,event);
+    for(let i=0;i<pool.length;i++) {
+      if(!finishedAt.has(pool[i]) && state.tasks[i].progress>=pool[i].target)
+        finishedAt.set(pool[i],(event.at-at)/M);
+    }
   }
   const completed=pool.filter((t,i)=>state.tasks[i].progress>=t.target);
   // Try reproducible candidate orderings to find compatible goals for
   // reduced sets. The result is a witnessed lower bound on capacity.
-  let best=[];
+  let best=[],bestDuration=0;
   for(let attempt=0;attempt<24;attempt++) {
     const rng=random('capacity:'+at+':'+attempt);
     const ranked=completed.map(task=>({task,order:rng()})).sort((a,b)=>a.order-b.order);
@@ -244,9 +250,14 @@ function sessionGoals(snapshot,at,events) {
       if(chosen.filter(t=>t.family===task.family).length>=2)continue;
       if(task.maintenance&&chosen.filter(t=>t.maintenance).length>=2)continue;
       if(chosen.every(t=>compatible(t,task))&&affordable([...chosen,task],snapshot))chosen.push(task);
-      if(chosen.length===10)return chosen;
+      if(chosen.length===10)break;
     }
-    if(chosen.length>best.length)best=chosen;
+    const duration=Math.min(90,Math.max(0,...chosen.map(task=>finishedAt.get(task))));
+    if(chosen.length>best.length || (chosen.length===best.length && duration>bestDuration)) {
+      best=chosen;
+      bestDuration=duration;
+    }
+    if(best.length===10 && bestDuration===90)break;
   }
   return best;
 }

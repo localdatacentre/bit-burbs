@@ -112,37 +112,23 @@
           "estimatedMinutes": 40
         },
         {
-          "template": "16",
-          "difficulty": "standard",
-          "metric": "order",
-          "scope": [
-            "coffee-1"
-          ],
-          "target": 1,
-          "estimatedMinutes": 35
-        },
-        {
-          "template": "33",
-          "difficulty": "standard",
+          "template": "35",
+          "difficulty": "straightforward",
           "metric": "visits",
           "scope": [
             "stop-1"
           ],
-          "target": 4,
-          "estimatedMinutes": 40
+          "target": 2,
+          "estimatedMinutes": 20
         },
         {
-          "template": "01",
+          "template": "04",
           "difficulty": "straightforward",
           "metric": "sales",
           "scope": [
-            "bakery-0",
-            "books-3",
-            "coffee-1",
-            "grocery-4",
-            "workshop-2"
+            "books-3"
           ],
-          "target": 3208,
+          "target": 714,
           "estimatedMinutes": 20
         },
         {
@@ -156,9 +142,19 @@
           "estimatedMinutes": 12
         },
         {
-          "template": "19",
-          "difficulty": "straightforward",
-          "metric": "delivery",
+          "template": "16",
+          "difficulty": "standard",
+          "metric": "order",
+          "scope": [
+            "coffee-1"
+          ],
+          "target": 1,
+          "estimatedMinutes": 35
+        },
+        {
+          "template": "16",
+          "difficulty": "standard",
+          "metric": "order",
           "scope": [
             "bakery-0"
           ],
@@ -259,11 +255,12 @@
           "estimatedMinutes": 36
         },
         {
-          "template": "12",
+          "template": "11",
           "difficulty": "straightforward",
           "metric": "sellingMinutes",
           "scope": [
-            "orbital-gym-4"
+            "gas-14",
+            "spindleCycles-17"
           ],
           "target": 18,
           "estimatedMinutes": 18
@@ -333,8 +330,28 @@
           "estimatedMinutes": 40
         },
         {
+          "template": "04",
+          "difficulty": "straightforward",
+          "metric": "sales",
+          "scope": [
+            "books-3"
+          ],
+          "target": 714,
+          "estimatedMinutes": 20
+        },
+        {
+          "template": "12",
+          "difficulty": "straightforward",
+          "metric": "sellingMinutes",
+          "scope": [
+            "coffee-1"
+          ],
+          "target": 12,
+          "estimatedMinutes": 12
+        },
+        {
           "template": "16",
-          "difficulty": "standard",
+          "difficulty": "straightforward",
           "metric": "order",
           "scope": [
             "coffee-1"
@@ -353,38 +370,14 @@
           "estimatedMinutes": 33
         },
         {
-          "template": "01",
-          "difficulty": "straightforward",
-          "metric": "sales",
+          "template": "19",
+          "difficulty": "standard",
+          "metric": "delivery",
           "scope": [
-            "bakery-0",
-            "books-3",
-            "coffee-1",
-            "grocery-4",
             "workshop-2"
           ],
-          "target": 3208,
-          "estimatedMinutes": 20
-        },
-        {
-          "template": "12",
-          "difficulty": "straightforward",
-          "metric": "sellingMinutes",
-          "scope": [
-            "coffee-1"
-          ],
-          "target": 12,
-          "estimatedMinutes": 12
-        },
-        {
-          "template": "12",
-          "difficulty": "straightforward",
-          "metric": "sellingMinutes",
-          "scope": [
-            "books-3"
-          ],
-          "target": 12,
-          "estimatedMinutes": 12
+          "target": 1,
+          "estimatedMinutes": 35
         }
       ],
       "simulation": {
@@ -400,6 +393,888 @@
       }
     }
   },
+  "capacityMatrix": [
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": false,
+      "count": 2,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": true,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": false,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": true,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": false,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": true,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": false,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": true,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": false,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": true,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": false,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": true,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": false,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": true,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": false,
+      "count": 2,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": true,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": false,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": true,
+      "count": 7,
+      "finishMinute": 93
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": false,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": true,
+      "count": 7,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": false,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": true,
+      "count": 7,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "bakery"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": false,
+      "count": 2,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": true,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": false,
+      "count": 6,
+      "finishMinute": 95
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": true,
+      "count": 7,
+      "finishMinute": 93
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": false,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": true,
+      "count": 7,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": false,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": true,
+      "count": 7,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": false,
+      "count": 4,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": true,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": false,
+      "count": 2,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 0,
+      "cash": 0,
+      "stops": true,
+      "count": 3,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": false,
+      "count": 8,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 0,
+      "cash": 1000,
+      "stops": true,
+      "count": 9,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": false,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 30,
+      "cash": 0,
+      "stops": true,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": false,
+      "count": 8,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 30,
+      "cash": 1000,
+      "stops": true,
+      "count": 9,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": false,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 75,
+      "cash": 0,
+      "stops": true,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": false,
+      "count": 8,
+      "finishMinute": 95
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 75,
+      "cash": 1000,
+      "stops": true,
+      "count": 9,
+      "finishMinute": 95
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": false,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 76,
+      "cash": 0,
+      "stops": true,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": false,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 76,
+      "cash": 1000,
+      "stops": true,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": false,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 240,
+      "cash": 0,
+      "stops": true,
+      "count": 6,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": false,
+      "count": 5,
+      "finishMinute": 90
+    },
+    {
+      "ids": [
+        "bakery",
+        "coffee",
+        "books"
+      ],
+      "remaining": 240,
+      "cash": 1000,
+      "stops": true,
+      "count": 6,
+      "finishMinute": 90
+    }
+  ],
   "completionWeek": {
     "oneBusiness": {
       "completedDays": 0,
@@ -435,9 +1310,9 @@
       "completionMinutes": [
         90,
         95,
-        98,
         95,
-        93,
+        95,
+        90,
         95,
         95
       ],
@@ -458,16 +1333,16 @@
       "assumption": "fixed owned portfolio, two active hours daily, overnight stock expires; each day has a different deterministic seed"
     },
     "withoutBinLink": {
-      "completedDays": 7,
-      "taskVouchers": 98,
+      "completedDays": 1,
+      "taskVouchers": 14,
       "completionMinutes": [
         90,
-        95,
-        98,
-        95,
-        93,
-        95,
-        95
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
       ],
       "assumption": "fixed owned portfolio, two active hours daily, overnight stock expires; each day has a different deterministic seed"
     }
@@ -487,5 +1362,52 @@
     "levelTickets": "1 every five levels; variable, excluded",
     "shopSpins": "0.66 expected vouchers if the five free offers are uniform",
     "completionGuaranteed": false
+  },
+  "capacityWeek": {
+    "oneBusiness": [
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4
+    ],
+    "brandNew": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "growing": [
+      10,
+      9,
+      9,
+      9,
+      8,
+      9,
+      9
+    ],
+    "fullyStockedLate": [
+      8,
+      10,
+      10,
+      10,
+      10,
+      10,
+      10
+    ],
+    "withoutBinLink": [
+      10,
+      8,
+      8,
+      8,
+      7,
+      8,
+      8
+    ]
   }
 }
