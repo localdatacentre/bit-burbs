@@ -1,0 +1,18 @@
+diff --git a/hosting/catalogue-worker.js b/hosting/catalogue-worker.js
+index 3d28773..b73f626 100644
+--- a/hosting/catalogue-worker.js
++++ b/hosting/catalogue-worker.js
+@@ -195,7 +195,12 @@ async function liveCityAccount(request,env,ctx){
+    return reply({...await file.json(),revision:file.etag});
+  }
+  if(p.action!=='save'||!p.city||p.city.v!==2||!Array.isArray(p.city.tiles)||!p.city.tiles.length||p.city.tiles.length>192*192||!Number.isFinite(p.city.cash)||typeof p.progress!=='string'||!/^[0-9a-f]{32}$/.test(p.progress)||!(p.revision===null||typeof p.revision==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(p.revision)))return reply({error:'Invalid city save.'},400);
+- const obj=await env.BUCKET.put(path,JSON.stringify({city:p.city,progress:p.progress}),{onlyIf:p.revision===null?{etagDoesNotMatch:'*'}:{etagMatches:p.revision}});
++ const current=p.revision===null?null:await env.BUCKET.get(path);
++ if(p.revision!==null&&current?.etag!==p.revision)return reply({error:'City changed. Reopen it before saving.'},409);
++ const previous=current?await current.json():{};
++ if((p.city.exchangeSequence??0)!==(previous.city?.exchangeSequence??0))return reply({error:'Load your latest Exchange rewards before saving.'},409);
++ const envelope={...previous,city:p.city,progress:p.progress};
++ const obj=await env.BUCKET.put(path,JSON.stringify(envelope),{onlyIf:p.revision===null?{etagDoesNotMatch:'*'}:{etagMatches:p.revision}});
+  if(!obj)return reply({error:'Another browser saved this city. Reopen the game to load its latest save.'},409);
+  const observedAt=Date.now();
+  const tracking=recordProgression(env.BUCKET,path.slice('live-city/roster2/'.length),p.city,observedAt).catch(()=>console.warn('Progression snapshot unavailable; city save succeeded.'));
