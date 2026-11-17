@@ -1,0 +1,238 @@
+{
+  "approvedDesign": true,
+  "implementedLive": false,
+  "crates": {
+    "Silver": {
+      "cost": 2,
+      "coins": 1012.5,
+      "dosh": 3.75,
+      "deeds": 0.27,
+      "spins": 0.04
+    },
+    "Gold": {
+      "cost": 6,
+      "coins": 3500,
+      "dosh": 6.25,
+      "deeds": 0.3,
+      "spins": 0.1
+    },
+    "Emerald": {
+      "cost": 14,
+      "coins": 6000,
+      "dosh": 12.5,
+      "deeds": 0.76,
+      "spins": 0.24
+    },
+    "Ruby": {
+      "cost": 30,
+      "coins": 11500,
+      "dosh": 22,
+      "deeds": 1.4,
+      "spins": 0.44999999999999996
+    },
+    "Diamond": {
+      "cost": 80,
+      "coins": 27750,
+      "dosh": 60,
+      "deeds": 3.5999999999999996,
+      "spins": 1.2,
+      "buildings": 0.1
+    }
+  },
+  "wheel": {
+    "vouchers": 0.9,
+    "restockVouchers": 0.35,
+    "coins": 300,
+    "dosh": 2.25,
+    "deeds": 0.14,
+    "milestoneVouchers": 0.2
+  },
+  "weekly": [
+    {
+      "freeSpins": 7,
+      "legacyWeekly": false,
+      "tier": "Silver",
+      "externalVouchers": 121.75999999999999,
+      "crateSpinFeedbackFraction": 0.022000000000000002,
+      "totalVoucherThroughput": 124.49897750511246,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": false,
+      "tier": "Gold",
+      "externalVouchers": 121.75999999999999,
+      "crateSpinFeedbackFraction": 0.018333333333333333,
+      "totalVoucherThroughput": 124.0339558573854,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": false,
+      "tier": "Emerald",
+      "externalVouchers": 121.75999999999999,
+      "crateSpinFeedbackFraction": 0.01885714285714286,
+      "totalVoucherThroughput": 124.10017472335468,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": false,
+      "tier": "Ruby",
+      "externalVouchers": 121.75999999999999,
+      "crateSpinFeedbackFraction": 0.016499999999999997,
+      "totalVoucherThroughput": 123.8027452974072,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": false,
+      "tier": "Diamond",
+      "externalVouchers": 121.75999999999999,
+      "crateSpinFeedbackFraction": 0.0165,
+      "totalVoucherThroughput": 123.8027452974072,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": true,
+      "tier": "Silver",
+      "externalVouchers": 125.06,
+      "crateSpinFeedbackFraction": 0.022000000000000002,
+      "totalVoucherThroughput": 127.87321063394684,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": true,
+      "tier": "Gold",
+      "externalVouchers": 125.06,
+      "crateSpinFeedbackFraction": 0.018333333333333333,
+      "totalVoucherThroughput": 127.39558573853989,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": true,
+      "tier": "Emerald",
+      "externalVouchers": 125.06,
+      "crateSpinFeedbackFraction": 0.01885714285714286,
+      "totalVoucherThroughput": 127.46359930110658,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": true,
+      "tier": "Ruby",
+      "externalVouchers": 125.06,
+      "crateSpinFeedbackFraction": 0.016499999999999997,
+      "totalVoucherThroughput": 127.15810879511947,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 7,
+      "legacyWeekly": true,
+      "tier": "Diamond",
+      "externalVouchers": 125.06,
+      "crateSpinFeedbackFraction": 0.0165,
+      "totalVoucherThroughput": 127.15810879511947,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": false,
+      "tier": "Silver",
+      "externalVouchers": 129.46,
+      "crateSpinFeedbackFraction": 0.022000000000000002,
+      "totalVoucherThroughput": 132.37218813905932,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": false,
+      "tier": "Gold",
+      "externalVouchers": 129.46,
+      "crateSpinFeedbackFraction": 0.018333333333333333,
+      "totalVoucherThroughput": 131.87775891341258,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": false,
+      "tier": "Emerald",
+      "externalVouchers": 129.46,
+      "crateSpinFeedbackFraction": 0.01885714285714286,
+      "totalVoucherThroughput": 131.94816540477578,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": false,
+      "tier": "Ruby",
+      "externalVouchers": 129.46,
+      "crateSpinFeedbackFraction": 0.016499999999999997,
+      "totalVoucherThroughput": 131.63192679206915,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": false,
+      "tier": "Diamond",
+      "externalVouchers": 129.46,
+      "crateSpinFeedbackFraction": 0.0165,
+      "totalVoucherThroughput": 131.63192679206915,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": true,
+      "tier": "Silver",
+      "externalVouchers": 132.76,
+      "crateSpinFeedbackFraction": 0.022000000000000002,
+      "totalVoucherThroughput": 135.74642126789365,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": true,
+      "tier": "Gold",
+      "externalVouchers": 132.76,
+      "crateSpinFeedbackFraction": 0.018333333333333333,
+      "totalVoucherThroughput": 135.23938879456705,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": true,
+      "tier": "Emerald",
+      "externalVouchers": 132.76,
+      "crateSpinFeedbackFraction": 0.01885714285714286,
+      "totalVoucherThroughput": 135.31158998252766,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": true,
+      "tier": "Ruby",
+      "externalVouchers": 132.76,
+      "crateSpinFeedbackFraction": 0.016499999999999997,
+      "totalVoucherThroughput": 134.98729028978138,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    },
+    {
+      "freeSpins": 14,
+      "legacyWeekly": true,
+      "tier": "Diamond",
+      "externalVouchers": 132.76,
+      "crateSpinFeedbackFraction": 0.0165,
+      "totalVoucherThroughput": 134.98729028978138,
+      "assumption": "long-run; all incoming vouchers spent on this tier; no level tickets, purchases or ads; uniform free shop offers"
+    }
+  ],
+  "collection": {
+    "anyBuildingExpectedVouchers": 800,
+    "specificModelExpectedVouchers": 6400,
+    "expectedVouchersForAllEightWithoutTrading": 17394.285714285714,
+    "caution": "Expectations only; independent random openings never guarantee a building or a complete set."
+  }
+}

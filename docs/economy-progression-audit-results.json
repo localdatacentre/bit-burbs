@@ -1,0 +1,1150 @@
+{
+  "baseline": "83fee17bd4793ec5ae470445002d299caadceef2",
+  "assumptions": {
+    "sessionMinutes": 120,
+    "dayMinutes": 1440,
+    "world": "economy derive-state harness; road connections stubbed as valid, no physical layout claim",
+    "rewardSystem": "current live five-task system, optional live crate opening; future ten-task rewards not credited",
+    "growth": "deterministic illustrative strategy, not a speedrun bound or observed player"
+  },
+  "scenarios": [
+    {
+      "name": "starter-active-live",
+      "daysTo100": 109,
+      "capitalSpent": 5364,
+      "restockFees": 7200,
+      "totalBusinessIncome": 445400,
+      "taskDays": 150,
+      "crateOpens": 0,
+      "checkpoints": {
+        "day1": {
+          "level": 10,
+          "coins": 4871,
+          "dosh": 36,
+          "deeds": 4,
+          "XP": 2,
+          "tickets": 3,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 1
+        },
+        "day7": {
+          "level": 29,
+          "coins": 22409,
+          "dosh": 122,
+          "deeds": 9,
+          "XP": 60,
+          "tickets": 9,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 7
+        },
+        "day30": {
+          "level": 56,
+          "coins": 89601,
+          "dosh": 360,
+          "deeds": 21,
+          "XP": 535,
+          "tickets": 24,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 30
+        },
+        "day60": {
+          "level": 77,
+          "coins": 177243,
+          "dosh": 642,
+          "deeds": 35,
+          "XP": 922,
+          "tickets": 43,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 60
+        },
+        "day90": {
+          "level": 92,
+          "coins": 264885,
+          "dosh": 912,
+          "deeds": 46,
+          "XP": 746,
+          "tickets": 58,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 90
+        },
+        "day120": {
+          "level": 100,
+          "coins": 352527,
+          "dosh": 1168,
+          "deeds": 56,
+          "XP": 1386,
+          "tickets": 72,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 120
+        },
+        "day150": {
+          "level": 100,
+          "coins": 440169,
+          "dosh": 1408,
+          "deeds": 64,
+          "XP": 1386,
+          "tickets": 84,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 150
+        }
+      },
+      "final": {
+        "level": 100,
+        "coins": 440836,
+        "dosh": 1408,
+        "deeds": 64,
+        "XP": 1386,
+        "tickets": 84,
+        "buildings": 6
+      },
+      "purchaseLog": [
+        {
+          "day": 1,
+          "id": "hall",
+          "cost": 0
+        },
+        {
+          "day": 1,
+          "id": "wind",
+          "cost": 1350
+        },
+        {
+          "day": 1,
+          "id": "wtower",
+          "cost": 1130
+        },
+        {
+          "day": 1,
+          "id": "house",
+          "cost": 900
+        },
+        {
+          "day": 1,
+          "id": "bakery",
+          "cost": 1700
+        },
+        {
+          "day": 1,
+          "id": "deliveryDepot",
+          "cost": 100
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        }
+      ]
+    },
+    {
+      "name": "growing-active-live",
+      "daysTo100": 107,
+      "capitalSpent": 6839395,
+      "restockFees": 2425266,
+      "totalBusinessIncome": 68331232,
+      "taskDays": 150,
+      "crateOpens": 0,
+      "checkpoints": {
+        "day1": {
+          "level": 10,
+          "coins": 1034,
+          "dosh": 36,
+          "deeds": 4,
+          "XP": 20,
+          "tickets": 3,
+          "buildings": 8,
+          "population": 11,
+          "jobs": 7,
+          "taskDays": 1
+        },
+        "day7": {
+          "level": 29,
+          "coins": 17732,
+          "dosh": 122,
+          "deeds": 9,
+          "XP": 366,
+          "tickets": 9,
+          "buildings": 17,
+          "population": 47,
+          "jobs": 43,
+          "taskDays": 7
+        },
+        "day30": {
+          "level": 57,
+          "coins": 717932,
+          "dosh": 362,
+          "deeds": 21,
+          "XP": 361,
+          "tickets": 24,
+          "buildings": 42,
+          "population": 282,
+          "jobs": 273,
+          "taskDays": 30
+        },
+        "day60": {
+          "level": 78,
+          "coins": 10082387,
+          "dosh": 644,
+          "deeds": 35,
+          "XP": 680,
+          "tickets": 43,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 60
+        },
+        "day90": {
+          "level": 93,
+          "coins": 26348015,
+          "dosh": 914,
+          "deeds": 46,
+          "XP": 526,
+          "tickets": 58,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 90
+        },
+        "day120": {
+          "level": 100,
+          "coins": 42613643,
+          "dosh": 1168,
+          "deeds": 56,
+          "XP": 0,
+          "tickets": 72,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 120
+        },
+        "day150": {
+          "level": 100,
+          "coins": 58879270,
+          "dosh": 1408,
+          "deeds": 64,
+          "XP": 0,
+          "tickets": 84,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 150
+        }
+      },
+      "final": {
+        "level": 100,
+        "coins": 59074571,
+        "dosh": 1408,
+        "deeds": 64,
+        "XP": 0,
+        "tickets": 84,
+        "buildings": 45
+      },
+      "purchaseLog": [
+        {
+          "day": 1,
+          "id": "hall",
+          "cost": 0
+        },
+        {
+          "day": 1,
+          "id": "wind",
+          "cost": 1350
+        },
+        {
+          "day": 1,
+          "id": "wtower",
+          "cost": 1130
+        },
+        {
+          "day": 1,
+          "id": "house",
+          "cost": 900
+        },
+        {
+          "day": 1,
+          "id": "bakery",
+          "cost": 1700
+        },
+        {
+          "day": 1,
+          "id": "deliveryDepot",
+          "cost": 100
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "workshop",
+          "cost": 2560
+        },
+        {
+          "day": 1,
+          "id": "house",
+          "cost": 1220
+        },
+        {
+          "day": 2,
+          "id": "wind",
+          "cost": 1820
+        },
+        {
+          "day": 3,
+          "id": "coffee",
+          "cost": 4660
+        },
+        {
+          "day": 4,
+          "id": "books",
+          "cost": 10320
+        },
+        {
+          "day": 5,
+          "id": "fishchips",
+          "cost": 12660
+        },
+        {
+          "day": 5,
+          "id": "house2",
+          "cost": 3670
+        },
+        {
+          "day": 5,
+          "id": "wtower",
+          "cost": 1530
+        },
+        {
+          "day": 6,
+          "id": "record",
+          "cost": 15010
+        },
+        {
+          "day": 7,
+          "id": "grocery",
+          "cost": 18140
+        },
+        {
+          "day": 7,
+          "id": "wind",
+          "cost": 2460
+        },
+        {
+          "day": 8,
+          "id": "m3",
+          "cost": 4880
+        },
+        {
+          "day": 8,
+          "id": "fire",
+          "cost": 19050
+        },
+        {
+          "day": 9,
+          "id": "spindleCycles",
+          "cost": 20160
+        },
+        {
+          "day": 9,
+          "id": "police",
+          "cost": 25530
+        },
+        {
+          "day": 9,
+          "id": "q1",
+          "cost": 6970
+        },
+        {
+          "day": 11,
+          "id": "gym",
+          "cost": 58120
+        },
+        {
+          "day": 11,
+          "id": "solar",
+          "cost": 6750
+        },
+        {
+          "day": 11,
+          "id": "pump",
+          "cost": 5630
+        },
+        {
+          "day": 12,
+          "id": "red-ibis",
+          "cost": 63180
+        },
+        {
+          "day": 13,
+          "id": "banksiaDuplex",
+          "cost": 8540
+        },
+        {
+          "day": 13,
+          "id": "clinic",
+          "cost": 69490
+        },
+        {
+          "day": 15,
+          "id": "orbital-gym",
+          "cost": 84100
+        },
+        {
+          "day": 16,
+          "id": "house",
+          "cost": 1640
+        },
+        {
+          "day": 16,
+          "id": "school",
+          "cost": 89900
+        },
+        {
+          "day": 17,
+          "id": "house2",
+          "cost": 4950
+        },
+        {
+          "day": 17,
+          "id": "hardware",
+          "cost": 111600
+        },
+        {
+          "day": 19,
+          "id": "m3",
+          "cost": 6590
+        },
+        {
+          "day": 19,
+          "id": "gas",
+          "cost": 155310
+        },
+        {
+          "day": 20,
+          "id": "aptS",
+          "cost": 14120
+        },
+        {
+          "day": 20,
+          "id": "sundrop",
+          "cost": 164470
+        },
+        {
+          "day": 20,
+          "id": "solar2",
+          "cost": 10130
+        },
+        {
+          "day": 22,
+          "id": "cinema",
+          "cost": 272450
+        },
+        {
+          "day": 24,
+          "id": "factory",
+          "cost": 364320
+        },
+        {
+          "day": 24,
+          "id": "q1",
+          "cost": 9411
+        },
+        {
+          "day": 28,
+          "id": "warehouse",
+          "cost": 757450
+        },
+        {
+          "day": 36,
+          "id": "aptP",
+          "cost": 18560
+        },
+        {
+          "day": 36,
+          "id": "skyscraper",
+          "cost": 2024370
+        },
+        {
+          "day": 42,
+          "id": "space",
+          "cost": 2302720
+        }
+      ]
+    },
+    {
+      "name": "growing-active-live-with-crates",
+      "daysTo100": 105,
+      "capitalSpent": 6839395,
+      "restockFees": 2630309,
+      "totalBusinessIncome": 73703197,
+      "taskDays": 150,
+      "crateOpens": 197,
+      "checkpoints": {
+        "day1": {
+          "level": 11,
+          "coins": 25194,
+          "dosh": 150,
+          "deeds": 8,
+          "XP": 5,
+          "tickets": 4,
+          "buildings": 10,
+          "population": 21,
+          "jobs": 12,
+          "taskDays": 1
+        },
+        "day7": {
+          "level": 30,
+          "coins": 69347,
+          "dosh": 414,
+          "deeds": 20,
+          "XP": 537,
+          "tickets": 13,
+          "buildings": 28,
+          "population": 144,
+          "jobs": 133,
+          "taskDays": 7
+        },
+        "day30": {
+          "level": 58,
+          "coins": 2314178,
+          "dosh": 906,
+          "deeds": 37,
+          "XP": 96,
+          "tickets": 29,
+          "buildings": 44,
+          "population": 308,
+          "jobs": 297,
+          "taskDays": 30
+        },
+        "day60": {
+          "level": 79,
+          "coins": 16655167,
+          "dosh": 1382,
+          "deeds": 57,
+          "XP": 124,
+          "tickets": 52,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 60
+        },
+        "day90": {
+          "level": 93,
+          "coins": 33485551,
+          "dosh": 1787,
+          "deeds": 72,
+          "XP": 2286,
+          "tickets": 67,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 90
+        },
+        "day120": {
+          "level": 100,
+          "coins": 50068655,
+          "dosh": 2065,
+          "deeds": 86,
+          "XP": 4,
+          "tickets": 81,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 120
+        },
+        "day150": {
+          "level": 100,
+          "coins": 66334283,
+          "dosh": 2305,
+          "deeds": 94,
+          "XP": 4,
+          "tickets": 93,
+          "buildings": 45,
+          "population": 332,
+          "jobs": 322,
+          "taskDays": 150
+        }
+      },
+      "final": {
+        "level": 100,
+        "coins": 66529584,
+        "dosh": 2305,
+        "deeds": 94,
+        "XP": 4,
+        "tickets": 93,
+        "buildings": 45
+      },
+      "purchaseLog": [
+        {
+          "day": 1,
+          "id": "hall",
+          "cost": 0
+        },
+        {
+          "day": 1,
+          "id": "wind",
+          "cost": 1350
+        },
+        {
+          "day": 1,
+          "id": "wtower",
+          "cost": 1130
+        },
+        {
+          "day": 1,
+          "id": "house",
+          "cost": 900
+        },
+        {
+          "day": 1,
+          "id": "bakery",
+          "cost": 1700
+        },
+        {
+          "day": 1,
+          "id": "deliveryDepot",
+          "cost": 100
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "workshop",
+          "cost": 2560
+        },
+        {
+          "day": 1,
+          "id": "coffee",
+          "cost": 4660
+        },
+        {
+          "day": 1,
+          "id": "house",
+          "cost": 1220
+        },
+        {
+          "day": 1,
+          "id": "wind",
+          "cost": 1820
+        },
+        {
+          "day": 2,
+          "id": "books",
+          "cost": 10320
+        },
+        {
+          "day": 2,
+          "id": "fishchips",
+          "cost": 12660
+        },
+        {
+          "day": 2,
+          "id": "house2",
+          "cost": 3670
+        },
+        {
+          "day": 2,
+          "id": "pump",
+          "cost": 5630
+        },
+        {
+          "day": 2,
+          "id": "record",
+          "cost": 15010
+        },
+        {
+          "day": 3,
+          "id": "spindleCycles",
+          "cost": 20160
+        },
+        {
+          "day": 3,
+          "id": "m3",
+          "cost": 4880
+        },
+        {
+          "day": 3,
+          "id": "wind",
+          "cost": 2460
+        },
+        {
+          "day": 3,
+          "id": "grocery",
+          "cost": 18140
+        },
+        {
+          "day": 3,
+          "id": "fire",
+          "cost": 19050
+        },
+        {
+          "day": 3,
+          "id": "police",
+          "cost": 25530
+        },
+        {
+          "day": 4,
+          "id": "q1",
+          "cost": 6970
+        },
+        {
+          "day": 4,
+          "id": "gym",
+          "cost": 58120
+        },
+        {
+          "day": 5,
+          "id": "solar2",
+          "cost": 10130
+        },
+        {
+          "day": 6,
+          "id": "red-ibis",
+          "cost": 63180
+        },
+        {
+          "day": 6,
+          "id": "banksiaDuplex",
+          "cost": 8540
+        },
+        {
+          "day": 6,
+          "id": "clinic",
+          "cost": 69490
+        },
+        {
+          "day": 7,
+          "id": "orbital-gym",
+          "cost": 84100
+        },
+        {
+          "day": 8,
+          "id": "house",
+          "cost": 1640
+        },
+        {
+          "day": 8,
+          "id": "school",
+          "cost": 89900
+        },
+        {
+          "day": 9,
+          "id": "house2",
+          "cost": 4950
+        },
+        {
+          "day": 9,
+          "id": "hardware",
+          "cost": 111600
+        },
+        {
+          "day": 10,
+          "id": "m3",
+          "cost": 6590
+        },
+        {
+          "day": 10,
+          "id": "gas",
+          "cost": 155310
+        },
+        {
+          "day": 11,
+          "id": "aptS",
+          "cost": 14120
+        },
+        {
+          "day": 12,
+          "id": "sundrop",
+          "cost": 164470
+        },
+        {
+          "day": 12,
+          "id": "cinema",
+          "cost": 272450
+        },
+        {
+          "day": 14,
+          "id": "factory",
+          "cost": 364320
+        },
+        {
+          "day": 14,
+          "id": "q1",
+          "cost": 9411
+        },
+        {
+          "day": 15,
+          "id": "solar",
+          "cost": 6750
+        },
+        {
+          "day": 18,
+          "id": "warehouse",
+          "cost": 757450
+        },
+        {
+          "day": 25,
+          "id": "aptP",
+          "cost": 18560
+        },
+        {
+          "day": 25,
+          "id": "skyscraper",
+          "cost": 2024370
+        },
+        {
+          "day": 25,
+          "id": "wtower",
+          "cost": 1530
+        },
+        {
+          "day": 31,
+          "id": "space",
+          "cost": 2302720
+        }
+      ]
+    },
+    {
+      "name": "starter-visible-idle",
+      "daysTo100": null,
+      "capitalSpent": 5364,
+      "restockFees": 24,
+      "totalBusinessIncome": 1818,
+      "taskDays": 0,
+      "crateOpens": 0,
+      "checkpoints": {
+        "day1": {
+          "level": 3,
+          "coins": 4430,
+          "dosh": 14,
+          "deeds": 2,
+          "XP": 4,
+          "tickets": 1,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 0
+        },
+        "day7": {
+          "level": 3,
+          "coins": 4430,
+          "dosh": 14,
+          "deeds": 2,
+          "XP": 4,
+          "tickets": 1,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 0
+        },
+        "day30": {
+          "level": 3,
+          "coins": 4430,
+          "dosh": 14,
+          "deeds": 2,
+          "XP": 4,
+          "tickets": 1,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 0
+        },
+        "day60": {
+          "level": 3,
+          "coins": 4430,
+          "dosh": 14,
+          "deeds": 2,
+          "XP": 4,
+          "tickets": 1,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 0
+        },
+        "day90": {
+          "level": 3,
+          "coins": 4430,
+          "dosh": 14,
+          "deeds": 2,
+          "XP": 4,
+          "tickets": 1,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 0
+        },
+        "day120": {
+          "level": 3,
+          "coins": 4430,
+          "dosh": 14,
+          "deeds": 2,
+          "XP": 4,
+          "tickets": 1,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 0
+        },
+        "day150": {
+          "level": 3,
+          "coins": 4430,
+          "dosh": 14,
+          "deeds": 2,
+          "XP": 4,
+          "tickets": 1,
+          "buildings": 6,
+          "population": 3,
+          "jobs": 3,
+          "taskDays": 0
+        }
+      },
+      "final": {
+        "level": 3,
+        "coins": 4430,
+        "dosh": 14,
+        "deeds": 2,
+        "XP": 4,
+        "tickets": 1,
+        "buildings": 6
+      },
+      "purchaseLog": [
+        {
+          "day": 1,
+          "id": "hall",
+          "cost": 0
+        },
+        {
+          "day": 1,
+          "id": "wind",
+          "cost": 1350
+        },
+        {
+          "day": 1,
+          "id": "wtower",
+          "cost": 1130
+        },
+        {
+          "day": 1,
+          "id": "house",
+          "cost": 900
+        },
+        {
+          "day": 1,
+          "id": "bakery",
+          "cost": 1700
+        },
+        {
+          "day": 1,
+          "id": "deliveryDepot",
+          "cost": 100
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        },
+        {
+          "day": 1,
+          "id": "road",
+          "cost": 23
+        }
+      ]
+    }
+  ],
+  "edgeChecks": [],
+  "findings": [
+    {
+      "id": "road-xp-outside-development-cap",
+      "severity": "balance gap",
+      "summary": "Repeated road construction awards one XP each time outside the 100 daily development XP limit; road demolition gives no refund.",
+      "evidence": {
+        "placements": 250,
+        "XPGranted": 250,
+        "coinsSpent": 5750,
+        "levelBefore": 1,
+        "levelAfter": 4,
+        "coinsPerXP": 23
+      },
+      "limit": "Ordinary road building is intended to grant XP; this test identifies an uncapped paid repeat action, not a normal-play level-100 time."
+    },
+    {
+      "id": "activity-window-assumption",
+      "severity": "model limitation",
+      "summary": "Live operation XP considers the game active for ten minutes after a trusted interaction. A simulation touching every minute assumes attended play; a visible untouched city stops earning operation XP after the grace window, while coins remain full rate."
+    }
+  ],
+  "budgetBounds": [
+    {
+      "label": "prior budget: 720 operations + 220 tasks + 100 development + 200 weekly average",
+      "XPPerDay": 1240,
+      "days": 97.71854838709677
+    },
+    {
+      "label": "no recurring development: 720 + 220 + 200",
+      "XPPerDay": 1140,
+      "days": 106.29035087719298
+    },
+    {
+      "label": "100 selling minutes: 600 + 220 + 200",
+      "XPPerDay": 1020,
+      "days": 118.79509803921569
+    },
+    {
+      "label": "114 selling minutes: 684 + 220 + 200 + 14 restock XP",
+      "XPPerDay": 1118,
+      "days": 108.38193202146691
+    }
+  ]
+}

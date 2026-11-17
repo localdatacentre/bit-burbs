@@ -1,0 +1,1517 @@
+{
+  "baseline": "83fee17bd4793ec5ae470445002d299caadceef2",
+  "scope": "read-only tests of pinned live source; no production changes",
+  "checks": [
+    {
+      "name": "11,040 independent income integrations across all 115 business levels",
+      "status": "pass",
+      "evidence": {
+        "cases": 11040
+      }
+    },
+    {
+      "name": "pending stock, delayed catch-up, partition invariance and serialized reload",
+      "status": "pass",
+      "evidence": {
+        "cases": 230
+      }
+    },
+    {
+      "name": "income is proportional to staff; upgrades do not increase fixed business jobs",
+      "status": "pass",
+      "evidence": {
+        "businesses": 23
+      }
+    },
+    {
+      "name": "existing workers retain jobs when a new workplace is added or an old one closes",
+      "status": "pass",
+      "evidence": {
+        "firstHires": 3,
+        "secondHires": 4
+      }
+    },
+    {
+      "name": "housing and service loss conserve displaced residents and prevent phantom income",
+      "status": "pass",
+      "evidence": {
+        "restoredPopulation": 8,
+        "restoredWorkers": 3
+      }
+    },
+    {
+      "name": "school multiplier is 1–5%, needs full staffing and does not stack",
+      "status": "pass",
+      "evidence": {
+        "maximumPercent": 5
+      }
+    },
+    {
+      "name": "real depot rejects early/duplicate orders and handles exact-price, cash and voucher payments",
+      "status": "pass",
+      "evidence": {
+        "fee": 24,
+        "deliveryMinutes": 3
+      }
+    },
+    {
+      "name": "rush consumes dosh once and does not credit elapsed unearned stock",
+      "status": "pass",
+      "evidence": {
+        "dosh": 1
+      }
+    },
+    {
+      "name": "demolition refunds actual base purchase at 10%, never free parks/roads/Dosh items",
+      "status": "pass",
+      "evidence": {
+        "rate": 0.1,
+        "upgradePaymentsIncluded": false
+      }
+    },
+    {
+      "name": "real arrivals start employee income at the hire timestamp, not the whole absence",
+      "status": "pass",
+      "evidence": {
+        "populationAfterSeconds": 15,
+        "incomePaidForSeconds": 45,
+        "awayRate": 0.5
+      }
+    },
+    {
+      "name": "operation XP counts union of working minutes rather than business count; idle and away pay no XP",
+      "status": "pass",
+      "evidence": {
+        "interactionWindowMinutes": 10,
+        "XPFromTenMinutes": 60
+      }
+    },
+    {
+      "name": "daily operation/development caps, rollover and repeat development receipts",
+      "status": "pass",
+      "evidence": {
+        "dailyFirstTwoHours": 720,
+        "dailyFourHourMaximum": 840,
+        "developmentDailyCap": 100
+      }
+    },
+    {
+      "name": "real ledger splits active minutes and XP at the 6pm Brisbane daily boundary",
+      "status": "pass",
+      "evidence": {
+        "minutesInNewDay": 30,
+        "XPForBothDays": 38,
+        "level": 5
+      }
+    },
+    {
+      "name": "level awards, every-fifth-level tickets/deeds and max-level clamp",
+      "status": "pass",
+      "evidence": {
+        "XP": 121171,
+        "levelDosh": 198,
+        "levelDeeds": 20,
+        "levelTickets": 20
+      }
+    },
+    {
+      "name": "stock continues to expire during service disconnection",
+      "status": "pass",
+      "evidence": {
+        "stockUsedWhileUnpowered": 60,
+        "sellingMinutesAfterReconnect": 30
+      }
+    },
+    {
+      "name": "BinLink visits pay exact 10/30 fares once per ten visible minutes and not from absent stops",
+      "status": "pass",
+      "evidence": {
+        "oneHailPlusOneShelterPer120Minutes": 480,
+        "fiveOfEachPer120Minutes": 2400,
+        "awayService": false
+      }
+    },
+    {
+      "name": "stored building restoration retains level, stock, purchase price and identity",
+      "status": "pass",
+      "evidence": {
+        "freeToRestore": true,
+        "duplicatesRejected": true
+      }
+    },
+    {
+      "name": "balance migration preserves live fractions/pending orders across every business and level",
+      "status": "pass",
+      "evidence": {
+        "cases": 460
+      }
+    },
+    {
+      "name": "legacy boost normalization rounds stored duration upward, never discards valid minutes",
+      "status": "pass",
+      "evidence": {
+        "originalStoredMinutes": 65,
+        "normalizedStoredMinutes": 75,
+        "activeBoostUntouched": true,
+        "releaseWarning": "Existing normalizer is for 15-minute live tokens. A future 10-minute reward release must replace it or preserve legacy durations explicitly."
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "mutation-before-settlement",
+      "severity": "integration risk",
+      "summary": "Calling upgrade before settling existing time retroactively applies its new rate. Normal trusted pointerdown should settle first; alternate action paths must be checked.",
+      "evidence": {
+        "actual": 1512,
+        "expected": 1212,
+        "entryPoint": "upgrade + labAccrue",
+        "normalPointerCapturePresent": true
+      }
+    },
+    {
+      "id": "starter-fixture-correction",
+      "severity": "test coverage",
+      "summary": "The earlier blank-city task fixture used baseState 3,000 coins. Actual newGame starts at 8,000 coins and zero residents; ten-task absence still applies, but onboarding affordability must use 8,000.",
+      "evidence": {
+        "baseStateCash": 3000,
+        "actualNewGameCash": 8000,
+        "actualPopulation": 0,
+        "actualLevel": 1,
+        "townHallPrice": 0,
+        "depotPrice": 100
+      }
+    }
+  ],
+  "businesses": [
+    {
+      "id": "red-ibis",
+      "name": "Mick's Burgers",
+      "firstPrice": 63180,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 65.5,
+          "fee": 236,
+          "netPerStockedCycle": 11554,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 14,
+          "nextUpgrade": 24900
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 82.7,
+          "fee": 298,
+          "netPerStockedCycle": 14588,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 14,
+          "nextUpgrade": 43750
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 105.4,
+          "fee": 379,
+          "netPerStockedCycle": 18593,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 14,
+          "nextUpgrade": 86260
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 135.2,
+          "fee": 487,
+          "netPerStockedCycle": 23848.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 14,
+          "nextUpgrade": 139410
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 171.4,
+          "fee": 617,
+          "netPerStockedCycle": 30235,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 14,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "bakery",
+      "name": "Grumbies",
+      "firstPrice": 1700,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 20.2,
+          "fee": 24,
+          "netPerStockedCycle": 1794,
+          "deliveryMinutes": 3,
+          "stockMinutes": 90,
+          "jobs": 3,
+          "nextUpgrade": 640
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 25.2,
+          "fee": 30,
+          "netPerStockedCycle": 2238,
+          "deliveryMinutes": 3,
+          "stockMinutes": 90,
+          "jobs": 3,
+          "nextUpgrade": 1210
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 32.3,
+          "fee": 39,
+          "netPerStockedCycle": 2867.9999999999995,
+          "deliveryMinutes": 3,
+          "stockMinutes": 90,
+          "jobs": 3,
+          "nextUpgrade": 2330
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 41.6,
+          "fee": 50,
+          "netPerStockedCycle": 3694,
+          "deliveryMinutes": 3,
+          "stockMinutes": 90,
+          "jobs": 3,
+          "nextUpgrade": 3850
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 52.9,
+          "fee": 63,
+          "netPerStockedCycle": 4698,
+          "deliveryMinutes": 3,
+          "stockMinutes": 90,
+          "jobs": 3,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "coffee",
+      "name": "Starquacks Coffee",
+      "firstPrice": 4660,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 31.5,
+          "fee": 57,
+          "netPerStockedCycle": 3723,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 5,
+          "nextUpgrade": 1770
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 39.5,
+          "fee": 71,
+          "netPerStockedCycle": 4669,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 5,
+          "nextUpgrade": 3110
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 50,
+          "fee": 90,
+          "netPerStockedCycle": 5910,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 5,
+          "nextUpgrade": 6530
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 64.7,
+          "fee": 116,
+          "netPerStockedCycle": 7648,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 5,
+          "nextUpgrade": 9940
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 81.5,
+          "fee": 147,
+          "netPerStockedCycle": 9633,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 5,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "grocery",
+      "name": "Sprout Market",
+      "firstPrice": 18140,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 47,
+          "fee": 85,
+          "netPerStockedCycle": 5555,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 10,
+          "nextUpgrade": 6570
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 58.4,
+          "fee": 105,
+          "netPerStockedCycle": 6903,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 10,
+          "nextUpgrade": 12640
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 74.8,
+          "fee": 135,
+          "netPerStockedCycle": 8841,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 10,
+          "nextUpgrade": 24780
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 96.2,
+          "fee": 173,
+          "netPerStockedCycle": 11371,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 10,
+          "nextUpgrade": 39520
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 121.8,
+          "fee": 219,
+          "netPerStockedCycle": 14397,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 10,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "orbital-gym",
+      "name": "Orbital Gym",
+      "firstPrice": 84100,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 75.2,
+          "fee": 271,
+          "netPerStockedCycle": 13265,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 16,
+          "nextUpgrade": 31710
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 94.1,
+          "fee": 339,
+          "netPerStockedCycle": 16599,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 16,
+          "nextUpgrade": 58230
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 120.1,
+          "fee": 432,
+          "netPerStockedCycle": 21186,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 16,
+          "nextUpgrade": 112750
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 153.7,
+          "fee": 553,
+          "netPerStockedCycle": 27112.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 16,
+          "nextUpgrade": 184210
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 194.9,
+          "fee": 702,
+          "netPerStockedCycle": 34380,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 16,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "gym",
+      "name": "Forge Fitness",
+      "firstPrice": 58120,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 65.5,
+          "fee": 236,
+          "netPerStockedCycle": 11554,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 13,
+          "nextUpgrade": 22910
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 82.70000000000002,
+          "fee": 298,
+          "netPerStockedCycle": 14588.000000000004,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 13,
+          "nextUpgrade": 40250
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 105.4,
+          "fee": 379,
+          "netPerStockedCycle": 18593,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 13,
+          "nextUpgrade": 79350
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 135.2,
+          "fee": 487,
+          "netPerStockedCycle": 23848.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 13,
+          "nextUpgrade": 128250
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 171.40000000000003,
+          "fee": 617,
+          "netPerStockedCycle": 30235.000000000007,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 13,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "hardware",
+      "name": "Ironbark Hardware",
+      "firstPrice": 111600,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 100.2,
+          "fee": 361,
+          "netPerStockedCycle": 17675,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 18,
+          "nextUpgrade": 41090
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 124.69999999999999,
+          "fee": 449,
+          "netPerStockedCycle": 21996.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 18,
+          "nextUpgrade": 77930
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 159.7,
+          "fee": 575,
+          "netPerStockedCycle": 28170.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 18,
+          "nextUpgrade": 150050
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 204.6,
+          "fee": 737,
+          "netPerStockedCycle": 36091,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 18,
+          "nextUpgrade": 246340
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 259.9,
+          "fee": 936,
+          "netPerStockedCycle": 45845.99999999999,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 18,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "cinema",
+      "name": "Nova Cinema",
+      "firstPrice": 272450,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 162.5,
+          "fee": 1170,
+          "netPerStockedCycle": 37830,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 21,
+          "nextUpgrade": 100990
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 202.7,
+          "fee": 1459,
+          "netPerStockedCycle": 47189,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 21,
+          "nextUpgrade": 190050
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 259.4,
+          "fee": 1868,
+          "netPerStockedCycle": 60387.99999999999,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 21,
+          "nextUpgrade": 365920
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 332.2,
+          "fee": 2392,
+          "netPerStockedCycle": 77336,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 21,
+          "nextUpgrade": 601900
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 421.9,
+          "fee": 3038,
+          "netPerStockedCycle": 98218,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 21,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "workshop",
+      "name": "Patch Repairs",
+      "firstPrice": 2560,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 26,
+          "fee": 47,
+          "netPerStockedCycle": 3073,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 4,
+          "nextUpgrade": 940
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 32.3,
+          "fee": 58,
+          "netPerStockedCycle": 3817.9999999999995,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 4,
+          "nextUpgrade": 1730
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 41.2,
+          "fee": 74,
+          "netPerStockedCycle": 4870,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 4,
+          "nextUpgrade": 3470
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 52.9,
+          "fee": 95,
+          "netPerStockedCycle": 6253,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 4,
+          "nextUpgrade": 5631
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 67.2,
+          "fee": 121,
+          "netPerStockedCycle": 7943,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 4,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "factory",
+      "name": "Rivet Works",
+      "firstPrice": 364320,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 189,
+          "fee": 680,
+          "netPerStockedCycle": 33340,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 22,
+          "nextUpgrade": 135240
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 235.8,
+          "fee": 849,
+          "netPerStockedCycle": 41595,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 22,
+          "nextUpgrade": 255070
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 301.9,
+          "fee": 1087,
+          "netPerStockedCycle": 53254.99999999999,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 22,
+          "nextUpgrade": 489040
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 386.5,
+          "fee": 1391,
+          "netPerStockedCycle": 68179,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 22,
+          "nextUpgrade": 805230
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 490.9,
+          "fee": 1767,
+          "netPerStockedCycle": 86595,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 22,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "police",
+      "name": "Police Station",
+      "firstPrice": 25530,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 57.5,
+          "fee": 104,
+          "netPerStockedCycle": 6796,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 12,
+          "nextUpgrade": 9210
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 71.4,
+          "fee": 129,
+          "netPerStockedCycle": 8439,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 12,
+          "nextUpgrade": 17890
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 91.59999999999998,
+          "fee": 165,
+          "netPerStockedCycle": 10826.999999999998,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 12,
+          "nextUpgrade": 34090
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 117.2,
+          "fee": 211,
+          "netPerStockedCycle": 13853,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 12,
+          "nextUpgrade": 55840
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 148.7,
+          "fee": 268,
+          "netPerStockedCycle": 17576,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 12,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "fire",
+      "name": "Fire Station",
+      "firstPrice": 19050,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 47,
+          "fee": 85,
+          "netPerStockedCycle": 5555,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 11,
+          "nextUpgrade": 6901
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 58.4,
+          "fee": 105,
+          "netPerStockedCycle": 6903,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 11,
+          "nextUpgrade": 13270
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 74.8,
+          "fee": 135,
+          "netPerStockedCycle": 8841,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 11,
+          "nextUpgrade": 26020
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 96.2,
+          "fee": 173,
+          "netPerStockedCycle": 11371,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 11,
+          "nextUpgrade": 41500
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 121.8,
+          "fee": 219,
+          "netPerStockedCycle": 14397,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 11,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "clinic",
+      "name": "Clinic",
+      "firstPrice": 69490,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 65.5,
+          "fee": 236,
+          "netPerStockedCycle": 11554,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 15,
+          "nextUpgrade": 27390
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 82.7,
+          "fee": 298,
+          "netPerStockedCycle": 14588,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 15,
+          "nextUpgrade": 48120
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 105.4,
+          "fee": 379,
+          "netPerStockedCycle": 18593,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 15,
+          "nextUpgrade": 94870
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 135.2,
+          "fee": 487,
+          "netPerStockedCycle": 23848.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 15,
+          "nextUpgrade": 153330
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 171.4,
+          "fee": 617,
+          "netPerStockedCycle": 30235,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 15,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "school",
+      "name": "School",
+      "firstPrice": 89900,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 75.2,
+          "fee": 271,
+          "netPerStockedCycle": 13265,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 17,
+          "nextUpgrade": 33900
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 94.1,
+          "fee": 339,
+          "netPerStockedCycle": 16599,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 17,
+          "nextUpgrade": 62250
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 120.1,
+          "fee": 432,
+          "netPerStockedCycle": 21186,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 17,
+          "nextUpgrade": 120530
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 153.7,
+          "fee": 553,
+          "netPerStockedCycle": 27112.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 17,
+          "nextUpgrade": 196910
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 194.9,
+          "fee": 702,
+          "netPerStockedCycle": 34380,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 17,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "gas",
+      "name": "Zip Fuel",
+      "firstPrice": 155310,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 133.2,
+          "fee": 480,
+          "netPerStockedCycle": 23495.999999999996,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 19,
+          "nextUpgrade": 58700
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 166.8,
+          "fee": 600,
+          "netPerStockedCycle": 29424.000000000004,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 19,
+          "nextUpgrade": 107910
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 213.1,
+          "fee": 767,
+          "netPerStockedCycle": 37591,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 19,
+          "nextUpgrade": 209910
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 273.1,
+          "fee": 983,
+          "netPerStockedCycle": 48175.00000000001,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 19,
+          "nextUpgrade": 341490
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 346.3,
+          "fee": 1247,
+          "netPerStockedCycle": 61087,
+          "deliveryMinutes": 12,
+          "stockMinutes": 180,
+          "jobs": 19,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "warehouse",
+      "name": "Parcel Prime",
+      "firstPrice": 757450,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 323.9,
+          "fee": 2332,
+          "netPerStockedCycle": 75404,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 23,
+          "nextUpgrade": 283540
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 404.8,
+          "fee": 2915,
+          "netPerStockedCycle": 94237,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 23,
+          "nextUpgrade": 530340
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 518.2,
+          "fee": 3731,
+          "netPerStockedCycle": 120637.00000000001,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 23,
+          "nextUpgrade": 1023820
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 664.1,
+          "fee": 4782,
+          "netPerStockedCycle": 154602,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 23,
+          "nextUpgrade": 1664710
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 842.1,
+          "fee": 6063,
+          "netPerStockedCycle": 196041,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 23,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "skyscraper",
+      "name": "Vertex Offices",
+      "firstPrice": 2024370,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 745.5,
+          "fee": 5368,
+          "netPerStockedCycle": 173552,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 24,
+          "nextUpgrade": 761270
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 932.4,
+          "fee": 6713,
+          "netPerStockedCycle": 217063,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 24,
+          "nextUpgrade": 1419840
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 1193.9,
+          "fee": 8596,
+          "netPerStockedCycle": 277940,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 24,
+          "nextUpgrade": 2732940
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 1529.3,
+          "fee": 11011,
+          "netPerStockedCycle": 356021,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 24,
+          "nextUpgrade": 4453560
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 1939.4000000000003,
+          "fee": 13964,
+          "netPerStockedCycle": 451492.00000000006,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 24,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "spindleCycles",
+      "name": "Spindle Cycles",
+      "firstPrice": 20160,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 55,
+          "fee": 99,
+          "netPerStockedCycle": 6501,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 9,
+          "nextUpgrade": 7380
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 68.5,
+          "fee": 123,
+          "netPerStockedCycle": 8097,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 9,
+          "nextUpgrade": 13870
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 87.4,
+          "fee": 157,
+          "netPerStockedCycle": 10331,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 9,
+          "nextUpgrade": 27250
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 112.1,
+          "fee": 202,
+          "netPerStockedCycle": 13250,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 9,
+          "nextUpgrade": 43700
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 142,
+          "fee": 256,
+          "netPerStockedCycle": 16784,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 9,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "sundrop",
+      "name": "Sundrop Pineapple Farm",
+      "firstPrice": 164470,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 133.2,
+          "fee": 959,
+          "netPerStockedCycle": 31008.999999999996,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 20,
+          "nextUpgrade": 62100
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 166.8,
+          "fee": 1201,
+          "netPerStockedCycle": 38831,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 20,
+          "nextUpgrade": 114300
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 213.1,
+          "fee": 1534,
+          "netPerStockedCycle": 49610,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 20,
+          "nextUpgrade": 222220
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 273.1,
+          "fee": 1966,
+          "netPerStockedCycle": 63578,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 20,
+          "nextUpgrade": 361590
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 346.3,
+          "fee": 2493,
+          "netPerStockedCycle": 80619,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 20,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "record",
+      "name": "Wax Lane Records",
+      "firstPrice": 15010,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 43.3,
+          "fee": 78,
+          "netPerStockedCycle": 5118,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 8,
+          "nextUpgrade": 5480
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 53.8,
+          "fee": 97,
+          "netPerStockedCycle": 6359,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 8,
+          "nextUpgrade": 10190
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 68.5,
+          "fee": 123,
+          "netPerStockedCycle": 8097,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 8,
+          "nextUpgrade": 20140
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 87.8,
+          "fee": 158,
+          "netPerStockedCycle": 10378,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 8,
+          "nextUpgrade": 32610
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 111.3,
+          "fee": 200,
+          "netPerStockedCycle": 13156,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 8,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "books",
+      "name": "Paper Finch Books",
+      "firstPrice": 10320,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 35.7,
+          "fee": 64,
+          "netPerStockedCycle": 4220,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 6,
+          "nextUpgrade": 4030
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 44.9,
+          "fee": 81,
+          "netPerStockedCycle": 5307,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 6,
+          "nextUpgrade": 6780
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 56.70000000000001,
+          "fee": 102,
+          "netPerStockedCycle": 6702.000000000001,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 6,
+          "nextUpgrade": 13860
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 72.7,
+          "fee": 131,
+          "netPerStockedCycle": 8593,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 6,
+          "nextUpgrade": 22860
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 92.40000000000002,
+          "fee": 166,
+          "netPerStockedCycle": 10922.000000000002,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 6,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "fishchips",
+      "name": "Tide & Salt Fish Bar",
+      "firstPrice": 12660,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 38.6,
+          "fee": 69,
+          "netPerStockedCycle": 4563,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 7,
+          "nextUpgrade": 4970
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 48.7,
+          "fee": 88,
+          "netPerStockedCycle": 5756,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 7,
+          "nextUpgrade": 8530
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 61.7,
+          "fee": 111,
+          "netPerStockedCycle": 7293,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 7,
+          "nextUpgrade": 16930
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 79,
+          "fee": 142,
+          "netPerStockedCycle": 9338,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 7,
+          "nextUpgrade": 28070
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 100.4,
+          "fee": 181,
+          "netPerStockedCycle": 11867,
+          "deliveryMinutes": 5,
+          "stockMinutes": 120,
+          "jobs": 7,
+          "nextUpgrade": null
+        }
+      ]
+    },
+    {
+      "id": "space",
+      "name": "Space Ex Rocket Facility",
+      "firstPrice": 2302720,
+      "levels": [
+        {
+          "level": 1,
+          "coinsPerMinute": 978.5,
+          "fee": 7045,
+          "netPerStockedCycle": 227795,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 25,
+          "nextUpgrade": 865940
+        },
+        {
+          "level": 2,
+          "coinsPerMinute": 1223.8,
+          "fee": 8811,
+          "netPerStockedCycle": 284901,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 25,
+          "nextUpgrade": 1615070
+        },
+        {
+          "level": 3,
+          "coinsPerMinute": 1566.9,
+          "fee": 11282,
+          "netPerStockedCycle": 364774,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 25,
+          "nextUpgrade": 3108720
+        },
+        {
+          "level": 4,
+          "coinsPerMinute": 2007.2,
+          "fee": 14452,
+          "netPerStockedCycle": 467276,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 25,
+          "nextUpgrade": 5065920
+        },
+        {
+          "level": 5,
+          "coinsPerMinute": 2545.4,
+          "fee": 18327,
+          "netPerStockedCycle": 592569,
+          "deliveryMinutes": 20,
+          "stockMinutes": 240,
+          "jobs": 25,
+          "nextUpgrade": null
+        }
+      ]
+    }
+  ],
+  "progression": {
+    "xpTo100": 121171,
+    "levelTicketsTo100": 20
+  },
+  "startingCity": {
+    "baseStateCash": 3000,
+    "actualNewGameCash": 8000,
+    "actualPopulation": 0,
+    "actualLevel": 1,
+    "townHallPrice": 0,
+    "depotPrice": 100
+  },
+  "assertions": 23363,
+  "summary": {
+    "passed": 19,
+    "failed": 0,
+    "findings": 2
+  }
+}
