@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const baseline=JSON.parse(fs.readFileSync(path.join(root,'model-viewer/approved-art.json'),'utf8'));
+const start=html.indexOf('const SPRK='),art=html.slice(start,html.indexOf('</script>',start));
+assert.equal(crypto.createHash('sha256').update(art).digest('hex'),baseline.rendererSha256,'Artwork changed from the approved baseline. Review the model in New before updating its approval record.');
+const businessIds=html.match(/\['businesses', 'Businesses', (\[.*?\])\]/)[1];
+assert(!businessIds.includes("'gym'"),'Forge Fitness is retired; use Orbital Gym');
+assert(businessIds.includes("'orbital-gym'"));
+console.log('PASS: approved artwork baseline and retired model checks');
