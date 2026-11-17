@@ -28,7 +28,7 @@ function migrate(city,defs,config,ms){
  return {city,changed:true,summary:before};
 }
 function originalGross(d,t,rates){return [1,1.5,2.2].reduce((s,m)=>s+Math.max(1,Math.round((rates[d.jobs]||0)*m*(LEVELS[t?.lvl||1]||1))),0);}
-function gross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
+function gross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
 function fee(d,t,employees,p,rates){return Math.round(gross(d,t,employees,p,rates)*p.stock*p.fee);}
 function intervals(p,duration,from,to){const ranges=[];const add=(start,end)=>{const lo=Math.max(start,from),hi=Math.min(end,to);if(hi>lo)ranges.push([lo,hi]);};add(p.s-duration,p.s);if(p.o&&p.o<=to){const start=Math.max(p.s,p.o);p.s=start+duration;p.o=0;add(start,p.s);}return ranges;}
 function unionMs(ranges){ranges.sort((a,b)=>a[0]-b[0]);let end=-Infinity,sum=0;for(const [lo,hi]of ranges){sum+=Math.max(0,hi-Math.max(lo,end));end=Math.max(hi,end);}return sum;}
