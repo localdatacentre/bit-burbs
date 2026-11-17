@@ -1,0 +1,17 @@
+'use strict';
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8');
+for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
+const part=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
+const city={cash:0,stars:0,tickets:2,wheelPips:9,wheelT:0,crates:{gold:3}};
+let saves=0;
+const ctx={S:city,now:()=>12*3600000,Math:Object.create(Math),fmt:String,$:()=>({}),performance:{now:()=>0},matchMedia:()=>({matches:true}),save(){saves++}};
+for(const name of ['snd','buzz','toast','setText','track','addXP','changed','updateWheelUI'])ctx[name]=()=>{};
+vm.createContext(ctx);
+vm.runInContext(part('const WHEEL = [','const GRIND_D')+part('function resolveR','function track(')+'\nlet wheelAnim=null,wheelMsg="";const TAU=Math.PI*2,SPINS_PER_VOUCHER_BONUS=10;'+part('function spin()','\n}',)+'\n}',ctx);
+const weights=vm.runInContext('WHEEL.map(x=>[x.w,x.r.k,x.r.n])',ctx);
+assert.deepEqual(JSON.parse(JSON.stringify(weights)),[[15,'voucher',1],[10,'voucher',2],[5,'cash',6000],[10,'stars',10],[5,'stars',25],[10,'deed',1],[2,'deed',2],[20,'crateVoucher',1],[15,'crateVoucher',2],[8,'crateVoucher',5]]);
+ctx.Math.random=()=>0.99;ctx.spin();assert.equal(city.crateVouchers,7);assert.equal(city.wheelPips,0);assert.equal(city.tickets,2);assert.equal(city.crates.gold,3);assert.equal(saves,1);
+ctx.spin();assert.equal(saves,1);
+vm.runInContext('wheelAnim=null',ctx);ctx.Math.random=()=>0;ctx.spin();assert.equal(city.tickets,1);assert.equal(city.restockVouchers,1);assert.equal(city.crateVouchers,7);
+console.log('PASS all wheel weights, free opportunity, banked ticket, tenth-spin stack, one save and repeat tap');
