@@ -8871,7 +8871,7 @@ const BUILDING_QUOTES=prepareCatalogue(DEFS,BUILDING_VALUES,ECON);
 const SVC_NAMES = ['Police', 'Fire', 'Health', 'Education'];
 const BUILD_TABS = [
   ['homes', 'Homes', ['house', 'house2', 'dune-keeper-cottage', 'm3', 'banksiaDuplex', 'q1', 'aptS', 'aptP', 'tower', 'quay', 'southerly-tower', 'town']],
-  ['businesses', 'Businesses', ['bakery', 'red-ibis', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'sundrop', 'spindleCycles', 'gym', 'orbital-gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'police', 'fire', 'clinic', 'school']],
+  ['businesses', 'Businesses', ['bakery', 'red-ibis', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'sundrop', 'spindleCycles', 'orbital-gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'police', 'fire', 'clinic', 'school']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'solar2', 'nuclear']],
   ['city', 'City & parks', ['deliveryDepot', 'road', 'tree', 'flowers', 'park', 'tidalBaths', 'civicClock', 'needle', 'space']],
   ['transport', 'Transport', ['parkSmall','parkLarge','parkXL','hailStop','busShelter']],
@@ -14167,6 +14167,40 @@ function removeDeletedModels(city,deleted){
  }
  return changed;
 }
+function replaceLegacyGyms(city) {
+  const convert=tile=>{
+    if (!Number.isFinite(tile.purchaseCoins)) tile.purchaseCoins=BUILDING_QUOTES.gym.first;
+    tile.id='orbital-gym';
+  };
+  for (const entry of city.storedBuildings || []) {
+    if (entry.building?.id==='gym') convert(entry.building);
+  }
+  const anchors=[];
+  city.tiles.forEach((tile,index)=>{if(tile?.id==='gym')anchors.push(index);});
+  for (const anchor of anchors) {
+    const building=city.tiles[anchor],x=anchor%N,y=Math.floor(anchor/N);
+    convert(building);
+    const [w,h]=fpOf(building.id,building.turned),cells=[];
+    let fits=true;
+    for(let dy=0;dy<h;dy++)for(let dx=0;dx<w;dx++) {
+      const col=x+dx,row=y+dy,index=row*N+col,tile=city.tiles[index];
+      const owned=index===anchor || (tile?.id==='_occ' && tile.ref[0]===x && tile.ref[1]===y);
+      if(col<city.lo||row<city.lo||col>=N-city.lo||row>=N-city.lo||!inB(col,row)||(!owned&&tile))fits=false;
+      cells.push(index);
+    }
+    city.tiles.forEach((tile,index)=>{
+      if(index===anchor || (tile?.id==='_occ'&&tile.ref[0]===x&&tile.ref[1]===y))city.tiles[index]=null;
+    });
+    if(fits) {
+      for(const index of cells)city.tiles[index]=index===anchor?building:{id:'_occ',ref:[x,y]};
+    } else {
+      (city.storedBuildings ||= []).push({building,from:[x,y]});
+      city.bagUnread=true;
+      city.bagPopupPending=(city.bagPopupPending||0)+1;
+    }
+  }
+}
+
 function standardiseCoinBoosts(city) {
   const saved = Object.entries(city.coinBoostTokens || {});
   if (!saved.some(([duration]) => duration !== '15')) return;
@@ -14236,6 +14270,7 @@ if (!S.bagNoticeVersion && S.storedBuildings?.length) {
 }
 S.bagNoticeVersion = 1;
 reconcileLotSizes(S);
+replaceLegacyGyms(S);
 if(testCity&&!S.testCityVersion){seedFullTestCity();save();}
 if(facilityRoadDemo&&!S.facilityRoadExample&&!deletedModelIds.has('space')){
  const x=MID-5,y=MID-4;
