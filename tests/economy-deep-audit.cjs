@@ -142,20 +142,20 @@ check('stock continues to expire during service disconnection',()=>{
  const b=business('bakery'),s=city();b.pow=false;near(C.settle(s,[b],at+60*M,config,rates).coins,0);b.pow=true;
  near(C.settle(s,[b],at+120*M,config,rates).coins,20.2*30);return {stockUsedWhileUnpowered:60,sellingMinutesAfterReconnect:30};
 });
-check('BinLink visits pay exact 10/30 fares once per ten visible minutes and not from absent stops',()=>{
+check('BinLink visits continue every ten visible minutes without paying fares',()=>{
  const h=harness();
  function stop(id){return {t:{id},i:0,j:0,x:0,y:0,sx:0,sy:1,dx:1,dy:0,dir:0};}
  const hail=stop('hailStop'),shelter=stop('busShelter');
  h.s.busMap={stops:[hail,shelter],buildings:[hail,shelter],roads:new Map()};
  const before=h.s.S.cash;
  h.call('serviceBuses',599);assert.equal(h.s.S.cash,before);
- h.call('serviceBuses',1);assert.equal(h.s.S.cash,before+40);
- h.call('serviceBuses',0);assert.equal(h.s.S.cash,before+40);
- h.call('serviceBuses',1200);assert.equal(h.s.S.cash,before+120);assert.equal(hail.t.visits,3);assert.equal(shelter.t.visits,3);
- h.s.busMap.stops=[];h.call('serviceBuses',86400);assert.equal(h.s.S.cash,before+120);
+ h.call('serviceBuses',1);assert.equal(h.s.S.cash,before);
+ h.call('serviceBuses',0);assert.equal(h.s.S.cash,before);
+ h.call('serviceBuses',1200);assert.equal(h.s.S.cash,before);assert.equal(hail.t.visits,3);assert.equal(shelter.t.visits,3);
+ h.s.busMap.stops=[];h.call('serviceBuses',86400);assert.equal(h.s.S.cash,before);
  assert(html.includes('if (document.hidden) { requestAnimationFrame(frame); return; }'));
  assert(html.includes("document.addEventListener('visibilitychange',()=>{serviceClock=null;});"));
- return {oneHailPlusOneShelterPer120Minutes:480,fiveOfEachPer120Minutes:2400,awayService:false};
+ return {oneHailPlusOneShelterPer120Minutes:0,fiveOfEachPer120Minutes:0,awayService:false};
 });
 check('stored building restoration retains level, stock, purchase price and identity',()=>{
  const h=harness();const t={id:'bakery',lvl:4,hired:3,purchaseCoins:1700,labId:'original',pr:[{s:at+90*M,o:0}]};

@@ -96,12 +96,12 @@ function candidates(s) {
       const ids=(s.services?.[v]||[]).map(String);
       if(ids.length)add(t,d,['suppliedHomeMinutes','powerMinutes','waterMinutes','connectedMinutes'][v],ids,minutes,minutes,{maintenance:true});
     }
-    if(t.family==='binlink') {
+    if(t.family==='binlink'&&v!==1) {
       const stops=(s.stops||[]).filter(b=>b.connected);
       if(stops.length) {
         const selected=v===2?stops.slice(0,Math.min(stops.length,d+1)):stops;
         const visits=[2,4,6][d], duration=visits*10;
-        add(t,d,v===1?'fares':'visits',selected.map(b=>b.id),v===1?visits*selected.reduce((n,b)=>n+b.fare,0):visits*selected.length,duration,{transport:true});
+        add(t,d,'visits',selected.map(b=>b.id),visits*selected.length,duration,{transport:true});
       }
     }
     if(t.family==='improvement')for(const p of s.improvements||[]) {
@@ -198,10 +198,10 @@ function progress(state,event) {
       if(t.metric==='tradingCoverage') {t.seen ||= [];for(let i=0;i<facts.length;i++)if(facts[i]?.selling&&!t.seen.includes(t.ids[i]))t.seen.push(t.ids[i]);delta=t.seen.length-t.progress;}
       if(t.metric==='staffedMinutes'&&t.minimumStaff.every(([id,n])=>(event.facts?.[id]?.employees||0)>=n&&event.facts[id]?.connected))delta=minutes;
       if(['suppliedHomeMinutes','powerMinutes','waterMinutes','connectedMinutes'].includes(t.metric)&&facts.every(f=>f?.[t.metric]))delta=minutes;
-    } else if((event.type===t.metric||event.type==='busVisit'&&['visits','fares'].includes(t.metric))&&t.ids.includes(event.subject)) {
+    } else if((event.type===t.metric||event.type==='busVisit'&&t.metric==='visits')&&t.ids.includes(event.subject)) {
       t.seen ||= [];
       if(['order','delivery','improve'].includes(t.metric)) {if(!t.seen.includes(event.subject)){t.seen.push(event.subject);delta=1;}}
-      else if(['visits','fares'].includes(t.metric)&&event.active&&event.foreground)delta=t.metric==='visits'?1:event.fare;
+      else if(t.metric==='visits'&&event.active&&event.foreground)delta=1;
       else if(t.metric==='arrivals'&&event.active&&event.foreground)delta=1;
     }
     if(Number.isFinite(delta)&&delta>0)t.progress=Math.min(t.target,t.progress+delta);
