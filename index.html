@@ -8568,8 +8568,8 @@ try {
 for(const id of ['warehouse','space','parkSmall','parkLarge','parkXL']){deletedModelIds.delete(id);finishedModels.add(id);}
 function modelReady(id){return !deletedModelIds.has(id)&&finishedModels.has(id==='deliveryDepot'?'delivery-depot':id);}
 const DEFS = {deliveryDepot:{name:'Delivery Depot',type:'depot',fx:2,fy:2,lvl:1,cost:0},
-  hailStop: {name:'BinLink Hail Stop',type:'transport',cost:600,fare:10,lvl:1},
-  busShelter: {name:'BinLink Bus Stop',type:'transport',cost:1800,fare:30,lvl:1},
+  hailStop: {name:'BinLink Hail Stop',type:'transport',cost:0,lvl:1},
+  busShelter: {name:'BinLink Bus Stop',type:'transport',cost:0,lvl:1},
   parkSmall: {name:'Small Car Park',type:'decor',fx:2,fy:3,cost:0,lvl:1},
   parkLarge: {name:'Large Car Park',type:'decor',fx:3,fy:4,cost:0,lvl:1},
   parkXL: {name:'Extra Large Car Park',type:'decor',fx:4,fy:5,cost:0,lvl:1},
@@ -9862,13 +9862,13 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (id === 'hall' && S.foundingGrant) {
     delete S.foundingGrant; S.cash += 8000; save(); toast('Town founded · 8,000 starter coins');
   }
-  if (id === 'deliveryDepot') { snd('build'); changed(); save(); return true; }
+  if (id === 'deliveryDepot' || isStop(id)) { snd('build'); changed(); save(); return true; }
   if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build');labDevelopment('build:'+id,20); popup(i, j, d.name + '!', '#FFF3D6'); }
   if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
 }
 function demolitionRefund(tile) {
-  if (!tile || tile.id === 'road' || tile.id === 'hall' || MARKET[tile.id]) return 0;
+  if (!tile || isStop(tile.id) || tile.id === 'road' || tile.id === 'hall' || MARKET[tile.id]) return 0;
   const paid = Number.isFinite(tile.purchaseCoins) && tile.purchaseCoins >= 0
     ? tile.purchaseCoins
     : (parkSizes[tile.id] ? 0 : BUILDING_QUOTES[tile.id]?.first ?? DEFS[tile.id]?.cost ?? 0);
@@ -9879,6 +9879,7 @@ function demolish(i, j) {
   vacate(i,j,t);
   const d = DEFS[t.id];
   if (MARKET[t.id]) { S.items[t.id] = (S.items[t.id] || 0) + 1; S.shopItems[t.id] = (S.shopItems[t.id] || 0) + 1; toast(d.name + ' packed into My items.'); }
+  else if (isStop(t.id)) toast(d.name + ' removed.');
   else if (t.id !== 'road') { const back = demolitionRefund(t); S.cash += back; toast('Demolished. Refunded ' + fmt(back) + ' Coins.'); }
   sel = null; changed();
 }
@@ -11071,10 +11072,9 @@ function dropPassengers(stop){
     if(path.length>1)startWalker(path);
   }
 }
-const shelterUpgradePrice = 1380;
 function upgradeStop(i,j){
-  const t=tileAt(i,j);if(!modelReady('busShelter')||t?.id!=='hailStop'||S.cash<shelterUpgradePrice)return false;
-  S.cash-=shelterUpgradePrice;t.id='busShelter';streetNetwork=null;changed();save();return true;
+  const t=tileAt(i,j);if(!modelReady('busShelter')||t?.id!=='hailStop'||buildingLimitMessage('busShelter'))return false;
+  t.id='busShelter';streetNetwork=null;changed();save();return true;
 }
 function serviceBuses(dt){
   buses.length=0;
@@ -11086,8 +11086,7 @@ function serviceBuses(dt){
     if(elapsed>=stopInterval){
       const visits=Math.floor(elapsed/stopInterval);
       elapsed%=stopInterval;t.visits=(t.visits||0)+visits;
-      const fare=visits*DEFS[t.id].fare;S.cash+=fare;
-      dropPassengers(stop);popup(stop.i,stop.j,'BinLink +'+fmt(fare),'#FFDB78');changed();
+      dropPassengers(stop);changed();
     }
     t.serviceElapsed=elapsed;
     const time=elapsed>=stopInterval-4?elapsed-stopInterval:elapsed;
@@ -12009,8 +12008,8 @@ function renderCard(force) {
       } else if (d.type === 'util') {
         html = head(d.name, `Level ${lvlOf(t)} · ` + (d.supP ? `+${Math.round(d.supP * upMul(t))} power` : `+${Math.round(d.supW * upMul(t))} water`) + ` · city power ${D.useP}/${D.supP}, water ${D.useW}/${D.supW}`) + statusTags(b) + (t.id==='wtower'?towerPaintMenu(t,sel.i,sel.j):'') + upRow(t, d) + `<div class="row">${demoBtn()}</div>`;
       } else if(d.type==='transport'){
-        const upgrade=t.id==='hailStop'&&modelReady('busShelter')?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(S.cash<shelterUpgradePrice||buildingLimitMessage('busShelter')?'disabled':'')+'>Upgrade to shelter · '+fmt(shelterUpgradePrice)+' Coins</button>':'';
-        html=head(d.name,d.fare+' Coins per visit · every 10 active minutes')
+        const upgrade=t.id==='hailStop'&&modelReady('busShelter')?'<button class="pixel-btn pb green" data-act="shelterUpgrade" '+(buildingLimitMessage('busShelter')?'disabled':'')+'>Upgrade to shelter · Free</button>':'';
+        html=head(d.name,'Bus service every 10 active minutes')
           +'<p class="note" id="stopTime"></p><div class="row">'+upgrade+demoBtn()+'</div>';
       } else if (d.type === 'hall') {
         const e = EXPAND[expIdx()];
@@ -12297,7 +12296,7 @@ function buildHTML() {
     const limit = buildingLimitMessage(id);
     const cant = locked || !!limit || (id === 'deliveryDepot' && hasB(id)) || (item ? count < 1 : S.cash < cost);
     let sub = '';
-    if(d.type==='transport') sub=stopCount(id,true)+'/5 owned · '+d.fare+' Coins per visit';
+    if(d.type==='transport') sub=stopCount(id,true)+'/5 owned · straight road required';
     else if (isBiz(d)) sub = `${d.type==='svc'?SVC_NAMES[d.svc]+' · ':''}Up to ${fmt(catalogueIncome(d))} coins/min`;
     else if (d.type === 'home') sub = `${d.cap} residents`;
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
@@ -12309,7 +12308,7 @@ function buildHTML() {
     if (id==='school') sub += ' · +1–5% city coins/min · one per city';
     if (isBiz(d)) sub += ` · ${jobCapacity(null, d)} jobs`;
     if (locked) sub += ` · Unlocks at Lv ${d.lvl}`;
-    const price = limit || (item ? `You have ${count}` : coinSvg() + cost.toLocaleString('en-AU'));
+    const price = limit || (item ? `You have ${count}` : isStop(id) ? 'Free' : coinSvg() + cost.toLocaleString('en-AU'));
     h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
   });
   h += '</div>';
@@ -13214,7 +13213,7 @@ const homeBuildPrices = {
   30:33000, 48:60000
 };
 function costOf(id) {
-  if(parkSizes[id])return 0;
+  if(parkSizes[id] || isStop(id))return 0;
   const schedule = BUILDING_QUOTES[id];
   if (!schedule) return 0;
   if (schedule.purchases.length === 1) return schedule.first;
