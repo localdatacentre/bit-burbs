@@ -12,7 +12,7 @@ function profile(ids,{remaining=30,stops=true,cash=100000}={}) {
   const services={0:ids.length?['home-1']:[],1:list.map(b=>b.t.labId),2:list.map(b=>b.t.labId),3:list.map(b=>b.t.labId)};
   return T.snapshot({cash},list,config,defs,rates,at,{services,stops:stops?[{id:'stop-1',connected:true,fare:10}]:[]});
 }
-const profiles={oneBusiness:profile(['bakery'],{stops:false}),brandNew:profile([],{stops:false,cash:3000}),growing:profile(['bakery','coffee','workshop','books','grocery']),fullyStockedLate:profile(Object.keys(config),{remaining:240}),withoutBinLink:profile(['bakery','coffee','workshop','books','grocery'],{stops:false})};
+const profiles={oneBusiness:profile(['bakery'],{stops:false}),brandNew:profile([],{stops:false,cash:8000}),growing:profile(['bakery','coffee','workshop','books','grocery']),fullyStockedLate:profile(Object.keys(config),{remaining:240}),withoutBinLink:profile(['bakery','coffee','workshop','books','grocery'],{stops:false})};
 assert.equal(T.TEMPLATES.length,40);
 const report={baseline:'83fee17bd4793ec5ae470445002d299caadceef2',profiles:{}};
 for(const [name,s]of Object.entries(profiles)) {
@@ -32,13 +32,11 @@ assert.equal(report.profiles.oneBusiness.status,'blocked');
 assert.equal(report.profiles.brandNew.status,'blocked');
 assert.equal(C.cycle(at-1),'2026-11-16');assert.equal(C.cycle(at),'2026-11-17');
 // Feed actual live-economy settlements into the isolated progress reducer.
-function simulate(s,seed) {
-  let daily=T.assign(null,s,seed,at), completion=null;
-  if(daily.status!=='ready')return null;
+function replaySession(s,emit) {
   const list=s.businesses.map(b=>({t:{id:b.model,labId:b.id,lvl:1,pr:[{s:at+b.remaining*M,o:0}]},d:defs[b.model],employees:b.employees,ok:true,pow:true,wat:true}));
   const city={cash:s.cash,level:1,xp:0,economyLab:{version:1,balanceVersion:2,settled:at,lastAction:at}};
   let event=0;
-  const apply=e=>{daily=T.progress(daily,{id:'sim-'+(++event),...e});};
+  const apply=e=>emit({id:'sim-'+(++event),...e});
   for(let m=0;m<120;m++) {
     const from=at+m*M,to=from+M;
     for(const b of list)if(b.t.pr[0].s<=from&&!b.t.pr[0].o) {
@@ -59,8 +57,16 @@ function simulate(s,seed) {
     apply({type:'interval',from,at:to,active:true,foreground:true,facts});
     for(const subject of arrivals)apply({type:'delivery',subject,at:to});
     if((m+1)%10===0)for(const stop of s.stops||[])apply({type:'busVisit',subject:stop.id,fare:stop.fare,at:to,active:true,foreground:true});
-    if(daily.tasks.every(t=>t.progress>=t.target)&&completion===null)completion=m+1;
   }
+  return city;
+}
+function simulate(s,seed) {
+  let daily=T.assign(null,s,seed,at), completion=null;
+  if(daily.status!=='ready')return null;
+  const city=replaySession(s,event=>{
+    daily=T.progress(daily,event);
+    if(completion===null && daily.tasks.every(t=>t.progress>=t.target))completion=Math.ceil((event.at-at)/M);
+  });
   assert(daily.tasks.every(t=>t.progress>=t.target),'actual settlements must finish every assigned goal: '+JSON.stringify(daily.tasks.filter(t=>t.progress<t.target)));
   let record={revision:0,wallet:{},daily};
   for(const task of daily.tasks){const result=T.claim(record,task.key,at+119*M,record.revision);assert(result.ok);record=result.record;}
@@ -68,6 +74,23 @@ function simulate(s,seed) {
   return {completeAtMinute:completion,coinsAfterSession:Math.round(city.cash),dailyRewards:record.wallet};
 }
 for(const [name,s]of Object.entries(profiles))report.profiles[name].simulation=simulate(s,'test-player');
+
+const capacityResults={};
+for(const [name,s] of Object.entries(profiles)) {
+  const events=[];
+  replaySession(s,e=>events.push(e));
+  const goals=T.sessionGoals(s,at,events);
+  capacityResults[name]=goals.length;
+  for(const goal of goals)for(const other of goals)if(goal!==other)assert(T.compatible(goal,other));
+}
+assert.equal(capacityResults.brandNew,0);
+assert(capacityResults.oneBusiness>0 && capacityResults.oneBusiness<=5);
+assert.equal(capacityResults.growing,10);
+assert.equal(capacityResults.withoutBinLink,10);
+assert(capacityResults.fullyStockedLate>5 && capacityResults.fullyStockedLate<10);
+assert.deepEqual(T.sessionGoals(profiles.growing,at,[]),[]);
+console.log('Verified session capacity',capacityResults);
+
 // Exercise daily variation, previous-day preference, and actual same-rank swaps.
 let replacements=0;
 for(let day=0;day<14;day++) {

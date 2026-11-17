@@ -222,4 +222,32 @@ function claim(record,key,at,expectedRevision) {
   for(const [threshold,reward]of [[5,{restockVouchers:1,wheelTickets:1}],[10,{crateVouchers:4,restockVouchers:1,wheelTickets:1,dosh:2,xp:20}]])if(n>=threshold&&!s.receipts['milestone:'+threshold]){s.receipts['milestone:'+threshold]=true;give(reward);}
   next.revision++;return {ok:true,record:next};
 }
-module.exports={TEMPLATES,DIFFICULTIES,QUOTAS,snapshot,candidates,compatible,select,assign,replace,progress,claim};
+// Inspect an affordable simulated session before publishing a proposed daily set.
+// Return only goals witnessed together within the same two-hour window.
+function sessionGoals(snapshot,at,events) {
+  const pool=candidates(snapshot);
+  let state={status:'ready',day:Core.cycle(at),assignedAt:at,
+    tasks:pool.map(t=>({...t,assignedAt:at,progress:0}))};
+  for(const event of events) {
+    if(event.at<=at+120*M)state=progress(state,event);
+  }
+  const completed=pool.filter((t,i)=>state.tasks[i].progress>=t.target);
+  // Try reproducible candidate orderings to find compatible goals for
+  // reduced sets. The result is a witnessed lower bound on capacity.
+  let best=[];
+  for(let attempt=0;attempt<24;attempt++) {
+    const rng=random('capacity:'+at+':'+attempt);
+    const ranked=completed.map(task=>({task,order:rng()})).sort((a,b)=>a.order-b.order);
+    const chosen=[];
+    for(const {task} of ranked) {
+      if(chosen.filter(t=>t.rank===task.rank).length>=QUOTAS[task.rank])continue;
+      if(chosen.filter(t=>t.family===task.family).length>=2)continue;
+      if(task.maintenance&&chosen.filter(t=>t.maintenance).length>=2)continue;
+      if(chosen.every(t=>compatible(t,task))&&affordable([...chosen,task],snapshot))chosen.push(task);
+      if(chosen.length===10)return chosen;
+    }
+    if(chosen.length>best.length)best=chosen;
+  }
+  return best;
+}
+module.exports={sessionGoals,TEMPLATES,DIFFICULTIES,QUOTAS,snapshot,candidates,compatible,select,assign,replace,progress,claim};
