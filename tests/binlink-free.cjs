@@ -42,3 +42,25 @@ for(const id of ['hailStop','busShelter','parkSmall','parkLarge','parkXL']) {
   gameFunction('upgrade',{tileAt:()=>tile,DEFS,canUp})(0,0);
   assert.deepEqual(tile,{id,lvl:1});
 }
+
+S.tiles=[];
+S.storedBuildings=[];
+S.level=1;
+const stopCount=gameFunction('stopCount',{S});
+const buildingLimitMessage=gameFunction('buildingLimitMessage',{stopCount,isStop,parkSizes:{}});
+const ids=['hailStop','busShelter'];
+const renderShop=gameFunction('buildHTML',{S,BUILD_TABS:[['transport','Transport',ids]],
+  buildTab:'transport',buildTarget:null,modelReady:()=>true,costOf,DEFS,buildingLimitMessage,isStop,isBiz:()=>false});
+for(const id of ids) {
+  const other=ids.find(key=>key!==id);
+  const card=()=>renderShop().match(new RegExp('data-id="'+id+'"[^>]*>[\\s\\S]*?</button>'))[0];
+  assert(card().includes('Free · One per city') && card().includes('aria-disabled="false"'));
+  S.storedBuildings=[{building:{id}}];
+  assert(card().includes('Free · One per city') && card().includes('aria-disabled="true"'));
+  assert.equal(buildingLimitMessage(other),'');
+  assert.equal(buildingLimitMessage(id,true),'');
+  S.tiles=[{id}];
+  S.storedBuildings=[];
+  assert(buildingLimitMessage(id,true));
+  S.tiles=[];
+}
