@@ -8954,7 +8954,7 @@ const BUILD_TABS = [
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'solar2', 'nuclear']],
   ['city', 'City & parks', ['deliveryDepot', 'road', 'tree', 'flowers', 'park', 'space']],
   ['transport', 'Transport', ['parkSmall','parkLarge','parkXL','hailStop','busShelter']],
-  ['items', 'Collectables', ['sakura', 'fountain', 'statue', 'sunhouse', 'pelicanLight']]
+  ['items', 'Collectables', [...diamondBuildingIds]]
 ];
 const EXPAND = [];
 const expIdx = () => 13 - S.lo;
@@ -10120,7 +10120,7 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (limit) { toast(limit); return false; }
   if (id === 'deliveryDepot' && hasB(id)) return false;
   if(id==='hall'&&(findHall()||storedHall()))return false;
-  if (!modelReady(id) || !d || Boolean(MARKET[id]) !== Boolean(fromItem)) return false;
+  if (!modelReady(id) || !d || Boolean(MARKET[id] || diamondBuildingIds.has(id)) !== Boolean(fromItem)) return false;
   if (!inB(i, j)) { snd('error'); toast('That land is locked. Expand from the Town Hall.'); return false; }
   if(isStop(id)&&!stopKerb(i,j)){toast('Choose a clear plot beside the middle of a straight road.');return false;}
   if (id === 'road' && completesRoadSquare(i,j)) { toast(roadWidthMessage); return false; }
@@ -10149,9 +10149,9 @@ function demolish(i, j) {
   ({ i, j } = anchorOf(i, j)); const t = tileAt(i, j); if (!t || t.id === 'hall') return;
   vacate(i,j,t);
   const d = DEFS[t.id];
-  if (t.diamondCopyId) {
+  if (t.diamondCopyId || (diamondBuildingIds.has(t.id) && !MARKET[t.id])) {
     (S.storedBuildings ||= []).push({building:t,from:[i,j]});
-    toast(d.name + ' stored. Pack it in the Exchange to trade.');
+    toast(d.name + (t.diamondCopyId ? ' stored. Pack it in the Exchange to sell.' : ' stored in My items.'));
   } else if (MARKET[t.id]) { S.items[t.id] = (S.items[t.id] || 0) + 1; S.shopItems[t.id] = (S.shopItems[t.id] || 0) + 1; toast(d.name + ' packed into My items.'); }
   else if (isStop(t.id)) toast(d.name + ' removed.');
   else if (t.id !== 'road') { const back = demolitionRefund(t); S.cash += back; toast('Demolished. Refunded ' + fmt(back) + ' Coins.'); }
@@ -12350,7 +12350,7 @@ function upRow(t, d) {
 }
 function head(t, p) { return `<div class="chead"><div><h2>${t}</h2><p>${p}</p></div><button class="pixel-btn pb red sq x pixel-close" data-act="closeCard" aria-label="Close">✕</button></div>`; }
 function demoBtn(label) {
-  if(sel && tileAt(sel.i,sel.j)?.diamondCopyId)return '<button class="pixel-btn pb secondary sm" data-act="demolish">'+(demoArm?'Confirm storage':'Store building')+'</button>';
+  if(sel && (tileAt(sel.i,sel.j)?.diamondCopyId||diamondBuildingIds.has(tileAt(sel.i,sel.j)?.id)))return '<button class="pixel-btn pb secondary sm" data-act="demolish">'+(demoArm?'Confirm storage':'Store building')+'</button>';
   const refund=sel?demolitionRefund(tileAt(sel.i,sel.j)):0; return `<button class="pixel-btn pb red sm" data-act="demolish">${demoArm ? 'Tap again to confirm'+(refund?' · '+fmt(refund)+' Coins refund':'') : (label || 'Demolish')}</button>`; }
 function liveCard() {
   if (!sel || placing) return; const t = tileAt(sel.i, sel.j); if (!t) return; const d = DEFS[t.id];
@@ -12463,12 +12463,13 @@ function openItemBag(showVouchers=false) {
 }
 function itemBagHTML() {
   const buildings = S.storedBuildings || [];
-  const collectables = Object.entries(S.shopItems).filter(([id,count]) => MARKET[id] && count > 0);
+  const collectables = Object.entries(S.shopItems).filter(([id,count]) => (MARKET[id] || diamondBuildingIds.has(id)) && count > 0);
   function card(id, action, detail) {
     if(!modelReady(id))return '';
     return `<button class="pixel-btn bcard" ${action}><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${DEFS[id].name}</b><span>${detail}</span><span class="price">Place</span></button>`;
   }
-  const held=buildings.filter(e=>!modelReady(e.building.id)).length;
+  const held=buildings.filter(e=>!modelReady(e.building.id)).length +
+    Object.entries(S.shopItems).reduce((n,[id,count])=>n+(!modelReady(id)&&Number.isSafeInteger(count)&&count>0?count:0),0);
   const heldNote=held?'<p class="note">'+held+' retired or unavailable items held in your inventory.</p>':'';
   const groups=new Map();
   buildings.forEach(({building},index)=>{
@@ -12480,7 +12481,7 @@ function itemBagHTML() {
     `data-act="restore" data-index="${index}"`,(building.id==='road'?'Road tile':'Level '+lvlOf(building))+' · '+count+' owned')).join('');
   const owned = collectables.map(([id,count]) => card(id, `data-act="choose" data-id="${id}"`, 'Owned · '+count)).join('');
   return voucherHTML() + coinBoostHTML() + heldNote + '<h3>Moved buildings</h3>' + (moved ? '<div class="grid2">'+moved+'</div>' : '<p class="note">If a remodel needs more space, your building will be kept here with its upgrades.</p>') +
-    '<h3>Collectables</h3>' + (owned ? '<div class="grid2">'+owned+'</div>' : '<p class="note">Collectables you buy in the Dosh Shop appear here.</p>');
+    '<h3>Collectables</h3>' + (owned ? '<div class="grid2">'+owned+'</div>' : '<p class="note">Owned collectables that can be placed appear here.</p>');
 }
 function restoreBuilding(entry,i,j,turned=entry.building.turned) {
   const index = S.storedBuildings.indexOf(entry);
@@ -14245,19 +14246,21 @@ function reconcileLotSizes(city) {
 }
 
 function removeDeletedModels(city,deleted){
- if(!deleted.size)return false;
+ // A catalogue change can hide a model without taking an owned Diamond copy away.
+ const removable=new Set([...deleted].filter(id=>!diamondBuildingIds.has(id)));
+ if(!removable.size)return false;
  let changed=false;
  const width=Math.sqrt(city.tiles.length),removed=new Set();
- city.tiles.forEach((t,i)=>{if(t&&deleted.has(t.id))removed.add(i)});
+ city.tiles.forEach((t,i)=>{if(t&&!t.diamondCopyId&&removable.has(t.id))removed.add(i)});
  city.tiles.forEach((t,i)=>{
   if(removed.has(i)||(t?.id==='_occ'&&removed.has(t.ref[1]*width+t.ref[0]))){city.tiles[i]=null;changed=true}
  });
  if(city.storedBuildings&&!city.betaRelocation){
-  const kept=city.storedBuildings.filter(e=>!deleted.has(e.building?.id));
+  const kept=city.storedBuildings.filter(entry=>{const tile=entry?.building??entry;return tile?.diamondCopyId||!removable.has(tile?.id);});
   if(kept.length!==city.storedBuildings.length){city.storedBuildings=kept;changed=true}
  }
  for(const bag of [city.items,city.shopItems,city.market?.bought]){
-  if(bag)for(const id of deleted)if(Object.hasOwn(bag,id)){delete bag[id];changed=true}
+  if(bag)for(const id of removable)if(Object.hasOwn(bag,id)){delete bag[id];changed=true}
  }
  return changed;
 }
@@ -14436,7 +14439,6 @@ if (S.dice > 15) S.dice = 15;
 S.dicePos = (S.dicePos || 0) % 12;
 S.items = Object.assign({ fountain: 0, statue: 0, flowers: 0, sakura: 0 }, S.items || {});
 S.shopItems = Object.assign({}, S.shopItems || {});
-for (const id of Object.keys(S.shopItems)) if (!MARKET[id] && !diamondBuildingIds.has(id)) delete S.shopItems[id];
 if (!S.market) S.market = { week: 0, bought: {}, seen: 0 };
 economyMigrate();
 PRODUCT.space='Rocket services';
