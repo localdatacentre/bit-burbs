@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const {settleCityExchange:settle}=require('../city-exchange.js');
+const {prepareCrateConversion:convert}=require('../crate-conversion.js');
+const start=convert({v:2,crateVouchers:2,crates:{gold:1},cash:2.5,deeds:2,tickets:3,stars:4,coinBoostTokens:{15:2},boostUntil:500});
+const debit={playerId:'city',sequence:1,action:'buy-crate',tier:'silver'};
+const award={playerId:'city',sequence:2,action:'open-crate',winners:[{kind:'cash',amount:1500}]};
+const run=(c,e)=>settle(c,'city',e);
+assert.throws(()=>run(start,award));assert.throws(()=>settle(start,'other',debit));assert.throws(()=>run(start,{...debit,tier:'diamond'}));
+const purchased=run(start,debit);assert.equal(purchased.crateVouchers,6);
+const saved=run(purchased,award);assert.equal(saved.cash,1502.5);assert.equal(run(saved,award),saved);assert.equal(run(saved,debit),saved);
+const entry={...award,sequence:3,winners:[{kind:'boost',amount:1},{kind:'diamond',copy:'copy-1',amount:1},{kind:'wheelTickets',amount:2}]};
+const triple=run(saved,entry);assert.deepEqual(triple.coinBoostTokens,{10:1,15:2});assert.equal(triple.boostUntil,500);assert.equal(triple.tickets,5);assert.equal(triple.shopItems,undefined);
+assert.throws(()=>run(saved,{...entry,winners:[...entry.winners.slice(0,2),{kind:'bogus',amount:1}]}));assert.deepEqual(saved.coinBoostTokens,{15:2});
+const html=fs.readFileSync('index.html','utf8'),context={S:structuredClone(triple),now:()=>100,toast(){},changed(){},save(){},snd(){},updateHUD(){},renderSheet(){}};
+vm.createContext(context);for(const name of ['standardiseCoinBoosts','useCoinBoost'])vm.runInContext(html.match(new RegExp('function '+name+'\\([^]*?\\n}'))[0],context);
+context.standardiseCoinBoosts(context.S);context.useCoinBoost(10);assert.equal(context.S.boostUntil,600500);assert.deepEqual(context.S.coinBoostTokens,{15:2});
+console.log('PASS converted and earned voucher debit, retry, out-of-order delivery, wrong city, triple rewards and ten-minute boost after reload');
