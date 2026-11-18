@@ -93,17 +93,17 @@ index 8b450f3..25c7b81 100644
   if(cmd||b.dataset.action==='create-trade'||b.dataset.reviewTrade){
    e.stopImmediatePropagation();if(b.disabled||marketBusy)return;
 diff --git a/hosting/build.py b/hosting/build.py
-index 15f8274..5f59f69 100644
+index 169ffa4..88c3304 100644
 --- a/hosting/build.py
 +++ b/hosting/build.py
 @@ -40,4 +40,6 @@ constants = {
  }
  out = dist / "server/index.js"
  out.parent.mkdir(exist_ok=True)
--out.write_text("const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + (root / "hosting/catalogue-worker.js").read_text())
+-out.write_text("const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
 +market_modules = ["city-exchange", "city-crate-command", "market-copy-delivery", "market-sale-payment", "market-purchase","market-city-placement"]
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
-+out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + (root / "hosting/catalogue-worker.js").read_text())
++out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
 diff --git a/hosting/exchange.js b/hosting/exchange.js
 index 3d6e62e..f8f7113 100644
 --- a/hosting/exchange.js
