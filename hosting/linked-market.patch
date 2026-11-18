@@ -1,18 +1,35 @@
 diff --git a/dist/exchange-account.js b/dist/exchange-account.js
-index 8b450f3..d9b5cec 100644
+index 8b450f3..cba6360 100644
 --- a/dist/exchange-account.js
 +++ b/dist/exchange-account.js
-@@ -9,10 +9,15 @@ async function exchangeFetch(body){
+@@ -1,5 +1,10 @@
+ // Shares the Exchange page's renderers. Account commands always settle on the server.
+ let shared=false, marketBusy=false;
++const requestedCity=new URLSearchParams(location.search).get('city');
++function showExchangeControls(visible){
++ for(const id of ['wallet','pageNav','screen','modalRoot'])document.getElementById(id).style.display=visible?'':'none';
++}
++if(requestedCity)showExchangeControls(false);
+ const incomingLink=new URLSearchParams(location.hash.slice(1)).get('link');
+ if(incomingLink)sessionStorage.setItem('exchange-invite',incomingLink);
+ const accountBar=document.getElementById('exchangeAccount');
+@@ -9,10 +14,21 @@ async function exchangeFetch(body){
   return result;
  }
  function useShared(view){
 - shared=true;data={...fresh(),...view,ordinary:[],settings:{motion:false},claims:[]};
 - accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · Playtest wallet '));
++ if(requestedCity&&view.name!==requestedCity){
++  showExchangeControls(false);
++  throw Error('Open the Exchange with the account linked to '+requestedCity+'.');
++ }
++ showExchangeControls(true);
 + shared=true;data={...view,ordinary:[],settings:{motion:false},claims:[]};
 + accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · City balance '));
   const refresh=document.createElement('button');refresh.textContent='Refresh market';refresh.onclick=loadExchange;accountBar.append(refresh);
  }
 +function leaveSharedView(){
++ if(requestedCity)showExchangeControls(false);
 + if(!shared)return;
 + shared=false;clearTimeout(animation?.timer);animation=null;
 + data=fresh();closeModal();render();
@@ -20,19 +37,21 @@ index 8b450f3..d9b5cec 100644
  async function loadExchange(){
   if(marketBusy||animation)return;
   marketBusy=true;
-@@ -20,9 +25,10 @@ async function loadExchange(){
+@@ -20,18 +36,19 @@ async function loadExchange(){
    const token=sessionStorage.getItem('exchange-invite');
    const view=await exchangeFetch(token?{action:'link',token}:null);
    if(token){sessionStorage.removeItem('exchange-invite');history.replaceState(null,'',location.pathname+location.search);}
 -  if(view.linked===false){accountBar.textContent='Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
-+  if(view.linked===false){leaveSharedView();accountBar.textContent='Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
++  if(view.linked===false){leaveSharedView();accountBar.textContent=requestedCity?'Open the owner dashboard invite for '+requestedCity+' to link your city.':'Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
    clearTimeout(animation?.timer);animation=null;useShared(view);closeModal();render();
   }catch(err){
 +  if(err.status===401||err.status===403)leaveSharedView();
    if(err.status===409)sessionStorage.removeItem('exchange-invite');
-   accountBar.textContent=err.status===401?'Practice mode · ':'Account sync unavailable · '+err.message+' ';
+-  accountBar.textContent=err.status===401?'Practice mode · ':'Account sync unavailable · '+err.message+' ';
++  accountBar.textContent=err.status===401?(requestedCity?'Sign in to open your city Exchange. ':'Practice mode · '):'Account sync unavailable · '+err.message+' ';
    if(err.status===401){const a=document.createElement('a');a.href='/signin-with-chatgpt?return_to='+encodeURIComponent(location.pathname+location.search+location.hash);a.textContent='Sign in for shared trading';accountBar.append(a);}
-@@ -31,7 +37,7 @@ async function loadExchange(){
+  }finally{marketBusy=false;}
+ }
  async function settle(command){
   if(marketBusy)return;marketBusy=true;
   try{
@@ -41,7 +60,7 @@ index 8b450f3..d9b5cec 100644
    if(command.action==='open')showOpening(false);else render();
   }catch(err){
    try{const view=await exchangeFetch();if(view.name)useShared(view);}catch{}
-@@ -40,6 +46,7 @@ async function settle(command){
+@@ -40,6 +57,7 @@ async function settle(command){
  }
  function sharedRoutes(b){
   const d=b.dataset,a=d.action||'';
@@ -49,7 +68,7 @@ index 8b450f3..d9b5cec 100644
   if(d.cancelListing)return {action:'unlist',listing:d.cancelListing};
   if(d.cancelTrade)return {action:'cancel',trade:d.cancelTrade};
   if(a==='buy-crate')return {action:'crate',tier:tierIndex};
-@@ -58,6 +65,9 @@ function tradeChoice(){
+@@ -58,6 +76,9 @@ function tradeChoice(){
  }
  document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!shared)return;
