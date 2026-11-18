@@ -25,11 +25,11 @@ console.log('PASS earned-only spend, racing purchases, triple Diamond opening, r
 // of every percentage point. This exercises rare outcomes without sampling luck.
 function verifyRewardTables(){
  const tables=[
-  [[45,'cash',1500,3000],[25,'dosh',10,20],[25,'deeds',1],[4,'wheelTickets',1],[1,'deeds',2]],
-  [[35,'cash',8000,12000],[25,'dosh',20,30],[30,'deeds',1],[10,'wheelTickets',1]],
-  [[25,'cash',18000,30000],[25,'dosh',40,60],[38,'deeds',2],[12,'wheelTickets',2]],
-  [[20,'cash',45000,70000],[20,'dosh',90,130],[35,'deeds',4],[15,'wheelTickets',3],[10,'boost',1]],
-  [[15,'cash',150000,220000],[20,'dosh',250,350],[30,'deeds',12],[15,'wheelTickets',8],[10,'boost',1],[10,'diamond',1]]
+  [[45,'cash',1500,3000],[35,'dosh',10,20],[15,'deeds',1],[4,'wheelTickets',1],[1,'deeds',2]],
+  [[35,'cash',8000,12000],[35,'dosh',20,30],[20,'deeds',1],[10,'wheelTickets',1]],
+  [[25,'cash',18000,30000],[35,'dosh',40,60],[28,'deeds',2],[12,'wheelTickets',2]],
+  [[20,'cash',45000,70000],[30,'dosh',90,130],[25,'deeds',4],[15,'wheelTickets',3],[10,'boost',1]],
+  [[15,'cash',150000,220000],[30,'dosh',250,350],[20,'deeds',12],[15,'wheelTickets',8],[10,'boost',1],[10,'diamond',1]]
  ];
  const costs=[2,6,14,30,80],tiers=['silver','gold','emerald','ruby','diamond'];
  const draws=[];
