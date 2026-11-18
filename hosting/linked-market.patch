@@ -248,6 +248,23 @@ index 169ffa4..88c3304 100644
 +market_modules = ["city-exchange", "city-crate-command", "market-copy-delivery", "market-sale-payment", "market-purchase","market-city-placement"]
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
 +out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
+diff --git a/hosting/dashboard-economy.js b/hosting/dashboard-economy.js
+index 24537d2..55f9b57 100644
+--- a/hosting/dashboard-economy.js
++++ b/hosting/dashboard-economy.js
+@@ -31,8 +31,10 @@ function migrate(city,defs,config,ms){
+  return {city,changed:true,summary:before};
+ }
+ function originalGross(d,t,rates){return [1,1.5,2.2].reduce((s,m)=>s+Math.max(1,Math.round((rates[d.jobs]||0)*m*(LEVELS[t?.lvl||1]||1))),0);}
+-function gross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
+-function fee(d,t,employees,p,rates){return Math.round(gross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}
++function baseGross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
++const BUSINESS_EARNINGS_MULTIPLIER=1.2075;
++function gross(d,t,employees,p,rates){return baseGross(d,t,employees,p,rates)*BUSINESS_EARNINGS_MULTIPLIER;}
++function fee(d,t,employees,p,rates){return Math.round(baseGross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}
+ function configFor(city,config){
+  if(city.economyLab?.balanceVersion>=BALANCE_VERSION)return config;
+  return Object.fromEntries(Object.entries(config).map(([id,p])=>[id,p.previous?{...p,...p.previous}:p]));
 diff --git a/hosting/exchange.js b/hosting/exchange.js
 index be6abe9..04bda8e 100644
 --- a/hosting/exchange.js
@@ -416,6 +433,38 @@ index c9765f2..87c5f84 100644
     players.push({...dashboardCity(name,saved.city,file.uploaded?.toISOString?.()||null),exchange:exchangeSummary(market,record.canonical)});
    }
    cursor=page.truncated?page.cursor:undefined;
+diff --git a/tests/dashboard-details.cjs b/tests/dashboard-details.cjs
+index e937abd..74ca845 100644
+--- a/tests/dashboard-details.cjs
++++ b/tests/dashboard-details.cjs
+@@ -10,22 +10,22 @@ function city(){const c={v:2,cash:1000,stars:50,level:7,xp:12,pop:8,saved:T,tile
+  put(15,16,{id:'fountain'});return c;
+ }
+ let c=city(),before=JSON.stringify(c),p=ctx.dashboardCity('player',c,new Date(T).toISOString()),e=p.details.economy;
+-assert(e.available);assert.equal(e.capacity,23);assert.equal(e.employed,8);assert.equal(e.unemployed,0);assert.equal(e.availableJobs,0);assert.equal(e.businesses[0].currentCpm,10.1);assert.equal(e.businesses[0].stockPercent,100);assert.equal(e.businesses[1].deliveryMinutes,40);
++assert(e.available);assert.equal(e.capacity,23);assert.equal(e.employed,8);assert.equal(e.unemployed,0);assert.equal(e.availableJobs,0);assert.equal(e.businesses[0].currentCpm,12.2);assert.equal(e.businesses[0].stockPercent,100);assert.equal(e.businesses[1].deliveryMinutes,40);
+ assert.equal(JSON.stringify(c),before,'Projection must never mutate a city');
+ // Older saves retain their old snapshot rates until the game migrates them;
+ // new saves expose the revised income and offline fraction.
+ const migrated=city();migrated.economyLab.balanceVersion=2;migrated.tiles[16*N+2].pr[0].s=T+90*60000;
+-assert.equal(ctx.project(migrated).businesses[0].currentCpm,20.2);assert.equal(ctx.project(migrated).businesses[0].stockPercent,100);assert.equal(ctx.project(migrated).awayMultiplier,.5);assert.equal(e.awayMultiplier,1/3);
++assert.equal(ctx.project(migrated).businesses[0].currentCpm,24.39);assert.equal(ctx.project(migrated).businesses[0].stockPercent,100);assert.equal(ctx.project(migrated).awayMultiplier,.5);assert.equal(e.awayMultiplier,1/3);
+ assert.equal(p.details.balances.crateVouchers,13);assert.equal(p.details.diamondBuildings.length,8);assert.equal(p.details.diamondBuildings.find(b=>b.id==='fountain').placed,1);assert.equal(p.details.diamondBuildings.find(b=>b.id==='fountain').unplaced,1);assert.equal(p.details.purchaseHistoryAvailable,false);assert.equal(p.details.refundHistoryAvailable,false);
+-c.boostUntil=T+600000;assert.equal(ctx.project(c).businesses[0].currentCpm,20.2);
++c.boostUntil=T+600000;assert.equal(ctx.project(c).businesses[0].currentCpm,24.39);
+ c=city();c.tiles[16*N+2].pr[0].s=T;assert.equal(ctx.project(c).businesses[0].currentCpm,0);assert.equal(ctx.project(c).businesses[0].status,'Out of stock');
+ c=city();c.tiles[15*N+2]=null;assert.equal(ctx.project(c).businesses[0].currentCpm,0);assert.equal(ctx.project(c).businesses[0].status,'Needs road');
+ c=city();c.tiles[14*N+4]=null;assert.equal(ctx.project(c).businesses[0].currentCpm,0);assert.equal(ctx.project(c).powerSupply,0);
+-c=city();c.pop=1;c.tiles[16*N+2].hired=1;c.tiles[16*N+8].hired=0;assert.equal(ctx.project(c).businesses[0].employees,1);assert.equal(ctx.project(c).businesses[0].currentCpm,3.37);
++c=city();c.pop=1;c.tiles[16*N+2].hired=1;c.tiles[16*N+8].hired=0;assert.equal(ctx.project(c).businesses[0].employees,1);assert.equal(ctx.project(c).businesses[0].currentCpm,4.07);
+ c=city();c.storedBuildings=[{building:{id:'bakery',pr:[{s:T+1e9}]}}];assert.equal(ctx.project(c).businesses.length,2,'Stored buildings cannot earn');
+ assert.equal(ctx.project({...c,tiles:[null,null]}).available,false);
+ const projected=JSON.stringify(ctx.dashboardCity('player',{...city(),password:'private',code:'secret',canonical:'hidden'},null));for(const v of ['private','secret','hidden'])assert(!projected.includes(v));
+ for(const path of ['dist/beta/player-details.js','dist/beta/progression.js'])new vm.Script(fs.readFileSync(path,'utf8'));
+ const html=fs.readFileSync('dist/beta/players.html','utf8');for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
+ if(process.env.DASHBOARD_FIXTURE_OUT)fs.writeFileSync(process.env.DASHBOARD_FIXTURE_OUT,JSON.stringify({players:[p]}));
+-console.log('PASS: exact 5% income, housing/staff, stock/delivery, boost, missing roads/power, partial hires, stored exclusion, voucher balances, all eight collectibles, no invented receipts, no mutation, no secret fields, UI syntax');
++console.log('PASS: current business income, housing/staff, stock/delivery, boost, missing roads/power, partial hires, stored exclusion, voucher balances, all eight collectibles, no invented receipts, no mutation, no secret fields, UI syntax');
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
 index c438fba..1571802 100644
 --- a/tests/exchange-ledger.cjs
