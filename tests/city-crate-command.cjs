@@ -12,12 +12,26 @@ const cmd=(action,revision)=>({action,revision,tier:4,count:3,requestId:crypto.r
 for(let i=0;i<3;i++){const c=cmd('crate',i);await Promise.all([run(c),run(c)]);}
 assert.equal(record.city.crateVouchers,0);
 await assert.rejects(run(cmd('crate',3)));
-const c=cmd('open',3);const result=JSON.parse(JSON.stringify(await run(c)));
+const c=cmd('open',3);
+const write = bucket.put;
+bucket.put = async (...args) => {
+  const committed = await write(...args);
+  assert.ok(committed);
+  throw Error('connection lost after write');
+};
+await assert.rejects(run(c), /connection lost after write/);
+const saved = structuredClone(record);
+bucket.put = write;
+const result = JSON.parse(JSON.stringify(await run(JSON.parse(JSON.stringify(c)))));
+assert.deepEqual(record, saved);
 assert.deepEqual(result,await run(c));assert.equal(result.stock[4],0);
 assert.deepEqual(result.pendingCopies.map(x=>x.id),result.opening.winners.map(x=>x.copy));
 assert.equal(new Set(result.pendingCopies.map(x=>x.id)).size,3);
 await run({...cmd('finish',4),receipt:result.opening.receipt});
 assert.equal(record.crateExchange.pendingCopies.length,3);assert.equal(record.progress,'keep');assert.equal(record.city.exchangeSequence,4);
+const finished = structuredClone(record);
+await assert.rejects(run(c), /Refresh crate storage/);
+assert.deepEqual(record, finished);
 console.log('PASS earned-only spend, racing purchases, triple Diamond opening, replay and retained mint receipts');
 })().catch(e=>{console.error(e);process.exitCode=1});
 
