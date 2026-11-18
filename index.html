@@ -14306,11 +14306,24 @@ S = remodelDemo || micksDriveDemo ? newGame() : load() || newGame();
 if(namedPlay){
  window.addEventListener('storage',e=>{if(e.key===lastUser||username&&e.key===SAVE_KEY+':cloud-key'&&!e.newValue){cityConflict=true;location.reload()}});
 }
+let checkingCityRevision=false;
+async function refreshCityRevision(){
+ if(checkingCityRevision||!cityRevision)return;
+ checkingCityRevision=true;
+ try{
+  if(cityRequest)await cityRequest;
+  const remote=await cityApi({action:'revision',name:username,code:cityCode});
+  if(remote.revision&&remote.revision!==cityRevision){cityConflict=true;location.reload();}
+ }catch{/* Offline play uses the local save. */}
+ finally{checkingCityRevision=false;}
+}
 if(namedPlay&&username){
  setTimeout(()=>save(),1500);
- document.addEventListener('visibilitychange',()=>{if(document.hidden){if(!cityConflict){save();void pushCity(true)}}else if(cityRevision){
-   (async()=>{try{if(cityRequest)await cityRequest;const remote=await cityApi({action:'revision',name:username,code:cityCode});if(remote.revision&&remote.revision!==cityRevision){cityConflict=true;location.reload()}}catch{/* Offline play uses the local save. */}})();
- }});
+ document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(!cityConflict){save();void pushCity(true);}}
+  else void refreshCityRevision();
+ });
+ window.addEventListener('pageshow',event=>{if(event.persisted)void refreshCityRevision();});
 }
 if(removeDeletedModels(S,deletedModelIds))save();
 window.addEventListener('storage',event=>{if(event.key==='bit-burbs:catalogue-changed'){save();location.reload()}});
