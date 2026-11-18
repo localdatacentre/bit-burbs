@@ -15,3 +15,16 @@ ctx.Math.random=()=>0.99;ctx.spin();assert.equal(city.crateVouchers,7);assert.eq
 ctx.spin();assert.equal(saves,1);
 vm.runInContext('wheelAnim=null',ctx);ctx.Math.random=()=>0;ctx.spin();assert.equal(city.tickets,1);assert.equal(city.restockVouchers,1);assert.equal(city.crateVouchers,7);
 console.log('PASS all wheel weights, free opportunity, banked ticket, tenth-spin stack, one save and repeat tap');
+
+// A wheel XP award may cross one or more level boundaries before the city saves.
+const {prepareCrateConversion}=require('../crate-conversion.js');
+vm.runInContext('var Core={};'+part('Core.onLevel=', 'function labState()'),ctx);
+const before={v:2,crates:{steel:2,gold:1},crateVouchers:4};
+const oldCity=structuredClone(before),converted=prepareCrateConversion(before);
+for(let level=2;level<=100;level++){
+  ctx.Core.onLevel(oldCity,level);
+  ctx.Core.onLevel(converted,level);
+  assert.equal(converted.crateVouchers,prepareCrateConversion(oldCity).crateVouchers);
+  assert.deepEqual(converted.crates,{});
+}
+console.log('PASS all 99 level-ups preserve reward value without reintroducing legacy crates into a converted city');
