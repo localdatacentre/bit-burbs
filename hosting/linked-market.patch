@@ -51,7 +51,7 @@ index 44552af..e7db58f 100644
   if(b.dataset.cancelTrade){const t=data.trades.find(t=>t.id===b.dataset.cancelTrade);if(t.state==='pending'){t.state='cancelled';data.assets.find(a=>a.id===t.give).state='inventory';save();render();}return;}
   if(b.dataset.reviewTrade){reviewTrade(b.dataset.reviewTrade);return;}
 diff --git a/dist/exchange-account.js b/dist/exchange-account.js
-index 8b450f3..25c7b81 100644
+index 8b450f3..0185f44 100644
 --- a/dist/exchange-account.js
 +++ b/dist/exchange-account.js
 @@ -1,5 +1,10 @@
@@ -65,12 +65,32 @@ index 8b450f3..25c7b81 100644
  const incomingLink=new URLSearchParams(location.hash.slice(1)).get('link');
  if(incomingLink)sessionStorage.setItem('exchange-invite',incomingLink);
  const accountBar=document.getElementById('exchangeAccount');
-@@ -9,10 +14,22 @@ async function exchangeFetch(body){
+@@ -8,10 +13,40 @@ async function exchangeFetch(body){
+  const result=await res.json();if(!res.ok)throw Object.assign(new Error(result.error||'Exchange unavailable.'),{status:res.status});
   return result;
  }
++function addRefreshButton(){
++ const button=document.createElement('button');
++ button.textContent='Refresh market';
++ button.onclick=loadExchange;
++ accountBar.append(button);
++}
++function pendingKey(name){return 'banksia-exchange:pending-command:'+name;}
++async function sendSavedCommand(command){
++ const key=pendingKey(command.account);
++ try{
++  const view=await exchangeFetch(command);
++  sessionStorage.removeItem(key);
++  return view;
++ }catch(error){
++  if([400,409,413].includes(error.status))sessionStorage.removeItem(key);
++  throw error;
++ }
++}
  function useShared(view){
 - shared=true;data={...fresh(),...view,ordinary:[],settings:{motion:false},claims:[]};
 - accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · Playtest wallet '));
+- const refresh=document.createElement('button');refresh.textContent='Refresh market';refresh.onclick=loadExchange;accountBar.append(refresh);
 + if(requestedCity&&view.name!==requestedCity){
 +  showExchangeControls(false);
 +  throw Error('Open the Exchange with the account linked to '+requestedCity+'.');
@@ -79,41 +99,74 @@ index 8b450f3..25c7b81 100644
 + showExchangeControls(true);
 + shared=true;data={...view,ordinary:[],settings:{motion:false},claims:[]};
 + accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · City balance '));
-  const refresh=document.createElement('button');refresh.textContent='Refresh market';refresh.onclick=loadExchange;accountBar.append(refresh);
- }
++ addRefreshButton();
++}
 +function leaveSharedView(){
 + if(requestedCity)showExchangeControls(false);
 + if(!shared)return;
 + shared=false;clearTimeout(animation?.timer);animation=null;
 + data=fresh();closeModal();render();
-+}
+ }
  async function loadExchange(){
   if(marketBusy||animation)return;
-  marketBusy=true;
-@@ -20,18 +37,19 @@ async function loadExchange(){
+@@ -20,26 +55,56 @@ async function loadExchange(){
    const token=sessionStorage.getItem('exchange-invite');
    const view=await exchangeFetch(token?{action:'link',token}:null);
    if(token){sessionStorage.removeItem('exchange-invite');history.replaceState(null,'',location.pathname+location.search);}
 -  if(view.linked===false){accountBar.textContent='Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
+-  clearTimeout(animation?.timer);animation=null;useShared(view);closeModal();render();
 +  if(view.linked===false){leaveSharedView();accountBar.textContent=requestedCity?'Open the owner dashboard invite for '+requestedCity+' to link your city.':'Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
-   clearTimeout(animation?.timer);animation=null;useShared(view);closeModal();render();
++  clearTimeout(animation?.timer);animation=null;useShared(view);
++  const saved=sessionStorage.getItem(pendingKey(view.name));
++  if(saved){
++   const command=JSON.parse(saved);
++   if(command.account!==view.name)throw Error('Pending command belongs to a different city.');
++   try{useShared(await sendSavedCommand(command));}
++   catch(error){
++    if(error.status!==409)throw error;
++    useShared(await exchangeFetch());closeModal();render();
++    if(!data.opening)toast(error.message);
++    return;
++   }
++  }
++  closeModal();render();
   }catch(err){
 +  if(err.status===401||err.status===403)leaveSharedView();
    if(err.status===409)sessionStorage.removeItem('exchange-invite');
 -  accountBar.textContent=err.status===401?'Practice mode · ':'Account sync unavailable · '+err.message+' ';
++  if(shared||requestedCity)showExchangeControls(false);
 +  accountBar.textContent=err.status===401?(requestedCity?'Sign in to open your city Exchange. ':'Practice mode · '):'Account sync unavailable · '+err.message+' ';
    if(err.status===401){const a=document.createElement('a');a.href='/signin-with-chatgpt?return_to='+encodeURIComponent(location.pathname+location.search+location.hash);a.textContent='Sign in for shared trading';accountBar.append(a);}
++  else addRefreshButton();
   }finally{marketBusy=false;}
  }
  async function settle(command){
-  if(marketBusy)return;marketBusy=true;
+- if(marketBusy)return;marketBusy=true;
++ if(marketBusy||!shared)return;
++ marketBusy=true;
   try{
 -  const view=await exchangeFetch({...command,account:data.name,revision:data.revision,requestId:crypto.randomUUID()});useShared(view);closeModal();
-+  const view=await exchangeFetch({...command,account:data.name,revision:['crate','open','finish'].includes(command.action)?data.crateRevision:data.revision,requestId:crypto.randomUUID()});useShared(view);closeModal();
-   if(command.action==='open')showOpening(false);else render();
+-  if(command.action==='open')showOpening(false);else render();
++  const key=pendingKey(data.name);
++  const saved=sessionStorage.getItem(key);
++  const request=saved?JSON.parse(saved):{
++   ...command,account:data.name,revision:['crate','open','finish'].includes(command.action)?data.crateRevision:data.revision,
++   requestId:crypto.randomUUID()
++  };
++  if(request.account!==data.name)throw Error('Pending command belongs to a different city.');
++  if(!saved)sessionStorage.setItem(key,JSON.stringify(request));
++  useShared(await sendSavedCommand(request));closeModal();
++  if(request.action==='open'&&!saved)showOpening(false);else render();
   }catch(err){
-   try{const view=await exchangeFetch();if(view.name)useShared(view);}catch{}
-@@ -40,6 +58,7 @@ async function settle(command){
+-  try{const view=await exchangeFetch();if(view.name)useShared(view);}catch{}
+-  render();if(!data.opening)toast(err.message);
++  if(err.status===409){
++   try{useShared(await exchangeFetch());closeModal();render();if(!data.opening)toast(err.message);return;}catch{}
++  }
++  showExchangeControls(false);
++  accountBar.textContent='Refresh to check your last action. ';
++  addRefreshButton();
+  }finally{marketBusy=false;}
  }
  function sharedRoutes(b){
   const d=b.dataset,a=d.action||'';
@@ -121,7 +174,7 @@ index 8b450f3..25c7b81 100644
   if(d.cancelListing)return {action:'unlist',listing:d.cancelListing};
   if(d.cancelTrade)return {action:'cancel',trade:d.cancelTrade};
   if(a==='buy-crate')return {action:'crate',tier:tierIndex};
-@@ -58,6 +77,9 @@ function tradeChoice(){
+@@ -58,6 +123,9 @@ function tradeChoice(){
  }
  document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!shared)return;
@@ -284,7 +337,7 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..3fa4eb0 100644
+index c438fba..2a75bb8 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
 @@ -7,8 +7,14 @@ const bucket={
@@ -303,7 +356,7 @@ index c438fba..3fa4eb0 100644
  const views={};
  async function request(user,body){
   const headers={'Content-Type':'application/json',Origin:'https://test.local'};if(user)headers['oai-authenticated-user-id']=user;
-@@ -16,17 +22,21 @@ async function request(user,body){
+@@ -16,17 +22,72 @@ async function request(user,body){
   const r=await ctx.exchangeApi(req,{BUCKET:bucket});return {status:r.status,v:await r.json()};
  }
  async function act(name,body,expected=200){
@@ -311,6 +364,57 @@ index c438fba..3fa4eb0 100644
 + const r=await request(name,{revision:['open','crate','finish'].includes(body.action)?views[name].crateRevision:views[name].revision,account:name,requestId:webcrypto.randomUUID(),...body});
   assert.equal(r.status,expected,JSON.stringify(r.v.error));if(r.status===200)views[name]=r.v;return r;
  }
++// Run the shipped client controller against the real Worker handlers. A fresh
++// document retains only tab storage, as when reloading after a lost response.
++async function checkInterruptedOpening(){
++ const storage=new Map(),sent=[],elements=new Map();
++ let user='worker-test',interrupt=false;
++ const cityId='8'.repeat(64);
++ await bucket.put('username-city/roster2/'+user,JSON.stringify({canonical:cityId}));
++ await bucket.put('live-city/roster2/'+cityId,JSON.stringify({city:{v:2,tiles:[null],cash:0,stars:0,crateVouchers:6}}));
++ const invite=await request('admin',{action:'invite',name:user});
++ await request(user,{action:'link',token:invite.v.token});
++ function documentContext(){
++  function element(){return {style:{},append(){},replaceChildren(){}};}
++  const document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},
++   addEventListener(){},createElement:element,createTextNode:t=>t};
++  const client={document,window:{addEventListener(){}},URLSearchParams,location:{search:'?city=worker-test',hash:''},
++   sessionStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
++   crypto:webcrypto,clearTimeout,animation:null,rotationStart:0,data:{},fresh:()=>({}),closeModal(){},render(){},toast(){},showOpening(){},
++   fetch:async(url,options)=>{
++    const cmd=options?.body&&JSON.parse(options.body);
++    if(cmd)sent.push(cmd);
++    const reply=await request(user,cmd);
++    if(cmd&&interrupt){interrupt=false;throw Error('Response lost after commit');}
++    return {ok:reply.status===200,status:reply.status,json:async()=>reply.v};
++   }};
++  vm.createContext(client);
++  const boot=vm.runInContext(fs.readFileSync('dist/exchange-account.js','utf8'),client);
++  return {client,boot};
++ }
++ let {client,boot}=documentContext();await boot;
++ for(let i=0;i<3;i++)await client.settle({action:'crate',tier:0});
++ assert.equal(client.data.wallet.crateVouchers,0);
++ interrupt=true;
++ await client.settle({action:'open',tier:0,count:3});
++ assert.equal(storage.size,1);
++ const opened=(await request(user)).v;
++ assert.equal(opened.opening.winners.length,3);
++ assert.equal(opened.stock[0],0);
++ user='stranger';
++ const anonymous=documentContext();await anonymous.boot;
++ assert.equal(storage.size,1);
++ assert.equal(sent.length,4);
++ user='worker-test';
++ ({client,boot}=documentContext());await boot;
++ assert.equal(storage.size,0);
++ assert.equal(sent[3].requestId,sent[4].requestId);
++ assert.deepEqual(client.data.wallet,opened.wallet);
++ assert.deepEqual(client.data.opening,opened.opening);
++ await client.settle({action:'finish',receipt:opened.opening.receipt});
++ assert.equal((await request(user)).v.opening,null);
++ assert.equal((await request(user)).v.crateRevision,5);
++}
  (async()=>{
   assert.equal((await request(null)).status,401);
   for(const name of ['alice','ben','cam']){
@@ -328,7 +432,7 @@ index c438fba..3fa4eb0 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,17 +45,57 @@ async function act(name,body,expected=200){
+@@ -35,17 +96,58 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
@@ -384,6 +488,7 @@ index c438fba..3fa4eb0 100644
 + await act('alice',{action:'crate',tier:0},409);
 + await act('alice',{account:'alice2',action:'crate',tier:0});
 + assert.equal(views.alice.wallet.crateVouchers,0);
++ await checkInterruptedOpening();
   if(process.env.EXCHANGE_FIXTURE)fs.writeFileSync(process.env.EXCHANGE_FIXTURE,JSON.stringify({players:roster,view:views.cam}));
   console.log('PASS owner invites, verification, cross-session ownership, opening receipts, replay, rotation lock, concurrent purchase, fees, recipient swap, owner dashboard');
  })().catch(e=>{console.error(e);process.exitCode=1;});
