@@ -41,5 +41,13 @@ function save(rev,sequence,extra={}) {
   assert.equal((await save('3',1)).status,409);
   assert.equal((await save('3',1,{crateConversion:conversion,crates:{gold:1}})).status,409);
   assert.equal((await save('3',1,{crateConversion:conversion,crates:{}})).status,200);
+  const compensated={version:1,canonical:'c'.repeat(64),coins:1302750,dosh:200,plots:[{index:0,model:'needle'}]};
+  assert.equal((await save('4',1,{crateConversion:conversion,legacyDiamondRefund:compensated})).status,409);
+  record.city.legacyDiamondRefund=compensated; // an already compensated fixture
+  assert.equal((await save('4',1,{crateConversion:conversion})).status,409);
+  assert.equal((await save('4',1,{crateConversion:conversion,legacyDiamondRefund:{...compensated,dosh:400}})).status,409);
+  assert.equal((await save('4',1,{crateConversion:conversion,legacyDiamondRefund:{...compensated,plots:[]}})).status,409);
+  assert.equal((await save('4',1,{crateConversion:conversion,legacyDiamondRefund:compensated})).status,200);
+  assert.deepEqual(record.city.legacyDiamondRefund,compensated);
   console.log('PASS stale revisions, stale Exchange sequence, duplicate saves and retained server crate inventory');
 })().catch(e=>{console.error(e);process.exitCode=1});
