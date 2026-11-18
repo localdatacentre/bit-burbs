@@ -1,5 +1,5 @@
 diff --git a/dist/banksia-exchange.html b/dist/banksia-exchange.html
-index 44552af..4212447 100644
+index 44552af..e7db58f 100644
 --- a/dist/banksia-exchange.html
 +++ b/dist/banksia-exchange.html
 @@ -5793,7 +5793,7 @@ const $=s=>document.querySelector(s),models={sakura:'Flowering Gum',fountain:'Gr
@@ -11,6 +11,45 @@ index 44552af..4212447 100644
  const fortnight=14*86400000, baseline=120;
  const rotation=['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle'];
  function slot(now=Date.now()){return Math.min(rotation.length-1,Math.max(0,Math.floor((now-rotationStart)/fortnight)));}
+@@ -5891,7 +5891,7 @@ function renderTasks(){
+ function renderBag(){return head('Item bag','Only things you own and can use',null)+`<div class="panel"><h3>MOVED BUILDINGS</h3><div class="grid">${data.ordinary.map((b,i)=>`<div class="tile">${art(b.model)}<div class="asset-name">${b.model==='house'?'Modern House':'Grumbies'}<br><span class="muted">Level ${b.level}</span></div><button data-ordinary="${i}">Place for free</button></div>`).join('')}</div></div><div class="panel"><div class="row"><div>${icon('boost')} 10-minute 2× boosts<p class="small muted">${data.boosts} stored · use when ready</p></div><button data-action="boost-demo" ${!data.boosts?'disabled':''}>Use one</button></div></div><div class="panel"><h3>WHERE ARE MY REWARDS?</h3><p>Coins, dosh, deeds and vouchers go straight to your balances.</p><button class="quiet wide" data-page="diamond"><span class="diamond-mark"></span> Open Diamond collection</button></div>`;}
+ function renderDiamond(){
+  const assets=diamondTab==='Catalogue'?Object.keys(models).map((model,i)=>({id:'catalogue-'+i,model,state:'catalogue'})):owned();
+- return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to trade</span><button class="quiet small" data-page="hub">Trading hub →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'Placed in city':a.state==='listed'?'Listed for sale':a.state==='offered'?'In trade offer':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
++ return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to trade</span><button class="quiet small" data-page="hub">Trading hub →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'In city storage or on a plot':a.state==='listed'?'Listed for sale':a.state==='offered'?'In trade offer':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
+ }
+ const modelIds={statue:'BB-D001',fountain:'BB-D002',sakura:'BB-D003',sunhouse:'BB-D004',pelicanLight:'BB-D005',tidalBaths:'BB-D006',civicClock:'BB-D007',needle:'BB-D008'};
+ const marketDate=time=>new Date(time).toLocaleDateString('en-AU',{timeZone:'Australia/Brisbane',day:'numeric',month:'short',year:'numeric'});
+@@ -5927,14 +5927,14 @@ function renderHub(){
+  if(hubTab==='Trade')content=`<div class="panel"><h3>MAKE AN OFFER</h3><p>Choose what you give and what you want. Both sides review the exact items.</p><button class="primary wide" data-action="create-trade" ${owned().some(a=>released(a)&&a.state==='inventory')?'':'disabled'}>Create trade offer</button></div><h3>YOUR OFFERS</h3>${data.trades.length?data.trades.map(t=>`<div class="panel"><div class="row"><span>${t.from?(t.from==='you'?'To '+t.to:'From '+t.from):'To rivergum'}</span><span class="chip">${t.state}</span></div><p>${models[data.assets.find(a=>a.id===t.give).model]} ↔ ${models[data.assets.find(a=>a.id===t.get).model]}</p>${t.state==='pending'?`<div class="row"><button data-review-trade="${t.id}">Review offer</button><button class="quiet" data-cancel-trade="${t.id}">Cancel</button></div>`:''}</div>`).join(''):'<p class="empty">No pending offers.</p>'}`;
+  if(hubTab==='Activity')content=`<div class="panel"><h3>EXECUTED TRANSACTIONS</h3>${data.history.length?data.history.map(h=>`<div class="table-row"><span>${h.text}<br><span class="muted small">${h.time}</span></span><span>${h.amount??''}</span></div>`).join(''):'<p class="muted">Your purchases, completed sales and trades appear here.</p>'}</div><p class="small muted">Asking prices are not sale prices. No transaction data is invented for a chart.</p>`;
+  if(hubTab==='Activity')content+=Object.keys(models).filter(m=>(data.sales||[]).some(s=>s.model===m)).map(m=>'<div class="panel"><h3>'+models[m]+'</h3>'+priceHistory(m)+'</div>').join('');
+- return head('Diamond market','Playtest · prices in dosh',null)+featurePanel()+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t}</button>`).join('')}</div>${content}`;
++ return head('Diamond market','Prices in dosh',null)+'<button class="quiet wide" data-page="diamond">My Diamond collection · '+owned().length+'</button>'+featurePanel()+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t}</button>`).join('')}</div>${content}`;
+ }
+ function priceHistory(model){
+  const sales=releaseSales(model);
+  if(!sales.length)return '<p class="muted small">No completed sales yet.</p>';
+  const lo=Math.min(...sales.map(s=>s.price)),hi=Math.max(...sales.map(s=>s.price));
+  const points=sales.map((s,i)=>[8+(sales.length===1?0:184*(s.time-sales[0].time)/Math.max(1,sales.at(-1).time-sales[0].time)),42-32*(s.price-lo)/Math.max(1,hi-lo)]);
+- return '<p>Last sold · '+sales.at(-1).price+' dosh</p><svg viewBox="0 0 200 50" role="img" aria-label="Completed demo sale prices over time"><polyline fill="none" stroke="#d2b2fa" stroke-width="2" points="'+points.map(p=>p.join(',')).join(' ')+'"/>'+points.map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#d2b2fa"/>').join('')+'</svg><small>'+new Date(sales.at(-1).time).toLocaleDateString()+' · '+sales.length+' completed sales</small>';
++ return '<p>Last sold · '+sales.at(-1).price+' dosh</p><svg viewBox="0 0 200 50" role="img" aria-label="Completed sale prices over time"><polyline fill="none" stroke="#d2b2fa" stroke-width="2" points="'+points.map(p=>p.join(',')).join(' ')+'"/>'+points.map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#d2b2fa"/>').join('')+'</svg><small>'+new Date(sales.at(-1).time).toLocaleDateString()+' · '+sales.length+' completed sales</small>';
+ }
+ function marketCards(listings){return listings.filter(l=>released(data.assets.find(a=>a.id===l.asset))).map(l=>{const a=data.assets.find(a=>a.id===l.asset);return `<article class="tile asset" data-market-model="${models[a.model].toLowerCase()}">${art(a.model)}<div class="asset-name">${models[a.model]}</div><span class="muted small">${a.owner}</span><div class="row" style="margin:8px 0"><span class="price">${icon('dosh')}${marketPrice(l,a.model)}</span><span class="diamond-mark"></span></div><button data-buy="${l.id}">Review purchase</button></article>`;}).join('')||'<p class="empty">No matching listings.</p>';}
+ function renderShop(){return head('Dosh shop','Today’s four offers · 6 pm reset','dosh')+`<div class="notice small shop-review-note">Price layout preview · exact offer prices awaiting recovery from the approved table.</div><div class="grid">${[['City supplies',`${icon('deed')} 2 deeds`,`${icon('voucher')} 3 crate vouchers`,'Price TBC'],['Keep it moving',`${icon('voucher')} 2 restock vouchers`,`${icon('ticket')} 1 wheel ticket`,'Price TBC'],['More possibilities',`${icon('voucher')} 6 crate vouchers`,`${icon('dosh')} 5 dosh`,'Price TBC'],['On the house',`${icon('cash')} 2,000 coins`,'One claim today','FREE']].map(([title,a,b,price],i)=>`<article class="tile shop-offer"><div class="offer-title">${title}</div><div class="reward-line"><div>${a}</div><div>${b}</div></div><button ${i<3?'disabled':''} class="${i===3?'primary':''}" data-action="shop-${i}">${data.freeShopClaimed&&i===3?'Claimed':price}</button></article>`).join('')}</div><p class="small muted">Vouchers and consumables only. Diamond buildings are found in the collection and player market.</p>`;}
+@@ -5998,9 +5998,9 @@ document.addEventListener('click',e=>{
+  if(b.dataset.diamond){diamondTab=b.dataset.diamond;render();return;}
+  if(b.dataset.claim){const i=Number(b.dataset.claim);if(data.claims.includes(i))return;data.claims.push(i);data.wallet.crateVouchers++;data.wallet.dosh++;if(data.claims.length>=5&&!data.halfClaimed){data.halfClaimed=true;data.wallet.restockVouchers++;data.wallet.wheelTickets++;}if(data.claims.length===10&&!data.fullClaimed){data.fullClaimed=true;data.wallet.crateVouchers+=4;data.wallet.restockVouchers++;data.wallet.wheelTickets++;data.wallet.dosh+=2;}save();render();return;}
+  if(b.dataset.replace){const i=Number(b.dataset.replace);modal('Replace this task?',`<p>${taskList[i][0]}</p><p class="muted">Your one free replacement keeps the same difficulty and reward. New progress starts at zero.</p>`,[['Keep task','close-modal'],['Replace','confirm-replace-'+i,true]]);return;}
+- if(b.dataset.asset){const id=b.dataset.asset,a=data.assets.find(a=>a.id===id),model=a?.model||Object.keys(models)[Number(id.replace('catalogue-',''))];modal(models[model],`${art(model)}<p><span class="diamond-mark"></span> Diamond item</p><p class="small muted">${a?`Copy: ${a.id}<br>Status: ${a.state}`:model===featured()?'Featured · 10% per Diamond crate':'Outside the current crate'}</p>`,a?[['Back','close-modal'],[a.state==='placed'?'Pack up':a.state==='inventory'?'Place in city':'View in trading hub',a.state==='placed'?'pack-'+a.id:a.state==='inventory'?'place-'+a.id:'go-hub'],['Buy, sell & trade','go-hub',true]]:[['Close','close-modal',true]]);return;}
+- if(b.dataset.buy){const l=data.listings.find(l=>l.id===b.dataset.buy),a=data.assets.find(a=>a.id===l?.asset);if(!released(a))return;const price=marketPrice(l,a.model),fee=Math.max(1,Math.ceil(price*.05));modal('Review purchase',`${art(a.model)}<p>${models[a.model]} · ${modelIds[a.model]}</p><p class="small muted">Copy · ${a.id}<br>${editionDates(a.model)}</p>${priceHistory(a.model)}<div class="table-row"><span>You pay</span><span>${price} dosh</span></div><div class="table-row"><span>Seller receives</span><span>${price-fee} dosh</span></div><p class="small muted">${fee} dosh seller fee · 5% proposal<br>${typeof shared!=='undefined'&&shared?'Shared playtest listing':'Sample listing · local demo only'}</p>`,[['Cancel','close-modal'],['Buy for '+price+' dosh','confirm-buy-'+l.id+'@'+price,true]]);return;}
+- if(b.dataset.sell){const a=data.assets.find(a=>a.id===b.dataset.sell);if(!released(a)||a.owner!=='you')return;if(a.state==='placed'){modal('Pack up before selling',`${art(a.model)}<p>Move ${models[a.model]} out of your city before listing this copy.</p>`,[['Cancel','close-modal'],['Pack up','pack-'+a.id,true]]);return;}modal('List '+models[a.model],`${art(a.model)}<label for="sellPrice">Buyer pays · Dosh</label><input type="number" min="2" max="100000" id="sellPrice" value="${releaseSales(a.model).at(-1)?.price||baseline}" ${releaseSales(a.model).length?'':'readonly'}><div id="feeBreakdown" class="notice">Seller fee · 5% rounded up</div><p class="small muted">Sample 5% fee. One copy is reserved while listed.</p>`,[['Cancel','close-modal'],['Create listing','confirm-sell-'+a.id,true]]);return;}
++ if(b.dataset.asset){const id=b.dataset.asset,a=data.assets.find(a=>a.id===id),model=a?.model||Object.keys(models)[Number(id.replace('catalogue-',''))];modal(models[model],`${art(model)}<p><span class="diamond-mark"></span> Diamond item</p><p class="small muted">${a?`Copy: ${a.id}<br>Status: ${a.state}`:model===featured()?'Featured · 10% per Diamond crate':'Outside the current crate'}</p>`,a?[['Back','close-modal'],[a.state==='placed'?'Pack up':a.state==='inventory'?'Send to city storage':'View in trading hub',a.state==='placed'?'pack-'+a.id:a.state==='inventory'?'place-'+a.id:'go-hub'],['Buy, sell & trade','go-hub',true]]:[['Close','close-modal',true]]);return;}
++ if(b.dataset.buy){const l=data.listings.find(l=>l.id===b.dataset.buy),a=data.assets.find(a=>a.id===l?.asset);if(!released(a))return;const price=marketPrice(l,a.model),fee=Math.max(1,Math.ceil(price*.05));modal('Review purchase',`${art(a.model)}<p>${models[a.model]} · ${modelIds[a.model]}</p><p class="small muted">Copy · ${a.id}<br>${editionDates(a.model)}</p>${priceHistory(a.model)}<div class="table-row"><span>You pay</span><span>${price} dosh</span></div><div class="table-row"><span>Seller receives</span><span>${price-fee} dosh</span></div><p class="small muted">${fee} dosh seller fee · 5% rounded up<br>${typeof shared!=='undefined'&&shared?'Shared playtest listing':'Sample listing · local demo only'}</p>`,[['Cancel','close-modal'],['Buy for '+price+' dosh','confirm-buy-'+l.id+'@'+price,true]]);return;}
++ if(b.dataset.sell){const a=data.assets.find(a=>a.id===b.dataset.sell);if(!released(a)||a.owner!=='you')return;if(a.state==='placed'){modal('Pack up before selling',`${art(a.model)}<p>Move ${models[a.model]} out of your city before listing this copy.</p>`,[['Cancel','close-modal'],['Pack up','pack-'+a.id,true]]);return;}modal('List '+models[a.model],`${art(a.model)}<label for="sellPrice">Buyer pays · Dosh</label><input type="number" min="2" max="100000" id="sellPrice" value="${releaseSales(a.model).at(-1)?.price||baseline}" ${releaseSales(a.model).length?'':'readonly'}><div id="feeBreakdown" class="notice">Seller fee · 5% rounded up</div><p class="small muted">One copy is reserved while listed.</p>`,[['Cancel','close-modal'],['Create listing','confirm-sell-'+a.id,true]]);return;}
+  if(b.dataset.cancelListing){const l=data.listings.find(l=>l.id===b.dataset.cancelListing),a=data.assets.find(a=>a.id===l.asset);a.state='inventory';data.listings=data.listings.filter(x=>x.id!==l.id);save();render();return;}
+  if(b.dataset.cancelTrade){const t=data.trades.find(t=>t.id===b.dataset.cancelTrade);if(t.state==='pending'){t.state='cancelled';data.assets.find(a=>a.id===t.give).state='inventory';save();render();}return;}
+  if(b.dataset.reviewTrade){reviewTrade(b.dataset.reviewTrade);return;}
 diff --git a/dist/exchange-account.js b/dist/exchange-account.js
 index 8b450f3..25c7b81 100644
 --- a/dist/exchange-account.js
@@ -105,7 +144,7 @@ index 169ffa4..88c3304 100644
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
 +out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
 diff --git a/hosting/exchange.js b/hosting/exchange.js
-index 3d6e62e..f8f7113 100644
+index 3d6e62e..a28eba2 100644
 --- a/hosting/exchange.js
 +++ b/hosting/exchange.js
 @@ -1,14 +1,17 @@
@@ -130,7 +169,7 @@ index 3d6e62e..f8f7113 100644
   const asset=k=>s.assets.find(a=>a.id===k);
   const available=(a,owner,state)=>a&&a.owner===owner&&a.state===state;
   const unlocked=a=>exchangeRotation.indexOf(a.model)>=0&&exchangeRotation.indexOf(a.model)<slot;
-@@ -82,6 +85,32 @@ function exchangeView(s,id){
+@@ -82,6 +85,36 @@ function exchangeView(s,id){
   trades:s.trades.filter(t=>[t.from,t.to].includes(id)).map(t=>({...t,from:label(t.from),to:label(t.to)})),
   history:exchangeSummary(s,id).events.map(e=>({text:e.kind+(e.other?' · '+(e.actor===p.name?e.other:e.actor):''),time:new Date(e.at).toISOString(),amount:e.price??''}))};
  }
@@ -140,6 +179,10 @@ index 3d6e62e..f8f7113 100644
 +  wheelTickets:city.tickets??0,restockVouchers:city.restockVouchers??0,deeds:city.deeds??0},
 +  stock:crates?.stock??[0,0,0,0,0],boosts:city.coinBoostTokens?.[10]??0,
 +  opening:crates?.opening??null,crateRevision:crates?.revision??0};
++}
++async function currentExchangeName(bucket,id,fallback){
++ const record=await bucket.get('username-city/current/'+id);
++ return record?(await record.json()).name:fallback;
 +}
 +async function linkedExchangeView(bucket,id) {
 + await deliverMarketCopies(bucket,id);
@@ -163,22 +206,39 @@ index 3d6e62e..f8f7113 100644
  async function exchangeApi(request,env){
   const bucket=env.BUCKET,uid=request.headers.get('oai-authenticated-user-id');
   if(!uid)return json({error:'Sign in to connect your player account.'},401);
-@@ -104,7 +133,7 @@ async function exchangeApi(request,env){
+@@ -100,11 +133,22 @@ async function exchangeApi(request,env){
+   if(!await isOwner(request))return json({error:'Owner access required.'},403);
+   if(!/^[a-z0-9_-]{1,24}$/.test(c.name))return json({error:'Unknown player.'},400);
+   const obj=await bucket.get('username-city/roster2/'+c.name);if(!obj)return json({error:'Unknown player.'},404);
+-  city=(await obj.json()).canonical;token=crypto.randomUUID();
++  city=(await obj.json()).canonical;
++  if(await currentExchangeName(bucket,city,c.name)!==c.name)return json({error:'City renamed. Refresh the dashboard.'},409);
++  token=crypto.randomUUID();
   }
   for(let attempt=0;attempt<5;attempt++){
    const {state:s,etag}=await readExchange(bucket);let id=s.links[subject],result;
 -  if(!post)return json(id?exchangeView(s,id):{linked:false});
++  if(id){
++   const player=s.players[id];
++   const name=await currentExchangeName(bucket,id,player.name);
++   if(name!==player.name){
++    player.name=name;
++    await bucket.put(exchangeKey,JSON.stringify(s),{onlyIf:{etagMatches:etag}});
++    continue;
++   }
++  }
 +  if(!post)return json(id?await linkedExchangeView(bucket,id):{linked:false});
    if(ownerInvite){
     if(s.players[city])return json({error:'Player already linked.'},409);
     for(const k of Object.keys(s.invites))if(s.invites[k].city===city||s.invites[k].expires<Date.now())delete s.invites[k];
-@@ -112,19 +141,34 @@ async function exchangeApi(request,env){
+@@ -112,19 +156,35 @@ async function exchangeApi(request,env){
    }else if(c.action==='link'){
     if(typeof c.token!=='string')return json({error:'Invite required.'},400);
     const hash=await recoveryHash(c.token),invite=s.invites[hash];
 -   if(id&&!invite)return json(exchangeView(s,id));
 +   if(id&&!invite)return json(await linkedExchangeView(bucket,id));
     if(id||!invite||invite.expires<=Date.now()||s.players[invite.city])return json({error:'Link expired or account already connected.'},409);
++   if(await currentExchangeName(bucket,invite.city,invite.name)!==invite.name)return json({error:'City renamed. Request a new invite.'},409);
 +   const cityFile=await bucket.get('live-city/roster2/'+invite.city);
 +   if(!cityFile||(await cityFile.json()).city?.v!==2)return json({error:'Save your city before linking.'},409);
     id=invite.city;s.links[subject]=id;delete s.invites[hash];
@@ -224,7 +284,7 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..5020998 100644
+index c438fba..3fa4eb0 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
 @@ -7,8 +7,14 @@ const bucket={
@@ -268,7 +328,7 @@ index c438fba..5020998 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,11 +45,36 @@ async function act(name,body,expected=200){
+@@ -35,17 +45,57 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
@@ -306,3 +366,24 @@ index c438fba..5020998 100644
   await act('ben',{action:'offer',asset:ben,want:cam});const trade=views.ben.trades[0].id;
   await act('alice',{action:'accept',trade},409);await act('cam',{action:'accept',trade});
   assert.equal(views.cam.assets.find(a=>a.id===ben).owner,'you');
+  const roster=await ctx.dashboardPlayers(bucket);
+  assert(roster.find(x=>x.id==='alice').exchange.events.some(e=>e.kind==='Sale'&&e.fee===6));
+  assert(roster.find(x=>x.id==='ben').exchange.events.some(e=>e.kind==='Trade completed'));
++ const invitesId='f'.repeat(64);
++ await bucket.put('username-city/roster2/oldcity',JSON.stringify({canonical:invitesId}));
++ const invite=await request('admin',{action:'invite',name:'oldcity'});
++ assert.equal(invite.status,200);
++ await bucket.put('username-city/current/'+invitesId,JSON.stringify({name:'newcity'}));
++ assert.equal((await request('admin',{action:'invite',name:'oldcity'})).status,409);
++ assert.equal((await request('newplayer',{action:'link',token:invite.v.token})).status,409);
++ await bucket.put('username-city/roster2/alice2',JSON.stringify({canonical}));
++ await bucket.put('username-city/current/'+canonical,JSON.stringify({name:'alice2'}));
++ const renamed=(await request('alice')).v;
++ assert.equal(renamed.name,'alice2');
++ assert.deepEqual(renamed.wallet,views.alice.wallet);
++ await act('alice',{action:'crate',tier:0},409);
++ await act('alice',{account:'alice2',action:'crate',tier:0});
++ assert.equal(views.alice.wallet.crateVouchers,0);
+  if(process.env.EXCHANGE_FIXTURE)fs.writeFileSync(process.env.EXCHANGE_FIXTURE,JSON.stringify({players:roster,view:views.cam}));
+  console.log('PASS owner invites, verification, cross-session ownership, opening receipts, replay, rotation lock, concurrent purchase, fees, recipient swap, owner dashboard');
+ })().catch(e=>{console.error(e);process.exitCode=1;});
