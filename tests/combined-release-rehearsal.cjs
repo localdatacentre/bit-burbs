@@ -28,6 +28,14 @@ assert.deepEqual(first.city.tiles.slice(40),tiles.slice(40));
 for(const key of ['storedBuildings','shopItems','items','restockVouchers','tickets','boostUntil'])assert.deepEqual(first.city[key],city[key]);
 const repeat=run(JSON.parse(JSON.stringify(first)),review,stages);
 assert.deepEqual(repeat,first);
+// Reject incomplete footprints before preparing a removal or credit.
+for(const broken of [{id:'_occ'},{id:'_occ',ref:[0,0,0]},{id:'_occ',ref:[7,7]},{id:'_occ',ref:[1,0]}]){
+  const damaged=structuredClone(snapshot);
+  damaged.city.tiles[1]=broken;
+  const saved=structuredClone(damaged);
+  assert.throws(()=>run(damaged,review,stages),/footprint/);
+  assert.deepEqual(damaged,saved);
+}
 assert.throws(()=>run(first,{...review,dosh:250},stages),/differs/);
 assert.throws(()=>run(snapshot,{...review,canonical:'b'.repeat(64)},stages),/Account/);
 assert.throws(()=>run(snapshot,{...review,plots:plots.slice(1)},stages),/plots differ/);

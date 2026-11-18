@@ -29,10 +29,13 @@ function rehearseCrateRelease(snapshot, review, stages) {
   const anchors=new Set(observed.map(p=>p.index));
   const tiles=city.tiles.map((tile,i)=>{
     if (anchors.has(i)) return null;
-    if (tile?.id!=='_occ' || !Array.isArray(tile.ref)) return tile;
+    if (tile?.id!=='_occ') return tile;
+    if (!Array.isArray(tile.ref)||tile.ref.length!==2) throw Error('Invalid footprint reference');
     const [x,y]=tile.ref;
     if (!Number.isInteger(x)||!Number.isInteger(y)||x<0||x>=width||y<0||y>=width) throw Error('Invalid footprint reference');
-    return anchors.has(y*width+x)?null:tile;
+    const index=y*width+x, anchor=city.tiles[index];
+    if (!anchor||anchor.id==='_occ') throw Error('Missing footprint anchor');
+    return anchors.has(index)?null:tile;
   });
   const cash=city.cash+review.coins, stars=city.stars+review.dosh;
   if (!Number.isFinite(city.cash)||city.cash<0||cash>Number.MAX_SAFE_INTEGER||

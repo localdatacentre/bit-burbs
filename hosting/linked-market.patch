@@ -365,7 +365,7 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..9339527 100644
+index c438fba..1683ed1 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
 @@ -7,8 +7,14 @@ const bucket={
@@ -498,7 +498,7 @@ index c438fba..9339527 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,17 +134,87 @@ async function act(name,body,expected=200){
+@@ -35,17 +134,100 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
@@ -512,6 +512,19 @@ index c438fba..9339527 100644
 + await bucket.put(path,JSON.stringify(record),{onlyIf:{etagMatches:stored.etag}});
 + await act('alice',{action:'pack',asset:alice});
 + assert.deepEqual((await (await bucket.get(path)).json()).city.tiles,[null,null,null,{id:'road'}]);
++ // A copied legacy save can store the same building directly, without the
++ // placement wrapper. Pack that exact copy and leave the legacy holding alone.
++ await act('alice',{action:'place',asset:alice});
++ const packedFile=await bucket.get(path),packedRecord=await packedFile.json();
++ const flat=packedRecord.city.storedBuildings.pop().building;
++ const legacyStored={id:flat.id,lvl:2};
++ packedRecord.city.storedBuildings=[legacyStored,flat];
++ await bucket.put(path,JSON.stringify(packedRecord),{onlyIf:{etagMatches:packedFile.etag}});
++ const packId=webcrypto.randomUUID();
++ await act('alice',{action:'pack',asset:alice,requestId:packId});
++ await act('alice',{action:'pack',asset:alice,requestId:packId});
++ assert.deepEqual((await (await bucket.get(path)).json()).city.storedBuildings,[legacyStored]);
++ assert.equal(views.alice.assets.filter(a=>a.id===alice&&a.state==='inventory').length,1);
   await act('alice',{action:'list',asset:alice,price:120});const listing=views.alice.listings[0].id;
 - const buy=name=>request(name,{account:name,action:'buy',listing,price:120,revision:views[name].revision,requestId:webcrypto.randomUUID()});
 + const buy=name=>request(name,{account:name,accountRef:views[name].accountRef,action:'buy',listing,price:120,revision:views[name].revision,requestId:webcrypto.randomUUID()});

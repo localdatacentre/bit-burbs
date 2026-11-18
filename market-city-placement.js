@@ -29,7 +29,8 @@ async function moveMarketCopy(bucket, owner, command) {
       if(!record.diamondMoves?.[requestId]){
         if(city?.v!==2||!Array.isArray(city.tiles))throw Error('Invalid city');
         const stored=city.storedBuildings??=[], tiles=city.tiles;
-        const matches=stored.filter(e=>e.building?.diamondCopyId===id);
+        // Both the older flat entries and the wrapped placement entries can own a copy.
+        const matches=stored.filter(entry=>(entry?.building??entry)?.diamondCopyId===id);
         const plots=tiles.filter(t=>t?.diamondCopyId===id);
         if(matches.length+plots.length!==(action==='place'?0:1))throw Error('City copy mismatch');
         if(action==='place'){
