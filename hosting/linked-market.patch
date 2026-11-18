@@ -216,7 +216,7 @@ index 169ffa4..88c3304 100644
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
 +out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
 diff --git a/hosting/exchange.js b/hosting/exchange.js
-index 3d6e62e..9ac3df4 100644
+index 3d6e62e..b5f9e1c 100644
 --- a/hosting/exchange.js
 +++ b/hosting/exchange.js
 @@ -1,14 +1,17 @@
@@ -309,7 +309,7 @@ index 3d6e62e..9ac3df4 100644
    if(ownerInvite){
     if(s.players[city])return json({error:'Player already linked.'},409);
     for(const k of Object.keys(s.invites))if(s.invites[k].city===city||s.invites[k].expires<Date.now())delete s.invites[k];
-@@ -112,19 +162,35 @@ async function exchangeApi(request,env){
+@@ -112,19 +162,37 @@ async function exchangeApi(request,env){
    }else if(c.action==='link'){
     if(typeof c.token!=='string')return json({error:'Invite required.'},400);
     const hash=await recoveryHash(c.token),invite=s.invites[hash];
@@ -335,8 +335,10 @@ index 3d6e62e..9ac3df4 100644
 +      if(sale.state==='declined')return json({error:'More dosh needed.'},409);
 +     }else if(c.action==='place'||c.action==='pack')await moveMarketCopy(bucket,id,c);
 +     else await runCityCrateCommand(bucket,id,c,(state,player,cmd,now)=>exchangeApply(state,player,cmd,now,s.rotationStart),settleCityExchange,prepareCrateConversion);
-+     return json(await linkedExchangeView(bucket,id));
 +    }catch(e){return json({error:e.message},409);}
++    // The write has succeeded. Keep its request ID if the receipt view is temporarily unavailable.
++    try{return json(await linkedExchangeView(bucket,id));}
++    catch{return json({error:'Your action was saved. Refresh to load your receipt.'},503);}
 +   }
 +   if(p.last===c.requestId&&p.last)return json(await linkedExchangeView(bucket,id));
     if(typeof c.requestId!=='string'||c.requestId.length!==36||c.revision!==p.revision)return json({error:'Market changed. Refresh and review.'},409);
@@ -362,7 +364,7 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..3fcaa47 100644
+index c438fba..caa0b32 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
 @@ -7,8 +7,14 @@ const bucket={
@@ -381,7 +383,7 @@ index c438fba..3fcaa47 100644
  const views={};
  async function request(user,body){
   const headers={'Content-Type':'application/json',Origin:'https://test.local'};if(user)headers['oai-authenticated-user-id']=user;
-@@ -16,17 +22,72 @@ async function request(user,body){
+@@ -16,17 +22,96 @@ async function request(user,body){
   const r=await ctx.exchangeApi(req,{BUCKET:bucket});return {status:r.status,v:await r.json()};
  }
  async function act(name,body,expected=200){
@@ -418,7 +420,31 @@ index c438fba..3fcaa47 100644
 +  return {client,boot};
 + }
 + let {client,boot}=documentContext();await boot;
-+ for(let i=0;i<3;i++)await client.settle({action:'crate',tier:0});
++ // Lose the first read after the debit commits. The UI must keep that purchase's
++ // request ID and retry it on reload, even though the server produced an HTTP response.
++ const normalGet=bucket.get,normalPut=bucket.put;
++ let failRead=false,readFailed=false;
++ bucket.put=async function(key,...args){
++  const result=await normalPut.call(this,key,...args);
++  if(result&&key==='live-city/roster2/'+cityId)failRead=true;
++  return result;
++ };
++ bucket.get=async function(key){
++  if(failRead&&!readFailed&&key==='live-city/roster2/'+cityId){
++   readFailed=true;throw Error('Temporary read failure');
++  }
++  return normalGet.call(this,key);
++ };
++ try{await client.settle({action:'crate',tier:0});}
++ finally{bucket.get=normalGet;bucket.put=normalPut;}
++ assert.ok(readFailed);
++ assert.equal(storage.size,1);
++ ({client,boot}=documentContext());await boot;
++ assert.equal(storage.size,0);
++ assert.equal(sent[0].requestId,sent[1].requestId);
++ assert.equal(client.data.stock[0],1);
++ assert.equal(client.data.wallet.crateVouchers,4);
++ for(let i=0;i<2;i++)await client.settle({action:'crate',tier:0});
 + assert.equal(client.data.wallet.crateVouchers,0);
 + interrupt=true;
 + await client.settle({action:'open',tier:0,count:3});
@@ -429,11 +455,11 @@ index c438fba..3fcaa47 100644
 + user='stranger';
 + const anonymous=documentContext();await anonymous.boot;
 + assert.equal(storage.size,1);
-+ assert.equal(sent.length,4);
++ assert.equal(sent.length,5);
 + user='worker-test';
 + ({client,boot}=documentContext());await boot;
 + assert.equal(storage.size,0);
-+ assert.equal(sent[3].requestId,sent[4].requestId);
++ assert.equal(sent[4].requestId,sent[5].requestId);
 + assert.deepEqual(client.data.wallet,opened.wallet);
 + assert.deepEqual(client.data.opening,opened.opening);
 + await client.settle({action:'finish',receipt:opened.opening.receipt});
@@ -457,7 +483,7 @@ index c438fba..3fcaa47 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,17 +96,81 @@ async function act(name,body,expected=200){
+@@ -35,17 +120,81 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
