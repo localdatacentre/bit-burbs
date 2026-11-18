@@ -23,3 +23,27 @@ vm.runInContext('let openingCityExchange=false;'+fn('openCityExchange'),ctx);
   assert.equal(ctx.S.shopItems,undefined);
   console.log('PASS sign-in and sync before Exchange navigation, double tap, failed sync and storing the same Diamond copy');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+// Exercise the city's claim button handler with the real daily claim ledger.
+const Daily=require('../daily-task-core.js'),core=require('../economy-core.js');
+const at=Date.UTC(2026,10,18,1);
+const tasks=[10,10,10,20,20,20,20,30,30,30].map((xp,i)=>({
+  key:'goal-'+i,target:1,progress:1,claimed:false,reward:{crateVouchers:1,dosh:1,xp}
+}));
+const claimCity={v:2,stars:50,crateVouchers:0,economyLab:{weekDays:[]},
+  dailyGenerated:{revision:0,day:core.cycle(at),status:'ready',receipts:{},tasks}};
+const claims={S:claimCity,Daily,now:()=>at,labState:()=>claims.S.economyLab,
+  labAward:n=>{claims.S.xp=(claims.S.xp||0)+n;},labSyncTasks(){},changed(){},save(){},renderSheet(){}};
+vm.createContext(claims);
+vm.runInContext(fn('labDailyClaim'),claims);
+for(const task of tasks){
+  claims.labDailyClaim(task.key);
+  claims.S=JSON.parse(JSON.stringify(claims.S));
+  claims.labDailyClaim(task.key);
+}
+assert.deepEqual([claims.S.crateVouchers,claims.S.stars,claims.S.restockVouchers,claims.S.tickets,claims.S.xp],[14,62,2,2,220]);
+assert.equal(claims.S.dosh,undefined);
+const spend=require('../city-exchange.js').settleCityExchange(claims.S,'fixture',{playerId:'fixture',action:'buy-crate',tier:'emerald',sequence:1});
+assert.equal(spend.crateVouchers,0);
+assert.equal(spend.stars,62);
+console.log('PASS ten reloaded daily claims fund an Emerald crate and credit the spendable dosh wallet once');
