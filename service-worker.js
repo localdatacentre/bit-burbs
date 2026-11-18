@@ -1,10 +1,10 @@
-const CACHE='bit-burbs-orbital-gym-20261118-v1-daily1';
+const CACHE='bit-burbs-orbital-gym-20261118-v1-daily1-earnings15';
 const ASSETS=['./','./index.html','./economy-core.js?v=balance2','./daily-task-core.js','./daily-task-session.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
     const cache=await caches.open(CACHE);
-    await cache.addAll(ASSETS);
+    await cache.addAll(ASSETS.map(path=>new Request(path,{cache:'reload'})));
     await self.skipWaiting();
   })());
 });

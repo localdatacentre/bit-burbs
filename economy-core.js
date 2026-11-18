@@ -28,8 +28,10 @@ function migrate(city,defs,config,ms){
  return {city,changed:true,summary:before};
 }
 function originalGross(d,t,rates){return [1,1.5,2.2].reduce((s,m)=>s+Math.max(1,Math.round((rates[d.jobs]||0)*m*(LEVELS[t?.lvl||1]||1))),0);}
-function gross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
-function fee(d,t,employees,p,rates){return Math.round(gross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}
+function baseGross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
+const BUSINESS_EARNINGS_MULTIPLIER=1.15;
+function gross(d,t,employees,p,rates){return baseGross(d,t,employees,p,rates)*BUSINESS_EARNINGS_MULTIPLIER;}
+function fee(d,t,employees,p,rates){return Math.round(baseGross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}
 function configFor(city,config){
  if(city.economyLab?.balanceVersion>=BALANCE_VERSION)return config;
  return Object.fromEntries(Object.entries(config).map(([id,p])=>[id,p.previous?{...p,...p.previous}:p]));
