@@ -1,5 +1,5 @@
 diff --git a/hosting/catalogue-worker.js b/hosting/catalogue-worker.js
-index 3d28773..4df42a3 100644
+index eb921be..1675c44 100644
 --- a/hosting/catalogue-worker.js
 +++ b/hosting/catalogue-worker.js
 @@ -164,6 +164,23 @@ async function usernameCity(p,bucket,reply){
