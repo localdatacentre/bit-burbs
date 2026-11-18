@@ -1,5 +1,5 @@
 diff --git a/dist/banksia-exchange.html b/dist/banksia-exchange.html
-index 35f4ae3..ab1adab 100644
+index 203189c..74450d2 100644
 --- a/dist/banksia-exchange.html
 +++ b/dist/banksia-exchange.html
 @@ -5793,7 +5793,7 @@ const $=s=>document.querySelector(s),models={sakura:'Flowering Gum',fountain:'Gr
@@ -11,7 +11,7 @@ index 35f4ae3..ab1adab 100644
  const fortnight=14*86400000, baseline=120;
  const rotation=['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle'];
  function slot(now=Date.now()){return Math.min(rotation.length-1,Math.max(0,Math.floor((now-rotationStart)/fortnight)));}
-@@ -5844,7 +5844,7 @@ function render(){
+@@ -5846,7 +5846,7 @@ function render(){
   document.querySelector('#pageNav').innerHTML=Object.entries(screenNames).map(([id,name])=>'<button data-page="'+id+'" '+(page===id?'aria-current="page"':'')+'>'+name+'</button>').join('');
   $('#wallet').innerHTML=icon('crateVoucher')+' '+fmt(data.wallet.crateVouchers)+' &nbsp; '+icon('dosh')+' '+fmt(data.wallet.dosh);
   if(page==='storage')$('#screen').innerHTML=head('Crate storage','Your unopened crates',null)+tiers.map(([name],i)=>`<div class="panel row"><canvas width="52" height="46" data-crate="${i}"></canvas><b>${name} × ${data.stock[i]}</b><button data-inspect="${i}" ${data.stock[i]?'':'disabled'}>Select</button></div>`).join('');
@@ -20,7 +20,7 @@ index 35f4ae3..ab1adab 100644
   else $('#screen').innerHTML=page==='hub'?renderHub():page==='diamond'?renderDiamond():renderVault();
   paint();if(data.opening&&!animation)showOpening(true);
  }
-@@ -5890,7 +5890,7 @@ function depotStage(i){
+@@ -5892,7 +5892,7 @@ function depotStage(i){
   return `<div class="stage"><canvas class="dock-scene" aria-hidden="true"></canvas><div class="plate" style="color:${tiers[i][2]}">${tiers[i][0]} crate</div><canvas class="cargo" data-crate="${i}" aria-label="${tiers[i][0]} crate"></canvas></div>`;
  }
  function renderVault(){
@@ -29,21 +29,21 @@ index 35f4ae3..ab1adab 100644
  }
  const taskList=[['Keep Patch Repairs selling',90,45,'challenging','selling minutes'],['Keep Grumbies selling',90,90,'challenging','selling minutes'],['Maintain business power',90,64,'challenging','active minutes'],['Receive Sprout Market delivery',1,0,'standard','delivery'],['Keep Sprout Market stocked',35,35,'standard','selling minutes'],['Order Starquacks stock',1,0,'standard','order'],['Receive four BinLink visits',4,2,'standard','visits'],['Earn through business sales',3208,3208,'straightforward','coins'],['Sell a Starquacks stock portion',12,12,'straightforward','selling minutes'],['Receive Grumbies delivery',1,1,'straightforward','delivery']];
  function renderTasks(){
-@@ -5900,7 +5900,7 @@ function renderTasks(){
+@@ -5902,7 +5902,7 @@ function renderTasks(){
  function renderBag(){return head('Item bag','Only things you own and can use',null)+`<div class="panel"><h3>MOVED BUILDINGS</h3><div class="grid">${data.ordinary.map((b,i)=>`<div class="tile">${art(b.model)}<div class="asset-name">${b.model==='house'?'Modern House':'Grumbies'}<br><span class="muted">Level ${b.level}</span></div><button data-ordinary="${i}">Place for free</button></div>`).join('')}</div></div><div class="panel"><div class="row"><div>${icon('boost')} 10-minute 2× boosts<p class="small muted">${data.boosts} stored · use when ready</p></div><button data-action="boost-demo" ${!data.boosts?'disabled':''}>Use one</button></div></div><div class="panel"><h3>WHERE ARE MY REWARDS?</h3><p>Coins, dosh, deeds and vouchers go straight to your balances.</p><button class="quiet wide" data-page="diamond"><span class="diamond-mark"></span> Open Diamond collection</button></div>`;}
  function renderDiamond(){
   const assets=diamondTab==='Catalogue'?Object.keys(models).map((model,i)=>({id:'catalogue-'+i,model,state:'catalogue'})):owned();
-- return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to trade</span><button class="quiet small" data-page="hub">Trading hub →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'Placed in city':a.state==='listed'?'Listed for sale':a.state==='offered'?'In trade offer':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
-+ return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to trade</span><button class="quiet small" data-page="hub">Trading hub →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'In city storage or on a plot':a.state==='listed'?'Listed for sale':a.state==='offered'?'In trade offer':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
+- return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to sell</span><button class="quiet small" data-page="hub">Market →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'Placed in city':a.state==='listed'?'Listed for sale':a.state==='offered'?'In collection':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
++ return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to sell</span><button class="quiet small" data-page="hub">Market →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'In city storage or on a plot':a.state==='listed'?'Listed for sale':a.state==='offered'?'In collection':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
  }
  const modelIds={statue:'BB-D001',fountain:'BB-D002',sakura:'BB-D003',sunhouse:'BB-D004',pelicanLight:'BB-D005',tidalBaths:'BB-D006',civicClock:'BB-D007',needle:'BB-D008'};
  const marketDate=time=>new Date(time).toLocaleDateString('en-AU',{timeZone:'Australia/Brisbane',day:'numeric',month:'short',year:'numeric'});
 @@ -5941,14 +5941,23 @@ function renderHub(){
-  if(hubTab==='Trade')content=`<div class="panel"><h3>MAKE AN OFFER</h3><p>Choose what you give and what you want. Both sides review the exact items.</p><button class="primary wide" data-action="create-trade" ${owned().some(a=>released(a)&&a.state==='inventory')?'':'disabled'}>Create trade offer</button></div><h3>YOUR OFFERS</h3>${offers.length?offers.map(t=>`<div class="panel"><div class="row"><span>${t.from?(t.from==='you'?'To '+t.to:'From '+t.from):'To rivergum'}</span><span class="chip">${t.state}</span></div><p>${models[data.assets.find(a=>a.id===t.give).model]} ↔ ${models[data.assets.find(a=>a.id===t.get).model]}</p>${t.state==='pending'?`<div class="row"><button data-review-trade="${t.id}">Review offer</button><button class="quiet" data-cancel-trade="${t.id}">Cancel</button></div>`:''}</div>`).join(''):'<p class="empty">No pending offers.</p>'}`;
-  if(hubTab==='Activity')content=`<div class="panel"><h3>EXECUTED TRANSACTIONS</h3>${data.history.length?data.history.map(h=>`<div class="table-row"><span>${h.text}<br><span class="muted small">${h.time}</span></span><span>${h.amount??''}</span></div>`).join(''):'<p class="muted">Your purchases, completed sales and trades appear here.</p>'}</div><p class="small muted">Asking prices are not sale prices. No transaction data is invented for a chart.</p>`;
+  if(hubTab==='Sell')content=`<div class="panel"><h3>YOUR LISTINGS · ${mine.length}</h3>${mine.length?mine.map(l=>{const a=data.assets.find(a=>a.id===l.asset);return `<div class="table-row"><span>${models[a.model]}<br><span class="gold">${l.price} dosh</span></span><button class="quiet small" data-cancel-listing="${l.id}">Cancel</button></div>`;}).join(''):'<p class="muted">No active listings.</p>'}</div><div class="grid">${owned().filter(a=>released(a)&&(a.state==='inventory'||a.state==='placed')).map(a=>`<div class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><button data-sell="${a.id}" ${released(a)?'':'disabled'}>${!released(a)?'Market locked':a.state==='placed'?'Pack up to sell':'Set a price'}</button></div>`).join('')}</div>`;
+  if(hubTab==='Activity')content=`<div class="panel"><h3>EXECUTED TRANSACTIONS</h3>${data.history.length?data.history.map(h=>`<div class="table-row"><span>${h.text}<br><span class="muted small">${h.time}</span></span><span>${h.amount??''}</span></div>`).join(''):'<p class="muted">Your purchases, completed sales appear here.</p>'}</div><p class="small muted">Asking prices are not sale prices. No transaction data is invented for a chart.</p>`;
   if(hubTab==='Activity')content+=rotation.slice(0,slot()).filter(m=>releaseSales(m).length).map(m=>'<div class="panel"><h3>'+models[m]+'</h3>'+priceHistory(m)+'</div>').join('');
-- return head('Diamond market','Buy, sell or swap released Diamond items',null)+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
-+ return head('Diamond market','Prices in dosh',null)+'<button class="quiet wide" data-page="diamond">My Diamond collection · '+owned().length+'</button>'+featurePanel()+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
+- return head('Diamond market','Buy and sell released Diamond items',null)+`<div class="tabs">${['Browse','Sell','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
++ return head('Diamond market','Prices in dosh',null)+'<button class="quiet wide" data-page="diamond">My Diamond collection · '+owned().length+'</button>'+featurePanel()+`<div class="tabs">${['Browse','Sell','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
  }
  function priceHistory(model){
 - const sales=releaseSales(model);
@@ -78,9 +78,9 @@ index 35f4ae3..ab1adab 100644
 + if(b.dataset.buy){const l=data.listings.find(l=>l.id===b.dataset.buy),a=data.assets.find(a=>a.id===l?.asset);if(!released(a))return;const price=marketPrice(l,a.model),fee=Math.max(1,Math.ceil(price*.05));modal('Review purchase',`${art(a.model)}<p>${models[a.model]} · ${modelIds[a.model]}</p><p class="small muted">Copy · ${a.id}<br>${editionDates(a.model)}</p>${priceHistory(a.model)}<div class="table-row"><span>You pay</span><span>${price} dosh</span></div><div class="table-row"><span>Seller receives</span><span>${price-fee} dosh</span></div><p class="small muted">${fee} dosh seller fee · 5% rounded up<br>${typeof shared!=='undefined'&&shared?'Shared playtest listing':'Sample listing · local demo only'}</p>`,[['Cancel','close-modal'],['Buy for '+price+' dosh','confirm-buy-'+l.id+'@'+price,true]]);return;}
 + if(b.dataset.sell){const a=data.assets.find(a=>a.id===b.dataset.sell);if(!released(a)||a.owner!=='you')return;if(a.state==='placed'){modal('Pack up before selling',`${art(a.model)}<p>Move ${models[a.model]} out of your city before listing this copy.</p>`,[['Cancel','close-modal'],['Pack up','pack-'+a.id,true]]);return;}modal('List '+models[a.model],`${art(a.model)}<label for="sellPrice">Buyer pays · Dosh</label><input type="number" min="2" max="100000" id="sellPrice" value="${releaseSales(a.model).at(-1)?.price||baseline}" ${releaseSales(a.model).length?'':'readonly'}><div id="feeBreakdown" class="notice">Seller fee · 5% rounded up</div><p class="small muted">One copy is reserved while listed.</p>`,[['Cancel','close-modal'],['Create listing','confirm-sell-'+a.id,true]]);return;}
   if(b.dataset.cancelListing){const l=data.listings.find(l=>l.id===b.dataset.cancelListing),a=data.assets.find(a=>a.id===l.asset);a.state='inventory';data.listings=data.listings.filter(x=>x.id!==l.id);save();render();return;}
-  if(b.dataset.cancelTrade){const t=data.trades.find(t=>t.id===b.dataset.cancelTrade);if(t.state==='pending'){t.state='cancelled';data.assets.find(a=>a.id===t.give).state='inventory';save();render();}return;}
-  if(b.dataset.reviewTrade){reviewTrade(b.dataset.reviewTrade);return;}
-@@ -6049,6 +6058,13 @@ function refreshRotation(){
+  if(b.dataset.ordinary){toast('Placement preview: this ordinary building keeps its upgrade level and costs no coins to restore.');return;}
+  const action=b.dataset.action;if(!action)return;
+@@ -6043,6 +6052,13 @@ function refreshRotation(){
   if(slot()<rotation.length-1)setTimeout(()=>{if(!data.opening){closeModal();render();}refreshRotation();},Math.min(2147483647,Math.max(1,next-Date.now())));
  }
  refreshRotation();
@@ -98,7 +98,7 @@ index 35f4ae3..ab1adab 100644
  </script></body></html>
 \ No newline at end of file
 diff --git a/dist/exchange-account.js b/dist/exchange-account.js
-index 8b450f3..dc7e8a5 100644
+index afd0503..4c9e578 100644
 --- a/dist/exchange-account.js
 +++ b/dist/exchange-account.js
 @@ -1,5 +1,10 @@
@@ -224,9 +224,9 @@ index 8b450f3..dc7e8a5 100644
   const d=b.dataset,a=d.action||'';
 + if(a.startsWith('place-')||a.startsWith('pack-')){const split=a.indexOf('-');return {action:a.slice(0,split),asset:a.slice(split+1)};}
   if(d.cancelListing)return {action:'unlist',listing:d.cancelListing};
-  if(d.cancelTrade)return {action:'cancel',trade:d.cancelTrade};
   if(a==='buy-crate')return {action:'crate',tier:tierIndex};
-@@ -58,6 +128,9 @@ function tradeChoice(){
+  if(a==='open-crate'||a==='open-three')return {action:'open',tier:tierIndex,count:a==='open-three'?3:1};
+@@ -49,6 +119,9 @@ function sharedRoutes(b){
  }
  document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!shared)return;
@@ -234,8 +234,8 @@ index 8b450f3..dc7e8a5 100644
 +  e.stopImmediatePropagation();toast('Open your city to use this action.');return;
 + }
   const cmd=sharedRoutes(b);
-  if(cmd||b.dataset.action==='create-trade'||b.dataset.reviewTrade){
-   e.stopImmediatePropagation();if(b.disabled||marketBusy)return;
+  if(cmd){
+   e.stopImmediatePropagation();
 diff --git a/hosting/build.py b/hosting/build.py
 index 169ffa4..88c3304 100644
 --- a/hosting/build.py
@@ -249,7 +249,7 @@ index 169ffa4..88c3304 100644
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
 +out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
 diff --git a/hosting/exchange.js b/hosting/exchange.js
-index 3d6e62e..d318eb8 100644
+index be6abe9..04bda8e 100644
 --- a/hosting/exchange.js
 +++ b/hosting/exchange.js
 @@ -1,14 +1,17 @@
@@ -274,7 +274,7 @@ index 3d6e62e..d318eb8 100644
   const asset=k=>s.assets.find(a=>a.id===k);
   const available=(a,owner,state)=>a&&a.owner===owner&&a.state===state;
   const unlocked=a=>exchangeRotation.indexOf(a.model)>=0&&exchangeRotation.indexOf(a.model)<slot;
-@@ -76,12 +79,54 @@ function exchangeSummary(s,id){
+@@ -61,12 +64,54 @@ function exchangeSummary(s,id){
   return {name:p.name,wallet:p.wallet,stock:p.stock,boosts:p.boosts,assets:s.assets.filter(a=>a.owner===id),listings:s.listings.filter(l=>s.assets.some(a=>a.id===l.asset&&a.owner===id)),trades:s.trades.filter(t=>[t.from,t.to].includes(id)),events:s.events.filter(e=>e.actor===id||e.other===id).slice().reverse().map(e=>({...e,actor:s.players[e.actor]?.name,other:s.players[e.other]?.name}))};
  }
  function exchangeView(s,id){
@@ -330,7 +330,7 @@ index 3d6e62e..d318eb8 100644
  async function exchangeApi(request,env){
   const bucket=env.BUCKET,uid=request.headers.get('oai-authenticated-user-id');
   if(!uid)return json({error:'Sign in to connect your player account.'},401);
-@@ -100,11 +145,22 @@ async function exchangeApi(request,env){
+@@ -85,10 +130,21 @@ async function exchangeApi(request,env){
    if(!await isOwner(request))return json({error:'Owner access required.'},403);
    if(!/^[a-z0-9_-]{1,24}$/.test(c.name))return json({error:'Unknown player.'},400);
    const obj=await bucket.get('username-city/roster2/'+c.name);if(!obj)return json({error:'Unknown player.'},404);
@@ -341,7 +341,6 @@ index 3d6e62e..d318eb8 100644
   }
   for(let attempt=0;attempt<5;attempt++){
    const {state:s,etag}=await readExchange(bucket);let id=s.links[subject],result;
--  if(!post)return json(id?exchangeView(s,id):{linked:false});
 +  if(id){
 +   const player=s.players[id];
 +   const name=await currentExchangeName(bucket,id,player.name);
@@ -351,11 +350,19 @@ index 3d6e62e..d318eb8 100644
 +    continue;
 +   }
 +  }
+   if(id){
+    const pending=s.trades.filter(trade=>trade.state==='pending'&&[trade.from,trade.to].includes(id));
+    if(pending.length){
+@@ -101,7 +157,7 @@ async function exchangeApi(request,env){
+     continue;
+    }
+   }
+-  if(!post)return json(id?exchangeView(s,id):{linked:false});
 +  if(!post)return json(id?await linkedExchangeView(bucket,id):{linked:false});
    if(ownerInvite){
     if(s.players[city])return json({error:'Player already linked.'},409);
     for(const k of Object.keys(s.invites))if(s.invites[k].city===city||s.invites[k].expires<Date.now())delete s.invites[k];
-@@ -112,19 +168,37 @@ async function exchangeApi(request,env){
+@@ -109,19 +165,37 @@ async function exchangeApi(request,env){
    }else if(c.action==='link'){
     if(typeof c.token!=='string')return json({error:'Invite required.'},400);
     const hash=await recoveryHash(c.token),invite=s.invites[hash];
@@ -410,7 +417,7 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..e61d5fb 100644
+index c438fba..1571802 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
 @@ -1,4 +1,26 @@
@@ -570,7 +577,7 @@ index c438fba..e61d5fb 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,17 +156,107 @@ async function act(name,body,expected=200){
+@@ -35,17 +156,115 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
@@ -603,6 +610,9 @@ index c438fba..e61d5fb 100644
   const results=await Promise.all([buy('ben'),buy('cam')]);assert.deepEqual(results.map(x=>x.status).sort(),[200,409]);
   for(const name of ['alice','ben','cam'])views[name]=(await request(name)).v;
 - assert.equal(views.alice.wallet.dosh,534);
+- await act('ben',{action:'offer',asset:ben,want:cam});const trade=views.ben.trades[0].id;
+- await act('alice',{action:'accept',trade},409);await act('cam',{action:'accept',trade});
+- assert.equal(views.cam.assets.find(a=>a.id===ben).owner,'you');
 + assert.equal(views.alice.wallet.dosh,314);
 + const winner=results[0].status===200?'ben':'cam';
 + assert.equal(views[winner].wallet.dosh,80);
@@ -626,12 +636,21 @@ index c438fba..e61d5fb 100644
 + assert.equal(start,Date.parse('2026-11-20T00:00Z'));
 + assert.equal(ctx.exchangeSlot(start,start+14*86400000-1),0);
 + assert.equal(ctx.exchangeSlot(start,start+14*86400000),1);
-  await act('ben',{action:'offer',asset:ben,want:cam});const trade=views.ben.trades[0].id;
-  await act('alice',{action:'accept',trade},409);await act('cam',{action:'accept',trade});
-  assert.equal(views.cam.assets.find(a=>a.id===ben).owner,'you');
++ await act('ben',{action:'offer',asset:ben,want:cam},409);
++ const ledgerFile=await bucket.get('exchange/v2/ledger'),ledger=await ledgerFile.json();
++ const accountId=name=>require('node:crypto').createHash('sha256').update(name).digest('hex');
++ ledger.assets.find(copy=>copy.id===ben).state='offered';
++ ledger.trades.push({id:'old-offer',from:accountId('ben'),to:accountId('cam'),give:ben,get:cam,state:'pending'});
++ await bucket.put('exchange/v2/ledger',JSON.stringify(ledger),{onlyIf:{etagMatches:ledgerFile.etag}});
++ await act('cam',{action:'accept',trade:'old-offer'},409);
++ for(let i=0;i<2;i++){
++  const restored=(await request('ben')).v;
++  assert.equal(restored.assets.find(a=>a.id===ben).state,'inventory');
++  assert.equal(restored.assets.find(a=>a.id===ben).owner,'you');
++ }
   const roster=await ctx.dashboardPlayers(bucket);
   assert(roster.find(x=>x.id==='alice').exchange.events.some(e=>e.kind==='Sale'&&e.fee===6));
-  assert(roster.find(x=>x.id==='ben').exchange.events.some(e=>e.kind==='Trade completed'));
+- assert(roster.find(x=>x.id==='ben').exchange.events.some(e=>e.kind==='Trade completed'));
 + const invitesId='f'.repeat(64);
 + await bucket.put('username-city/roster2/oldcity',JSON.stringify({canonical:invitesId}));
 + const invite=await request('admin',{action:'invite',name:'oldcity'});
