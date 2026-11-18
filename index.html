@@ -8456,9 +8456,15 @@ return {render,nativeSprite};})();
 'use strict';
 const Core=window.LabCore,ECON=window.BB_ECONOMY;
 Core.onLevel=(city,level)=>{
- city.crates=city.crates||{};
- const add=tier=>{city.crates[tier]=(city.crates[tier]||0)+1;};
- add('steel');if(level%3===0){add('gold');add('steel');}if(level%5===0)add('gold');
+ const silver=1+Number(level%3===0);
+ const gold=Number(level%3===0)+Number(level%5===0);
+ if(city.crateConversion?.version===1){
+  city.crateVouchers+=2*silver+6*gold;
+  return;
+ }
+ const crates=city.crates??={};
+ crates.steel=(crates.steel||0)+silver;
+ if(gold)crates.gold=(crates.gold||0)+gold;
 };
 function labState(){return Core.ensure(S,now());}
 function labAccrue(to=now(),offline=false){
