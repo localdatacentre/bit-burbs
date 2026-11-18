@@ -1,5 +1,5 @@
 diff --git a/dist/banksia-exchange.html b/dist/banksia-exchange.html
-index 44552af..143ca67 100644
+index 44552af..69c452d 100644
 --- a/dist/banksia-exchange.html
 +++ b/dist/banksia-exchange.html
 @@ -5793,7 +5793,7 @@ const $=s=>document.querySelector(s),models={sakura:'Flowering Gum',fountain:'Gr
@@ -38,7 +38,7 @@ index 44552af..143ca67 100644
  }
  const modelIds={statue:'BB-D001',fountain:'BB-D002',sakura:'BB-D003',sunhouse:'BB-D004',pelicanLight:'BB-D005',tidalBaths:'BB-D006',civicClock:'BB-D007',needle:'BB-D008'};
  const marketDate=time=>new Date(time).toLocaleDateString('en-AU',{timeZone:'Australia/Brisbane',day:'numeric',month:'short',year:'numeric'});
-@@ -5927,14 +5927,14 @@ function renderHub(){
+@@ -5927,14 +5927,23 @@ function renderHub(){
   if(hubTab==='Trade')content=`<div class="panel"><h3>MAKE AN OFFER</h3><p>Choose what you give and what you want. Both sides review the exact items.</p><button class="primary wide" data-action="create-trade" ${owned().some(a=>released(a)&&a.state==='inventory')?'':'disabled'}>Create trade offer</button></div><h3>YOUR OFFERS</h3>${data.trades.length?data.trades.map(t=>`<div class="panel"><div class="row"><span>${t.from?(t.from==='you'?'To '+t.to:'From '+t.from):'To rivergum'}</span><span class="chip">${t.state}</span></div><p>${models[data.assets.find(a=>a.id===t.give).model]} ↔ ${models[data.assets.find(a=>a.id===t.get).model]}</p>${t.state==='pending'?`<div class="row"><button data-review-trade="${t.id}">Review offer</button><button class="quiet" data-cancel-trade="${t.id}">Cancel</button></div>`:''}</div>`).join(''):'<p class="empty">No pending offers.</p>'}`;
   if(hubTab==='Activity')content=`<div class="panel"><h3>EXECUTED TRANSACTIONS</h3>${data.history.length?data.history.map(h=>`<div class="table-row"><span>${h.text}<br><span class="muted small">${h.time}</span></span><span>${h.amount??''}</span></div>`).join(''):'<p class="muted">Your purchases, completed sales and trades appear here.</p>'}</div><p class="small muted">Asking prices are not sale prices. No transaction data is invented for a chart.</p>`;
   if(hubTab==='Activity')content+=Object.keys(models).filter(m=>(data.sales||[]).some(s=>s.model===m)).map(m=>'<div class="panel"><h3>'+models[m]+'</h3>'+priceHistory(m)+'</div>').join('');
@@ -46,16 +46,28 @@ index 44552af..143ca67 100644
 + return head('Diamond market','Prices in dosh',null)+'<button class="quiet wide" data-page="diamond">My Diamond collection · '+owned().length+'</button>'+featurePanel()+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t}</button>`).join('')}</div>${content}`;
  }
  function priceHistory(model){
-  const sales=releaseSales(model);
+- const sales=releaseSales(model);
++ const sales=releaseSales(model).sort((a,b)=>a.time-b.time);
   if(!sales.length)return '<p class="muted small">No completed sales yet.</p>';
-  const lo=Math.min(...sales.map(s=>s.price)),hi=Math.max(...sales.map(s=>s.price));
-  const points=sales.map((s,i)=>[8+(sales.length===1?0:184*(s.time-sales[0].time)/Math.max(1,sales.at(-1).time-sales[0].time)),42-32*(s.price-lo)/Math.max(1,hi-lo)]);
+- const lo=Math.min(...sales.map(s=>s.price)),hi=Math.max(...sales.map(s=>s.price));
+- const points=sales.map((s,i)=>[8+(sales.length===1?0:184*(s.time-sales[0].time)/Math.max(1,sales.at(-1).time-sales[0].time)),42-32*(s.price-lo)/Math.max(1,hi-lo)]);
 - return '<p>Last sold · '+sales.at(-1).price+' dosh</p><svg viewBox="0 0 200 50" role="img" aria-label="Completed demo sale prices over time"><polyline fill="none" stroke="#d2b2fa" stroke-width="2" points="'+points.map(p=>p.join(',')).join(' ')+'"/>'+points.map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#d2b2fa"/>').join('')+'</svg><small>'+new Date(sales.at(-1).time).toLocaleDateString()+' · '+sales.length+' completed sales</small>';
-+ return '<p>Last sold · '+sales.at(-1).price+' dosh</p><svg viewBox="0 0 200 50" role="img" aria-label="Completed sale prices over time"><polyline fill="none" stroke="#d2b2fa" stroke-width="2" points="'+points.map(p=>p.join(',')).join(' ')+'"/>'+points.map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#d2b2fa"/>').join('')+'</svg><small>'+new Date(sales.at(-1).time).toLocaleDateString()+' · '+sales.length+' completed sales</small>';
++ const first=sales[0],last=sales.at(-1);
++ let low=first.price,high=first.price;
++ for(const sale of sales){low=Math.min(low,sale.price);high=Math.max(high,sale.price);}
++ const points=sales.map(sale=>[
++  first.time===last.time?100:8+184*(sale.time-first.time)/(last.time-first.time),
++  high===low?25:42-32*(sale.price-low)/(high-low)
++ ]);
++ const line=points.length>1?'<polyline fill="none" stroke="#d2b2fa" stroke-width="2" points="'+points.map(p=>p.join(',')).join(' ')+'"/>':'';
++ const dots=points.length<=32?points:[points.at(-1)];
++ const dates=marketDate(first.time)===marketDate(last.time)?marketDate(last.time):marketDate(first.time)+' – '+marketDate(last.time);
++ const range=low===high?low+' dosh':low+'–'+high+' dosh';
++ return '<p>Last sold · '+last.price+' dosh</p><svg viewBox="0 0 200 50" role="img" aria-label="Completed sales, '+range+', '+dates+'">'+line+dots.map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#d2b2fa"/>').join('')+'</svg><small>'+dates+' · '+sales.length+(sales.length===1?' completed sale':' completed sales')+' · '+range+'</small>';
  }
  function marketCards(listings){return listings.filter(l=>released(data.assets.find(a=>a.id===l.asset))).map(l=>{const a=data.assets.find(a=>a.id===l.asset);return `<article class="tile asset" data-market-model="${models[a.model].toLowerCase()}">${art(a.model)}<div class="asset-name">${models[a.model]}</div><span class="muted small">${a.owner}</span><div class="row" style="margin:8px 0"><span class="price">${icon('dosh')}${marketPrice(l,a.model)}</span><span class="diamond-mark"></span></div><button data-buy="${l.id}">Review purchase</button></article>`;}).join('')||'<p class="empty">No matching listings.</p>';}
  function renderShop(){return head('Dosh shop','Today’s four offers · 6 pm reset','dosh')+`<div class="notice small shop-review-note">Price layout preview · exact offer prices awaiting recovery from the approved table.</div><div class="grid">${[['City supplies',`${icon('deed')} 2 deeds`,`${icon('voucher')} 3 crate vouchers`,'Price TBC'],['Keep it moving',`${icon('voucher')} 2 restock vouchers`,`${icon('ticket')} 1 wheel ticket`,'Price TBC'],['More possibilities',`${icon('voucher')} 6 crate vouchers`,`${icon('dosh')} 5 dosh`,'Price TBC'],['On the house',`${icon('cash')} 2,000 coins`,'One claim today','FREE']].map(([title,a,b,price],i)=>`<article class="tile shop-offer"><div class="offer-title">${title}</div><div class="reward-line"><div>${a}</div><div>${b}</div></div><button ${i<3?'disabled':''} class="${i===3?'primary':''}" data-action="shop-${i}">${data.freeShopClaimed&&i===3?'Claimed':price}</button></article>`).join('')}</div><p class="small muted">Vouchers and consumables only. Diamond buildings are found in the collection and player market.</p>`;}
-@@ -5998,9 +5998,9 @@ document.addEventListener('click',e=>{
+@@ -5998,9 +6007,9 @@ document.addEventListener('click',e=>{
   if(b.dataset.diamond){diamondTab=b.dataset.diamond;render();return;}
   if(b.dataset.claim){const i=Number(b.dataset.claim);if(data.claims.includes(i))return;data.claims.push(i);data.wallet.crateVouchers++;data.wallet.dosh++;if(data.claims.length>=5&&!data.halfClaimed){data.halfClaimed=true;data.wallet.restockVouchers++;data.wallet.wheelTickets++;}if(data.claims.length===10&&!data.fullClaimed){data.fullClaimed=true;data.wallet.crateVouchers+=4;data.wallet.restockVouchers++;data.wallet.wheelTickets++;data.wallet.dosh+=2;}save();render();return;}
   if(b.dataset.replace){const i=Number(b.dataset.replace);modal('Replace this task?',`<p>${taskList[i][0]}</p><p class="muted">Your one free replacement keeps the same difficulty and reward. New progress starts at zero.</p>`,[['Keep task','close-modal'],['Replace','confirm-replace-'+i,true]]);return;}
@@ -217,7 +229,7 @@ index 169ffa4..88c3304 100644
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
 +out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
 diff --git a/hosting/exchange.js b/hosting/exchange.js
-index 3d6e62e..eb58b8d 100644
+index 3d6e62e..d318eb8 100644
 --- a/hosting/exchange.js
 +++ b/hosting/exchange.js
 @@ -1,14 +1,17 @@
@@ -242,7 +254,20 @@ index 3d6e62e..eb58b8d 100644
   const asset=k=>s.assets.find(a=>a.id===k);
   const available=(a,owner,state)=>a&&a.owner===owner&&a.state===state;
   const unlocked=a=>exchangeRotation.indexOf(a.model)>=0&&exchangeRotation.indexOf(a.model)<slot;
-@@ -82,6 +85,42 @@ function exchangeView(s,id){
+@@ -76,12 +79,54 @@ function exchangeSummary(s,id){
+  return {name:p.name,wallet:p.wallet,stock:p.stock,boosts:p.boosts,assets:s.assets.filter(a=>a.owner===id),listings:s.listings.filter(l=>s.assets.some(a=>a.id===l.asset&&a.owner===id)),trades:s.trades.filter(t=>[t.from,t.to].includes(id)),events:s.events.filter(e=>e.actor===id||e.other===id).slice().reverse().map(e=>({...e,actor:s.players[e.actor]?.name,other:s.players[e.other]?.name}))};
+ }
+ function exchangeView(s,id){
+- const p=s.players[id],label=k=>k===id?'you':s.players[k]?.name||'Player';
++ const p=s.players[id];
++ const label=k=>{
++  if(k===id)return 'you';
++  const name=s.players[k]?.name;
++  // The shared UI uses 'you' for the current owner's inventory and listings.
++  return name==='you'?'you (player)':name||'Player';
++ };
+  return {name:p.name,wallet:p.wallet,stock:p.stock,boosts:p.boosts,opening:p.opening,revision:p.revision,
+  assets:s.assets.map(a=>({id:a.id,model:a.model,owner:label(a.owner),state:a.state,minted:a.minted})),listings:s.listings,sales:s.sales,
   trades:s.trades.filter(t=>[t.from,t.to].includes(id)).map(t=>({...t,from:label(t.from),to:label(t.to)})),
   history:exchangeSummary(s,id).events.map(e=>({text:e.kind+(e.other?' · '+(e.actor===p.name?e.other:e.actor):''),time:new Date(e.at).toISOString(),amount:e.price??''}))};
  }
@@ -285,7 +310,7 @@ index 3d6e62e..eb58b8d 100644
  async function exchangeApi(request,env){
   const bucket=env.BUCKET,uid=request.headers.get('oai-authenticated-user-id');
   if(!uid)return json({error:'Sign in to connect your player account.'},401);
-@@ -100,11 +139,22 @@ async function exchangeApi(request,env){
+@@ -100,11 +145,22 @@ async function exchangeApi(request,env){
    if(!await isOwner(request))return json({error:'Owner access required.'},403);
    if(!/^[a-z0-9_-]{1,24}$/.test(c.name))return json({error:'Unknown player.'},400);
    const obj=await bucket.get('username-city/roster2/'+c.name);if(!obj)return json({error:'Unknown player.'},404);
@@ -310,7 +335,7 @@ index 3d6e62e..eb58b8d 100644
    if(ownerInvite){
     if(s.players[city])return json({error:'Player already linked.'},409);
     for(const k of Object.keys(s.invites))if(s.invites[k].city===city||s.invites[k].expires<Date.now())delete s.invites[k];
-@@ -112,19 +162,37 @@ async function exchangeApi(request,env){
+@@ -112,19 +168,37 @@ async function exchangeApi(request,env){
    }else if(c.action==='link'){
     if(typeof c.token!=='string')return json({error:'Invite required.'},400);
     const hash=await recoveryHash(c.token),invite=s.invites[hash];
@@ -365,10 +390,37 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..1683ed1 100644
+index c438fba..e61d5fb 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
-@@ -7,8 +7,14 @@ const bucket={
+@@ -1,4 +1,26 @@
+ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{webcrypto}=require('node:crypto');
++// Exercise the displayed history with completed sales, independent of listing prices.
++const page=fs.readFileSync('dist/banksia-exchange.html','utf8');
++const historyContext={data:{sales:[],listings:[{price:9999}]}};
++const chart=vm.runInNewContext([
++ page.slice(page.indexOf('function releaseSales('),page.indexOf('function marketPrice(')),
++ page.slice(page.indexOf('const marketDate='),page.indexOf('let marketOrder=')),
++ page.slice(page.indexOf('function priceHistory('),page.indexOf('function marketCards(')),
++ 'priceHistory'
++].join('\n'),historyContext);
++assert.match(chart('statue'),/No completed sales/);
++const sale=(time,price)=>({time,price,model:'statue',rotationSale:true});
++const nov18=Date.parse('2026-11-17T15:00:00Z');
++historyContext.data.sales.push(sale(nov18,120));
++assert.match(chart('statue'),/circle cx="100" cy="25"/);
++assert.match(chart('statue'),/18 Nov 2026 · 1 completed sale · 120 dosh/);
++historyContext.data.sales.unshift(sale(nov18+86400000,150));
++historyContext.data.sales.push({...sale(nov18+86400001,9999),rotationSale:false});
++const plotted=chart('statue');
++assert.match(plotted,/Last sold · 150 dosh/);
++assert.match(plotted,/points="8,42 192,10"/);
++assert.match(plotted,/18 Nov 2026 – 19 Nov 2026 · 2 completed sales · 120–150 dosh/);
++assert.ok(!plotted.includes('9999'));
+ const records=new Map();
+ const bucket={
+  async get(k){const v=records.get(k);return v&&{etag:v.etag,json:async()=>JSON.parse(v.raw)};},
+@@ -7,8 +29,14 @@ const bucket={
  };
  const ctx={Date:class extends Date{static now(){return Date.parse('2026-11-20T00:00Z');}},crypto:{subtle:webcrypto.subtle,randomUUID:()=>webcrypto.randomUUID(),getRandomValues:x=>x.fill(4294967295)},TextEncoder,Request,Response,URL,console};
  vm.createContext(ctx);
@@ -384,7 +436,7 @@ index c438fba..1683ed1 100644
  const views={};
  async function request(user,body){
   const headers={'Content-Type':'application/json',Origin:'https://test.local'};if(user)headers['oai-authenticated-user-id']=user;
-@@ -16,17 +22,110 @@ async function request(user,body){
+@@ -16,17 +44,110 @@ async function request(user,body){
   const r=await ctx.exchangeApi(req,{BUCKET:bucket});return {status:r.status,v:await r.json()};
  }
  async function act(name,body,expected=200){
@@ -498,7 +550,7 @@ index c438fba..1683ed1 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,17 +134,100 @@ async function act(name,body,expected=200){
+@@ -35,17 +156,107 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
@@ -543,6 +595,13 @@ index c438fba..1683ed1 100644
 +   assert.deepEqual(views[user].wallet,previous.wallet);
 + }
 + assert.equal(records.has('exchange/v1/ledger'),false);
++ // 'you' is a valid username. Only the signed-in player's own copies may
++ // acquire the UI's self label, including after a sale.
++ const {state:labelFixture}=await ctx.readExchange(bucket);
++ const winnerId=require('node:crypto').createHash('sha256').update(winner).digest('hex');
++ labelFixture.players[winnerId].name='you';
++ assert.equal(ctx.exchangeView(labelFixture,canonical).assets.find(a=>a.id===alice).owner,'you (player)');
++ assert.equal(ctx.exchangeView(labelFixture,winnerId).assets.find(a=>a.id===alice).owner,'you');
 + const start=views.alice.rotationStart;
 + assert.equal(start,Date.parse('2026-11-20T00:00Z'));
 + assert.equal(ctx.exchangeSlot(start,start+14*86400000-1),0);
