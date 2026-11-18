@@ -21,9 +21,9 @@ const bucket = {
     return {etag:String(++revision)};
   }
 };
-function save(rev,sequence) {
+function save(rev,sequence,extra={}) {
   const body = {action:'save',roster:'beta-roster-2',name:'fixture',code:'a'.repeat(32),
-    revision:rev,progress:'b'.repeat(32),city:{v:2,cash:102,tiles:[{}],exchangeSequence:sequence},
+    revision:rev,progress:'b'.repeat(32),city:{v:2,cash:102,tiles:[{}],exchangeSequence:sequence,...extra},
     crateExchange:{pendingCopies:[]}};
   return liveCityAccount(new Request('https://fixture.invalid/api/live-city',{method:'POST',
     headers:{Origin:'https://localdatacentre.github.io','Content-Type':'application/json'},body:JSON.stringify(body)}),{BUCKET:bucket});
@@ -36,5 +36,10 @@ function save(rev,sequence) {
   assert.deepEqual(responses.map(x=>x.status).sort(),[200,409]);
   assert.deepEqual(record.crateExchange,receipt);
   assert.equal(record.city.cash,102);
+  const conversion={version:1,previous:2,added:6,converted:{silver:0,gold:1,diamond:0,premium:0}};
+  record.city.crateConversion=conversion;
+  assert.equal((await save('3',1)).status,409);
+  assert.equal((await save('3',1,{crateConversion:conversion,crates:{gold:1}})).status,409);
+  assert.equal((await save('3',1,{crateConversion:conversion,crates:{}})).status,200);
   console.log('PASS stale revisions, stale Exchange sequence, duplicate saves and retained server crate inventory');
 })().catch(e=>{console.error(e);process.exitCode=1});
