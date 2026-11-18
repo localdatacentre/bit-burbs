@@ -1,5 +1,5 @@
 diff --git a/dist/banksia-exchange.html b/dist/banksia-exchange.html
-index 5d93cde..ce0057e 100644
+index 35f4ae3..ab1adab 100644
 --- a/dist/banksia-exchange.html
 +++ b/dist/banksia-exchange.html
 @@ -5793,7 +5793,7 @@ const $=s=>document.querySelector(s),models={sakura:'Flowering Gum',fountain:'Gr
@@ -38,12 +38,12 @@ index 5d93cde..ce0057e 100644
  }
  const modelIds={statue:'BB-D001',fountain:'BB-D002',sakura:'BB-D003',sunhouse:'BB-D004',pelicanLight:'BB-D005',tidalBaths:'BB-D006',civicClock:'BB-D007',needle:'BB-D008'};
  const marketDate=time=>new Date(time).toLocaleDateString('en-AU',{timeZone:'Australia/Brisbane',day:'numeric',month:'short',year:'numeric'});
-@@ -5936,14 +5936,23 @@ function renderHub(){
-  if(hubTab==='Trade')content=`<div class="panel"><h3>MAKE AN OFFER</h3><p>Choose what you give and what you want. Both sides review the exact items.</p><button class="primary wide" data-action="create-trade" ${owned().some(a=>released(a)&&a.state==='inventory')?'':'disabled'}>Create trade offer</button></div><h3>YOUR OFFERS</h3>${data.trades.length?data.trades.map(t=>`<div class="panel"><div class="row"><span>${t.from?(t.from==='you'?'To '+t.to:'From '+t.from):'To rivergum'}</span><span class="chip">${t.state}</span></div><p>${models[data.assets.find(a=>a.id===t.give).model]} ↔ ${models[data.assets.find(a=>a.id===t.get).model]}</p>${t.state==='pending'?`<div class="row"><button data-review-trade="${t.id}">Review offer</button><button class="quiet" data-cancel-trade="${t.id}">Cancel</button></div>`:''}</div>`).join(''):'<p class="empty">No pending offers.</p>'}`;
+@@ -5941,14 +5941,23 @@ function renderHub(){
+  if(hubTab==='Trade')content=`<div class="panel"><h3>MAKE AN OFFER</h3><p>Choose what you give and what you want. Both sides review the exact items.</p><button class="primary wide" data-action="create-trade" ${owned().some(a=>released(a)&&a.state==='inventory')?'':'disabled'}>Create trade offer</button></div><h3>YOUR OFFERS</h3>${offers.length?offers.map(t=>`<div class="panel"><div class="row"><span>${t.from?(t.from==='you'?'To '+t.to:'From '+t.from):'To rivergum'}</span><span class="chip">${t.state}</span></div><p>${models[data.assets.find(a=>a.id===t.give).model]} ↔ ${models[data.assets.find(a=>a.id===t.get).model]}</p>${t.state==='pending'?`<div class="row"><button data-review-trade="${t.id}">Review offer</button><button class="quiet" data-cancel-trade="${t.id}">Cancel</button></div>`:''}</div>`).join(''):'<p class="empty">No pending offers.</p>'}`;
   if(hubTab==='Activity')content=`<div class="panel"><h3>EXECUTED TRANSACTIONS</h3>${data.history.length?data.history.map(h=>`<div class="table-row"><span>${h.text}<br><span class="muted small">${h.time}</span></span><span>${h.amount??''}</span></div>`).join(''):'<p class="muted">Your purchases, completed sales and trades appear here.</p>'}</div><p class="small muted">Asking prices are not sale prices. No transaction data is invented for a chart.</p>`;
-  if(hubTab==='Activity')content+=Object.keys(models).filter(m=>(data.sales||[]).some(s=>s.model===m)).map(m=>'<div class="panel"><h3>'+models[m]+'</h3>'+priceHistory(m)+'</div>').join('');
-- return head('Diamond market','Playtest · prices in dosh',null)+featurePanel()+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t}</button>`).join('')}</div>${content}`;
-+ return head('Diamond market','Prices in dosh',null)+'<button class="quiet wide" data-page="diamond">My Diamond collection · '+owned().length+'</button>'+featurePanel()+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t}</button>`).join('')}</div>${content}`;
+  if(hubTab==='Activity')content+=rotation.slice(0,slot()).filter(m=>releaseSales(m).length).map(m=>'<div class="panel"><h3>'+models[m]+'</h3>'+priceHistory(m)+'</div>').join('');
+- return head('Diamond market','Buy, sell or swap released Diamond items',null)+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
++ return head('Diamond market','Prices in dosh',null)+'<button class="quiet wide" data-page="diamond">My Diamond collection · '+owned().length+'</button>'+featurePanel()+`<div class="tabs">${['Browse','Sell','Trade','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
  }
  function priceHistory(model){
 - const sales=releaseSales(model);
@@ -67,7 +67,7 @@ index 5d93cde..ce0057e 100644
  }
  function marketCards(listings){return listings.filter(l=>released(data.assets.find(a=>a.id===l.asset))).map(l=>{const a=data.assets.find(a=>a.id===l.asset);return `<article class="tile asset" data-market-model="${models[a.model].toLowerCase()}">${art(a.model)}<div class="asset-name">${models[a.model]}</div><span class="muted small">${a.owner}</span><div class="row" style="margin:8px 0"><span class="price">${icon('dosh')}${marketPrice(l,a.model)}</span><span class="diamond-mark"></span></div><button data-buy="${l.id}">Review purchase</button></article>`;}).join('')||'<p class="empty">No matching listings.</p>';}
  function renderShop(){return head('Dosh shop','Today’s four offers · 6 pm reset','dosh')+`<div class="notice small shop-review-note">Price layout preview · exact offer prices awaiting recovery from the approved table.</div><div class="grid">${[['City supplies',`${icon('deed')} 2 deeds`,`${icon('voucher')} 3 crate vouchers`,'Price TBC'],['Keep it moving',`${icon('voucher')} 2 restock vouchers`,`${icon('ticket')} 1 wheel ticket`,'Price TBC'],['More possibilities',`${icon('voucher')} 6 crate vouchers`,`${icon('dosh')} 5 dosh`,'Price TBC'],['On the house',`${icon('cash')} 2,000 coins`,'One claim today','FREE']].map(([title,a,b,price],i)=>`<article class="tile shop-offer"><div class="offer-title">${title}</div><div class="reward-line"><div>${a}</div><div>${b}</div></div><button ${i<3?'disabled':''} class="${i===3?'primary':''}" data-action="shop-${i}">${data.freeShopClaimed&&i===3?'Claimed':price}</button></article>`).join('')}</div><p class="small muted">Vouchers and consumables only. Diamond buildings are found in the collection and player market.</p>`;}
-@@ -6007,9 +6016,9 @@ document.addEventListener('click',e=>{
+@@ -6012,9 +6021,9 @@ document.addEventListener('click',e=>{
   if(b.dataset.diamond){diamondTab=b.dataset.diamond;render();return;}
   if(b.dataset.claim){const i=Number(b.dataset.claim);if(data.claims.includes(i))return;data.claims.push(i);data.wallet.crateVouchers++;data.wallet.dosh++;if(data.claims.length>=5&&!data.halfClaimed){data.halfClaimed=true;data.wallet.restockVouchers++;data.wallet.wheelTickets++;}if(data.claims.length===10&&!data.fullClaimed){data.fullClaimed=true;data.wallet.crateVouchers+=4;data.wallet.restockVouchers++;data.wallet.wheelTickets++;data.wallet.dosh+=2;}save();render();return;}
   if(b.dataset.replace){const i=Number(b.dataset.replace);modal('Replace this task?',`<p>${taskList[i][0]}</p><p class="muted">Your one free replacement keeps the same difficulty and reward. New progress starts at zero.</p>`,[['Keep task','close-modal'],['Replace','confirm-replace-'+i,true]]);return;}
@@ -80,7 +80,7 @@ index 5d93cde..ce0057e 100644
   if(b.dataset.cancelListing){const l=data.listings.find(l=>l.id===b.dataset.cancelListing),a=data.assets.find(a=>a.id===l.asset);a.state='inventory';data.listings=data.listings.filter(x=>x.id!==l.id);save();render();return;}
   if(b.dataset.cancelTrade){const t=data.trades.find(t=>t.id===b.dataset.cancelTrade);if(t.state==='pending'){t.state='cancelled';data.assets.find(a=>a.id===t.give).state='inventory';save();render();}return;}
   if(b.dataset.reviewTrade){reviewTrade(b.dataset.reviewTrade);return;}
-@@ -6044,6 +6053,13 @@ function refreshRotation(){
+@@ -6049,6 +6058,13 @@ function refreshRotation(){
   if(slot()<rotation.length-1)setTimeout(()=>{if(!data.opening){closeModal();render();}refreshRotation();},Math.min(2147483647,Math.max(1,next-Date.now())));
  }
  refreshRotation();
