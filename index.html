@@ -8526,6 +8526,11 @@ function labSyncTasks(){
  const previous=S.dailyGenerated?.tasks.map(t=>t.id);
  S.dailyGenerated=Daily.assign(S.dailyGenerated,snapshot,'city',at,previous,DailyTaskSession.forecast(snapshot,at));
  if(S.dailyGenerated.status==='empty')emptyTaskCheck={city:S,day,list:D.list};
+ else if(S.dailyGenerated.status==='ready'){
+  // Persist the new targets after the current city action finishes updating stock and balances.
+  const city=S, board=city.dailyGenerated;
+  Promise.resolve().then(()=>{if(S===city&&S.dailyGenerated===board)save();});
+ }
 }
 function dailyEvent(event){
  const daily=S.dailyGenerated;
