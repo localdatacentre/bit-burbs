@@ -69,7 +69,7 @@ index 44552af..143ca67 100644
   if(b.dataset.cancelTrade){const t=data.trades.find(t=>t.id===b.dataset.cancelTrade);if(t.state==='pending'){t.state='cancelled';data.assets.find(a=>a.id===t.give).state='inventory';save();render();}return;}
   if(b.dataset.reviewTrade){reviewTrade(b.dataset.reviewTrade);return;}
 diff --git a/dist/exchange-account.js b/dist/exchange-account.js
-index 8b450f3..41d3d82 100644
+index 8b450f3..27ee6b8 100644
 --- a/dist/exchange-account.js
 +++ b/dist/exchange-account.js
 @@ -1,5 +1,10 @@
@@ -93,9 +93,9 @@ index 8b450f3..41d3d82 100644
 + button.onclick=loadExchange;
 + accountBar.append(button);
 +}
-+function pendingKey(name){return 'banksia-exchange:pending-command:'+name;}
++function pendingKey(accountRef){return 'banksia-exchange:pending-city-command:'+accountRef;}
 +async function sendSavedCommand(command){
-+ const key=pendingKey(command.account);
++ const key=pendingKey(command.accountRef);
 + try{
 +  const view=await exchangeFetch(command);
 +  sessionStorage.removeItem(key);
@@ -128,7 +128,7 @@ index 8b450f3..41d3d82 100644
  }
  async function loadExchange(){
   if(marketBusy||animation)return;
-@@ -20,26 +56,56 @@ async function loadExchange(){
+@@ -20,26 +56,57 @@ async function loadExchange(){
    const token=sessionStorage.getItem('exchange-invite');
    const view=await exchangeFetch(token?{action:'link',token}:null);
    if(token){sessionStorage.removeItem('exchange-invite');history.replaceState(null,'',location.pathname+location.search);}
@@ -136,10 +136,11 @@ index 8b450f3..41d3d82 100644
 -  clearTimeout(animation?.timer);animation=null;useShared(view);closeModal();render();
 +  if(view.linked===false){leaveSharedView();accountBar.textContent=requestedCity?'Open the owner dashboard invite for '+requestedCity+' to link your city.':'Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
 +  clearTimeout(animation?.timer);animation=null;useShared(view);
-+  const saved=sessionStorage.getItem(pendingKey(view.name));
++  const saved=sessionStorage.getItem(pendingKey(view.accountRef));
 +  if(saved){
 +   const command=JSON.parse(saved);
-+   if(command.account!==view.name)throw Error('Pending command belongs to a different city.');
++   if(command.accountRef!==view.accountRef)throw Error('Pending command belongs to a different city.');
++   command.account=view.name; // A renamed city still owns its original request.
 +   try{useShared(await sendSavedCommand(command));}
 +   catch(error){
 +    if(error.status!==409)throw error;
@@ -166,13 +167,13 @@ index 8b450f3..41d3d82 100644
   try{
 -  const view=await exchangeFetch({...command,account:data.name,revision:data.revision,requestId:crypto.randomUUID()});useShared(view);closeModal();
 -  if(command.action==='open')showOpening(false);else render();
-+  const key=pendingKey(data.name);
++  const key=pendingKey(data.accountRef);
 +  const saved=sessionStorage.getItem(key);
 +  const request=saved?JSON.parse(saved):{
-+   ...command,account:data.name,revision:['crate','open','finish'].includes(command.action)?data.crateRevision:data.revision,
++   ...command,account:data.name,accountRef:data.accountRef,revision:['crate','open','finish'].includes(command.action)?data.crateRevision:data.revision,
 +   requestId:crypto.randomUUID()
 +  };
-+  if(request.account!==data.name)throw Error('Pending command belongs to a different city.');
++  if(request.accountRef!==data.accountRef)throw Error('Pending command belongs to a different city.');
 +  if(!saved)sessionStorage.setItem(key,JSON.stringify(request));
 +  useShared(await sendSavedCommand(request));closeModal();
 +  if(request.action==='open'&&!saved)showOpening(false);else render();
@@ -193,7 +194,7 @@ index 8b450f3..41d3d82 100644
   if(d.cancelListing)return {action:'unlist',listing:d.cancelListing};
   if(d.cancelTrade)return {action:'cancel',trade:d.cancelTrade};
   if(a==='buy-crate')return {action:'crate',tier:tierIndex};
-@@ -58,6 +124,9 @@ function tradeChoice(){
+@@ -58,6 +125,9 @@ function tradeChoice(){
  }
  document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!shared)return;
@@ -216,7 +217,7 @@ index 169ffa4..88c3304 100644
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
 +out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
 diff --git a/hosting/exchange.js b/hosting/exchange.js
-index 3d6e62e..b5f9e1c 100644
+index 3d6e62e..eb58b8d 100644
 --- a/hosting/exchange.js
 +++ b/hosting/exchange.js
 @@ -1,14 +1,17 @@
@@ -279,7 +280,7 @@ index 3d6e62e..b5f9e1c 100644
 + try{projected=prepareCrateConversion(saved.city);}
 + catch{crateInventoryError='Your old crate inventory needs review before buying or opening crates.';}
 + latest.players[id]=cityExchangePlayer(latest.players[id],{...saved,city:projected});
-+ return {...exchangeView(latest,id),crateInventoryError,rotationStart:latest.rotationStart,crateRevision:latest.players[id].crateRevision};
++ return {...exchangeView(latest,id),accountRef:await recoveryHash('exchange-account/'+id),crateInventoryError,rotationStart:latest.rotationStart,crateRevision:latest.players[id].crateRevision};
 +}
  async function exchangeApi(request,env){
   const bucket=env.BUCKET,uid=request.headers.get('oai-authenticated-user-id');
@@ -326,7 +327,7 @@ index 3d6e62e..b5f9e1c 100644
    }else{
     if(!id)return json({error:'Link your city first.'},403);
 -   const p=s.players[id];if(c.account!==p.name)return json({error:'Account changed. Refresh the market.'},409);if(p.last===c.requestId&&p.last)return json(exchangeView(s,id));
-+   const p=s.players[id];if(c.account!==p.name)return json({error:'Account changed. Refresh the market.'},409);if(['crate','open','finish','buy','place','pack'].includes(c.action)){
++   const p=s.players[id];if(c.account!==p.name||c.accountRef!==await recoveryHash('exchange-account/'+id))return json({error:'Account changed. Refresh the market.'},409);if(['crate','open','finish','buy','place','pack'].includes(c.action)){
 +    try{
 +     if(c.action==='buy'){
 +      const slot=exchangeSlot(s.rotationStart,Date.now());
@@ -364,7 +365,7 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..caa0b32 100644
+index c438fba..9339527 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
 @@ -7,8 +7,14 @@ const bucket={
@@ -383,12 +384,12 @@ index c438fba..caa0b32 100644
  const views={};
  async function request(user,body){
   const headers={'Content-Type':'application/json',Origin:'https://test.local'};if(user)headers['oai-authenticated-user-id']=user;
-@@ -16,17 +22,96 @@ async function request(user,body){
+@@ -16,17 +22,110 @@ async function request(user,body){
   const r=await ctx.exchangeApi(req,{BUCKET:bucket});return {status:r.status,v:await r.json()};
  }
  async function act(name,body,expected=200){
 - const r=await request(name,{revision:views[name].revision,account:name,requestId:webcrypto.randomUUID(),...body});
-+ const r=await request(name,{revision:['open','crate','finish'].includes(body.action)?views[name].crateRevision:views[name].revision,account:name,requestId:webcrypto.randomUUID(),...body});
++ const r=await request(name,{revision:['open','crate','finish'].includes(body.action)?views[name].crateRevision:views[name].revision,account:name,accountRef:views[name].accountRef,requestId:webcrypto.randomUUID(),...body});
   assert.equal(r.status,expected,JSON.stringify(r.v.error));if(r.status===200)views[name]=r.v;return r;
  }
 +// Run the shipped client controller against the real Worker handlers. A fresh
@@ -456,6 +457,20 @@ index c438fba..caa0b32 100644
 + const anonymous=documentContext();await anonymous.boot;
 + assert.equal(storage.size,1);
 + assert.equal(sent.length,5);
++ const otherId='9'.repeat(64);
++ await bucket.put('username-city/roster2/secondcity',JSON.stringify({canonical:otherId}));
++ await bucket.put('live-city/roster2/'+otherId,JSON.stringify({city:{v:2,tiles:[null],crateVouchers:17}}));
++ const otherInvite=await request('admin',{action:'invite',name:'secondcity'});
++ user='second-login';
++ await request(user,{action:'link',token:otherInvite.v.token});
++ // Simulate the display name being reassigned while this tab retains the first city's command.
++ await bucket.put('username-city/current/'+otherId,JSON.stringify({name:'worker-test'}));
++ const other=documentContext();await other.boot;
++ assert.equal(other.client.data.name,'worker-test');
++ assert.equal(other.client.data.wallet.crateVouchers,17);
++ assert.equal(other.client.data.opening,null);
++ assert.equal(storage.size,1);
++ assert.equal(sent.length,5);
 + user='worker-test';
 + ({client,boot}=documentContext());await boot;
 + assert.equal(storage.size,0);
@@ -483,7 +498,7 @@ index c438fba..caa0b32 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,17 +120,81 @@ async function act(name,body,expected=200){
+@@ -35,17 +134,87 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
@@ -498,7 +513,8 @@ index c438fba..caa0b32 100644
 + await act('alice',{action:'pack',asset:alice});
 + assert.deepEqual((await (await bucket.get(path)).json()).city.tiles,[null,null,null,{id:'road'}]);
   await act('alice',{action:'list',asset:alice,price:120});const listing=views.alice.listings[0].id;
-  const buy=name=>request(name,{account:name,action:'buy',listing,price:120,revision:views[name].revision,requestId:webcrypto.randomUUID()});
+- const buy=name=>request(name,{account:name,action:'buy',listing,price:120,revision:views[name].revision,requestId:webcrypto.randomUUID()});
++ const buy=name=>request(name,{account:name,accountRef:views[name].accountRef,action:'buy',listing,price:120,revision:views[name].revision,requestId:webcrypto.randomUUID()});
   const results=await Promise.all([buy('ben'),buy('cam')]);assert.deepEqual(results.map(x=>x.status).sort(),[200,409]);
   for(const name of ['alice','ben','cam'])views[name]=(await request(name)).v;
 - assert.equal(views.alice.wallet.dosh,534);
@@ -535,6 +551,12 @@ index c438fba..caa0b32 100644
 + await bucket.put('username-city/current/'+canonical,JSON.stringify({name:'alice2'}));
 + const renamed=(await request('alice')).v;
 + assert.equal(renamed.name,'alice2');
++ assert.equal(renamed.accountRef,views.alice.accountRef);
++ // A queued command for a different account must fail even if the displayed
++ // username and revision match the active city.
++ const before=await (await bucket.get(path)).json();
++ await act('alice',{account:'alice2',accountRef:views.ben.accountRef,action:'crate',tier:0},409);
++ assert.deepEqual(await (await bucket.get(path)).json(),before);
 + assert.deepEqual(renamed.wallet,views.alice.wallet);
 + await act('alice',{action:'crate',tier:0},409);
 + await act('alice',{account:'alice2',action:'crate',tier:0});
@@ -549,7 +571,7 @@ index c438fba..caa0b32 100644
 + const linked=await request('legacy',{action:'link',token:invited.v.token});
 + assert.equal(linked.v.wallet.crateVouchers,80);
 + assert.deepEqual((await (await bucket.get(legacyPath)).json()).city,legacy);
-+ const purchase={action:'crate',account:'legacy',tier:4,revision:0,requestId:webcrypto.randomUUID()};
++ const purchase={action:'crate',account:'legacy',accountRef:linked.v.accountRef,tier:4,revision:0,requestId:webcrypto.randomUUID()};
 + const concurrent=await Promise.all([request('legacy',purchase),request('legacy',purchase)]);
 + assert.ok(concurrent.every(r=>r.status===200&&r.v.stock[4]===1&&r.v.wallet.crateVouchers===0));
 + const converted=(await (await bucket.get(legacyPath)).json()).city;
