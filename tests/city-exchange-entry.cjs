@@ -47,3 +47,23 @@ const spend=require('../city-exchange.js').settleCityExchange(claims.S,'fixture'
 assert.equal(spend.crateVouchers,0);
 assert.equal(spend.stars,62);
 console.log('PASS ten reloaded daily claims fund an Emerald crate and credit the spendable dosh wallet once');
+
+(async()=>{
+ const listeners={},refreshCalls=[],reloads=[];
+ let remote='before';
+ const page={namedPlay:true,username:'fixture',cityCode:'fixture-code',cityRevision:'before',
+  cityConflict:false,cityRequest:null,setTimeout(){},save(){},pushCity(){},
+  cityApi:async request=>{refreshCalls.push(request.action);return {revision:remote};},
+  location:{reload(){reloads.push(true);}},document:{hidden:false,addEventListener:(e,f)=>listeners[e]=f},
+  window:{addEventListener:(e,f)=>listeners[e]=f}};
+ vm.createContext(page);
+ const a=html.indexOf('let checkingCityRevision=false;'),b=html.indexOf('if(removeDeletedModels(S,deletedModelIds))',a);
+ vm.runInContext(html.slice(a,b),page);
+ listeners.pageshow({persisted:false});assert.equal(refreshCalls.length,0);
+ listeners.pageshow({persisted:true});listeners.visibilitychange();
+ await new Promise(setImmediate);
+ assert.deepEqual(refreshCalls,['revision']);assert.equal(reloads.length,0);
+ remote='after-market-sale';listeners.pageshow({persisted:true});
+ await new Promise(setImmediate);assert.equal(reloads.length,1);assert.equal(page.cityConflict,true);
+ console.log('PASS returning from the Exchange via back/forward cache checks for remote sales once and reloads a stale city');
+})().catch(e=>{console.error(e);process.exitCode=1;});
