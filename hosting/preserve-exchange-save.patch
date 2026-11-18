@@ -1,8 +1,32 @@
 diff --git a/hosting/catalogue-worker.js b/hosting/catalogue-worker.js
-index 3d28773..b73f626 100644
+index 3d28773..1cd283d 100644
 --- a/hosting/catalogue-worker.js
 +++ b/hosting/catalogue-worker.js
-@@ -195,7 +195,12 @@ async function liveCityAccount(request,env,ctx){
+@@ -164,6 +164,23 @@ async function usernameCity(p,bucket,reply){
+  return reply({...city?await city.json():{},revision:city?.etag||null,code:record.code,name:current});
+ }
+ 
++// A regular save can move an owned copy but only the Exchange can add or remove one.
++function sameDiamondHoldings(previous,next){
++ function holdings(city){
++  const ids=new Map();
++  function add(tile){
++   if(!tile?.diamondCopyId)return true;
++   if(typeof tile.diamondCopyId!=='string'||typeof tile.id!=='string'||ids.has(tile.diamondCopyId))return false;
++   ids.set(tile.diamondCopyId,tile.id);return true;
++  }
++  if(!Array.isArray(city?.storedBuildings??[])||!Array.isArray(city?.tiles??[]))return null;
++  for(const tile of city?.tiles??[])if(!add(tile))return null;
++  for(const entry of city?.storedBuildings??[])if(!add(entry?.building??entry))return null;
++  return ids;
++ }
++ const a=holdings(previous),b=holdings(next);
++ return a&&b&&a.size===b.size&&[...a].every(([id,model])=>b.get(id)===model);
++}
+ async function liveCityAccount(request,env,ctx){
+  const origin='https://localdatacentre.github.io';
+  const headers={'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Cache-Control':'no-store','Vary':'Origin'};
+@@ -195,7 +212,13 @@ async function liveCityAccount(request,env,ctx){
     return reply({...await file.json(),revision:file.etag});
   }
   if(p.action!=='save'||!p.city||p.city.v!==2||!Array.isArray(p.city.tiles)||!p.city.tiles.length||p.city.tiles.length>192*192||!Number.isFinite(p.city.cash)||typeof p.progress!=='string'||!/^[0-9a-f]{32}$/.test(p.progress)||!(p.revision===null||typeof p.revision==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(p.revision)))return reply({error:'Invalid city save.'},400);
@@ -11,6 +35,7 @@ index 3d28773..b73f626 100644
 + if(p.revision!==null&&current?.etag!==p.revision)return reply({error:'City changed. Reopen it before saving.'},409);
 + const previous=current?await current.json():{};
 + if((p.city.exchangeSequence??0)!==(previous.city?.exchangeSequence??0))return reply({error:'Load your latest Exchange rewards before saving.'},409);
++ if(!sameDiamondHoldings(previous.city,p.city))return reply({error:'Diamond ownership changed. Reopen your city.'},409);
 + const envelope={...previous,city:p.city,progress:p.progress};
 + const obj=await env.BUCKET.put(path,JSON.stringify(envelope),{onlyIf:p.revision===null?{etagDoesNotMatch:'*'}:{etagMatches:p.revision}});
   if(!obj)return reply({error:'Another browser saved this city. Reopen the game to load its latest save.'},409);
