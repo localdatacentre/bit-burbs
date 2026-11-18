@@ -1,5 +1,5 @@
 diff --git a/dist/banksia-exchange.html b/dist/banksia-exchange.html
-index 442e03e..4d406e1 100644
+index 442e03e..bdc60e6 100644
 --- a/dist/banksia-exchange.html
 +++ b/dist/banksia-exchange.html
 @@ -35,6 +35,18 @@ body[data-screen="vault"] #screen .tier-picks button{padding-inline:3px;--button
@@ -30,9 +30,13 @@ index 442e03e..4d406e1 100644
  const fortnight=14*86400000, baseline=120;
  const rotation=['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle'];
  function slot(now=Date.now()){return Math.min(rotation.length-1,Math.max(0,Math.floor((now-rotationStart)/fortnight)));}
-@@ -5869,11 +5881,12 @@ let screenNames={vault:'Buy crates',storage:'Storage',opening:'Opening',hub:'Mar
+@@ -5867,15 +5879,17 @@ function head(title,sub,kind='info'){return `<div class="page-head"><div><h2>${t
+ function rewardChips(){return `<div class="reward-line"><span class="chip">${icon('voucher')}1 crate voucher</span><span class="chip">${icon('dosh')}1 dosh</span></div>`;}
+ let screenNames={vault:'Buy crates',storage:'Storage',opening:'Opening',hub:'Market'};
  page=data.opening?'opening':'vault';
- function render(){
+-function render(){
++function render(showReceipt=true){
++ if(data.opening){page='opening';tierIndex=data.opening.tier;}
   document.body.dataset.screen=page;
 + document.body.style.setProperty('--opening-tier',tiers[data.opening?.tier??tierIndex][2]);
   data.stock ||= [0,0,0,0,0];
@@ -42,9 +46,12 @@ index 442e03e..4d406e1 100644
 - else if(page==='opening')$('#screen').innerHTML=head('Opening room','One crate, one reward',null)+`<div class="crate-plate"><div class="crate-tier"><b>${tiers[tierIndex][0]} crate</b><small>${data.stock[tierIndex]} stored</small></div><canvas data-crate="${tierIndex}"></canvas></div><button class="primary wide" style="--tier:${tiers[tierIndex][2]}" data-action="open-crate" ${data.stock[tierIndex]?'':'disabled'}>Open 1</button><button class="primary wide" data-action="open-three" ${data.stock[tierIndex]>=3?'':'disabled'}>Open 3</button><button class="quiet wide" data-page="storage">Choose from storage</button>`;
 + else if(page==='opening')$('#screen').innerHTML=head('Opening room','One crate, one reward',null)+`<div class="crate-plate"><div class="crate-tier"><b>${tiers[tierIndex][0]} crate</b><small>${data.stock[tierIndex]} stored</small></div><canvas data-crate="${tierIndex}"></canvas></div><button class="primary wide" style="--tier:${tiers[tierIndex][2]}" data-action="open-crate" ${data.stock[tierIndex]&&!data.crateInventoryError?'':'disabled'}>Open 1</button><button class="primary wide" data-action="open-three" ${data.stock[tierIndex]>=3&&!data.crateInventoryError?'':'disabled'}>Open 3</button><button class="quiet wide" data-page="storage">Choose from storage</button>`;
   else $('#screen').innerHTML=page==='hub'?renderHub():page==='diamond'?renderDiamond():renderVault();
-  paint();if(data.opening&&!animation)showOpening(true);
+- paint();if(data.opening&&!animation)showOpening(true);
++ paint();if(showReceipt&&data.opening&&!animation)showOpening(true);
  }
-@@ -5919,7 +5932,7 @@ function depotStage(i){
+ function renderWheel(){return head('Lucky Wheel','One free chance every 12 hours','wheel')+`<div class="panel"><div class="row"><span>${icon('ticket')} ${data.wallet.wheelTickets} banked tickets</span><span class="chip">Free spin ready</span></div><div style="display:grid;place-items:center;padding:30px">${icon('wheel','wheel-large')}</div><p class="muted">One spin · one prize</p><button class="primary wide" data-action="wheel-demo">Use free spin</button><p class="small">Tenth-spin bonus: +2 crate vouchers</p></div><div class="panel"><h3>Every chance, visible</h3><p>Restock vouchers · coins · dosh · deeds · crate vouchers</p><button class="quiet wide" data-action="wheel-odds">View all ten prize odds</button></div>`;}
+ function drawExchangeCrate(canvas,tier){
+@@ -5919,7 +5933,7 @@ function depotStage(i){
   return `<div class="stage"><canvas class="dock-scene" aria-hidden="true"></canvas><div class="plate" style="color:${tiers[i][2]}">${tiers[i][0]} crate</div><canvas class="cargo" data-crate="${i}" aria-label="${tiers[i][0]} crate"></canvas></div>`;
  }
  function renderVault(){
@@ -53,7 +60,7 @@ index 442e03e..4d406e1 100644
  }
  const taskList=[['Keep Patch Repairs selling',90,45,'challenging','selling minutes'],['Keep Grumbies selling',90,90,'challenging','selling minutes'],['Maintain business power',90,64,'challenging','active minutes'],['Receive Sprout Market delivery',1,0,'standard','delivery'],['Keep Sprout Market stocked',35,35,'standard','selling minutes'],['Order Starquacks stock',1,0,'standard','order'],['Receive four BinLink visits',4,2,'standard','visits'],['Earn through business sales',3208,3208,'straightforward','coins'],['Sell a Starquacks stock portion',12,12,'straightforward','selling minutes'],['Receive Grumbies delivery',1,1,'straightforward','delivery']];
  function renderTasks(){
-@@ -5929,7 +5942,7 @@ function renderTasks(){
+@@ -5929,7 +5943,7 @@ function renderTasks(){
  function renderBag(){return head('Item bag','Only things you own and can use',null)+`<div class="panel"><h3>MOVED BUILDINGS</h3><div class="grid">${data.ordinary.map((b,i)=>`<div class="tile">${art(b.model)}<div class="asset-name">${b.model==='house'?'Modern House':'Grumbies'}<br><span class="muted">Level ${b.level}</span></div><button data-ordinary="${i}">Place for free</button></div>`).join('')}</div></div><div class="panel"><div class="row"><div>${icon('boost')} 10-minute 2× boosts<p class="small muted">${data.boosts} stored · use when ready</p></div><button data-action="boost-demo" ${!data.boosts?'disabled':''}>Use one</button></div></div><div class="panel"><h3>WHERE ARE MY REWARDS?</h3><p>Coins, dosh, deeds and vouchers go straight to your balances.</p><button class="quiet wide" data-page="diamond"><span class="diamond-mark"></span> Open Diamond collection</button></div>`;}
  function renderDiamond(){
   const assets=diamondTab==='Catalogue'?Object.keys(models).map((model,i)=>({id:'catalogue-'+i,model,state:'catalogue'})):owned();
@@ -62,7 +69,7 @@ index 442e03e..4d406e1 100644
  }
  const modelIds={statue:'BB-D001',fountain:'BB-D002',sakura:'BB-D003',sunhouse:'BB-D004',pelicanLight:'BB-D005',tidalBaths:'BB-D006',civicClock:'BB-D007',needle:'BB-D008'};
  const marketDate=time=>new Date(time).toLocaleDateString('en-AU',{timeZone:'Australia/Brisbane',day:'numeric',month:'short',year:'numeric'});
-@@ -5968,20 +5981,29 @@ function renderHub(){
+@@ -5968,20 +5982,29 @@ function renderHub(){
   if(hubTab==='Sell')content=`<div class="panel"><h3>YOUR LISTINGS · ${mine.length}</h3>${mine.length?mine.map(l=>{const a=data.assets.find(a=>a.id===l.asset);return `<div class="table-row"><span>${models[a.model]}<br><span class="gold">${l.price} dosh</span></span><button class="quiet small" data-cancel-listing="${l.id}">Cancel</button></div>`;}).join(''):'<p class="muted">No active listings.</p>'}</div><div class="grid">${owned().filter(a=>released(a)&&(a.state==='inventory'||a.state==='placed')).map(a=>`<div class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><button data-sell="${a.id}" ${released(a)?'':'disabled'}>${!released(a)?'Market locked':a.state==='placed'?'Pack up to sell':'Set a price'}</button></div>`).join('')}</div>`;
   if(hubTab==='Activity')content=`<div class="panel"><h3>EXECUTED TRANSACTIONS</h3>${data.history.length?data.history.map(h=>`<div class="table-row"><span>${h.text}<br><span class="muted small">${h.time}</span></span><span>${h.amount??''}</span></div>`).join(''):'<p class="muted">Your purchases, completed sales appear here.</p>'}</div><p class="small muted">Asking prices are not sale prices. No transaction data is invented for a chart.</p>`;
   if(hubTab==='Activity')content+=rotation.slice(0,slot()).filter(m=>releaseSales(m).length).map(m=>'<div class="panel"><h3>'+models[m]+'</h3>'+priceHistory(m)+'</div>').join('');
@@ -98,7 +105,55 @@ index 442e03e..4d406e1 100644
  const rewardName=r=>r.kind==='diamond'?models[r.model]:r.kind==='boost'?'10-minute 2× boost':`${fmt(r.amount)} ${{cash:'coins',dosh:'dosh',deeds:r.amount===1?'deed':'deeds',wheelTickets:r.amount===1?'wheel ticket':'wheel tickets'}[r.kind]}`;
  function pick(tier){let roll=Math.random()*100,row=crateTables[tier].find(r=>(roll-=r[0])<0)||crateTables[tier].at(-1);return {kind:row[1],amount:row[3]?row[2]+Math.floor(Math.random()*(row[3]-row[2]+1)):row[2],...(row[1]==='diamond'?{model:featured()}: {})};}
  function rewardArt(r){return r.kind==='diamond'?art(r.model):icon({cash:'cash',dosh:'dosh',deeds:'deed',wheelTickets:'ticket',boost:'boost'}[r.kind]);}
-@@ -6039,9 +6061,9 @@ document.addEventListener('click',e=>{
+@@ -5997,6 +6020,7 @@ function openCrate(count=1){
+  });
+  data.opening={tier:tierIndex,winners,receipt,credited:true};
+  try{save();}catch{data=JSON.parse(prior);toast('Could not save the opening. Please retry.');return;}
++ render(false);
+  showOpening(false);
+ }
+ function showOpening(resume){
+@@ -6010,17 +6034,22 @@ function showOpening(resume){
+   return `<div class="reel-shell"><div class="reel">${cards.map(r=>`<div class="prize">${rewardArt(r)}<span>${rewardName(r)}</span></div>`).join('')}</div></div>`;
+  });
+  modal(tiers[opening.tier][0]+' × '+winners.length,tracks.join(''),[['Skip animation','skip-opening',true]]);
+- animation={timer:null};
+- requestAnimationFrame(()=>{
+-  if(!animation||data.opening!==opening)return;
+-  document.querySelectorAll('#modalRoot .reel').forEach((reel,index)=>{
+-   const card=reel.children[winnerIndex];
+-   const offset=reel.parentElement.clientWidth/2-(card.getBoundingClientRect().left-reel.getBoundingClientRect().left+card.offsetWidth/2);
++ const run={timer:null};
++ animation=run;
++ const reels=[...document.querySelectorAll('#modalRoot .reel')];
++ const center=(reel,index)=>{
++  const card=reel.children[index];
++  return reel.parentElement.clientWidth/2-(card.offsetLeft+card.offsetWidth/2);
++ };
++ for(const reel of reels)reel.style.transform='translateX('+center(reel,2)+'px)';
++ requestAnimationFrame(()=>requestAnimationFrame(()=>{
++  if(animation!==run||data.opening!==opening)return;
++  reels.forEach((reel,index)=>{
+    reel.style.transition='transform '+(rollMs+index*staggerMs)+'ms cubic-bezier(.17,.42,.44,1)';
+-   reel.style.transform='translateX('+offset+'px)';
++   reel.style.transform='translateX('+center(reel,winnerIndex)+'px)';
+   });
+-  animation.timer=setTimeout(reveal,rollMs+(winners.length-1)*staggerMs+holdMs);
+- });
++  run.timer=setTimeout(reveal,rollMs+(winners.length-1)*staggerMs+holdMs);
++ }));
+ }
+ function reveal(){
+  if(!data.opening)return;
+@@ -6031,6 +6060,7 @@ function reveal(){
+ function receipt(text,amount){data.history.unshift({text,amount,time:new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})});}
+ document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;
++ if(data.opening&&!['skip-opening','finish-opening'].includes(b.dataset.action))return;
+  if(b.dataset.edition){inspectEdition(b.dataset.edition);return;}
+  if(b.dataset.inspect!==undefined){tierIndex=Number(b.dataset.inspect);page='opening';render();return;}
+  if(b.dataset.page){page=b.dataset.page;closeModal();render();return;}
+@@ -6039,9 +6069,9 @@ document.addEventListener('click',e=>{
   if(b.dataset.diamond){diamondTab=b.dataset.diamond;render();return;}
   if(b.dataset.claim){const i=Number(b.dataset.claim);if(data.claims.includes(i))return;data.claims.push(i);data.wallet.crateVouchers++;data.wallet.dosh++;if(data.claims.length>=5&&!data.halfClaimed){data.halfClaimed=true;data.wallet.restockVouchers++;data.wallet.wheelTickets++;}if(data.claims.length===10&&!data.fullClaimed){data.fullClaimed=true;data.wallet.crateVouchers+=4;data.wallet.restockVouchers++;data.wallet.wheelTickets++;data.wallet.dosh+=2;}save();render();return;}
   if(b.dataset.replace){const i=Number(b.dataset.replace);modal('Replace this task?',`<p>${taskList[i][0]}</p><p class="muted">Your one free replacement keeps the same difficulty and reward. New progress starts at zero.</p>`,[['Keep task','close-modal'],['Replace','confirm-replace-'+i,true]]);return;}
@@ -111,7 +166,16 @@ index 442e03e..4d406e1 100644
   if(b.dataset.cancelListing){const l=data.listings.find(l=>l.id===b.dataset.cancelListing),a=data.assets.find(a=>a.id===l.asset);a.state='inventory';data.listings=data.listings.filter(x=>x.id!==l.id);save();render();return;}
   if(b.dataset.ordinary){toast('Placement preview: this ordinary building keeps its upgrade level and costs no coins to restore.');return;}
   const action=b.dataset.action;if(!action)return;
-@@ -6070,6 +6092,13 @@ function refreshRotation(){
+@@ -6051,7 +6081,7 @@ document.addEventListener('click',e=>{
+  if(action==='view-storage'){closeModal();page='storage';render();return;}
+  if(action==='open-crate'||action==='open-three'){openCrate(action==='open-three'?3:1);return;}
+  if(action==='skip-opening'){reveal();return;}
+- if(action==='finish-opening'){data.opening=null;save();animation=null;closeModal();render();return;}
++ if(action==='finish-opening'){const opening=data.opening;data.opening=null;try{save();}catch{data.opening=opening;toast('Could not close the reward. Try again.');return;}animation=null;closeModal();render();return;}
+  if(action.startsWith('confirm-replace-')){const i=Number(action.split('-').at(-1));if(!data.replaced){data.replaced=true;taskList[i][0]='Trade through Paper Finch Books';taskList[i][2]=0;save();}closeModal();render();return;}
+  if(action.startsWith('pack-')||action.startsWith('place-')){const placed=action.startsWith('place-'),id=action.slice(placed?6:5),a=data.assets.find(a=>a.id===id);if(a&&(a.state==='inventory'||a.state==='placed')){a.state=placed?'placed':'inventory';save();}closeModal();render();return;}
+  if(action.startsWith('confirm-buy-')){const [id,quoted]=action.slice(12).split('@'),l=data.listings.find(l=>l.id===id);if(!l){toast('This listing has already gone.');return;}const a=data.assets.find(a=>a.id===l.asset);if(!released(a))return;const price=marketPrice(l,a.model);if(Number(quoted)!==price){toast('Price changed. Review the listing again.');return;}if(a.owner==='you'||a.state!=='listed'||data.wallet.dosh<price){toast('This purchase is no longer available or your Dosh balance is too low.');return;}(data.sales||=[]).push({model:a.model,price:price,time:Date.now(),rotationSale:true});data.wallet.dosh-=price;a.owner='you';a.state='inventory';data.listings=data.listings.filter(x=>x.id!==id);receipt('Bought '+models[a.model],'-'+price+' dosh');save();closeModal();render();toast('Added to your Diamond collection. This was a local demo purchase.');return;}
+@@ -6070,6 +6100,13 @@ function refreshRotation(){
   if(slot()<rotation.length-1)setTimeout(()=>{if(!data.opening){closeModal();render();}refreshRotation();},Math.min(2147483647,Math.max(1,next-Date.now())));
  }
  refreshRotation();
@@ -129,7 +193,7 @@ index 442e03e..4d406e1 100644
  </script></body></html>
 \ No newline at end of file
 diff --git a/dist/exchange-account.js b/dist/exchange-account.js
-index afd0503..4c9e578 100644
+index afd0503..233749f 100644
 --- a/dist/exchange-account.js
 +++ b/dist/exchange-account.js
 @@ -1,5 +1,10 @@
@@ -239,7 +303,7 @@ index afd0503..4c9e578 100644
 +  if(request.accountRef!==data.accountRef)throw Error('Pending command belongs to a different city.');
 +  if(!saved)sessionStorage.setItem(key,JSON.stringify(request));
 +  useShared(await sendSavedCommand(request));closeModal();
-+  if(request.action==='open'&&!saved)showOpening(false);else render();
++  if(request.action==='open'&&!saved){render(false);showOpening(false);}else render();
   }catch(err){
 -  try{const view=await exchangeFetch();if(view.name)useShared(view);}catch{}
 -  render();if(!data.opening)toast(err.message);
