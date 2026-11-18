@@ -28,6 +28,23 @@ assert.deepEqual(first.city.tiles.slice(40),tiles.slice(40));
 for(const key of ['storedBuildings','shopItems','items','restockVouchers','tickets','boostUntil'])assert.deepEqual(first.city[key],city[key]);
 const repeat=run(JSON.parse(JSON.stringify(first)),review,stages);
 assert.deepEqual(repeat,first);
+// A delayed retry can arrive after the player has already spent the credit
+// and built on one of the vacated plots. A receipt must also protect that save.
+const played = structuredClone(first);
+played.city.cash -= 20000;
+played.city.stars -= 10;
+played.city.crateVouchers -= 14;
+const reused = review.plots[0].index;
+played.city.tiles[reused] = {id: 'needle', diamondCopyId: 'newly-placed-copy'};
+played.city.tiles[reused + 1] = {id: '_occ', ref: [reused % 8, Math.floor(reused / 8)]};
+played.city.storedBuildings.push(
+  {building: {id: 'sakura', diamondCopyId: 'packed-after-release'}},
+  {id: 'sunhouse'}
+);
+const afterPlay = JSON.parse(JSON.stringify(played));
+assert.deepEqual(run(played, review, stages), afterPlay);
+assert.deepEqual(played, afterPlay);
+console.log('PASS delayed refund retry preserves spending, rebuilt plots and newly packed buildings');
 // Reject incomplete footprints before preparing a removal or credit.
 for(const broken of [{id:'_occ'},{id:'_occ',ref:[0,0,0]},{id:'_occ',ref:[7,7]},{id:'_occ',ref:[1,0]}]){
   const damaged=structuredClone(snapshot);
