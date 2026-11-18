@@ -1,5 +1,5 @@
 diff --git a/hosting/catalogue-worker.js b/hosting/catalogue-worker.js
-index eb921be..1675c44 100644
+index eb921be..8c626e2 100644
 --- a/hosting/catalogue-worker.js
 +++ b/hosting/catalogue-worker.js
 @@ -164,6 +164,23 @@ async function usernameCity(p,bucket,reply){
@@ -26,7 +26,7 @@ index eb921be..1675c44 100644
  async function liveCityAccount(request,env,ctx){
   const origin='https://localdatacentre.github.io';
   const headers={'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Cache-Control':'no-store','Vary':'Origin'};
-@@ -195,7 +212,20 @@ async function liveCityAccount(request,env,ctx){
+@@ -195,7 +212,29 @@ async function liveCityAccount(request,env,ctx){
     return reply({...await file.json(),revision:file.etag});
   }
   if(p.action!=='save'||!p.city||p.city.v!==2||!Array.isArray(p.city.tiles)||!p.city.tiles.length||p.city.tiles.length>192*192||!Number.isFinite(p.city.cash)||typeof p.progress!=='string'||!/^[0-9a-f]{32}$/.test(p.progress)||!(p.revision===null||typeof p.revision==='string'&&/^[a-zA-Z0-9_-]{1,128}$/.test(p.revision)))return reply({error:'Invalid city save.'},400);
@@ -41,6 +41,15 @@ index eb921be..1675c44 100644
 +     !['silver','gold','diamond','premium'].every(k=>prior.converted?.[k]===current.converted?.[k])||
 +     Object.values(p.city.crates??{}).some(n=>n!==0)||Object.values(p.city.keys??{}).some(n=>n!==0))
 +    return reply({error:'Load the converted crate inventory before saving.'},409);
++ }
++ // Only the separately approved compensation operation may create this receipt.
++ const refund=previous.city?.legacyDiamondRefund, submitted=p.city.legacyDiamondRefund;
++ if(refund||submitted){
++  if(!refund||!submitted||!['version','canonical','coins','dosh'].every(k=>refund[k]===submitted[k])||
++     !Array.isArray(refund.plots)||!Array.isArray(submitted.plots)||refund.plots.length!==submitted.plots.length||
++     !refund.plots.every((plot,i)=>plot.index===submitted.plots[i]?.index&&plot.model===submitted.plots[i]?.model))
++   return reply({error:'Compensation record changed. Reopen your city before saving.'},409);
++  p.city.legacyDiamondRefund=refund;
 + }
 + if(!sameDiamondHoldings(previous.city,p.city))return reply({error:'Diamond ownership changed. Reopen your city.'},409);
 + const envelope={...previous,city:p.city,progress:p.progress};
