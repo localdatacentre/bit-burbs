@@ -2,11 +2,12 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {runCityCrateCommand}=require('../city-crate-command.js');
 const {settleCityExchange}=require('../city-exchange.js');
+const {prepareCrateConversion}=require('../crate-conversion.js');
 const apply=vm.runInNewContext(fs.readFileSync(process.argv[2],'utf8')+';exchangeApply',{crypto:{randomUUID:crypto.randomUUID,getRandomValues:x=>x.fill(4294967295)}});
 (async()=>{
 let record={city:{v:2,crateVouchers:240},progress:'keep'},etag=1;
 const bucket={get:async()=>{let v=structuredClone(record);return {etag:String(etag),json:async()=>v}},put:async(k,v,{onlyIf})=>{if(onlyIf.etagMatches!==String(etag))return null;record=JSON.parse(v);return {etag:String(++etag)}}};
-const run=c=>runCityCrateCommand(bucket,'a'.repeat(64),c,apply,settleCityExchange);
+const run=c=>runCityCrateCommand(bucket,'a'.repeat(64),c,apply,settleCityExchange,prepareCrateConversion);
 const cmd=(action,revision)=>({action,revision,tier:4,count:3,requestId:crypto.randomUUID()});
 for(let i=0;i<3;i++){const c=cmd('crate',i);await Promise.all([run(c),run(c)]);}
 assert.equal(record.city.crateVouchers,0);

@@ -2,7 +2,7 @@
 
 // Worker adapter for the Exchange crate, open and finish buttons. The caller
 // supplies the linked canonical ID and the playtest's server-side exchangeApply.
-async function runCityCrateCommand(bucket, playerId, command, exchangeApply, settleCityExchange) {
+async function runCityCrateCommand(bucket, playerId, command, exchangeApply, settleCityExchange, convertCrates) {
   if (!/^[a-f0-9]{64}$/.test(playerId) || typeof playerId !== 'string') throw Error('Invalid city');
   if (!['crate', 'open', 'finish'].includes(command.action) ||
       !/^[a-f0-9-]{36}$/i.test(command.requestId) ||
@@ -13,11 +13,12 @@ async function runCityCrateCommand(bucket, playerId, command, exchangeApply, set
     const file = await bucket.get(path);
     if (!file?.etag) throw Error('City missing');
     const record = await file.json();
-    const city = record.city;
-    if (city?.v !== 2) throw Error('Invalid city save');
+    if (record.city?.v !== 2) throw Error('Invalid city save');
     const exchange = record.crateExchange ?? {revision: 0, stock: [0,0,0,0,0], opening: null, pendingCopies: []};
     if (exchange.last === command.requestId && exchange.revision === command.revision + 1) return exchange;
     if (command.revision !== exchange.revision) throw Error('Refresh crate storage');
+    // The voucher credit and crate debit share the same city revision.
+    const city = command.action === 'finish' ? record.city : convertCrates(record.city);
     const player = {
       wallet: {crateVouchers: city.crateVouchers ?? 0, cash: 0, dosh: 0, deeds: 0, wheelTickets: 0},
       boosts: 0, stock: [...exchange.stock], opening: exchange.opening
