@@ -1,5 +1,18 @@
+diff --git a/dist/banksia-exchange.html b/dist/banksia-exchange.html
+index 44552af..4212447 100644
+--- a/dist/banksia-exchange.html
++++ b/dist/banksia-exchange.html
+@@ -5793,7 +5793,7 @@ const $=s=>document.querySelector(s),models={sakura:'Flowering Gum',fountain:'Gr
+ const modelKeys={sakura:'cherry',fountain:'fountain',statue:'bull',sunhouse:'sunhouse',pelicanLight:'pelicanLight',tidalBaths:'tidalBaths',civicClock:'civicClock',needle:'needle',house:'m1'};
+ const tiers=[['Silver',2,'#bac8dc','steel'],['Gold',6,'#f0cc65','gold'],['Emerald',14,'#6ce1ac','gold'],['Ruby',30,'#f18b9e','diamond'],['Diamond',80,'#8de5ef','diamond']];
+ const uid=()=>crypto.randomUUID(),key='bit-burbs:banksia-exchange:preview1';
+-const rotationStart=Date.parse('2026-11-18T07:25:00+10:00');
++let rotationStart=Date.parse('2026-11-18T07:25:00+10:00');
+ const fortnight=14*86400000, baseline=120;
+ const rotation=['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle'];
+ function slot(now=Date.now()){return Math.min(rotation.length-1,Math.max(0,Math.floor((now-rotationStart)/fortnight)));}
 diff --git a/dist/exchange-account.js b/dist/exchange-account.js
-index 8b450f3..cba6360 100644
+index 8b450f3..25c7b81 100644
 --- a/dist/exchange-account.js
 +++ b/dist/exchange-account.js
 @@ -1,5 +1,10 @@
@@ -13,7 +26,7 @@ index 8b450f3..cba6360 100644
  const incomingLink=new URLSearchParams(location.hash.slice(1)).get('link');
  if(incomingLink)sessionStorage.setItem('exchange-invite',incomingLink);
  const accountBar=document.getElementById('exchangeAccount');
-@@ -9,10 +14,21 @@ async function exchangeFetch(body){
+@@ -9,10 +14,22 @@ async function exchangeFetch(body){
   return result;
  }
  function useShared(view){
@@ -23,6 +36,7 @@ index 8b450f3..cba6360 100644
 +  showExchangeControls(false);
 +  throw Error('Open the Exchange with the account linked to '+requestedCity+'.');
 + }
++ rotationStart=view.rotationStart;
 + showExchangeControls(true);
 + shared=true;data={...view,ordinary:[],settings:{motion:false},claims:[]};
 + accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · City balance '));
@@ -37,7 +51,7 @@ index 8b450f3..cba6360 100644
  async function loadExchange(){
   if(marketBusy||animation)return;
   marketBusy=true;
-@@ -20,18 +36,19 @@ async function loadExchange(){
+@@ -20,18 +37,19 @@ async function loadExchange(){
    const token=sessionStorage.getItem('exchange-invite');
    const view=await exchangeFetch(token?{action:'link',token}:null);
    if(token){sessionStorage.removeItem('exchange-invite');history.replaceState(null,'',location.pathname+location.search);}
@@ -60,7 +74,7 @@ index 8b450f3..cba6360 100644
    if(command.action==='open')showOpening(false);else render();
   }catch(err){
    try{const view=await exchangeFetch();if(view.name)useShared(view);}catch{}
-@@ -40,6 +57,7 @@ async function settle(command){
+@@ -40,6 +58,7 @@ async function settle(command){
  }
  function sharedRoutes(b){
   const d=b.dataset,a=d.action||'';
@@ -68,7 +82,7 @@ index 8b450f3..cba6360 100644
   if(d.cancelListing)return {action:'unlist',listing:d.cancelListing};
   if(d.cancelTrade)return {action:'cancel',trade:d.cancelTrade};
   if(a==='buy-crate')return {action:'crate',tier:tierIndex};
-@@ -58,6 +76,9 @@ function tradeChoice(){
+@@ -58,6 +77,9 @@ function tradeChoice(){
  }
  document.addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!shared)return;
@@ -91,17 +105,32 @@ index 15f8274..5f59f69 100644
 +market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
 +out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + (root / "hosting/catalogue-worker.js").read_text())
 diff --git a/hosting/exchange.js b/hosting/exchange.js
-index 3d6e62e..f6e21ae 100644
+index 3d6e62e..f8f7113 100644
 --- a/hosting/exchange.js
 +++ b/hosting/exchange.js
-@@ -1,5 +1,5 @@
+@@ -1,14 +1,17 @@
  // A single conditional write settles both sides of each playtest transaction.
 -const exchangeKey='exchange/v1/ledger';
 +const exchangeKey='exchange/v2/ledger';
  const exchangeRotation=['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle'];
- const exchangeStart=Date.parse('2026-11-18T07:25:00+10:00');
+-const exchangeStart=Date.parse('2026-11-18T07:25:00+10:00');
++function exchangeSlot(start,now){
++ if(!Number.isSafeInteger(start)||start<0)throw Error('Edition calendar unavailable');
++ return Math.max(0,Math.min(exchangeRotation.length-1,Math.floor((now-start)/1209600000)));
++}
  const exchangeCosts=[2,6,14,30,80];
-@@ -82,6 +82,32 @@ function exchangeView(s,id){
+ const exchangeTables=[[[45,'cash',1500,3000],[25,'dosh',10,20],[25,'deeds',1],[4,'wheelTickets',1],[1,'deeds',2]],[[35,'cash',8000,12000],[25,'dosh',20,30],[30,'deeds',1],[10,'wheelTickets',1]],[[25,'cash',18000,30000],[25,'dosh',40,60],[38,'deeds',2],[12,'wheelTickets',2]],[[20,'cash',45000,70000],[20,'dosh',90,130],[35,'deeds',4],[15,'wheelTickets',3],[10,'boost',1]],[[15,'cash',150000,220000],[20,'dosh',250,350],[30,'deeds',12],[15,'wheelTickets',8],[10,'boost',1],[10,'diamond',1]]];
+ const emptyExchange=()=>({players:{},links:{},invites:{},assets:[],listings:[],trades:[],sales:[],events:[]});
+ function exchangeCheck(condition,message){if(!condition)throw new Error(message);}
+ async function readExchange(bucket){const obj=await bucket.get(exchangeKey);return {state:obj?await obj.json():emptyExchange(),etag:obj?.etag};}
+-function exchangeApply(s,id,c,now){
+- const p=s.players[id],slot=Math.max(0,Math.min(7,Math.floor((now-exchangeStart)/1209600000)));
++function exchangeApply(s,id,c,now,start=s.rotationStart??now){
++ const p=s.players[id],slot=exchangeSlot(start,now);
+  const asset=k=>s.assets.find(a=>a.id===k);
+  const available=(a,owner,state)=>a&&a.owner===owner&&a.state===state;
+  const unlocked=a=>exchangeRotation.indexOf(a.model)>=0&&exchangeRotation.indexOf(a.model)<slot;
+@@ -82,6 +85,32 @@ function exchangeView(s,id){
   trades:s.trades.filter(t=>[t.from,t.to].includes(id)).map(t=>({...t,from:label(t.from),to:label(t.to)})),
   history:exchangeSummary(s,id).events.map(e=>({text:e.kind+(e.other?' · '+(e.actor===p.name?e.other:e.actor):''),time:new Date(e.at).toISOString(),amount:e.price??''}))};
  }
@@ -129,12 +158,12 @@ index 3d6e62e..f6e21ae 100644
 + const file=await bucket.get('live-city/roster2/'+id);
 + if(!file)throw Error('Linked city missing');
 + latest.players[id]=cityExchangePlayer(latest.players[id],await file.json());
-+ return {...exchangeView(latest,id),crateRevision:latest.players[id].crateRevision};
++ return {...exchangeView(latest,id),rotationStart:latest.rotationStart,crateRevision:latest.players[id].crateRevision};
 +}
  async function exchangeApi(request,env){
   const bucket=env.BUCKET,uid=request.headers.get('oai-authenticated-user-id');
   if(!uid)return json({error:'Sign in to connect your player account.'},401);
-@@ -104,7 +130,7 @@ async function exchangeApi(request,env){
+@@ -104,7 +133,7 @@ async function exchangeApi(request,env){
   }
   for(let attempt=0;attempt<5;attempt++){
    const {state:s,etag}=await readExchange(bucket);let id=s.links[subject],result;
@@ -143,7 +172,7 @@ index 3d6e62e..f6e21ae 100644
    if(ownerInvite){
     if(s.players[city])return json({error:'Player already linked.'},409);
     for(const k of Object.keys(s.invites))if(s.invites[k].city===city||s.invites[k].expires<Date.now())delete s.invites[k];
-@@ -112,19 +138,33 @@ async function exchangeApi(request,env){
+@@ -112,19 +141,34 @@ async function exchangeApi(request,env){
    }else if(c.action==='link'){
     if(typeof c.token!=='string')return json({error:'Invite required.'},400);
     const hash=await recoveryHash(c.token),invite=s.invites[hash];
@@ -154,6 +183,7 @@ index 3d6e62e..f6e21ae 100644
 +   if(!cityFile||(await cityFile.json()).city?.v!==2)return json({error:'Save your city before linking.'},409);
     id=invite.city;s.links[subject]=id;delete s.invites[hash];
 -   s.players[id]={name:invite.name,revision:0,wallet:{cash:125400,dosh:420,crateVouchers:98,deeds:8,restockVouchers:4,wheelTickets:3},stock:[0,0,0,0,0],boosts:0,opening:null};
++   s.rotationStart??=Date.now();
 +   s.players[id]={name:invite.name,revision:0};
    }else{
     if(!id)return json({error:'Link your city first.'},403);
@@ -161,12 +191,12 @@ index 3d6e62e..f6e21ae 100644
 +   const p=s.players[id];if(c.account!==p.name)return json({error:'Account changed. Refresh the market.'},409);if(['crate','open','finish','buy','place','pack'].includes(c.action)){
 +    try{
 +     if(c.action==='buy'){
-+      const slot=Math.min(7,Math.floor((Date.now()-exchangeStart)/1209600000));
++      const slot=exchangeSlot(s.rotationStart,Date.now());
 +      const released=a=>exchangeRotation.includes(a.model)&&exchangeRotation.indexOf(a.model)<slot;
 +      const sale=await purchaseMarketListing(bucket,id,c,released,settleReservedSale);
 +      if(sale.state==='declined')return json({error:'More dosh needed.'},409);
 +     }else if(c.action==='place'||c.action==='pack')await moveMarketCopy(bucket,id,c);
-+     else await runCityCrateCommand(bucket,id,c,exchangeApply,settleCityExchange);
++     else await runCityCrateCommand(bucket,id,c,(state,player,cmd,now)=>exchangeApply(state,player,cmd,now,s.rotationStart),settleCityExchange);
 +     return json(await linkedExchangeView(bucket,id));
 +    }catch(e){return json({error:e.message},409);}
 +   }
@@ -194,7 +224,7 @@ index c9765f2..87c5f84 100644
    }
    cursor=page.truncated?page.cursor:undefined;
 diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
-index c438fba..8841029 100644
+index c438fba..5020998 100644
 --- a/tests/exchange-ledger.cjs
 +++ b/tests/exchange-ledger.cjs
 @@ -7,8 +7,14 @@ const bucket={
@@ -238,7 +268,7 @@ index c438fba..8841029 100644
    assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
    assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
    await act(name,{action:'finish',receipt:o.receipt});
-@@ -35,11 +45,32 @@ async function act(name,body,expected=200){
+@@ -35,11 +45,36 @@ async function act(name,body,expected=200){
   const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
   await act('alice',{action:'list',asset:alice,price:120},409);
   ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
@@ -269,6 +299,10 @@ index c438fba..8841029 100644
 +   assert.deepEqual(views[user].wallet,previous.wallet);
 + }
 + assert.equal(records.has('exchange/v1/ledger'),false);
++ const start=views.alice.rotationStart;
++ assert.equal(start,Date.parse('2026-11-20T00:00Z'));
++ assert.equal(ctx.exchangeSlot(start,start+14*86400000-1),0);
++ assert.equal(ctx.exchangeSlot(start,start+14*86400000),1);
   await act('ben',{action:'offer',asset:ben,want:cam});const trade=views.ben.trades[0].id;
   await act('alice',{action:'accept',trade},409);await act('cam',{action:'accept',trade});
   assert.equal(views.cam.assets.find(a=>a.id===ben).owner,'you');
