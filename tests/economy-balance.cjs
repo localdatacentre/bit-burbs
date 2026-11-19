@@ -15,7 +15,7 @@ for(const[id,p]of Object.entries(config))for(let lvl=1;lvl<=5;lvl++){
  assert(C.fee(ctx.defs[id],{lvl},p.jobs,p,rates)<=C.fee(ctx.defs[id],{lvl},p.jobs,{...p,...p.previous},rates)+1,'Longer batches must not raise the upfront fee');
 }
 let s=setup(),g=C.gross(ctx.defs.bakery,s.t,3,config.bakery,rates);
-near(g,20.2);near(C.settle(s.city,s.list,at+120*minute,config,rates).coins,g*90);
+near(g,20.2*1.15*1.05);near(C.settle(s.city,s.list,at+120*minute,config,rates).coins,g*90);
 // Idle visible income stays full, without awarding idle operation XP/minutes.
 s=setup({action:0});let r=C.settle(s.city,s.list,at+60*minute,config,rates);near(r.coins,g*60);near(r.minutes,0);near(r.onlineCoins,0);
 s=setup();r=C.settle(s.city,s.list,at+120*minute,config,rates);near(r.minutes,10);

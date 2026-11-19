@@ -8639,7 +8639,7 @@ const randomKey=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.t
 async function cityApi(body){
  body.roster='beta-roster-2';
  if(!body.account&&body.name&&['open','revision','save'].includes(body.action))body.account=localStorage.getItem(localSlot(body.name)+':login-name');
- const response=await fetch('https://bit-burbs-banksia-playtest.enchantingdish1.chatgpt.site/api/live-city',{method:'POST',credentials:'omit',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(18000)});
+ const response=await fetch(globalThis.BBStage ? '/staging/api/city' : 'https://bit-burbs-banksia-playtest.enchantingdish1.chatgpt.site/api/live-city',{method:'POST',credentials:globalThis.BBStage?'same-origin':'omit',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(18000)});
  const data=await response.json();
  if(!response.ok){const e=new Error(data.error||'Cloud save unavailable.');e.status=response.status;throw e}
  return data;
@@ -9489,6 +9489,8 @@ function migrate(d) {
 function saveJSON() { return JSON.stringify(S, (k, v) => k === '_' ? undefined : v); }
 let progressBusy=false,lastProgress=0;
 async function reportProgress(force=false){
+ if(globalThis.BBStage)return; // Staging presence is recorded on its own server.
+
  if(!username)return;
  if(!namedPlay||progressBusy||(!force&&Date.now()-lastProgress<60000))return;
  progressBusy=true;lastProgress=Date.now();
@@ -12753,7 +12755,7 @@ async function openCityExchange(){
   try{
     localStorage.setItem(SAVE_KEY,saveJSON());
     if(!await pushCity(true))return;
-    const target=new URL('https://bit-burbs-banksia-playtest.enchantingdish1.chatgpt.site/banksia-exchange.html');
+    const target=new URL(globalThis.BBStage ? '/staging/market?page=vault' : 'https://bit-burbs-banksia-playtest.enchantingdish1.chatgpt.site/banksia-exchange.html',location.href);
     target.searchParams.set('city',username);
     location.assign(target.href);
   }catch{toast('Could not sync the city. Try again before opening the Exchange.');}
@@ -14574,7 +14576,7 @@ async function playRemodelDemo() {
 
 <script>
 </script>
-<script>if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js",{updateViaCache:"none"}).then(reg=>reg.update()).catch(()=>{}));</script>
+<script>if(!globalThis.BBStage && "serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js",{updateViaCache:"none"}).then(reg=>reg.update()).catch(()=>{}));</script>
 </body>
 </html>
 
