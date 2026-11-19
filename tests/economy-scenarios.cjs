@@ -16,7 +16,7 @@ function simulate(ids,balanced,days=7){
  }
  return {net:Math.round(gross-fees),gross:Math.round(gross),fees,orders};
 }
-const groups={early:['bakery','workshop','coffee'],middle:['bakery','workshop','coffee','books','fishchips','record','grocery','spindleCycles','gym'],established:Object.keys(config)};
+const groups={early:['bakery','workshop','coffee'],middle:['bakery','workshop','coffee','books','fishchips','record','grocery','spindleCycles','orbital-gym'],established:Object.keys(config)};
 const results=Object.fromEntries(Object.entries(groups).map(([name,ids])=>[name,{businessCapital:ids.reduce((n,id)=>n+quotes[id].first,0),jobs:ids.reduce((n,id)=>n+config[id].jobs,0),before:simulate(ids,false),after:simulate(ids,true)}]));
 const rows=Object.entries(config).map(([id,p])=>{const d=defs[id],t={lvl:1},old={...p,...p.previous};const before=C.gross(d,t,p.jobs,old,rates),after=C.gross(d,t,p.jobs,p,rates);return {id,name:d.name,old:before,now:after,oldStock:old.stock,stock:p.stock,oldDelivery:old.delivery,delivery:p.delivery,oldFee:C.fee(d,t,p.jobs,old,rates),fee:C.fee(d,t,p.jobs,p,rates),oldROI:quotes[id].first/((before*old.stock-C.fee(d,t,p.jobs,old,rates))/(old.stock+old.delivery))/60,ROI:quotes[id].first/((after*p.stock-C.fee(d,t,p.jobs,p,rates))/(p.stock+p.delivery))/60};});
 let xp=0;for(let l=1;l<100;l++)xp+=C.need(l);

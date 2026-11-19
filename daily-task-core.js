@@ -161,7 +161,7 @@ function select(pool,seed,previous=[],resources) {
 }
 function assign(saved,s,player,at,previous=[],sessionEvents) {
   const day=Core.cycle(at);
-  if(saved?.day===day && saved.status!=='empty')return clone(saved);
+  if(saved?.day===day && saved.status!=='empty' && !(saved.status==='blocked' && sessionEvents))return clone(saved);
   let result;
   if(sessionEvents){
     const tasks=sessionGoals(s,at,sessionEvents,player,previous);

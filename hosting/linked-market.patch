@@ -1,0 +1,846 @@
+diff --git a/dist/banksia-exchange.html b/dist/banksia-exchange.html
+index 442e03e..bdc60e6 100644
+--- a/dist/banksia-exchange.html
++++ b/dist/banksia-exchange.html
+@@ -35,6 +35,18 @@ body[data-screen="vault"] #screen .tier-picks button{padding-inline:3px;--button
+ body[data-screen="vault"] #screen .tier-picks button[aria-pressed="true"],
+ body:is([data-screen="vault"],[data-screen="storage"],[data-screen="opening"]) #screen button:is([data-action="buy-crate"],[data-inspect],[data-action="open-crate"]):not(:disabled){--button-fill:var(--tier,#9fe8f3);--button-text:#15122e}
+ body:is([data-screen="opening"],[data-screen="storage"],[data-screen="vault"]) :is(#screen,#modalRoot) button:is([data-action="open-three"],.primary):not(:disabled):not([data-action="buy-crate"],[data-action="open-crate"]){--button-fill:#ceb0ff;--button-text:#15122e}
++
++body[data-screen="opening"] #pageNav button[aria-current="page"],
++body[data-screen="opening"] #screen button:is([data-action="open-crate"],[data-action="open-three"],[data-page="storage"]):not(:disabled),
++#modalRoot button:is([data-action="skip-opening"],[data-action="finish-opening"]):not(:disabled){
++  --button-fill:var(--opening-tier);--button-text:#15122e
++}
++body[data-screen="opening"] #screen button:disabled{--button-fill:color-mix(in srgb,var(--opening-tier) 28%,#202538)}
++body[data-screen="opening"] #screen .crate-plate,
++body[data-screen="opening"] #modalRoot .dialog{border-color:color-mix(in srgb,var(--opening-tier) 42%,#202538)}
++#modalRoot .reel-shell{background:#101922;background:color-mix(in srgb,var(--opening-tier) 12%,#101622);border-color:color-mix(in srgb,var(--opening-tier) 40%,#202538)}
++#modalRoot .reel-shell .prize{background:#29394c;background:color-mix(in srgb,var(--opening-tier) 24%,#141a28);border-bottom-color:var(--opening-tier)}
++#modalRoot .reel-shell::after{background:var(--opening-tier);box-shadow:0 0 6px var(--opening-tier)}
+ </style></head><body>
+ <div class="exchange"><header><h1>Banksia Exchange</h1><small>PLAYTEST</small><div id="wallet"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>
+ // Local coordinates are sixteenths of a tile. The kerb endpoints match the
+@@ -5819,7 +5831,7 @@ const $=s=>document.querySelector(s),models={sakura:'Flowering Gum',fountain:'Gr
+ const modelKeys={sakura:'cherry',fountain:'fountain',statue:'bull',sunhouse:'sunhouse',pelicanLight:'pelicanLight',tidalBaths:'tidalBaths',civicClock:'civicClock',needle:'needle',house:'m1'};
+ const tiers=[['Silver',2,'#bac8dc','steel'],['Gold',6,'#f0cc65','gold'],['Emerald',14,'#6ce1ac','gold'],['Ruby',30,'#f18b9e','diamond'],['Diamond',80,'#8de5ef','diamond']];
+ const uid=()=>crypto.randomUUID(),key='bit-burbs:banksia-exchange:preview1';
+-const rotationStart=Date.parse('2026-11-18T07:25:00+10:00');
++let rotationStart=Date.parse('2026-11-18T07:25:00+10:00');
+ const fortnight=14*86400000, baseline=120;
+ const rotation=['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle'];
+ function slot(now=Date.now()){return Math.min(rotation.length-1,Math.max(0,Math.floor((now-rotationStart)/fortnight)));}
+@@ -5867,15 +5879,17 @@ function head(title,sub,kind='info'){return `<div class="page-head"><div><h2>${t
+ function rewardChips(){return `<div class="reward-line"><span class="chip">${icon('voucher')}1 crate voucher</span><span class="chip">${icon('dosh')}1 dosh</span></div>`;}
+ let screenNames={vault:'Buy crates',storage:'Storage',opening:'Opening',hub:'Market'};
+ page=data.opening?'opening':'vault';
+-function render(){
++function render(showReceipt=true){
++ if(data.opening){page='opening';tierIndex=data.opening.tier;}
+  document.body.dataset.screen=page;
++ document.body.style.setProperty('--opening-tier',tiers[data.opening?.tier??tierIndex][2]);
+  data.stock ||= [0,0,0,0,0];
+  document.querySelector('#pageNav').innerHTML=Object.entries(screenNames).map(([id,name])=>'<button data-page="'+id+'" '+(page===id?'aria-current="page"':'')+'>'+name+'</button>').join('');
+  $('#wallet').innerHTML=icon('crateVoucher')+' '+fmt(data.wallet.crateVouchers)+' &nbsp; '+icon('dosh')+' '+fmt(data.wallet.dosh);
+  if(page==='storage')$('#screen').innerHTML=head('Crate storage','Your unopened crates',null)+tiers.map(([name],i)=>`<div class="panel row"><canvas width="52" height="46" data-crate="${i}"></canvas><b>${name} × ${data.stock[i]}</b><button style="--tier:${tiers[i][2]}" data-inspect="${i}" ${data.stock[i]?'':'disabled'}>Select</button></div>`).join('');
+- else if(page==='opening')$('#screen').innerHTML=head('Opening room','One crate, one reward',null)+`<div class="crate-plate"><div class="crate-tier"><b>${tiers[tierIndex][0]} crate</b><small>${data.stock[tierIndex]} stored</small></div><canvas data-crate="${tierIndex}"></canvas></div><button class="primary wide" style="--tier:${tiers[tierIndex][2]}" data-action="open-crate" ${data.stock[tierIndex]?'':'disabled'}>Open 1</button><button class="primary wide" data-action="open-three" ${data.stock[tierIndex]>=3?'':'disabled'}>Open 3</button><button class="quiet wide" data-page="storage">Choose from storage</button>`;
++ else if(page==='opening')$('#screen').innerHTML=head('Opening room','One crate, one reward',null)+`<div class="crate-plate"><div class="crate-tier"><b>${tiers[tierIndex][0]} crate</b><small>${data.stock[tierIndex]} stored</small></div><canvas data-crate="${tierIndex}"></canvas></div><button class="primary wide" style="--tier:${tiers[tierIndex][2]}" data-action="open-crate" ${data.stock[tierIndex]&&!data.crateInventoryError?'':'disabled'}>Open 1</button><button class="primary wide" data-action="open-three" ${data.stock[tierIndex]>=3&&!data.crateInventoryError?'':'disabled'}>Open 3</button><button class="quiet wide" data-page="storage">Choose from storage</button>`;
+  else $('#screen').innerHTML=page==='hub'?renderHub():page==='diamond'?renderDiamond():renderVault();
+- paint();if(data.opening&&!animation)showOpening(true);
++ paint();if(showReceipt&&data.opening&&!animation)showOpening(true);
+ }
+ function renderWheel(){return head('Lucky Wheel','One free chance every 12 hours','wheel')+`<div class="panel"><div class="row"><span>${icon('ticket')} ${data.wallet.wheelTickets} banked tickets</span><span class="chip">Free spin ready</span></div><div style="display:grid;place-items:center;padding:30px">${icon('wheel','wheel-large')}</div><p class="muted">One spin · one prize</p><button class="primary wide" data-action="wheel-demo">Use free spin</button><p class="small">Tenth-spin bonus: +2 crate vouchers</p></div><div class="panel"><h3>Every chance, visible</h3><p>Restock vouchers · coins · dosh · deeds · crate vouchers</p><button class="quiet wide" data-action="wheel-odds">View all ten prize odds</button></div>`;}
+ function drawExchangeCrate(canvas,tier){
+@@ -5919,7 +5933,7 @@ function depotStage(i){
+  return `<div class="stage"><canvas class="dock-scene" aria-hidden="true"></canvas><div class="plate" style="color:${tiers[i][2]}">${tiers[i][0]} crate</div><canvas class="cargo" data-crate="${i}" aria-label="${tiers[i][0]} crate"></canvas></div>`;
+ }
+ function renderVault(){
+- const t=tiers[tierIndex];return depotStage(tierIndex)+(tierIndex===4?featurePanel():'')+`<div class="tier-picks">${tiers.map(([name],i)=>`<button data-tier="${i}" aria-pressed="${tierIndex===i}" style="--tier:${tiers[i][2]}"><canvas data-crate="${i}"></canvas>${name}</button>`).join('')}</div><div class="row checkout"><button class="quiet" data-action="crate-odds">Drop odds</button><button class="primary" style="--tier:${t[2]}" data-action="buy-crate" ${data.wallet.crateVouchers<t[1]?'disabled':''}>Buy crate &nbsp; ${icon('crateVoucher')} ${t[1]}</button></div>`;
++ const t=tiers[tierIndex];return depotStage(tierIndex)+(tierIndex===4?featurePanel():'')+`<div class="tier-picks">${tiers.map(([name],i)=>`<button data-tier="${i}" aria-pressed="${tierIndex===i}" style="--tier:${tiers[i][2]}"><canvas data-crate="${i}"></canvas>${name}</button>`).join('')}</div><div class="row checkout"><button class="quiet" data-action="crate-odds">Drop odds</button><button class="primary" style="--tier:${t[2]}" data-action="buy-crate" ${data.crateInventoryError||data.wallet.crateVouchers<t[1]?'disabled':''}>Buy crate &nbsp; ${icon('crateVoucher')} ${t[1]}</button></div>`;
+ }
+ const taskList=[['Keep Patch Repairs selling',90,45,'challenging','selling minutes'],['Keep Grumbies selling',90,90,'challenging','selling minutes'],['Maintain business power',90,64,'challenging','active minutes'],['Receive Sprout Market delivery',1,0,'standard','delivery'],['Keep Sprout Market stocked',35,35,'standard','selling minutes'],['Order Starquacks stock',1,0,'standard','order'],['Receive four BinLink visits',4,2,'standard','visits'],['Earn through business sales',3208,3208,'straightforward','coins'],['Sell a Starquacks stock portion',12,12,'straightforward','selling minutes'],['Receive Grumbies delivery',1,1,'straightforward','delivery']];
+ function renderTasks(){
+@@ -5929,7 +5943,7 @@ function renderTasks(){
+ function renderBag(){return head('Item bag','Only things you own and can use',null)+`<div class="panel"><h3>MOVED BUILDINGS</h3><div class="grid">${data.ordinary.map((b,i)=>`<div class="tile">${art(b.model)}<div class="asset-name">${b.model==='house'?'Modern House':'Grumbies'}<br><span class="muted">Level ${b.level}</span></div><button data-ordinary="${i}">Place for free</button></div>`).join('')}</div></div><div class="panel"><div class="row"><div>${icon('boost')} 10-minute 2× boosts<p class="small muted">${data.boosts} stored · use when ready</p></div><button data-action="boost-demo" ${!data.boosts?'disabled':''}>Use one</button></div></div><div class="panel"><h3>WHERE ARE MY REWARDS?</h3><p>Coins, dosh, deeds and vouchers go straight to your balances.</p><button class="quiet wide" data-page="diamond"><span class="diamond-mark"></span> Open Diamond collection</button></div>`;}
+ function renderDiamond(){
+  const assets=diamondTab==='Catalogue'?Object.keys(models).map((model,i)=>({id:'catalogue-'+i,model,state:'catalogue'})):owned();
+- return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to sell</span><button class="quiet small" data-page="hub">Market →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'Placed in city':a.state==='listed'?'Listed for sale':a.state==='offered'?'In collection':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
++ return head('Diamond collection','Your rare city pieces',null)+`<div class="tabs"><button data-diamond="Owned" aria-pressed="${diamondTab==='Owned'}">Owned · ${owned().length}</button><button data-diamond="Catalogue" aria-pressed="${diamondTab==='Catalogue'}">All 8 models</button></div><div class="collection-strip"><span><span class="diamond-mark"></span> ${owned().filter(a=>a.state==='inventory'&&released(a)).length} ready to sell</span><button class="quiet small" data-page="hub">Market →</button></div><div class="grid">${assets.map(a=>`<article class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><div class="row small muted"><span>${a.state==='catalogue'?(a.model===featured()?'Featured now':'Collection model'):a.state==='placed'?'In city storage or on a plot':a.state==='listed'?'Listed for sale':a.state==='offered'?'In collection':'In collection'}</span><span class="diamond-mark"></span></div><button style="margin-top:10px" data-asset="${a.id}">${a.state==='catalogue'?'Inspect':'Manage'}</button></article>`).join('')}</div>`;
+ }
+ const modelIds={statue:'BB-D001',fountain:'BB-D002',sakura:'BB-D003',sunhouse:'BB-D004',pelicanLight:'BB-D005',tidalBaths:'BB-D006',civicClock:'BB-D007',needle:'BB-D008'};
+ const marketDate=time=>new Date(time).toLocaleDateString('en-AU',{timeZone:'Australia/Brisbane',day:'numeric',month:'short',year:'numeric'});
+@@ -5968,20 +5982,29 @@ function renderHub(){
+  if(hubTab==='Sell')content=`<div class="panel"><h3>YOUR LISTINGS · ${mine.length}</h3>${mine.length?mine.map(l=>{const a=data.assets.find(a=>a.id===l.asset);return `<div class="table-row"><span>${models[a.model]}<br><span class="gold">${l.price} dosh</span></span><button class="quiet small" data-cancel-listing="${l.id}">Cancel</button></div>`;}).join(''):'<p class="muted">No active listings.</p>'}</div><div class="grid">${owned().filter(a=>released(a)&&(a.state==='inventory'||a.state==='placed')).map(a=>`<div class="tile asset">${art(a.model)}<div class="asset-name">${models[a.model]}</div><button data-sell="${a.id}" ${released(a)?'':'disabled'}>${!released(a)?'Market locked':a.state==='placed'?'Pack up to sell':'Set a price'}</button></div>`).join('')}</div>`;
+  if(hubTab==='Activity')content=`<div class="panel"><h3>EXECUTED TRANSACTIONS</h3>${data.history.length?data.history.map(h=>`<div class="table-row"><span>${h.text}<br><span class="muted small">${h.time}</span></span><span>${h.amount??''}</span></div>`).join(''):'<p class="muted">Your purchases, completed sales appear here.</p>'}</div><p class="small muted">Asking prices are not sale prices. No transaction data is invented for a chart.</p>`;
+  if(hubTab==='Activity')content+=rotation.slice(0,slot()).filter(m=>releaseSales(m).length).map(m=>'<div class="panel"><h3>'+models[m]+'</h3>'+priceHistory(m)+'</div>').join('');
+- return head('Diamond market','Buy and sell released Diamond items',null)+`<div class="tabs">${['Browse','Sell','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
++ return head('Diamond market','Prices in dosh',null)+'<button class="quiet wide" data-page="diamond">My Diamond collection · '+owned().length+'</button>'+featurePanel()+`<div class="tabs">${['Browse','Sell','Activity'].map(t=>`<button data-hub="${t}" aria-pressed="${hubTab===t}">${t==='Browse'?'Buy':t}</button>`).join('')}</div>${content}`;
+ }
+ function priceHistory(model){
+- const sales=releaseSales(model);
++ const sales=releaseSales(model).sort((a,b)=>a.time-b.time);
+  if(!sales.length)return '<p class="muted small">No completed sales yet.</p>';
+- const lo=Math.min(...sales.map(s=>s.price)),hi=Math.max(...sales.map(s=>s.price));
+- const points=sales.map((s,i)=>[8+(sales.length===1?0:184*(s.time-sales[0].time)/Math.max(1,sales.at(-1).time-sales[0].time)),42-32*(s.price-lo)/Math.max(1,hi-lo)]);
+- return '<p>Last sold · '+sales.at(-1).price+' dosh</p><svg viewBox="0 0 200 50" role="img" aria-label="Completed demo sale prices over time"><polyline fill="none" stroke="#d2b2fa" stroke-width="2" points="'+points.map(p=>p.join(',')).join(' ')+'"/>'+points.map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#d2b2fa"/>').join('')+'</svg><small>'+new Date(sales.at(-1).time).toLocaleDateString()+' · '+sales.length+' completed sales</small>';
++ const first=sales[0],last=sales.at(-1);
++ let low=first.price,high=first.price;
++ for(const sale of sales){low=Math.min(low,sale.price);high=Math.max(high,sale.price);}
++ const points=sales.map(sale=>[
++  first.time===last.time?100:8+184*(sale.time-first.time)/(last.time-first.time),
++  high===low?25:42-32*(sale.price-low)/(high-low)
++ ]);
++ const line=points.length>1?'<polyline fill="none" stroke="#d2b2fa" stroke-width="2" points="'+points.map(p=>p.join(',')).join(' ')+'"/>':'';
++ const dots=points.length<=32?points:[points.at(-1)];
++ const dates=marketDate(first.time)===marketDate(last.time)?marketDate(last.time):marketDate(first.time)+' – '+marketDate(last.time);
++ const range=low===high?low+' dosh':low+'–'+high+' dosh';
++ return '<p>Last sold · '+last.price+' dosh</p><svg viewBox="0 0 200 50" role="img" aria-label="Completed sales, '+range+', '+dates+'">'+line+dots.map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#d2b2fa"/>').join('')+'</svg><small>'+dates+' · '+sales.length+(sales.length===1?' completed sale':' completed sales')+' · '+range+'</small>';
+ }
+ function marketCards(listings){return listings.filter(l=>released(data.assets.find(a=>a.id===l.asset))).map(l=>{const a=data.assets.find(a=>a.id===l.asset);return `<article class="tile asset" data-market-model="${models[a.model].toLowerCase()}">${art(a.model)}<div class="asset-name">${models[a.model]}</div><span class="muted small">${a.owner}</span><div class="row" style="margin:8px 0"><span class="price">${icon('dosh')}${marketPrice(l,a.model)}</span><span class="diamond-mark"></span></div><button data-buy="${l.id}">Review purchase</button></article>`;}).join('')||'<p class="empty">No matching listings.</p>';}
+ function renderShop(){return head('Dosh shop','Today’s four offers · 6 pm reset','dosh')+`<div class="notice small shop-review-note">Price layout preview · exact offer prices awaiting recovery from the approved table.</div><div class="grid">${[['City supplies',`${icon('deed')} 2 deeds`,`${icon('voucher')} 3 crate vouchers`,'Price TBC'],['Keep it moving',`${icon('voucher')} 2 restock vouchers`,`${icon('ticket')} 1 wheel ticket`,'Price TBC'],['More possibilities',`${icon('voucher')} 6 crate vouchers`,`${icon('dosh')} 5 dosh`,'Price TBC'],['On the house',`${icon('cash')} 2,000 coins`,'One claim today','FREE']].map(([title,a,b,price],i)=>`<article class="tile shop-offer"><div class="offer-title">${title}</div><div class="reward-line"><div>${a}</div><div>${b}</div></div><button ${i<3?'disabled':''} class="${i===3?'primary':''}" data-action="shop-${i}">${data.freeShopClaimed&&i===3?'Claimed':price}</button></article>`).join('')}</div><p class="small muted">Vouchers and consumables only. Diamond buildings are found in the collection and player market.</p>`;}
+ function renderSettings(){return head('Settings','Make Banksia Bay feel like yours','settings')+`<div class="panel"><div class="row"><div class="row">${icon('face','account-art')}<div><span class="pixel small">grievezz</span><br><span class="green small">City saved · demo status</span></div></div><button class="quiet small" data-action="account-demo">Account</button></div><div class="rule"></div><div class="row"><button data-action="save-demo">Save city</button><span class="muted small">Last synced: just now</span></div></div><div class="section-title">DISPLAY & MOTION</div><div class="panel">${setting('fps','FPS counter')}${setting('motion','Reduce motion')}</div><div class="section-title">SOUND & FEEL</div><div class="panel">${setting('sound','Sound effects')}${setting('music','Music')}${setting('vibration','Vibration')}</div><div class="panel"><button class="quiet wide" data-page="bag">My item bag</button><button class="quiet wide" style="margin-top:8px" data-page="diamond">Diamond collection & trading</button></div><div class="row small muted"><span>BIT-BURBS · BETA</span><button class="quiet small danger" data-action="logout-demo">Log out</button></div>`;}
+ function setting(k,label){return `<label class="settings-row"><span>${label}</span><span class="toggle"><input type="checkbox" data-setting="${k}" ${data.settings[k]?'checked':''}><span>${data.settings[k]?'On':'Off'}</span></span></label>`;}
+-const crateTables=[[[45,'cash',1500,3000],[25,'dosh',10,20],[25,'deeds',1],[4,'wheelTickets',1],[1,'deeds',2]],[[35,'cash',8000,12000],[25,'dosh',20,30],[30,'deeds',1],[10,'wheelTickets',1]],[[25,'cash',18000,30000],[25,'dosh',40,60],[38,'deeds',2],[12,'wheelTickets',2]],[[20,'cash',45000,70000],[20,'dosh',90,130],[35,'deeds',4],[15,'wheelTickets',3],[10,'boost',1]],[[15,'cash',150000,220000],[20,'dosh',250,350],[30,'deeds',12],[15,'wheelTickets',8],[10,'boost',1],[10,'diamond',1]]];
++const crateTables=[[[45,'cash',1500,3000],[35,'dosh',10,20],[15,'deeds',1],[4,'wheelTickets',1],[1,'deeds',2]],[[35,'cash',8000,12000],[35,'dosh',20,30],[20,'deeds',1],[10,'wheelTickets',1]],[[25,'cash',18000,30000],[35,'dosh',40,60],[28,'deeds',2],[12,'wheelTickets',2]],[[20,'cash',45000,70000],[30,'dosh',90,130],[25,'deeds',4],[15,'wheelTickets',3],[10,'boost',1]],[[15,'cash',150000,220000],[30,'dosh',250,350],[20,'deeds',12],[15,'wheelTickets',8],[10,'boost',1],[10,'diamond',1]]];
+ const rewardName=r=>r.kind==='diamond'?models[r.model]:r.kind==='boost'?'10-minute 2× boost':`${fmt(r.amount)} ${{cash:'coins',dosh:'dosh',deeds:r.amount===1?'deed':'deeds',wheelTickets:r.amount===1?'wheel ticket':'wheel tickets'}[r.kind]}`;
+ function pick(tier){let roll=Math.random()*100,row=crateTables[tier].find(r=>(roll-=r[0])<0)||crateTables[tier].at(-1);return {kind:row[1],amount:row[3]?row[2]+Math.floor(Math.random()*(row[3]-row[2]+1)):row[2],...(row[1]==='diamond'?{model:featured()}: {})};}
+ function rewardArt(r){return r.kind==='diamond'?art(r.model):icon({cash:'cash',dosh:'dosh',deeds:'deed',wheelTickets:'ticket',boost:'boost'}[r.kind]);}
+@@ -5997,6 +6020,7 @@ function openCrate(count=1){
+  });
+  data.opening={tier:tierIndex,winners,receipt,credited:true};
+  try{save();}catch{data=JSON.parse(prior);toast('Could not save the opening. Please retry.');return;}
++ render(false);
+  showOpening(false);
+ }
+ function showOpening(resume){
+@@ -6010,17 +6034,22 @@ function showOpening(resume){
+   return `<div class="reel-shell"><div class="reel">${cards.map(r=>`<div class="prize">${rewardArt(r)}<span>${rewardName(r)}</span></div>`).join('')}</div></div>`;
+  });
+  modal(tiers[opening.tier][0]+' × '+winners.length,tracks.join(''),[['Skip animation','skip-opening',true]]);
+- animation={timer:null};
+- requestAnimationFrame(()=>{
+-  if(!animation||data.opening!==opening)return;
+-  document.querySelectorAll('#modalRoot .reel').forEach((reel,index)=>{
+-   const card=reel.children[winnerIndex];
+-   const offset=reel.parentElement.clientWidth/2-(card.getBoundingClientRect().left-reel.getBoundingClientRect().left+card.offsetWidth/2);
++ const run={timer:null};
++ animation=run;
++ const reels=[...document.querySelectorAll('#modalRoot .reel')];
++ const center=(reel,index)=>{
++  const card=reel.children[index];
++  return reel.parentElement.clientWidth/2-(card.offsetLeft+card.offsetWidth/2);
++ };
++ for(const reel of reels)reel.style.transform='translateX('+center(reel,2)+'px)';
++ requestAnimationFrame(()=>requestAnimationFrame(()=>{
++  if(animation!==run||data.opening!==opening)return;
++  reels.forEach((reel,index)=>{
+    reel.style.transition='transform '+(rollMs+index*staggerMs)+'ms cubic-bezier(.17,.42,.44,1)';
+-   reel.style.transform='translateX('+offset+'px)';
++   reel.style.transform='translateX('+center(reel,winnerIndex)+'px)';
+   });
+-  animation.timer=setTimeout(reveal,rollMs+(winners.length-1)*staggerMs+holdMs);
+- });
++  run.timer=setTimeout(reveal,rollMs+(winners.length-1)*staggerMs+holdMs);
++ }));
+ }
+ function reveal(){
+  if(!data.opening)return;
+@@ -6031,6 +6060,7 @@ function reveal(){
+ function receipt(text,amount){data.history.unshift({text,amount,time:new Date().toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})});}
+ document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;
++ if(data.opening&&!['skip-opening','finish-opening'].includes(b.dataset.action))return;
+  if(b.dataset.edition){inspectEdition(b.dataset.edition);return;}
+  if(b.dataset.inspect!==undefined){tierIndex=Number(b.dataset.inspect);page='opening';render();return;}
+  if(b.dataset.page){page=b.dataset.page;closeModal();render();return;}
+@@ -6039,9 +6069,9 @@ document.addEventListener('click',e=>{
+  if(b.dataset.diamond){diamondTab=b.dataset.diamond;render();return;}
+  if(b.dataset.claim){const i=Number(b.dataset.claim);if(data.claims.includes(i))return;data.claims.push(i);data.wallet.crateVouchers++;data.wallet.dosh++;if(data.claims.length>=5&&!data.halfClaimed){data.halfClaimed=true;data.wallet.restockVouchers++;data.wallet.wheelTickets++;}if(data.claims.length===10&&!data.fullClaimed){data.fullClaimed=true;data.wallet.crateVouchers+=4;data.wallet.restockVouchers++;data.wallet.wheelTickets++;data.wallet.dosh+=2;}save();render();return;}
+  if(b.dataset.replace){const i=Number(b.dataset.replace);modal('Replace this task?',`<p>${taskList[i][0]}</p><p class="muted">Your one free replacement keeps the same difficulty and reward. New progress starts at zero.</p>`,[['Keep task','close-modal'],['Replace','confirm-replace-'+i,true]]);return;}
+- if(b.dataset.asset){const id=b.dataset.asset,a=data.assets.find(a=>a.id===id),model=a?.model||Object.keys(models)[Number(id.replace('catalogue-',''))];modal(models[model],`${art(model)}<p><span class="diamond-mark"></span> Diamond item</p><p class="small muted">${a?`Copy: ${a.id}<br>Status: ${a.state}`:model===featured()?'Featured · 10% per Diamond crate':'Outside the current crate'}</p>`,a?[['Back','close-modal'],[a.state==='placed'?'Pack up':a.state==='inventory'?'Place in city':'View in trading hub',a.state==='placed'?'pack-'+a.id:a.state==='inventory'?'place-'+a.id:'go-hub'],['Buy, sell & trade','go-hub',true]]:[['Close','close-modal',true]]);return;}
+- if(b.dataset.buy){const l=data.listings.find(l=>l.id===b.dataset.buy),a=data.assets.find(a=>a.id===l?.asset);if(!released(a))return;const price=marketPrice(l,a.model),fee=Math.max(1,Math.ceil(price*.05));modal('Review purchase',`${art(a.model)}<p>${models[a.model]} · ${modelIds[a.model]}</p><p class="small muted">Copy · ${a.id}<br>${editionDates(a.model)}</p>${priceHistory(a.model)}<div class="table-row"><span>You pay</span><span>${price} dosh</span></div><div class="table-row"><span>Seller receives</span><span>${price-fee} dosh</span></div><p class="small muted">${fee} dosh seller fee · 5% proposal<br>${typeof shared!=='undefined'&&shared?'Shared playtest listing':'Sample listing · local demo only'}</p>`,[['Cancel','close-modal'],['Buy for '+price+' dosh','confirm-buy-'+l.id+'@'+price,true]]);return;}
+- if(b.dataset.sell){const a=data.assets.find(a=>a.id===b.dataset.sell);if(!released(a)||a.owner!=='you')return;if(a.state==='placed'){modal('Pack up before selling',`${art(a.model)}<p>Move ${models[a.model]} out of your city before listing this copy.</p>`,[['Cancel','close-modal'],['Pack up','pack-'+a.id,true]]);return;}modal('List '+models[a.model],`${art(a.model)}<label for="sellPrice">Buyer pays · Dosh</label><input type="number" min="2" max="100000" id="sellPrice" value="${releaseSales(a.model).at(-1)?.price||baseline}" ${releaseSales(a.model).length?'':'readonly'}><div id="feeBreakdown" class="notice">Seller fee · 5% rounded up</div><p class="small muted">Sample 5% fee. One copy is reserved while listed.</p>`,[['Cancel','close-modal'],['Create listing','confirm-sell-'+a.id,true]]);return;}
++ if(b.dataset.asset){const id=b.dataset.asset,a=data.assets.find(a=>a.id===id),model=a?.model||Object.keys(models)[Number(id.replace('catalogue-',''))];modal(models[model],`${art(model)}<p><span class="diamond-mark"></span> Diamond item</p><p class="small muted">${a?`Copy: ${a.id}<br>Status: ${a.state}`:model===featured()?'Featured · 10% per Diamond crate':'Outside the current crate'}</p>`,a?[['Back','close-modal'],[a.state==='placed'?'Pack up':a.state==='inventory'?'Send to city storage':'View in trading hub',a.state==='placed'?'pack-'+a.id:a.state==='inventory'?'place-'+a.id:'go-hub'],['Buy, sell & trade','go-hub',true]]:[['Close','close-modal',true]]);return;}
++ if(b.dataset.buy){const l=data.listings.find(l=>l.id===b.dataset.buy),a=data.assets.find(a=>a.id===l?.asset);if(!released(a))return;const price=marketPrice(l,a.model),fee=Math.max(1,Math.ceil(price*.05));modal('Review purchase',`${art(a.model)}<p>${models[a.model]} · ${modelIds[a.model]}</p><p class="small muted">Copy · ${a.id}<br>${editionDates(a.model)}</p>${priceHistory(a.model)}<div class="table-row"><span>You pay</span><span>${price} dosh</span></div><div class="table-row"><span>Seller receives</span><span>${price-fee} dosh</span></div><p class="small muted">${fee} dosh seller fee · 5% rounded up<br>${typeof shared!=='undefined'&&shared?'Shared playtest listing':'Sample listing · local demo only'}</p>`,[['Cancel','close-modal'],['Buy for '+price+' dosh','confirm-buy-'+l.id+'@'+price,true]]);return;}
++ if(b.dataset.sell){const a=data.assets.find(a=>a.id===b.dataset.sell);if(!released(a)||a.owner!=='you')return;if(a.state==='placed'){modal('Pack up before selling',`${art(a.model)}<p>Move ${models[a.model]} out of your city before listing this copy.</p>`,[['Cancel','close-modal'],['Pack up','pack-'+a.id,true]]);return;}modal('List '+models[a.model],`${art(a.model)}<label for="sellPrice">Buyer pays · Dosh</label><input type="number" min="2" max="100000" id="sellPrice" value="${releaseSales(a.model).at(-1)?.price||baseline}" ${releaseSales(a.model).length?'':'readonly'}><div id="feeBreakdown" class="notice">Seller fee · 5% rounded up</div><p class="small muted">One copy is reserved while listed.</p>`,[['Cancel','close-modal'],['Create listing','confirm-sell-'+a.id,true]]);return;}
+  if(b.dataset.cancelListing){const l=data.listings.find(l=>l.id===b.dataset.cancelListing),a=data.assets.find(a=>a.id===l.asset);a.state='inventory';data.listings=data.listings.filter(x=>x.id!==l.id);save();render();return;}
+  if(b.dataset.ordinary){toast('Placement preview: this ordinary building keeps its upgrade level and costs no coins to restore.');return;}
+  const action=b.dataset.action;if(!action)return;
+@@ -6051,7 +6081,7 @@ document.addEventListener('click',e=>{
+  if(action==='view-storage'){closeModal();page='storage';render();return;}
+  if(action==='open-crate'||action==='open-three'){openCrate(action==='open-three'?3:1);return;}
+  if(action==='skip-opening'){reveal();return;}
+- if(action==='finish-opening'){data.opening=null;save();animation=null;closeModal();render();return;}
++ if(action==='finish-opening'){const opening=data.opening;data.opening=null;try{save();}catch{data.opening=opening;toast('Could not close the reward. Try again.');return;}animation=null;closeModal();render();return;}
+  if(action.startsWith('confirm-replace-')){const i=Number(action.split('-').at(-1));if(!data.replaced){data.replaced=true;taskList[i][0]='Trade through Paper Finch Books';taskList[i][2]=0;save();}closeModal();render();return;}
+  if(action.startsWith('pack-')||action.startsWith('place-')){const placed=action.startsWith('place-'),id=action.slice(placed?6:5),a=data.assets.find(a=>a.id===id);if(a&&(a.state==='inventory'||a.state==='placed')){a.state=placed?'placed':'inventory';save();}closeModal();render();return;}
+  if(action.startsWith('confirm-buy-')){const [id,quoted]=action.slice(12).split('@'),l=data.listings.find(l=>l.id===id);if(!l){toast('This listing has already gone.');return;}const a=data.assets.find(a=>a.id===l.asset);if(!released(a))return;const price=marketPrice(l,a.model);if(Number(quoted)!==price){toast('Price changed. Review the listing again.');return;}if(a.owner==='you'||a.state!=='listed'||data.wallet.dosh<price){toast('This purchase is no longer available or your Dosh balance is too low.');return;}(data.sales||=[]).push({model:a.model,price:price,time:Date.now(),rotationSale:true});data.wallet.dosh-=price;a.owner='you';a.state='inventory';data.listings=data.listings.filter(x=>x.id!==id);receipt('Bought '+models[a.model],'-'+price+' dosh');save();closeModal();render();toast('Added to your Diamond collection. This was a local demo purchase.');return;}
+@@ -6070,6 +6100,13 @@ function refreshRotation(){
+  if(slot()<rotation.length-1)setTimeout(()=>{if(!data.opening){closeModal();render();}refreshRotation();},Math.min(2147483647,Math.max(1,next-Date.now())));
+ }
+ refreshRotation();
+-render();
+-if(!testWallet){const accountScript=document.createElement('script');accountScript.src='/exchange-account.js';document.body.append(accountScript);}
++if(testWallet)render();
++else{
++ const bar=document.getElementById('exchangeAccount');
++ bar.textContent='Loading your Exchange…';
++ const accountScript=document.createElement('script');
++ accountScript.src='/exchange-account.js';
++ accountScript.onerror=()=>{bar.textContent='Exchange could not load. ';const retry=document.createElement('button');retry.textContent='Retry';retry.onclick=()=>location.reload();bar.append(retry);};
++ document.body.append(accountScript);
++}
+ </script></body></html>
+\ No newline at end of file
+diff --git a/dist/exchange-account.js b/dist/exchange-account.js
+index afd0503..233749f 100644
+--- a/dist/exchange-account.js
++++ b/dist/exchange-account.js
+@@ -1,5 +1,10 @@
+ // Shares the Exchange page's renderers. Account commands always settle on the server.
+ let shared=false, marketBusy=false;
++const requestedCity=new URLSearchParams(location.search).get('city');
++function showExchangeControls(visible){
++ for(const id of ['wallet','pageNav','screen','modalRoot'])document.getElementById(id).style.display=visible?'':'none';
++}
++if(requestedCity)showExchangeControls(false);
+ const incomingLink=new URLSearchParams(location.hash.slice(1)).get('link');
+ if(incomingLink)sessionStorage.setItem('exchange-invite',incomingLink);
+ const accountBar=document.getElementById('exchangeAccount');
+@@ -8,10 +13,44 @@ async function exchangeFetch(body){
+  const result=await res.json();if(!res.ok)throw Object.assign(new Error(result.error||'Exchange unavailable.'),{status:res.status});
+  return result;
+ }
++function addRefreshButton(){
++ const button=document.createElement('button');
++ button.textContent='Refresh market';
++ button.onclick=loadExchange;
++ accountBar.append(button);
++}
++function pendingKey(accountRef){return 'banksia-exchange:pending-city-command:'+accountRef;}
++async function sendSavedCommand(command){
++ const key=pendingKey(command.accountRef);
++ try{
++  const view=await exchangeFetch(command);
++  sessionStorage.removeItem(key);
++  return view;
++ }catch(error){
++  if([400,409,413].includes(error.status))sessionStorage.removeItem(key);
++  throw error;
++ }
++}
+ function useShared(view){
+- shared=true;data={...fresh(),...view,ordinary:[],settings:{motion:false},claims:[]};
+- accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · Playtest wallet '));
+- const refresh=document.createElement('button');refresh.textContent='Refresh market';refresh.onclick=loadExchange;accountBar.append(refresh);
++ if(requestedCity&&view.name!==requestedCity){
++  showExchangeControls(false);
++  throw Error('Open the Exchange with the account linked to '+requestedCity+'.');
++ }
++ rotationStart=view.rotationStart;
++ showExchangeControls(true);
++ shared=true;data={...view,ordinary:[],settings:{motion:false},claims:[]};
++ accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · City balance '));
++ if(view.crateInventoryError)accountBar.append(document.createTextNode(view.crateInventoryError+' '));
++ addRefreshButton();
++}
++function leaveSharedView(){
++ if(shared){
++  shared=false;clearTimeout(animation?.timer);animation=null;
++  try{data=JSON.parse(localStorage.getItem(key))||fresh();}catch{data=fresh();}
++ }
++ showExchangeControls(!requestedCity);
++ closeModal();
++ if(!requestedCity)render();
+ }
+ async function loadExchange(){
+  if(marketBusy||animation)return;
+@@ -20,26 +59,57 @@ async function loadExchange(){
+   const token=sessionStorage.getItem('exchange-invite');
+   const view=await exchangeFetch(token?{action:'link',token}:null);
+   if(token){sessionStorage.removeItem('exchange-invite');history.replaceState(null,'',location.pathname+location.search);}
+-  if(view.linked===false){accountBar.textContent='Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
+-  clearTimeout(animation?.timer);animation=null;useShared(view);closeModal();render();
++  if(view.linked===false){leaveSharedView();accountBar.textContent=requestedCity?'Open the owner dashboard invite for '+requestedCity+' to link your city.':'Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
++  clearTimeout(animation?.timer);animation=null;useShared(view);
++  const saved=sessionStorage.getItem(pendingKey(view.accountRef));
++  if(saved){
++   const command=JSON.parse(saved);
++   if(command.accountRef!==view.accountRef)throw Error('Pending command belongs to a different city.');
++   command.account=view.name; // A renamed city still owns its original request.
++   try{useShared(await sendSavedCommand(command));}
++   catch(error){
++    if(error.status!==409)throw error;
++    useShared(await exchangeFetch());closeModal();render();
++    if(!data.opening)toast(error.message);
++    return;
++   }
++  }
++  closeModal();render();
+  }catch(err){
++  if(err.status===401||err.status===403)leaveSharedView();
+   if(err.status===409)sessionStorage.removeItem('exchange-invite');
+-  accountBar.textContent=err.status===401?'Practice mode · ':'Account sync unavailable · '+err.message+' ';
++  if(shared||requestedCity)showExchangeControls(false);
++  accountBar.textContent=err.status===401?(requestedCity?'Sign in to open your city Exchange. ':'Practice mode · '):'Account sync unavailable · '+err.message+' ';
+   if(err.status===401){const a=document.createElement('a');a.href='/signin-with-chatgpt?return_to='+encodeURIComponent(location.pathname+location.search+location.hash);a.textContent='Sign in for shared trading';accountBar.append(a);}
++  else addRefreshButton();
+  }finally{marketBusy=false;}
+ }
+ async function settle(command){
+- if(marketBusy)return;marketBusy=true;
++ if(marketBusy||!shared)return;
++ marketBusy=true;
+  try{
+-  const view=await exchangeFetch({...command,account:data.name,revision:data.revision,requestId:crypto.randomUUID()});useShared(view);closeModal();
+-  if(command.action==='open')showOpening(false);else render();
++  const key=pendingKey(data.accountRef);
++  const saved=sessionStorage.getItem(key);
++  const request=saved?JSON.parse(saved):{
++   ...command,account:data.name,accountRef:data.accountRef,revision:['crate','open','finish'].includes(command.action)?data.crateRevision:data.revision,
++   requestId:crypto.randomUUID()
++  };
++  if(request.accountRef!==data.accountRef)throw Error('Pending command belongs to a different city.');
++  if(!saved)sessionStorage.setItem(key,JSON.stringify(request));
++  useShared(await sendSavedCommand(request));closeModal();
++  if(request.action==='open'&&!saved){render(false);showOpening(false);}else render();
+  }catch(err){
+-  try{const view=await exchangeFetch();if(view.name)useShared(view);}catch{}
+-  render();if(!data.opening)toast(err.message);
++  if(err.status===409){
++   try{useShared(await exchangeFetch());closeModal();render();if(!data.opening)toast(err.message);return;}catch{}
++  }
++  showExchangeControls(false);
++  accountBar.textContent='Refresh to check your last action. ';
++  addRefreshButton();
+  }finally{marketBusy=false;}
+ }
+ function sharedRoutes(b){
+  const d=b.dataset,a=d.action||'';
++ if(a.startsWith('place-')||a.startsWith('pack-')){const split=a.indexOf('-');return {action:a.slice(0,split),asset:a.slice(split+1)};}
+  if(d.cancelListing)return {action:'unlist',listing:d.cancelListing};
+  if(a==='buy-crate')return {action:'crate',tier:tierIndex};
+  if(a==='open-crate'||a==='open-three')return {action:'open',tier:tierIndex,count:a==='open-three'?3:1};
+@@ -49,6 +119,9 @@ function sharedRoutes(b){
+ }
+ document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||!shared)return;
++ if(b.dataset.claim||b.dataset.replace||['shop-3','boost-demo'].includes(b.dataset.action)){
++  e.stopImmediatePropagation();toast('Open your city to use this action.');return;
++ }
+  const cmd=sharedRoutes(b);
+  if(cmd){
+   e.stopImmediatePropagation();
+diff --git a/hosting/build.py b/hosting/build.py
+index 169ffa4..88c3304 100644
+--- a/hosting/build.py
++++ b/hosting/build.py
+@@ -40,4 +40,6 @@ constants = {
+ }
+ out = dist / "server/index.js"
+ out.parent.mkdir(exist_ok=True)
+-out.write_text("const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
++market_modules = ["city-exchange", "city-crate-command", "market-copy-delivery", "market-sale-payment", "market-purchase","market-city-placement"]
++market_code = "\n".join((root / "hosting" / (name + ".js")).read_text() for name in market_modules)
++out.write_text(market_code + "\n" + "const {files,modelIds,gameModelIds,ownerDigest,studioModels}=" + json.dumps(constants,separators=(",",":")) + ";\n" + (root / "hosting/exchange.js").read_text() + "\n" + (root / "hosting/beta-account.js").read_text() + "\n" + (root / "hosting/dashboard-economy.js").read_text() + "\n" + (root / "hosting/player-dashboard.js").read_text() + "\n" + (root / "hosting/progression-history.js").read_text() + "\n" + (root / "hosting/model-workflow.js").read_text() + "\n" + "\n".join((root / "hosting" / filename).read_text() for filename in ("crate-conversion.js","diamond-refund-preview.js","release-review.js","catalogue-worker.js")))
+diff --git a/hosting/dashboard-economy.js b/hosting/dashboard-economy.js
+index 24537d2..55f9b57 100644
+--- a/hosting/dashboard-economy.js
++++ b/hosting/dashboard-economy.js
+@@ -31,8 +31,10 @@ function migrate(city,defs,config,ms){
+  return {city,changed:true,summary:before};
+ }
+ function originalGross(d,t,rates){return [1,1.5,2.2].reduce((s,m)=>s+Math.max(1,Math.round((rates[d.jobs]||0)*m*(LEVELS[t?.lvl||1]||1))),0);}
+-function gross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
+-function fee(d,t,employees,p,rates){return Math.round(gross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}
++function baseGross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
++const BUSINESS_EARNINGS_MULTIPLIER=1.2075;
++function gross(d,t,employees,p,rates){return baseGross(d,t,employees,p,rates)*BUSINESS_EARNINGS_MULTIPLIER;}
++function fee(d,t,employees,p,rates){return Math.round(baseGross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}
+ function configFor(city,config){
+  if(city.economyLab?.balanceVersion>=BALANCE_VERSION)return config;
+  return Object.fromEntries(Object.entries(config).map(([id,p])=>[id,p.previous?{...p,...p.previous}:p]));
+diff --git a/hosting/exchange.js b/hosting/exchange.js
+index be6abe9..5e1fc3e 100644
+--- a/hosting/exchange.js
++++ b/hosting/exchange.js
+@@ -1,14 +1,17 @@
+ // A single conditional write settles both sides of each playtest transaction.
+-const exchangeKey='exchange/v1/ledger';
++const exchangeKey='exchange/v2/ledger';
+ const exchangeRotation=['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle'];
+-const exchangeStart=Date.parse('2026-11-18T07:25:00+10:00');
++function exchangeSlot(start,now){
++ if(!Number.isSafeInteger(start)||start<0)throw Error('Edition calendar unavailable');
++ return Math.max(0,Math.min(exchangeRotation.length-1,Math.floor((now-start)/1209600000)));
++}
+ const exchangeCosts=[2,6,14,30,80];
+-const exchangeTables=[[[45,'cash',1500,3000],[25,'dosh',10,20],[25,'deeds',1],[4,'wheelTickets',1],[1,'deeds',2]],[[35,'cash',8000,12000],[25,'dosh',20,30],[30,'deeds',1],[10,'wheelTickets',1]],[[25,'cash',18000,30000],[25,'dosh',40,60],[38,'deeds',2],[12,'wheelTickets',2]],[[20,'cash',45000,70000],[20,'dosh',90,130],[35,'deeds',4],[15,'wheelTickets',3],[10,'boost',1]],[[15,'cash',150000,220000],[20,'dosh',250,350],[30,'deeds',12],[15,'wheelTickets',8],[10,'boost',1],[10,'diamond',1]]];
++const exchangeTables=[[[45,'cash',1500,3000],[35,'dosh',10,20],[15,'deeds',1],[4,'wheelTickets',1],[1,'deeds',2]],[[35,'cash',8000,12000],[35,'dosh',20,30],[20,'deeds',1],[10,'wheelTickets',1]],[[25,'cash',18000,30000],[35,'dosh',40,60],[28,'deeds',2],[12,'wheelTickets',2]],[[20,'cash',45000,70000],[30,'dosh',90,130],[25,'deeds',4],[15,'wheelTickets',3],[10,'boost',1]],[[15,'cash',150000,220000],[30,'dosh',250,350],[20,'deeds',12],[15,'wheelTickets',8],[10,'boost',1],[10,'diamond',1]]];
+ const emptyExchange=()=>({players:{},links:{},invites:{},assets:[],listings:[],trades:[],sales:[],events:[]});
+ function exchangeCheck(condition,message){if(!condition)throw new Error(message);}
+ async function readExchange(bucket){const obj=await bucket.get(exchangeKey);return {state:obj?await obj.json():emptyExchange(),etag:obj?.etag};}
+-function exchangeApply(s,id,c,now){
+- const p=s.players[id],slot=Math.max(0,Math.min(7,Math.floor((now-exchangeStart)/1209600000)));
++function exchangeApply(s,id,c,now,start=s.rotationStart??now){
++ const p=s.players[id],slot=exchangeSlot(start,now);
+  const asset=k=>s.assets.find(a=>a.id===k);
+  const available=(a,owner,state)=>a&&a.owner===owner&&a.state===state;
+  const unlocked=a=>exchangeRotation.indexOf(a.model)>=0&&exchangeRotation.indexOf(a.model)<slot;
+@@ -61,12 +64,54 @@ function exchangeSummary(s,id){
+  return {name:p.name,wallet:p.wallet,stock:p.stock,boosts:p.boosts,assets:s.assets.filter(a=>a.owner===id),listings:s.listings.filter(l=>s.assets.some(a=>a.id===l.asset&&a.owner===id)),trades:s.trades.filter(t=>[t.from,t.to].includes(id)),events:s.events.filter(e=>e.actor===id||e.other===id).slice().reverse().map(e=>({...e,actor:s.players[e.actor]?.name,other:s.players[e.other]?.name}))};
+ }
+ function exchangeView(s,id){
+- const p=s.players[id],label=k=>k===id?'you':s.players[k]?.name||'Player';
++ const p=s.players[id];
++ const label=k=>{
++  if(k===id)return 'you';
++  const name=s.players[k]?.name;
++  // The shared UI uses 'you' for the current owner's inventory and listings.
++  return name==='you'?'you (player)':name||'Player';
++ };
+  return {name:p.name,wallet:p.wallet,stock:p.stock,boosts:p.boosts,opening:p.opening,revision:p.revision,
+  assets:s.assets.map(a=>({id:a.id,model:a.model,owner:label(a.owner),state:a.state,minted:a.minted})),listings:s.listings,sales:s.sales,
+  trades:s.trades.filter(t=>[t.from,t.to].includes(id)).map(t=>({...t,from:label(t.from),to:label(t.to)})),
+  history:exchangeSummary(s,id).events.map(e=>({text:e.kind+(e.other?' · '+(e.actor===p.name?e.other:e.actor):''),time:new Date(e.at).toISOString(),amount:e.price??''}))};
+ }
++function cityExchangePlayer(player, saved) {
++ const city=saved.city, crates=saved.crateExchange;
++ return {...player,wallet:{cash:city.cash??0,dosh:city.stars??0,crateVouchers:city.crateVouchers??0,
++  wheelTickets:city.tickets??0,restockVouchers:city.restockVouchers??0,deeds:city.deeds??0},
++  stock:crates?.stock??[0,0,0,0,0],boosts:city.coinBoostTokens?.[10]??0,
++  opening:crates?.opening??null,crateRevision:crates?.revision??0};
++}
++async function currentExchangeName(bucket,id,fallback){
++ const record=await bucket.get('username-city/current/'+id);
++ return record?(await record.json()).name:fallback;
++}
++async function linkedExchangeView(bucket,id) {
++ await deliverMarketCopies(bucket,id);
++ const {state}=await readExchange(bucket);
++ // Resume interrupted payments on either participant's next visit.
++ for(const sale of Object.values(state.reservations??{})){
++  if(sale.state==='pending'&&(sale.buyer===id||sale.seller===id)){
++   await purchaseMarketListing(bucket,sale.buyer,{requestId:sale.id,listing:sale.listing,price:sale.price},
++    ()=>false,settleReservedSale);
++  }
++ }
++ for(const [requestId,move] of Object.entries(state.moves??{})){
++  if(!move.done&&move.owner===id)await moveMarketCopy(bucket,id,{requestId,asset:move.id,action:move.action});
++ }
++ const latest=(await readExchange(bucket)).state;
++ const file=await bucket.get('live-city/roster2/'+id);
++ if(!file)throw Error('Linked city missing');
++ const saved=await file.json();
++ // A direct dashboard invite can open the Exchange before the updated game.
++ // Show the available vouchers here. Purchasing persists the conversion.
++ let projected=saved.city, crateInventoryError=null;
++ try{projected=prepareCrateConversion(saved.city);}
++ catch{crateInventoryError='Your old crate inventory needs review before buying or opening crates.';}
++ latest.players[id]=cityExchangePlayer(latest.players[id],{...saved,city:projected});
++ return {...exchangeView(latest,id),accountRef:await recoveryHash('exchange-account/'+id),crateInventoryError,rotationStart:latest.rotationStart,crateRevision:latest.players[id].crateRevision};
++}
+ async function exchangeApi(request,env){
+  const bucket=env.BUCKET,uid=request.headers.get('oai-authenticated-user-id');
+  if(!uid)return json({error:'Sign in to connect your player account.'},401);
+@@ -85,10 +130,21 @@ async function exchangeApi(request,env){
+   if(!await isOwner(request))return json({error:'Owner access required.'},403);
+   if(!/^[a-z0-9_-]{1,24}$/.test(c.name))return json({error:'Unknown player.'},400);
+   const obj=await bucket.get('username-city/roster2/'+c.name);if(!obj)return json({error:'Unknown player.'},404);
+-  city=(await obj.json()).canonical;token=crypto.randomUUID();
++  city=(await obj.json()).canonical;
++  if(await currentExchangeName(bucket,city,c.name)!==c.name)return json({error:'City renamed. Refresh the dashboard.'},409);
++  token=crypto.randomUUID();
+  }
+  for(let attempt=0;attempt<5;attempt++){
+   const {state:s,etag}=await readExchange(bucket);let id=s.links[subject],result;
++  if(id){
++   const player=s.players[id];
++   const name=await currentExchangeName(bucket,id,player.name);
++   if(name!==player.name){
++    player.name=name;
++    await bucket.put(exchangeKey,JSON.stringify(s),{onlyIf:{etagMatches:etag}});
++    continue;
++   }
++  }
+   if(id){
+    const pending=s.trades.filter(trade=>trade.state==='pending'&&[trade.from,trade.to].includes(id));
+    if(pending.length){
+@@ -101,7 +157,7 @@ async function exchangeApi(request,env){
+     continue;
+    }
+   }
+-  if(!post)return json(id?exchangeView(s,id):{linked:false});
++  if(!post)return json(id?await linkedExchangeView(bucket,id):{linked:false});
+   if(ownerInvite){
+    if(s.players[city])return json({error:'Player already linked.'},409);
+    for(const k of Object.keys(s.invites))if(s.invites[k].city===city||s.invites[k].expires<Date.now())delete s.invites[k];
+@@ -109,19 +165,37 @@ async function exchangeApi(request,env){
+   }else if(c.action==='link'){
+    if(typeof c.token!=='string')return json({error:'Invite required.'},400);
+    const hash=await recoveryHash(c.token),invite=s.invites[hash];
+-   if(id&&!invite)return json(exchangeView(s,id));
++   if(id&&!invite)return json(await linkedExchangeView(bucket,id));
+    if(id||!invite||invite.expires<=Date.now()||s.players[invite.city])return json({error:'Link expired or account already connected.'},409);
++   if(await currentExchangeName(bucket,invite.city,invite.name)!==invite.name)return json({error:'City renamed. Request a new invite.'},409);
++   const cityFile=await bucket.get('live-city/roster2/'+invite.city);
++   if(!cityFile||(await cityFile.json()).city?.v!==2)return json({error:'Save your city before linking.'},409);
+    id=invite.city;s.links[subject]=id;delete s.invites[hash];
+-   s.players[id]={name:invite.name,revision:0,wallet:{cash:125400,dosh:420,crateVouchers:98,deeds:8,restockVouchers:4,wheelTickets:3},stock:[0,0,0,0,0],boosts:0,opening:null};
++   s.rotationStart??=Date.now();
++   s.players[id]={name:invite.name,revision:0};
+   }else{
+    if(!id)return json({error:'Link your city first.'},403);
+-   const p=s.players[id];if(c.account!==p.name)return json({error:'Account changed. Refresh the market.'},409);if(p.last===c.requestId&&p.last)return json(exchangeView(s,id));
++   const p=s.players[id];if(c.account!==p.name||c.accountRef!==await recoveryHash('exchange-account/'+id))return json({error:'Account changed. Refresh the market.'},409);if(['crate','open','finish','buy','place','pack'].includes(c.action)){
++    try{
++     if(c.action==='buy'){
++      const slot=exchangeSlot(s.rotationStart,Date.now());
++      const released=a=>exchangeRotation.includes(a.model)&&exchangeRotation.indexOf(a.model)<slot;
++      const sale=await purchaseMarketListing(bucket,id,c,released,settleReservedSale);
++      if(sale.state==='declined')return json({error:'More dosh needed.'},409);
++     }else if(c.action==='place'||c.action==='pack')await moveMarketCopy(bucket,id,c);
++     else await runCityCrateCommand(bucket,id,c,(state,player,cmd,now)=>exchangeApply(state,player,cmd,now,s.rotationStart),settleCityExchange,prepareCrateConversion);
++    }catch(e){return json({error:e.message},409);}
++    // The write has succeeded. Keep its request ID if the receipt view is temporarily unavailable.
++    try{return json(await linkedExchangeView(bucket,id));}
++    catch{return json({error:'Your action was saved. Refresh to load your receipt.'},503);}
++   }
++   if(p.last===c.requestId&&p.last)return json(await linkedExchangeView(bucket,id));
+    if(typeof c.requestId!=='string'||c.requestId.length!==36||c.revision!==p.revision)return json({error:'Market changed. Refresh and review.'},409);
+    try{exchangeApply(s,id,c,Date.now());}catch(e){return json({error:e.message},409);}
+    p.revision++;p.last=c.requestId;
+   }
+   const write=await bucket.put(exchangeKey,JSON.stringify(s),{onlyIf:etag?{etagMatches:etag}:{etagDoesNotMatch:'*'}});
+-  if(write)return json(result||exchangeView(s,id));
++  if(write)return json(result||await linkedExchangeView(bucket,id));
+  }
+  return json({error:'Market busy. Try again.'},409);
+ }
+diff --git a/hosting/player-dashboard.js b/hosting/player-dashboard.js
+index c9765f2..87c5f84 100644
+--- a/hosting/player-dashboard.js
++++ b/hosting/player-dashboard.js
+@@ -59,6 +59,7 @@ async function dashboardPlayers(bucket){
+    if(!file){players.push({id:name,source:'cloud-save',pending:true,exchange:exchangeSummary(market,record.canonical)});continue}
+    const saved=await file.json();
+    if(!saved?.city||saved.city.v!==2||!Array.isArray(saved.city.tiles)){players.push({id:name,source:'cloud-save',pending:true,exchange:exchangeSummary(market,record.canonical)});continue}
++   if(market.players[record.canonical])market.players[record.canonical]=cityExchangePlayer(market.players[record.canonical],saved);
+    players.push({...dashboardCity(name,saved.city,file.uploaded?.toISOString?.()||null),exchange:exchangeSummary(market,record.canonical)});
+   }
+   cursor=page.truncated?page.cursor:undefined;
+diff --git a/tests/dashboard-details.cjs b/tests/dashboard-details.cjs
+index e937abd..74ca845 100644
+--- a/tests/dashboard-details.cjs
++++ b/tests/dashboard-details.cjs
+@@ -10,22 +10,22 @@ function city(){const c={v:2,cash:1000,stars:50,level:7,xp:12,pop:8,saved:T,tile
+  put(15,16,{id:'fountain'});return c;
+ }
+ let c=city(),before=JSON.stringify(c),p=ctx.dashboardCity('player',c,new Date(T).toISOString()),e=p.details.economy;
+-assert(e.available);assert.equal(e.capacity,23);assert.equal(e.employed,8);assert.equal(e.unemployed,0);assert.equal(e.availableJobs,0);assert.equal(e.businesses[0].currentCpm,10.1);assert.equal(e.businesses[0].stockPercent,100);assert.equal(e.businesses[1].deliveryMinutes,40);
++assert(e.available);assert.equal(e.capacity,23);assert.equal(e.employed,8);assert.equal(e.unemployed,0);assert.equal(e.availableJobs,0);assert.equal(e.businesses[0].currentCpm,12.2);assert.equal(e.businesses[0].stockPercent,100);assert.equal(e.businesses[1].deliveryMinutes,40);
+ assert.equal(JSON.stringify(c),before,'Projection must never mutate a city');
+ // Older saves retain their old snapshot rates until the game migrates them;
+ // new saves expose the revised income and offline fraction.
+ const migrated=city();migrated.economyLab.balanceVersion=2;migrated.tiles[16*N+2].pr[0].s=T+90*60000;
+-assert.equal(ctx.project(migrated).businesses[0].currentCpm,20.2);assert.equal(ctx.project(migrated).businesses[0].stockPercent,100);assert.equal(ctx.project(migrated).awayMultiplier,.5);assert.equal(e.awayMultiplier,1/3);
++assert.equal(ctx.project(migrated).businesses[0].currentCpm,24.39);assert.equal(ctx.project(migrated).businesses[0].stockPercent,100);assert.equal(ctx.project(migrated).awayMultiplier,.5);assert.equal(e.awayMultiplier,1/3);
+ assert.equal(p.details.balances.crateVouchers,13);assert.equal(p.details.diamondBuildings.length,8);assert.equal(p.details.diamondBuildings.find(b=>b.id==='fountain').placed,1);assert.equal(p.details.diamondBuildings.find(b=>b.id==='fountain').unplaced,1);assert.equal(p.details.purchaseHistoryAvailable,false);assert.equal(p.details.refundHistoryAvailable,false);
+-c.boostUntil=T+600000;assert.equal(ctx.project(c).businesses[0].currentCpm,20.2);
++c.boostUntil=T+600000;assert.equal(ctx.project(c).businesses[0].currentCpm,24.39);
+ c=city();c.tiles[16*N+2].pr[0].s=T;assert.equal(ctx.project(c).businesses[0].currentCpm,0);assert.equal(ctx.project(c).businesses[0].status,'Out of stock');
+ c=city();c.tiles[15*N+2]=null;assert.equal(ctx.project(c).businesses[0].currentCpm,0);assert.equal(ctx.project(c).businesses[0].status,'Needs road');
+ c=city();c.tiles[14*N+4]=null;assert.equal(ctx.project(c).businesses[0].currentCpm,0);assert.equal(ctx.project(c).powerSupply,0);
+-c=city();c.pop=1;c.tiles[16*N+2].hired=1;c.tiles[16*N+8].hired=0;assert.equal(ctx.project(c).businesses[0].employees,1);assert.equal(ctx.project(c).businesses[0].currentCpm,3.37);
++c=city();c.pop=1;c.tiles[16*N+2].hired=1;c.tiles[16*N+8].hired=0;assert.equal(ctx.project(c).businesses[0].employees,1);assert.equal(ctx.project(c).businesses[0].currentCpm,4.07);
+ c=city();c.storedBuildings=[{building:{id:'bakery',pr:[{s:T+1e9}]}}];assert.equal(ctx.project(c).businesses.length,2,'Stored buildings cannot earn');
+ assert.equal(ctx.project({...c,tiles:[null,null]}).available,false);
+ const projected=JSON.stringify(ctx.dashboardCity('player',{...city(),password:'private',code:'secret',canonical:'hidden'},null));for(const v of ['private','secret','hidden'])assert(!projected.includes(v));
+ for(const path of ['dist/beta/player-details.js','dist/beta/progression.js'])new vm.Script(fs.readFileSync(path,'utf8'));
+ const html=fs.readFileSync('dist/beta/players.html','utf8');for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
+ if(process.env.DASHBOARD_FIXTURE_OUT)fs.writeFileSync(process.env.DASHBOARD_FIXTURE_OUT,JSON.stringify({players:[p]}));
+-console.log('PASS: exact 5% income, housing/staff, stock/delivery, boost, missing roads/power, partial hires, stored exclusion, voucher balances, all eight collectibles, no invented receipts, no mutation, no secret fields, UI syntax');
++console.log('PASS: current business income, housing/staff, stock/delivery, boost, missing roads/power, partial hires, stored exclusion, voucher balances, all eight collectibles, no invented receipts, no mutation, no secret fields, UI syntax');
+diff --git a/tests/exchange-ledger.cjs b/tests/exchange-ledger.cjs
+index c438fba..1571802 100644
+--- a/tests/exchange-ledger.cjs
++++ b/tests/exchange-ledger.cjs
+@@ -1,4 +1,26 @@
+ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{webcrypto}=require('node:crypto');
++// Exercise the displayed history with completed sales, independent of listing prices.
++const page=fs.readFileSync('dist/banksia-exchange.html','utf8');
++const historyContext={data:{sales:[],listings:[{price:9999}]}};
++const chart=vm.runInNewContext([
++ page.slice(page.indexOf('function releaseSales('),page.indexOf('function marketPrice(')),
++ page.slice(page.indexOf('const marketDate='),page.indexOf('let marketOrder=')),
++ page.slice(page.indexOf('function priceHistory('),page.indexOf('function marketCards(')),
++ 'priceHistory'
++].join('\n'),historyContext);
++assert.match(chart('statue'),/No completed sales/);
++const sale=(time,price)=>({time,price,model:'statue',rotationSale:true});
++const nov18=Date.parse('2026-11-17T15:00:00Z');
++historyContext.data.sales.push(sale(nov18,120));
++assert.match(chart('statue'),/circle cx="100" cy="25"/);
++assert.match(chart('statue'),/18 Nov 2026 · 1 completed sale · 120 dosh/);
++historyContext.data.sales.unshift(sale(nov18+86400000,150));
++historyContext.data.sales.push({...sale(nov18+86400001,9999),rotationSale:false});
++const plotted=chart('statue');
++assert.match(plotted,/Last sold · 150 dosh/);
++assert.match(plotted,/points="8,42 192,10"/);
++assert.match(plotted,/18 Nov 2026 – 19 Nov 2026 · 2 completed sales · 120–150 dosh/);
++assert.ok(!plotted.includes('9999'));
+ const records=new Map();
+ const bucket={
+  async get(k){const v=records.get(k);return v&&{etag:v.etag,json:async()=>JSON.parse(v.raw)};},
+@@ -7,8 +29,14 @@ const bucket={
+ };
+ const ctx={Date:class extends Date{static now(){return Date.parse('2026-11-20T00:00Z');}},crypto:{subtle:webcrypto.subtle,randomUUID:()=>webcrypto.randomUUID(),getRandomValues:x=>x.fill(4294967295)},TextEncoder,Request,Response,URL,console};
+ vm.createContext(ctx);
+-for(const file of ['catalogue-worker','exchange','player-dashboard'])vm.runInContext(fs.readFileSync('hosting/'+file+'.js','utf8').split('export default')[0],ctx);
++for(const file of ['catalogue-worker','exchange','player-dashboard','city-exchange','crate-conversion','city-crate-command','market-copy-delivery','market-sale-payment','market-purchase','market-city-placement'])vm.runInContext(fs.readFileSync('hosting/'+file+'.js','utf8').split('export default')[0],ctx);
+ vm.runInContext("isOwner=async r=>r.headers.get('oai-authenticated-user-id')==='admin'",ctx);
++const tile={id:'statue',diamondCopyId:'example'};
++const packed={storedBuildings:[{building:tile}]}, placed={tiles:[tile,null]};
++assert(ctx.sameDiamondHoldings(packed,placed));
++assert(!ctx.sameDiamondHoldings(placed,{tiles:[]}));
++assert(!ctx.sameDiamondHoldings(placed,{...placed,...packed}));
++assert(!ctx.sameDiamondHoldings(packed,{tiles:[{...tile,id:'fountain'}]}));
+ const views={};
+ async function request(user,body){
+  const headers={'Content-Type':'application/json',Origin:'https://test.local'};if(user)headers['oai-authenticated-user-id']=user;
+@@ -16,17 +44,110 @@ async function request(user,body){
+  const r=await ctx.exchangeApi(req,{BUCKET:bucket});return {status:r.status,v:await r.json()};
+ }
+ async function act(name,body,expected=200){
+- const r=await request(name,{revision:views[name].revision,account:name,requestId:webcrypto.randomUUID(),...body});
++ const r=await request(name,{revision:['open','crate','finish'].includes(body.action)?views[name].crateRevision:views[name].revision,account:name,accountRef:views[name].accountRef,requestId:webcrypto.randomUUID(),...body});
+  assert.equal(r.status,expected,JSON.stringify(r.v.error));if(r.status===200)views[name]=r.v;return r;
+ }
++// Run the shipped client controller against the real Worker handlers. A fresh
++// document retains only tab storage, as when reloading after a lost response.
++async function checkInterruptedOpening(){
++ const storage=new Map(),sent=[],elements=new Map();
++ let user='worker-test',interrupt=false;
++ const cityId='8'.repeat(64);
++ await bucket.put('username-city/roster2/'+user,JSON.stringify({canonical:cityId}));
++ await bucket.put('live-city/roster2/'+cityId,JSON.stringify({city:{v:2,tiles:[null],cash:0,stars:0,crateVouchers:6}}));
++ const invite=await request('admin',{action:'invite',name:user});
++ await request(user,{action:'link',token:invite.v.token});
++ function documentContext(){
++  function element(){return {style:{},append(){},replaceChildren(){}};}
++  const document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},
++   addEventListener(){},createElement:element,createTextNode:t=>t};
++  const client={document,window:{addEventListener(){}},URLSearchParams,location:{search:'?city=worker-test',hash:''},
++   sessionStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
++   crypto:webcrypto,clearTimeout,animation:null,rotationStart:0,data:{},fresh:()=>({}),closeModal(){},render(){},toast(){},showOpening(){},
++   fetch:async(url,options)=>{
++    const cmd=options?.body&&JSON.parse(options.body);
++    if(cmd)sent.push(cmd);
++    const reply=await request(user,cmd);
++    if(cmd&&interrupt){interrupt=false;throw Error('Response lost after commit');}
++    return {ok:reply.status===200,status:reply.status,json:async()=>reply.v};
++   }};
++  vm.createContext(client);
++  const boot=vm.runInContext(fs.readFileSync('dist/exchange-account.js','utf8'),client);
++  return {client,boot};
++ }
++ let {client,boot}=documentContext();await boot;
++ // Lose the first read after the debit commits. The UI must keep that purchase's
++ // request ID and retry it on reload, even though the server produced an HTTP response.
++ const normalGet=bucket.get,normalPut=bucket.put;
++ let failRead=false,readFailed=false;
++ bucket.put=async function(key,...args){
++  const result=await normalPut.call(this,key,...args);
++  if(result&&key==='live-city/roster2/'+cityId)failRead=true;
++  return result;
++ };
++ bucket.get=async function(key){
++  if(failRead&&!readFailed&&key==='live-city/roster2/'+cityId){
++   readFailed=true;throw Error('Temporary read failure');
++  }
++  return normalGet.call(this,key);
++ };
++ try{await client.settle({action:'crate',tier:0});}
++ finally{bucket.get=normalGet;bucket.put=normalPut;}
++ assert.ok(readFailed);
++ assert.equal(storage.size,1);
++ ({client,boot}=documentContext());await boot;
++ assert.equal(storage.size,0);
++ assert.equal(sent[0].requestId,sent[1].requestId);
++ assert.equal(client.data.stock[0],1);
++ assert.equal(client.data.wallet.crateVouchers,4);
++ for(let i=0;i<2;i++)await client.settle({action:'crate',tier:0});
++ assert.equal(client.data.wallet.crateVouchers,0);
++ interrupt=true;
++ await client.settle({action:'open',tier:0,count:3});
++ assert.equal(storage.size,1);
++ const opened=(await request(user)).v;
++ assert.equal(opened.opening.winners.length,3);
++ assert.equal(opened.stock[0],0);
++ user='stranger';
++ const anonymous=documentContext();await anonymous.boot;
++ assert.equal(storage.size,1);
++ assert.equal(sent.length,5);
++ const otherId='9'.repeat(64);
++ await bucket.put('username-city/roster2/secondcity',JSON.stringify({canonical:otherId}));
++ await bucket.put('live-city/roster2/'+otherId,JSON.stringify({city:{v:2,tiles:[null],crateVouchers:17}}));
++ const otherInvite=await request('admin',{action:'invite',name:'secondcity'});
++ user='second-login';
++ await request(user,{action:'link',token:otherInvite.v.token});
++ // Simulate the display name being reassigned while this tab retains the first city's command.
++ await bucket.put('username-city/current/'+otherId,JSON.stringify({name:'worker-test'}));
++ const other=documentContext();await other.boot;
++ assert.equal(other.client.data.name,'worker-test');
++ assert.equal(other.client.data.wallet.crateVouchers,17);
++ assert.equal(other.client.data.opening,null);
++ assert.equal(storage.size,1);
++ assert.equal(sent.length,5);
++ user='worker-test';
++ ({client,boot}=documentContext());await boot;
++ assert.equal(storage.size,0);
++ assert.equal(sent[4].requestId,sent[5].requestId);
++ assert.deepEqual(client.data.wallet,opened.wallet);
++ assert.deepEqual(client.data.opening,opened.opening);
++ await client.settle({action:'finish',receipt:opened.opening.receipt});
++ assert.equal((await request(user)).v.opening,null);
++ assert.equal((await request(user)).v.crateRevision,5);
++}
+ (async()=>{
+  assert.equal((await request(null)).status,401);
+  for(const name of ['alice','ben','cam']){
+-  await bucket.put('username-city/roster2/'+name,JSON.stringify({canonical:'canonical-'+name}));
++  const canonical=require('node:crypto').createHash('sha256').update(name).digest('hex');
++  await bucket.put('username-city/roster2/'+name,JSON.stringify({canonical}));
++  await bucket.put('live-city/roster2/'+canonical,JSON.stringify({city:{v:2,tiles:[null],cash:31,stars:200,crateVouchers:82}}));
+   assert.equal((await request(name,{action:'invite',name})).status,403);
+   const {v}=await request('admin',{action:'invite',name});views[name]=(await request(name,{action:'link',token:v.token})).v;
+   assert.equal(views[name].name,name);assert.equal((await request('stranger',{action:'link',token:v.token})).status,409);
+-  const id=webcrypto.randomUUID();await act(name,{action:'crate',tier:4,requestId:id});await act(name,{action:'crate',tier:4,requestId:id});
++  assert.equal(views[name].wallet.crateVouchers,82);
++  const id=webcrypto.randomUUID();await act(name,{action:'crate',tier:4,requestId:id});await act(name,{action:'crate',tier:4,requestId:id,revision:0});
++  assert.equal(views[name].wallet.crateVouchers,2);
+   assert.equal(views[name].stock[4],1);await act(name,{action:'open',count:1,tier:4});const o=views[name].opening;
+   assert.equal(o.winners[0].model,'statue');assert.equal((await request(name)).v.opening.receipt,o.receipt);
+   await act(name,{action:'finish',receipt:o.receipt});
+@@ -35,17 +156,115 @@ async function act(name,body,expected=200){
+  const alice=copy('alice'),ben=copy('ben'),cam=copy('cam');
+  await act('alice',{action:'list',asset:alice,price:120},409);
+  ctx.Date.now=()=>Date.parse('2026-12-05T00:00Z');
++ await act('alice',{action:'place',asset:alice});
++ await act('alice',{action:'list',asset:alice,price:120},409);
++ const canonical=require('node:crypto').createHash('sha256').update('alice').digest('hex');
++ const path='live-city/roster2/'+canonical, stored=await bucket.get(path), record=await stored.json();
++ const building=record.city.storedBuildings.pop().building;
++ assert.equal(building.diamondCopyId,alice);
++ record.city.tiles=[building,{id:'_occ',ref:[0,0]},null,{id:'road'}];
++ await bucket.put(path,JSON.stringify(record),{onlyIf:{etagMatches:stored.etag}});
++ await act('alice',{action:'pack',asset:alice});
++ assert.deepEqual((await (await bucket.get(path)).json()).city.tiles,[null,null,null,{id:'road'}]);
++ // A copied legacy save can store the same building directly, without the
++ // placement wrapper. Pack that exact copy and leave the legacy holding alone.
++ await act('alice',{action:'place',asset:alice});
++ const packedFile=await bucket.get(path),packedRecord=await packedFile.json();
++ const flat=packedRecord.city.storedBuildings.pop().building;
++ const legacyStored={id:flat.id,lvl:2};
++ packedRecord.city.storedBuildings=[legacyStored,flat];
++ await bucket.put(path,JSON.stringify(packedRecord),{onlyIf:{etagMatches:packedFile.etag}});
++ const packId=webcrypto.randomUUID();
++ await act('alice',{action:'pack',asset:alice,requestId:packId});
++ await act('alice',{action:'pack',asset:alice,requestId:packId});
++ assert.deepEqual((await (await bucket.get(path)).json()).city.storedBuildings,[legacyStored]);
++ assert.equal(views.alice.assets.filter(a=>a.id===alice&&a.state==='inventory').length,1);
+  await act('alice',{action:'list',asset:alice,price:120});const listing=views.alice.listings[0].id;
+- const buy=name=>request(name,{account:name,action:'buy',listing,price:120,revision:views[name].revision,requestId:webcrypto.randomUUID()});
++ const buy=name=>request(name,{account:name,accountRef:views[name].accountRef,action:'buy',listing,price:120,revision:views[name].revision,requestId:webcrypto.randomUUID()});
+  const results=await Promise.all([buy('ben'),buy('cam')]);assert.deepEqual(results.map(x=>x.status).sort(),[200,409]);
+  for(const name of ['alice','ben','cam'])views[name]=(await request(name)).v;
+- assert.equal(views.alice.wallet.dosh,534);
+- await act('ben',{action:'offer',asset:ben,want:cam});const trade=views.ben.trades[0].id;
+- await act('alice',{action:'accept',trade},409);await act('cam',{action:'accept',trade});
+- assert.equal(views.cam.assets.find(a=>a.id===ben).owner,'you');
++ assert.equal(views.alice.wallet.dosh,314);
++ const winner=results[0].status===200?'ben':'cam';
++ assert.equal(views[winner].wallet.dosh,80);
++ assert.equal(views[winner].assets.find(a=>a.id===alice).owner,'you');
++ assert.equal((await request(null)).status,401);
++ for(const user of ['alice',winner]){
++   const previous=views[user]; delete views[user];
++   views[user]=(await request(user)).v;
++   assert.deepEqual(views[user].assets,previous.assets);
++   assert.deepEqual(views[user].wallet,previous.wallet);
++ }
++ assert.equal(records.has('exchange/v1/ledger'),false);
++ // 'you' is a valid username. Only the signed-in player's own copies may
++ // acquire the UI's self label, including after a sale.
++ const {state:labelFixture}=await ctx.readExchange(bucket);
++ const winnerId=require('node:crypto').createHash('sha256').update(winner).digest('hex');
++ labelFixture.players[winnerId].name='you';
++ assert.equal(ctx.exchangeView(labelFixture,canonical).assets.find(a=>a.id===alice).owner,'you (player)');
++ assert.equal(ctx.exchangeView(labelFixture,winnerId).assets.find(a=>a.id===alice).owner,'you');
++ const start=views.alice.rotationStart;
++ assert.equal(start,Date.parse('2026-11-20T00:00Z'));
++ assert.equal(ctx.exchangeSlot(start,start+14*86400000-1),0);
++ assert.equal(ctx.exchangeSlot(start,start+14*86400000),1);
++ await act('ben',{action:'offer',asset:ben,want:cam},409);
++ const ledgerFile=await bucket.get('exchange/v2/ledger'),ledger=await ledgerFile.json();
++ const accountId=name=>require('node:crypto').createHash('sha256').update(name).digest('hex');
++ ledger.assets.find(copy=>copy.id===ben).state='offered';
++ ledger.trades.push({id:'old-offer',from:accountId('ben'),to:accountId('cam'),give:ben,get:cam,state:'pending'});
++ await bucket.put('exchange/v2/ledger',JSON.stringify(ledger),{onlyIf:{etagMatches:ledgerFile.etag}});
++ await act('cam',{action:'accept',trade:'old-offer'},409);
++ for(let i=0;i<2;i++){
++  const restored=(await request('ben')).v;
++  assert.equal(restored.assets.find(a=>a.id===ben).state,'inventory');
++  assert.equal(restored.assets.find(a=>a.id===ben).owner,'you');
++ }
+  const roster=await ctx.dashboardPlayers(bucket);
+  assert(roster.find(x=>x.id==='alice').exchange.events.some(e=>e.kind==='Sale'&&e.fee===6));
+- assert(roster.find(x=>x.id==='ben').exchange.events.some(e=>e.kind==='Trade completed'));
++ const invitesId='f'.repeat(64);
++ await bucket.put('username-city/roster2/oldcity',JSON.stringify({canonical:invitesId}));
++ const invite=await request('admin',{action:'invite',name:'oldcity'});
++ assert.equal(invite.status,200);
++ await bucket.put('username-city/current/'+invitesId,JSON.stringify({name:'newcity'}));
++ assert.equal((await request('admin',{action:'invite',name:'oldcity'})).status,409);
++ assert.equal((await request('newplayer',{action:'link',token:invite.v.token})).status,409);
++ await bucket.put('username-city/roster2/alice2',JSON.stringify({canonical}));
++ await bucket.put('username-city/current/'+canonical,JSON.stringify({name:'alice2'}));
++ const renamed=(await request('alice')).v;
++ assert.equal(renamed.name,'alice2');
++ assert.equal(renamed.accountRef,views.alice.accountRef);
++ // A queued command for a different account must fail even if the displayed
++ // username and revision match the active city.
++ const before=await (await bucket.get(path)).json();
++ await act('alice',{account:'alice2',accountRef:views.ben.accountRef,action:'crate',tier:0},409);
++ assert.deepEqual(await (await bucket.get(path)).json(),before);
++ assert.deepEqual(renamed.wallet,views.alice.wallet);
++ await act('alice',{action:'crate',tier:0},409);
++ await act('alice',{account:'alice2',action:'crate',tier:0});
++ assert.equal(views.alice.wallet.crateVouchers,0);
++ // First visit through a dashboard invite using a copied pre-release save.
++ const legacyId='7'.repeat(64),legacyPath='live-city/roster2/'+legacyId;
++ const legacy={v:2,tiles:[null],cash:7,stars:15,crateVouchers:2,crates:{steel:1,gold:1,diamond:5},
++  tickets:9,restockVouchers:3,boostUntil:120};
++ await bucket.put('username-city/roster2/legacy',JSON.stringify({canonical:legacyId}));
++ await bucket.put(legacyPath,JSON.stringify({city:legacy}));
++ const invited=await request('admin',{action:'invite',name:'legacy'});
++ const linked=await request('legacy',{action:'link',token:invited.v.token});
++ assert.equal(linked.v.wallet.crateVouchers,80);
++ assert.deepEqual((await (await bucket.get(legacyPath)).json()).city,legacy);
++ const purchase={action:'crate',account:'legacy',accountRef:linked.v.accountRef,tier:4,revision:0,requestId:webcrypto.randomUUID()};
++ const concurrent=await Promise.all([request('legacy',purchase),request('legacy',purchase)]);
++ assert.ok(concurrent.every(r=>r.status===200&&r.v.stock[4]===1&&r.v.wallet.crateVouchers===0));
++ const converted=(await (await bucket.get(legacyPath)).json()).city;
++ assert.equal(converted.crateConversion.added,78);
++ for(const key of ['tickets','restockVouchers','boostUntil','stars','cash'])assert.equal(converted[key],legacy[key]);
++ assert.equal((await request('legacy')).v.wallet.crateVouchers,0);
++ // Malformed copied inventory stays intact and does not prevent account reads.
++ await bucket.put(legacyPath,JSON.stringify({city:{...legacy,crates:{unknown:1}}}));
++ const invalid=await request('legacy');
++ assert.equal(invalid.status,200);assert.ok(invalid.v.crateInventoryError);
++ assert.equal((await request('legacy',purchase)).status,409);
++ assert.deepEqual((await (await bucket.get(legacyPath)).json()).city.crates,{unknown:1});
++ await checkInterruptedOpening();
+  if(process.env.EXCHANGE_FIXTURE)fs.writeFileSync(process.env.EXCHANGE_FIXTURE,JSON.stringify({players:roster,view:views.cam}));
+  console.log('PASS owner invites, verification, cross-session ownership, opening receipts, replay, rotation lock, concurrent purchase, fees, recipient swap, owner dashboard');
+ })().catch(e=>{console.error(e);process.exitCode=1;});

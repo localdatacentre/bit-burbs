@@ -39,6 +39,7 @@ for (let tick=1;tick<=120;tick++) {
   Core.settle(S,D.list,time,ECON,businessRates);`);
 }
 assert(run('S.dailyGenerated.tasks.every(t=>t.progress>=t.target)'));
+const unclaimed=run('JSON.stringify(S)');
 run('for(const task of S.dailyGenerated.tasks)labDailyClaim(task.key)');
 assert.equal(run('S.crateVouchers'),run('S.dailyGenerated.tasks.length'));
 const before = context.saved;
@@ -48,3 +49,30 @@ context.time = at+86400000;
 run('labSyncTasks()');
 assert.equal(run('S.dailyGenerated.day'),'2026-11-18');
 console.log('PASS: game assignment, settlement, claims, save/reload and reset');
+
+(async()=>{
+  // Return to an eligible, unclaimed board one millisecond before reset.
+  context.expiring=unclaimed;
+  context.time=at+86400000-1;
+  run('S=JSON.parse(expiring);labSyncTasks()');
+  const oldKey=run('S.dailyGenerated.tasks[0].key');
+  assert.equal(run('S.dailyGenerated.day'),'2026-11-17');
+  context.time++;
+  context.oldKey=oldKey;
+  run('saved=null;labDailyClaim(oldKey)');
+  await Promise.resolve();
+  const next=JSON.parse(context.saved);
+  assert.equal(next.dailyGenerated.day,'2026-11-18');
+  assert.equal(next.crateVouchers??0,0);
+  assert.ok(next.dailyGenerated.tasks.every(t=>!t.claimed&&t.progress===0&&t.key!==oldKey));
+  assert.deepEqual(next.dailyGenerated.receipts,{});
+  context.time+=60000;
+  run('S=JSON.parse(saved);labSyncTasks()');
+  assert.deepEqual(JSON.parse(run('JSON.stringify(S.dailyGenerated)')),next.dailyGenerated);
+  // A legacy eligibility-only board was never claimable. Recover it on this
+  // cycle with the normal session forecast and persist its first playable set.
+  run("S.dailyGenerated.status='blocked';saved=null;labSyncTasks()");
+  await Promise.resolve();
+  assert.equal(JSON.parse(context.saved).dailyGenerated.status,'ready');
+  console.log('PASS expired tap awards nothing, reset targets survive immediate reload, and a blocked legacy board recovers');
+})().catch(e=>{console.error(e);process.exitCode=1;});

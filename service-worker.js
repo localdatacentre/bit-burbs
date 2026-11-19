@@ -1,10 +1,10 @@
-const CACHE='bit-burbs-orbital-gym-20261118-v1-daily1-earnings2075';
-const ASSETS=['./','./index.html','./economy-core.js?v=balance2','./daily-task-core.js','./daily-task-session.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
+const CACHE='bit-burbs-coordinated-exchange-v2';
+const ASSETS=['./','./index.html','./economy-core.js?v=balance2','./daily-task-core.js','./daily-task-session.js','./crate-conversion.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
     const cache=await caches.open(CACHE);
-    await cache.addAll(ASSETS.map(path=>new Request(path,{cache:'reload'})));
+    await cache.addAll(ASSETS);
     await self.skipWaiting();
   })());
 });
@@ -12,7 +12,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
     const keys=await caches.keys();
-    await Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)));
+    await Promise.all(keys.filter(key=>key.startsWith('bit-burbs-')&&key!==CACHE).map(key=>caches.delete(key)));
     await self.clients.claim();
   })());
 });
