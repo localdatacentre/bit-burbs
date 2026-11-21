@@ -51,7 +51,7 @@ window.ResidentialCats = (() => {
     if (lastHomes) for (const h of lastHomes) active.delete(h.t);
     lastCity = city; lastHomes = homes; nextCheck = now + 1000;
     if (!homes?.length && !city.catVisits) return;
-    const wait = () => Math.floor(6000 + random()*12000);
+    const wait = () => Math.floor(2000 + random()*4000);
     const visits = city.catVisits ||= {};
     const taken = new Set();
     const available = homes || [];
@@ -82,7 +82,7 @@ window.ResidentialCats = (() => {
       }
       if (!home) continue;
       Object.assign(visit,{kind,host:homeId(home.t),seed:Math.floor(random()*0x1000000),
-        start:now,until:now+25000+Math.floor(random()*30000)});
+        start:now,until:now+18000+Math.floor(random()*20000)});
       active.set(home.t,visit);
       taken.add(home.t);
     }

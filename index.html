@@ -9973,26 +9973,40 @@ const NATIVE_ANIMAL_PIXELS=[
   '..ooo.....ooo.........'
  ]
 ];
-function drawNativeAnimal(a){
- const c=V.ctx,p=P(a.x,a.y),moving=Math.hypot(a.tx-a.x,a.ty-a.y)>.015;
- const hop=a.kind===0&&moving?Math.abs(Math.sin(a.phase*8))*3:0;
- const step=a.kind!==0&&moving&&Math.sin(a.phase*7)>0?1:0;
- const palettes=[
+// Cache the two foot positions at their native pixel resolution before scaling.
+const nativeAnimalPalettes=[
   {o:'#60462F',b:'#B17B45',l:'#E2B880',d:'#8F6037',e:'#251F1B',n:'#433124'},
   {o:'#625A4E',b:'#91836F',l:'#BDB09A',d:'#73624E',e:'#211E1B',n:'#3F3932'},
   {o:'#514735',b:'#8E7450',l:'#CBB48A',q:'#E5D3AA',d:'#67543C',e:'#201C18',n:'#43382B'}
  ];
- // Keep animals well below a building footprint; size grows with normal map zoom.
- c.save();c.translate(Math.round(p.x),Math.round(p.y));c.scale(V.z*a.face*.85,V.z*.85);
- c.fillStyle='rgba(30,48,30,.2)';c.fillRect(-8,0,16,2);c.translate(0,-hop);
- const rows=NATIVE_ANIMAL_PIXELS[a.kind],pal=palettes[a.kind];
- for(let y=0;y<rows.length;y++)for(let x=0;x<rows[y].length;x++){
-  const color=pal[rows[y][x]];if(!color)continue;
-  c.fillStyle=color;
-  // A single-pixel alternating foot lift, no realistic body deformation.
-  const lift=step&&y>=rows.length-2&&x<10?1:0;
-  c.fillRect(x-11,y-rows.length-lift,1,1);
- }
+const nativeAnimalFrames=NATIVE_ANIMAL_PIXELS.map((rows,kind)=>{
+ return [0,1].map(step=>{
+  const frame=document.createElement('canvas');
+  frame.width=Math.max(...rows.map(row=>row.length));
+  frame.height=rows.length;
+  const ctx=frame.getContext('2d'),pal=nativeAnimalPalettes[kind];
+  rows.forEach((row,y)=>{
+   for(let x=0;x<row.length;x++){
+    const color=pal[row[x]];
+    if(!color)continue;
+    ctx.fillStyle=color;
+    const lift=step&&y>=rows.length-2&&x<10?1:0;
+    ctx.fillRect(x,y-lift,1,1);
+   }
+  });
+  return frame;
+ });
+});
+const nativeAnimalScale=[.52,.36,.27]; // kangaroo, wombat, echidna
+function drawNativeAnimal(a){
+ const c=V.ctx,p=P(a.x,a.y),moving=Math.hypot(a.tx-a.x,a.ty-a.y)>.015;
+ const hop=a.kind===0&&moving?Math.abs(Math.sin(a.phase*8))*3:0;
+ const step=a.kind!==0&&moving&&Math.sin(a.phase*7)>0?1:0;
+ const frame=nativeAnimalFrames[a.kind][step],scale=V.z*nativeAnimalScale[a.kind];
+ c.save();c.imageSmoothingEnabled=false;
+ c.translate(Math.round(p.x),Math.round(p.y));c.scale(scale*a.face,scale);
+ c.fillStyle='rgba(30,48,30,.2)';c.fillRect(-8,0,16,2);
+ c.drawImage(frame,-11,-frame.height-hop);
  c.restore();
 }
 /* End native world preview. */
