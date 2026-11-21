@@ -8806,7 +8806,7 @@ const KEYCOL = { steel: '#D6DEE8', gold: '#FFC93C', diamond: '#7FE3FF' };
 // Published viewer groups are the baseline. Honour later reviews on the same device.
 const catalogueState=/*MODEL_CATALOGUE_STATE*/null;
 const deletedModelIds=new Set((catalogueState?.ids||[]).map(id=>id==='delivery-depot'?'deliveryDepot':id));
-const finishedModels=new Set(['parkSmall','parkLarge','parkXL',"red-ibis","southerly-tower","dune-keeper-cottage","quay","orbital-gym", "wind", "hailStop", "busShelter", "road", "house", "aptS", "aptP", "tower", "bakery", "coffee", "grocery", "gym", "hardware", "cinema", "workshop", "factory", "wtower", "pump", "solar", "police", "fire", "clinic", "school", "park", "tree", "flowers", "fountain", "statue", "sakura", "house2", "town", "gas", "warehouse", "skyscraper", "solar2", "nuclear", "needle", "space", "banksiaDuplex", "spindleCycles", "tidalBaths", "civicClock", "sundrop", "sunhouse", "pelicanLight", "q1", "m3", "record", "books", "fishchips", "hall", "delivery-depot"]);
+const finishedModels=new Set(["red-ibis","southerly-tower","dune-keeper-cottage","quay","orbital-gym", "wind", "hailStop", "busShelter", "road", "house", "aptS", "aptP", "tower", "bakery", "coffee", "grocery", "gym", "hardware", "cinema", "workshop", "factory", "wtower", "pump", "solar", "police", "fire", "clinic", "school", "park", "tree", "flowers", "fountain", "statue", "sakura", "house2", "town", "gas", "warehouse", "skyscraper", "solar2", "nuclear", "needle", "space", "banksiaDuplex", "spindleCycles", "tidalBaths", "civicClock", "sundrop", "sunhouse", "pelicanLight", "q1", "m3", "record", "books", "fishchips", "hall", "delivery-depot"]);
 const reviewKey='bit-burbs:all-model-review:2';
 try {
  const reviews=JSON.parse(localStorage.getItem(reviewKey)||'[]');
@@ -8819,8 +8819,10 @@ try {
   if(!localStorage.getItem(marker))finishedModels.add(id);
  }
 }catch{}
-for(const id of ['warehouse','space','parkSmall','parkLarge','parkXL']){deletedModelIds.delete(id);finishedModels.add(id);}
-function modelReady(id){return !deletedModelIds.has(id)&&finishedModels.has(id==='deliveryDepot'?'delivery-depot':id);}
+for(const id of ['warehouse','space']){deletedModelIds.delete(id);finishedModels.add(id);}
+// Keep existing car parks in held inventory while their designs are in Concepts.
+for(const id of Object.keys(parkSizes))deletedModelIds.delete(id);
+function modelReady(id){return !Object.hasOwn(parkSizes,id)&&!deletedModelIds.has(id)&&finishedModels.has(id==='deliveryDepot'?'delivery-depot':id);}
 const DEFS = {deliveryDepot:{name:'Delivery Depot',type:'depot',fx:2,fy:2,lvl:1,cost:0},
   hailStop: {name:'BinLink Hail Stop',type:'transport',cost:0,lvl:1},
   busShelter: {name:'BinLink Bus Stop',type:'transport',cost:0,lvl:1},
@@ -8943,7 +8945,7 @@ const BUILD_TABS = [
   ['businesses', 'Businesses', ['bakery', 'red-ibis', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'sundrop', 'spindleCycles', 'orbital-gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'police', 'fire', 'clinic', 'school']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'solar2', 'nuclear']],
   ['city', 'City & parks', ['deliveryDepot', 'road', 'tree', 'flowers', 'park', 'tidalBaths', 'civicClock', 'needle', 'space']],
-  ['transport', 'Transport', ['parkSmall','parkLarge','parkXL','hailStop','busShelter']],
+  ['transport', 'Transport', ['hailStop','busShelter']],
   ['items', 'Collectables', ['sakura', 'fountain', 'statue', 'sunhouse', 'pelicanLight']]
 ];
 const EXPAND = [];
@@ -9424,7 +9426,7 @@ function seedFullTestCity(){
     ["wind",12,7],["house",1,18],["house2",5,18],["q1",4,10],
     ["banksiaDuplex",9,12],["park",30,16],["flowers",26,18],["tree",30,18],
     ["tree",26,20],["park",29,10],["house",8,14],["q1",8,16],
-    ["m3",2,20],["parkSmall",4,-2],["parkLarge",9,-3],["parkXL",15,-4],
+    ["m3",2,20],
   ];
   for(let x=0;x<=31;x++)for(let y=0;y<=21;y++){
     if(avenues.includes(x)||streets.includes(y))setTile(x0+x,y0+y,newTile('road'));
