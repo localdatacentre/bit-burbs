@@ -128,7 +128,8 @@ window.ResidentialCats = (() => {
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     ctx.translate(box.x+px*box.s,box.y+py*box.s);
-    ctx.scale((left !== (turn>=2)) !== box.mir ? -zoom : zoom,zoom);
+    const scale = zoom * (8 / 9);
+    ctx.scale((left !== (turn>=2)) !== box.mir ? -scale : scale,scale);
     ctx.drawImage(image,104*frame,0,104,88,-4.5,-7.25,9,7.62);
     ctx.restore();
   }
