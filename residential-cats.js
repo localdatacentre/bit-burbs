@@ -1,52 +1,84 @@
-// A visitor can only book an occupied residential lot. Timers survive saving and loading.
+// Yard navigation uses lot coordinates. Camera turns only affect projection and visibility.
 window.ResidentialCats = (() => {
-  const active = new WeakMap();
-  const visibleGround = new WeakMap();
-  let lastCity, lastHomes, nextCheck = 0;
-  const paths = new WeakMap();
-  const sheets = new Map();
-  const surfaces = new Set([
-    0x76ac52, 0x8cbf62, 0x82b65a, // textured lawns
-    0x91a87c, 0xa5b197, 0xa2ad96, 0xbbc1ae, 0x85a278, // residential turf
-    0xbdb8ae, 0xb5b0a6, 0xada99f, 0xd6cdba, 0x586367, 0x858787 // driveways
-  ]);
+  const active=new WeakMap(), journeys=new WeakMap(), sheets=new Map(), decoded=new Map();
+  let atlas, loading=false, retryAt=0, lastCity, lastHomes, nextCheck=0;
 
-  // The daytime model already contains fences, buildings, pools and trees.
-  // Find continuous exposed ground inside the projected footprint of each view.
-  function routes(sp) {
-    if (!sp) return [];
-    if (paths.has(sp)) return paths.get(sp);
-    const result = [];
-    const {w, h, sc, fx, fy} = sp;
-    const top = Math.max(0, sp.gMinY);
-    const height = Math.min(h - top, 16 * (fx + fy) * sc);
-    if (height > 0) {
-      const data = sp.img.getContext('2d').getImageData(0, top, w, height).data;
-      visibleGround.set(sp,{top,height,data});
-      const originX = sp.gMinX + 32 * fy * sc;
-      for (let y = 1; y < height - 1; y += 2) {
-        let start = -1;
-        for (let x = 0; x <= w; x++) {
-          const a = (x + .5 - originX) / (2 * sc), b = (top + y + .5 - sp.gMinY) / sc;
-          const u = (a+b)/2, v = (b-a)/2;
-          let ground = u > 1 && v > 1 && u < 16*fx-1 && v < 16*fy-1;
-          for (let dy = -1; ground && dy <= 1; dy++) {
-            const p = 4 * ((y+dy)*w+x);
-            ground = data[p+3] === 255 && surfaces.has((data[p]<<16)|(data[p+1]<<8)|data[p+2]);
-          }
-          if (ground && start < 0) start = x;
-          if (!ground && start >= 0) {
-            if (x-start >= 6*sc) result.push({x0:start+2*sc, x1:x-2*sc, y:top+y});
-            start = -1;
-          }
-        }
-      }
+  function loadMaps(now){
+    if(atlas || loading || now<retryAt)return;
+    loading=true;
+    fetch('./cats/lot-maps.json?v=1').then(r=>{
+      if(!r.ok)throw Error(r.status);
+      return r.json();
+    }).then(data=>{atlas=data;}).catch(()=>{retryAt=Date.now()+5000;})
+      .finally(()=>{loading=false;});
+  }
+  function unpack(value,size){
+    const pairs=atob(value), out=new Uint8Array(size);
+    let offset=0;
+    for(let i=0;i<pairs.length;i+=2){
+      const end=offset+pairs.charCodeAt(i);
+      out.fill(pairs.charCodeAt(i+1),offset,end); offset=end;
     }
-    paths.set(sp,result);
+    return out;
+  }
+  function mapFor(key){
+    if(!decoded.has(key)&&atlas?.[key]){
+      const m=atlas[key];
+      decoded.set(key,{...m,walk:unpack(m.walk,m.width*m.height),depth:unpack(m.depth,m.w*m.rows)});
+    }
+    return decoded.get(key);
+  }
+  function rotate(x,y,w,h,turn){
+    switch(turn){
+      case 1:return [h-y,x];
+      case 2:return [w-x,h-y];
+      case 3:return [y,w-x];
+      default:return [x,y];
+    }
+  }
+  function hidden(m,col,row,depth){
+    return col>=0&&row>=0&&col<m.w&&row<m.rows&&m.depth[col*m.rows+row]>depth*2+1.5;
+  }
+  function foregroundAt(key,col,row,footDepth,fallback){
+    const m=mapFor(key);
+    if(!m)return fallback;
+    const y=Math.floor(row)+m.above,x=Math.floor(col);
+    if(x<0||x>=m.w||y<0||y>=m.rows)return fallback;
+    const object=m.depth[x*m.rows+y];
+    return object ? object>footDepth*2+1.5 : row/m.sc>footDepth;
+  }
+  const directions=[[1,0],[0,1],[-1,0],[0,-1],[1,1],[-1,1],[-1,-1],[1,-1]];
+  function neighbours(m,i){
+    const x=i%m.width,y=Math.floor(i/m.width),result=[];
+    for(const [dx,dy] of directions){
+      const u=x+dx,v=y+dy,j=v*m.width+u;
+      if(u<0||v<0||u>=m.width||v>=m.height||!m.walk[j])continue;
+      if(dx&&dy&&(!m.walk[y*m.width+u]||!m.walk[v*m.width+x]))continue;
+      result.push(j);
+    }
     return result;
   }
-
-  function update(city, homes, now, homeId, spriteFor, random = Math.random) {
+  function chooseStart(key,turn,random){
+    const base=mapFor(key), view=mapFor(key+(turn?'-turn'+turn:''));
+    if(!view||!base)return -1;
+    // Prefer visible open yards. Include the perimeter path when it is the usable space.
+    const visible=[],interior=[];
+    for(let i=0;i<base.walk.length;i++){
+      if(!base.walk[i])continue;
+      const x=i%base.width+.5,y=Math.floor(i/base.width)+.5;
+      const [u,v]=rotate(x,y,base.width,base.height,turn),z=u+v;
+      const col=Math.floor(view.ox+(u-v)*2*view.sc),row=view.above+Math.floor(z*view.sc);
+      if([[-2,-4],[0,-8],[2,-4],[0,0]].some(([a,b])=>hidden(view,col+a,row+b,z)))continue;
+      if(neighbours(base,i).length<2)continue;
+      visible.push(i);
+      if(Math.min(x,y,base.width-x,base.height-y)>1)interior.push(i);
+    }
+    const candidates=interior.length&&random()<.75?interior:visible;
+    return candidates.length?candidates[Math.floor(random()*candidates.length)]:-1;
+  }
+  function update(city, homes, now, homeId, viewFor, random = Math.random) {
+    loadMaps(now);
+    if(!atlas)return;
     if (city === lastCity && homes === lastHomes && now < nextCheck) return;
     if (lastHomes) for (const h of lastHomes) active.delete(h.t);
     lastCity = city; lastHomes = homes; nextCheck = now + 1000;
@@ -75,63 +107,104 @@ window.ResidentialCats = (() => {
       const free = available.filter(h=>!taken.has(h.t));
       const other = free.filter(h=>!visit.previous || h.t.labId!==visit.previous);
       const choices = other.length ? other : available.length===1 ? free : [];
-      let home;
+      let home,cell;
       while (choices.length) {
         const [candidate]=choices.splice(Math.floor(random()*choices.length),1);
-        if (routes(spriteFor(candidate.t.id)).length) { home=candidate; break; }
+        const [key,turn]=viewFor(candidate.t);
+        cell=chooseStart(key,turn,random);
+        if(cell>=0){home=candidate;break;}
       }
       if (!home) continue;
-      Object.assign(visit,{kind,host:homeId(home.t),seed:Math.floor(random()*0x1000000),
+      Object.assign(visit,{kind,cell,host:homeId(home.t),seed:Math.floor(random()*0x1000000),
         start:now,until:now+18000+Math.floor(random()*20000)});
       active.set(home.t,visit);
       taken.add(home.t);
     }
   }
 
-  function draw(ctx, box, base, turn, cat, zoom, night, ms) {
-    const options = routes(base);
-    if (!options.length) return;
-    const key = cat.kind + (night ? '-night' : '-day');
-    if (!sheets.has(key)) {
-      const image = new Image();
-      image.src = './cats/'+key+'.png';
-      sheets.set(key,image);
+  function makeJourney(m,cell,seed,duration){
+    let state=seed>>>0;
+    function random(){state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;}
+    const legs=[];
+    let t=0,lastDx=1,lastDy=0;
+    function leg(a,b,ms){
+      if(a!==b){lastDx=b%m.width-a%m.width;lastDy=Math.floor(b/m.width)-Math.floor(a/m.width);}
+      legs.push({a,b,start:t,end:t+ms,dx:lastDx,dy:lastDy});t+=ms;
     }
-    const image = sheets.get(key);
-    if (!image.naturalWidth) return;
-    const path = options[(cat.seed >>> 0) % options.length];
-    const length = Math.min(path.x1-path.x0, 18*base.sc);
-    const x0 = path.x0 + ((cat.seed >>> 8) % 101)/100*(path.x1-path.x0-length);
-    const walk = 2300 + length*30, rest = 2100 + cat.seed%4100;
-    const clock = (ms-cat.start)%(2*(walk+rest)), left = clock >= walk+rest;
-    const phase = clock%(walk+rest), progress = Math.min(1,phase/walk);
-    const x = x0 + length*(left ? 1-progress : progress);
-    const sp = box.sp;
-    let px=x, py=path.y;
-    if (turn) {
-      const a = (x-base.gMinX-32*base.fy*base.sc)/(2*base.sc);
-      const b = (path.y-base.gMinY)/base.sc;
-      const u=(a+b)/2, v=(b-a)/2, width=16*base.fx, depth=16*base.fy;
-      const [rx,ry] = turn===1 ? [depth-v,u] : turn===2 ? [width-u,depth-v] : [v,width-u];
-      px=sp.gMinX+32*sp.fy*sp.sc+(rx-ry)*2*sp.sc;
-      py=sp.gMinY+(rx+ry)*sp.sc;
-      routes(sp);
-      const mask=visibleGround.get(sp);
-      const iy=Math.floor(py)-(mask?.top||0), ix=Math.floor(px);
-      if (!mask || ix<0 || ix>=sp.w || iy<0 || iy>=mask.height) return;
-      const off=4*(iy*sp.w+ix), d=mask.data;
-      if (d[off+3]!==255 || !surfaces.has((d[off]<<16)|(d[off+1]<<8)|d[off+2])) return;
+    while(t<duration){
+      // Search the connected yard; pick a destination a few strides away and follow its path.
+      const parent=new Int32Array(m.walk.length).fill(-1),queue=[cell],targets=[];
+      parent[cell]=cell;
+      const stride=4+random()*9, shift=Math.floor(random()*8);
+      for(let j=0;j<queue.length;j++){
+        const a=queue[j],d=Math.hypot(a%m.width-cell%m.width,Math.floor(a/m.width)-Math.floor(cell/m.width));
+        if(d>=stride){targets.push(a);continue;}
+        const near=neighbours(m,a);
+        for(let n=0;n<near.length;n++){
+          const b=near[(n+shift)%near.length];
+          if(parent[b]!==-1)continue;
+          parent[b]=a;queue.push(b);
+        }
+      }
+      const pool=targets.length?targets:queue.slice(Math.max(1,Math.floor(queue.length/2)));
+      if(!pool.length){leg(cell,cell,duration-t);break;}
+      const dest=pool[Math.floor(random()*pool.length)],path=[];
+      for(let b=dest;b!==cell;b=parent[b])path.push(b);
+      for(const b of path.reverse()){
+        const diagonal=cell%m.width!==b%m.width&&Math.floor(cell/m.width)!==Math.floor(b/m.width);
+        leg(cell,b,diagonal?490:350);cell=b;
+      }
+      leg(cell,cell,1100+random()*2300);
     }
-    if(box.mir)px=sp.w-px;
-    const frame = phase < walk ? Math.floor(phase/130)%8 :
-      (phase-walk)%2750 < 125 ? 10 : (phase-walk)%1700 < 650 ? 9 : 8;
-    ctx.save();
-    ctx.imageSmoothingEnabled = false;
-    ctx.translate(box.x+px*box.s,box.y+py*box.s);
-    const scale = zoom * (8 / 9);
-    ctx.scale((left !== (turn>=2)) !== box.mir ? -scale : scale,scale);
-    ctx.drawImage(image,104*frame,0,104,88,-4.5,-7.25,9,7.62);
-    ctx.restore();
+    return legs;
   }
-  return {update,at:tile=>active.get(tile),draw,routes};
+  function pose(box,turn,cat,now){
+    const model=box.sp.key.replace(/-turn[1-3]$/,''),m=mapFor(model),view=mapFor(box.sp.key);
+    if(!m||!view)return;
+    let route=journeys.get(cat);
+    if(!route||route.start!==cat.start||route.model!==model||route.seed!==cat.seed){
+      let cell=cat.cell;
+      if(!Number.isInteger(cell)||!m.walk[cell]){
+        cell=chooseStart(model,turn,()=>((cat.seed>>>0)%65521)/65521);
+        if(cell<0)return;
+        cat.cell=cell;
+      }
+      route={start:cat.start,seed:cat.seed,model,legs:makeJourney(m,cell,cat.seed,Math.max(1000,Math.min(60000,cat.until-cat.start)))};
+      journeys.set(cat,route);
+    }
+    const elapsed=Math.max(0,now-cat.start),legs=route.legs;
+    const l=legs.find(l=>l.end>elapsed)||legs[legs.length-1];
+    const f=Math.min(1,(elapsed-l.start)/(l.end-l.start));
+    const x=l.a%m.width+.5+l.dx*(l.a===l.b?0:f),y=Math.floor(l.a/m.width)+.5+l.dy*(l.a===l.b?0:f);
+    const [u,v]=rotate(x,y,m.width,m.height,turn);
+    const [dx,dy]=rotate(l.dx,l.dy,0,0,turn);
+    const sp=box.sp,px=sp.gMinX+32*sp.fy*sp.sc+(u-v)*2*sp.sc,py=sp.gMinY+(u+v)*sp.sc;
+    const idle=elapsed-l.start;
+    const frame=l.a!==l.b?Math.floor(elapsed/130)%8:idle%2750<125?10:idle%1700<650?9:8;
+    return {view,z:u+v,px,py,left:dx-dy<0,frame,kind:cat.kind};
+  }
+  // Compose a tiny isolated image in model pixels. Mask only foreground texels.
+  let stamp;
+  function draw(ctx,box,p,night,zoom,eraseForeground){
+    const key=p.kind+(night?'-night':'-day');
+    if(!sheets.has(key)){const im=new Image();im.src='./cats/'+key+'.png';sheets.set(key,im);}
+    const img=sheets.get(key);
+    if(!img.naturalWidth)return;
+    const unit=zoom/box.s,w=Math.max(1,Math.round(8*unit)),h=Math.max(1,Math.round(6.77*unit));
+    stamp ||= document.createElement('canvas');
+    if(stamp.width!==w||stamp.height!==h){stamp.width=w;stamp.height=h;}
+    const c=stamp.getContext('2d'),x0=Math.round(p.px-w/2),y0=Math.round(p.py-6.44*unit);
+    c.clearRect(0,0,w,h);c.imageSmoothingEnabled=false;c.save();
+    if(p.left){c.translate(w,0);c.scale(-1,1);}
+    c.drawImage(img,104*p.frame,0,104,88,0,0,w,h);c.restore();
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++)
+      if(hidden(p.view,x0+x,y0+y-box.sp.gMinY+p.view.above,p.z))c.clearRect(x,y,1,1);
+    const sx=box.x+x0*box.s,sy=box.y+y0*box.s;
+    if(eraseForeground){
+      c.save();c.scale(1/box.s,1/box.s);c.translate(-sx,-sy);
+      c.globalCompositeOperation='destination-out';eraseForeground(c,sx,sy,w*box.s,h*box.s);c.restore();
+    }
+    ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(stamp,sx,sy,w*box.s,h*box.s);ctx.restore();
+  }
+  return {update,at:tile=>active.get(tile),pose,draw,foregroundAt};
 })();
