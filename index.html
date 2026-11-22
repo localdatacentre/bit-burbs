@@ -17,7 +17,7 @@
 <link rel="preload" as="font" type="font/woff2" href="./fonts/silkscreen-400.woff2" crossorigin>
 <link rel="preload" as="script" href="./residential-cats.js?v=yard1">
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
-<link rel="preload" as="script" href="./daily-task-core.js?v=fixed-dailies1">
+<link rel="preload" as="script" href="./daily-task-core.js?v=build-categories1">
 <link rel="preload" as="script" href="./daily-task-session.js">
 <link rel="preload" as="style" href="./page-shell.css?v=mobile-polish1">
 <style>
@@ -8592,7 +8592,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=shop-timeout1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=fixed-dailies1"></script>
+<script src="./exchange-room.js?v=shop-timeout1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=build-categories1"></script>
 <script>
 (async () => {
 'use strict';
@@ -9066,7 +9066,7 @@ const DEFS = {deliveryDepot:{name:'Delivery Depot',type:'depot',fx:2,fy:2,lvl:1,
   hall:     { name: 'Town Hall', type: 'hall', fx: 3, fy: 3, cost: 0, lvl: 1, h: 62, wall: '#F0EADB', side: '#D0C9B9', roof: '#4A6C5A' }
 };
 DEFS.space.type='ind';DEFS.space.jobs=150;DEFS.space.staff=25;DEFS.space.pw=8;DEFS.space.wa=4;
-const BUILDING_VALUES = {"deliveryDepot": {"coins": 100}, "hailStop": {"coins": 675}, "busShelter": {"coins": 2025}, "road": {"coins": 23}, "house": {"coins": 900, "residents": [3, 8, 13, 18, 23]}, "aptS": {"coins": 14120, "residents": [22, 33, 44, 55, 65]}, "aptP": {"coins": 18560, "residents": [26, 38, 50, 62, 74]}, "southerly-tower": {"coins": 70220, "residents": [56, 76, 96, 116, 136]}, "quay": {"coins": 61460, "residents": [52, 71, 88, 106, 124]}, "tower": {"coins": 53280, "residents": [48, 66, 81, 97, 112]}, "red-ibis": {"coins": 63180, "jobs": 14}, "bakery": {"coins": 1700, "jobs": 3}, "coffee": {"coins": 4660, "jobs": 5}, "grocery": {"coins": 18140, "jobs": 10}, "orbital-gym": {"coins": 84100, "jobs": 16}, "gym": {"coins": 58120, "jobs": 13}, "hardware": {"coins": 111600, "jobs": 18}, "cinema": {"coins": 272450, "jobs": 21}, "workshop": {"coins": 2560, "jobs": 4}, "factory": {"coins": 364320, "jobs": 22}, "wind": {"coins": 1350}, "wtower": {"coins": 1130}, "pump": {"coins": 5630}, "solar": {"coins": 6750}, "police": {"coins": 25530, "jobs": 12}, "fire": {"coins": 19050, "jobs": 11}, "clinic": {"coins": 69490, "jobs": 15}, "school": {"coins": 89900, "jobs": 17}, "park": {"coins": 1400}, "tree": {"coins": 169}, "flowers": {"coins": 560}, "fountain": {"coins": 10000}, "statue": {"coins": 18000}, "sakura": {"coins": 6000}, "dune-keeper-cottage": {"coins": 2120, "residents": [6, 12, 17, 25, 30]}, "house2": {"coins": 3670, "residents": [9, 15, 21, 29, 36]}, "town": {"coins": 29170, "residents": [34, 49, 63, 77, 90]}, "gas": {"coins": 155310, "jobs": 19}, "warehouse": {"coins": 757450, "jobs": 23}, "skyscraper": {"coins": 2024370, "jobs": 24}, "solar2": {"coins": 10130}, "nuclear": {"coins": 135000}, "needle": {"coins": 56250}, "space": {"coins": 2302720, "jobs": 25}, "banksiaDuplex": {"coins": 8540, "residents": [16, 27, 37, 46, 57]}, "spindleCycles": {"coins": 20160, "jobs": 9}, "tidalBaths": {"coins": 15750}, "civicClock": {"coins": 24750}, "sundrop": {"coins": 164470, "jobs": 20}, "sunhouse": {"coins": 20500}, "pelicanLight": {"coins": 30000}, "q1": {"coins": 6970, "residents": [14, 24, 32, 42, 51]}, "m3": {"coins": 4880, "residents": [11, 20, 28, 35, 43]}, "record": {"coins": 15010, "jobs": 8}, "books": {"coins": 10320, "jobs": 6}, "fishchips": {"coins": 12660, "jobs": 7}, "hall": {"coins": 0}};
+const BUILDING_VALUES = {"deliveryDepot": {"coins": 100}, "hailStop": {"coins": 675}, "busShelter": {"coins": 2025}, "road": {"coins": 23}, "house": {"coins": 900, "residents": [3, 8, 13, 18, 23]}, "aptS": {"coins": 14120, "residents": [22, 33, 44, 55, 65]}, "aptP": {"coins": 18560, "residents": [26, 38, 50, 62, 74]}, "southerly-tower": {"coins": 70220, "residents": [56, 76, 96, 116, 136]}, "quay": {"coins": 61460, "residents": [52, 71, 88, 106, 124]}, "tower": {"coins": 53280, "residents": [48, 66, 81, 97, 112]}, "red-ibis": {"coins": 63180, "jobs": 14}, "bakery": {"coins": 1700, "jobs": 3}, "coffee": {"coins": 4660, "jobs": 5}, "grocery": {"coins": 18140, "jobs": 10}, "orbital-gym": {"coins": 84100, "jobs": 16}, "gym": {"coins": 58120, "jobs": 13}, "hardware": {"coins": 111600, "jobs": 18}, "cinema": {"coins": 272450, "jobs": 21}, "workshop": {"coins": 2560, "jobs": 4}, "factory": {"coins": 364320, "jobs": 22}, "wind": {"coins": 1350}, "wtower": {"coins": 1130}, "pump": {"coins": 5630}, "solar": {"coins": 6750}, "police": {"coins": 25530, "jobs": 12}, "fire": {"coins": 19050, "jobs": 11}, "clinic": {"coins": 69490, "jobs": 15}, "school": {"coins": 89900, "jobs": 17, "upgrades": [150000, 450000, 1200000, 3000000]}, "park": {"coins": 1400}, "tree": {"coins": 169}, "flowers": {"coins": 560}, "fountain": {"coins": 10000}, "statue": {"coins": 18000}, "sakura": {"coins": 6000}, "dune-keeper-cottage": {"coins": 2120, "residents": [6, 12, 17, 25, 30]}, "house2": {"coins": 3670, "residents": [9, 15, 21, 29, 36]}, "town": {"coins": 29170, "residents": [34, 49, 63, 77, 90]}, "gas": {"coins": 155310, "jobs": 19}, "warehouse": {"coins": 757450, "jobs": 23}, "skyscraper": {"coins": 2024370, "jobs": 24}, "solar2": {"coins": 10130}, "nuclear": {"coins": 135000}, "needle": {"coins": 56250}, "space": {"coins": 2302720, "jobs": 25}, "banksiaDuplex": {"coins": 8540, "residents": [16, 27, 37, 46, 57]}, "spindleCycles": {"coins": 20160, "jobs": 9}, "tidalBaths": {"coins": 15750}, "civicClock": {"coins": 24750}, "sundrop": {"coins": 164470, "jobs": 20}, "sunhouse": {"coins": 20500}, "pelicanLight": {"coins": 30000}, "q1": {"coins": 6970, "residents": [14, 24, 32, 42, 51]}, "m3": {"coins": 4880, "residents": [11, 20, 28, 35, 43]}, "record": {"coins": 15010, "jobs": 8}, "books": {"coins": 10320, "jobs": 6}, "fishchips": {"coins": 12660, "jobs": 7}, "hall": {"coins": 0}};
 // Reserve each exact quote once so another model cannot acquire the same price
 // as a player's owned counts change. Keep the original 35% repeat-price curve.
 function prepareCatalogue(definitions, values, businesses) {
@@ -9094,7 +9094,7 @@ function prepareCatalogue(definitions, values, businesses) {
     if (values[id].dosh || !(businesses[id] || ['home','util'].includes(def.type))) continue;
     for (let level = 1; level < 5; level++) {
       const standard = Math.round((def.buildCost ?? def.cost) * 1.15 * [0,.8,1.6,3,5][level]);
-      let price = businesses[id]?.upgradePrices[level + 1] ?? standard;
+      let price = values[id].upgrades?.[level - 1] ?? businesses[id]?.upgradePrices[level + 1] ?? standard;
       if (def.type === 'home') {
         const rooms = def.residentCapacity[level] - def.residentCapacity[level - 1];
         const costPerResident = schedule.first / def.cap;
@@ -9122,13 +9122,15 @@ for(const [id,def]of Object.entries(DEFS)){
 const BUILDING_QUOTES=prepareCatalogue(DEFS,BUILDING_VALUES,ECON);
 const SVC_NAMES = ['Police', 'Fire', 'Health', 'Education'];
 const cityDecorationIds = new Set(['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle']);
+const parkAndGreeneryIds = ['park','tree','flowers','sakura'];
 const BUILD_TABS = [
   ['homes', 'Homes', ['house', 'house2', 'dune-keeper-cottage', 'm3', 'banksiaDuplex', 'q1', 'aptS', 'aptP', 'tower', 'quay', 'southerly-tower', 'town']],
-  ['businesses', 'Businesses', ['bakery', 'red-ibis', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'sundrop', 'spindleCycles', 'orbital-gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper']],
-  ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'solar2', 'nuclear']],
-  ['services', 'City services', ['hall', 'school', 'clinic', 'police', 'fire', 'deliveryDepot']],
-  ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'space', ...cityDecorationIds]],
-  ['transport', 'Transport', ['hailStop','busShelter']]
+  ['businesses', 'Businesses', ['bakery', 'red-ibis', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'sundrop', 'spindleCycles', 'orbital-gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'space', 'clinic', 'police', 'fire']],
+  ['util', 'Utilities', ['wind', 'wtower', 'pump', 'solar', 'solar2', 'nuclear']],
+  ['services', 'City Services', ['hall', 'school', 'deliveryDepot']],
+  ['transport', 'Roads & Transport', ['road', 'hailStop','busShelter']],
+  ['parks', 'Parks & Greenery', parkAndGreeneryIds],
+  ['landmarks', 'Landmarks', [...cityDecorationIds].filter(id=>!parkAndGreeneryIds.includes(id))]
 ];
 const EXPAND = [];
 const expIdx = () => 13 - S.lo;
@@ -10317,8 +10319,8 @@ function placeAt(i, j, id, fromItem, turned=false) {
   else if(fromItem)dailyAction('restoreAny');
   else{
     dailyAction('buildAny');
-    if(d.type==='decor')dailyAction('buildDecor');
   }
+  if(parkAndGreeneryIds.includes(id))dailyAction('buildDecor');
   if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
   if (id === 'hall' && S.foundingGrant) {
     delete S.foundingGrant; S.cash += 8000; save(); toast('Town founded · 8,000 starter coins');
@@ -12741,7 +12743,7 @@ function businessPanel(b){
       '<button class="pixel-btn pb grow" data-act="businessStock" data-voucher="'+(cost===0 && missing && S.restockVouchers>0)+'" data-fee="'+cost+'" '+(blocked||!missing||S.cash<cost?'disabled':'')+'>'+buyLabel+'</button>')+'</div>'+
     '<div class="preview-row"><button class="pixel-btn pb gold buy grow" data-act="upgrade" '+(max||S.cash<upgrade.coins||S.deeds<upgrade.deeds?'disabled':'')+'>'+price+'</button>'+
     '<button class="pixel-btn pb secondary" data-act="manageProperty">Manage</button></div>'+
-    (t.id==='school' ? '<span class="micro">City coins/min +'+L+'%'+(max?' · max level':' → +'+(L+1)+'% at level '+(L+1))+' · one school per city</span>' : max?'':'<span class="micro">Level '+(L+1)+' · +'+pct+'% sales rate</span>');
+    (t.id==='school' ? '<span class="micro">Citywide business income '+(b.works&&b.employees>=b.jobCapacity?'+'+L+'% active':'bonus inactive · connect utilities and fill all jobs')+(max?' · max level':' · next level +'+(L+1)+'% when operating')+'</span>' : max?'':'<span class="micro">Level '+(L+1)+' · +'+pct+'% sales rate</span>');
 }
 function upRow(t, d) {
   if (!canUp(d)) return '';
@@ -12952,6 +12954,7 @@ function restoreBuilding(entry,i,j,turned=entry.building.turned) {
   occupy(i,j,tile);
   S.storedBuildings.splice(index,1);
   dailyAction('restoreAny');
+  if(parkAndGreeneryIds.includes(tile.id))dailyAction('buildDecor');
   changed(); save(); snd('build');
   return true;
 }
@@ -13044,11 +13047,11 @@ function buildHTML() {
     else if (d.type === 'home') sub = `${d.cap} residents`;
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
     else if(parkSizes[id])sub=parkSlots(parkSpec(id)).length+' bays · one per city · road required at gate';
-    else if (d.type === 'decor') sub = 'Decoration';
+    else if (d.type === 'decor') sub = buildTab==='parks'?'Parks & Greenery':'Landmark';
     else if (d.type === 'depot') sub = hasB(id) ? 'Already placed · 2×2' : '2×2 · one per city';
     else if (d.type === 'hall') sub = 'Your city centre, free';
     else sub = 'Connects everything';
-    if (id==='school') sub += ' · +1–5% city coins/min · one per city';
+    if (id==='school') sub = 'Citywide business income +1% per level (up to +5%) when fully staffed and connected · one per city';
     if (isBiz(d)) sub += ` · ${jobCapacity(null, d)} jobs`;
     if (locked) sub += ` · Unlocks at Lv ${d.lvl}`;
     const price = isStop(id) ? (limit ? 'Owned' : 'Place beside a straight road') : limit || (item ? `You have ${count}` : coinSvg() + cost.toLocaleString('en-AU'));
@@ -13143,7 +13146,7 @@ function tasksHTML() {
   if(!tasks.length)h+='<p class="note">More tasks become available as your city grows.</p>';
   tasks.forEach((task,q)=>{
     const done=task.progress>=task.target;
-    h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-copy"><b>${String(task.text||'City task').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c])}</b><small>${task.difficulty} · ${fmt(task.progress)} / ${fmt(task.target)}</small><small>1 crate voucher, 1 dosh, ${task.reward.xp} XP</small></div>${dailyTaskProgress({p:task.progress,n:task.target})}<button class="pixel-btn pb sm" data-act="dclaim" data-k="${task.key}" ${task.claimed||!done?'disabled':''}>${task.claimed?'Claimed':done?'Collect reward':'In progress'}</button></div>`;
+    h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-copy"><b>${(task.metric==='buildDecor'?'Place '+task.target+' from Parks & Greenery':String(task.text||'City task')).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c])}</b><small>${task.difficulty} · ${fmt(task.progress)} / ${fmt(task.target)}</small><small>1 crate voucher, 1 dosh, ${task.reward.xp} XP</small></div>${dailyTaskProgress({p:task.progress,n:task.target})}<button class="pixel-btn pb sm" data-act="dclaim" data-k="${task.key}" ${task.claimed||!done?'disabled':''}>${task.claimed?'Claimed':done?'Collect reward':'In progress'}</button></div>`;
   });
   h+='</div>';
   return h;
@@ -15199,10 +15202,6 @@ S.shopItems = Object.assign({}, S.shopItems || {});
 if (!S.market) S.market = { week: 0, bought: {}, seen: 0 };
 economyMigrate();
 PRODUCT.space='Rocket services';
-const businessTab=BUILD_TABS.find(t=>t[0]==='businesses');
-if(!businessTab[2].includes('space'))businessTab[2].push('space');
-const cityTab=BUILD_TABS.find(t=>t[0]==='city');
-cityTab[2]=cityTab[2].filter(id=>id!=='space');
 // Consolidate legacy shelves before processing time spent away. New pending
 // orders keep their absolute delivery timestamp across reloads.
 for(const tile of S.tiles){
