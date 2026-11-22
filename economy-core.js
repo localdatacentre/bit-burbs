@@ -28,7 +28,7 @@ function migrate(city,defs,config,ms){
  return {city,changed:true,summary:before};
 }
 function originalGross(d,t,rates){return [1,1.5,2.2].reduce((s,m)=>s+Math.max(1,Math.round((rates[d.jobs]||0)*m*(LEVELS[t?.lvl||1]||1))),0);}
-function baseGross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;return full*clamp(employees,0,p.jobs)/p.jobs;}
+function baseGross(d,t,employees,p,rates){const full=Math.round(originalGross(d,t,rates)*p.factor*1.05*10)/10;const earningStaff=p.earningStaff??p.jobs;return full*clamp(employees,0,earningStaff)/earningStaff;}
 const BUSINESS_EARNINGS_MULTIPLIER=1.2075;
 function gross(d,t,employees,p,rates){return baseGross(d,t,employees,p,rates)*BUSINESS_EARNINGS_MULTIPLIER;}
 function fee(d,t,employees,p,rates){return Math.round(baseGross(d,t,employees,p,rates)*(p.feeStock??p.stock)*p.fee);}

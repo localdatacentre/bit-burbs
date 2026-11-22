@@ -10,7 +10,9 @@ function setup({version=2,until=config.bakery.stock,boost=0,action=at,hired=3}={
 // Every business at every level remains proportional to its fixed job capacity.
 for(const[id,p]of Object.entries(config))for(let lvl=1;lvl<=5;lvl++){
  const full=C.gross(ctx.defs[id],{lvl},p.jobs,p,rates),old=C.gross(ctx.defs[id],{lvl},p.jobs,{...p,...p.previous},rates);
- assert(full>old);near(C.gross(ctx.defs[id],{lvl},p.jobs/2,p,rates),full/2);
+ assert(full>old);assert.equal(p.jobs,Math.round(p.earningStaff*1.4));
+ near(C.gross(ctx.defs[id],{lvl},p.earningStaff/2,p,rates),full/2);
+ near(C.gross(ctx.defs[id],{lvl},p.earningStaff,p,rates),full);
  assert(p.stock>p.previous.stock);assert(p.delivery<p.previous.delivery);assert(p.fee<p.previous.fee);
  assert(C.fee(ctx.defs[id],{lvl},p.jobs,p,rates)<=C.fee(ctx.defs[id],{lvl},p.jobs,{...p,...p.previous},rates)+1,'Longer batches must not raise the upfront fee');
 }
@@ -37,6 +39,6 @@ const a=setup(),b=setup();let total=0;for(let n=1;n<=120;n++)total+=C.settle(a.c
 assert.equal(C.need(99),Math.round(60+5.7*99**1.34));assert.equal(C.cycle(Date.parse('2026-11-17T07:59:59Z')),'2026-11-16');assert.equal(C.cycle(at),'2026-11-17');
 for(const m of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
 assert(html.includes('Core.rebalance(S,ECON,S.economyLab.settled)'));assert(html.includes('return Math.floor(paid / 10)'));assert(html.includes('betaSync.sync(raw)'));
-assert(html.includes('./economy-core.js?v=balance2'));assert(fs.readFileSync(require('node:path').join(__dirname,'../service-worker.js'),'utf8').includes('./economy-core.js?v=balance2'));
+assert(html.includes('./economy-core.js?v=jobs1'));assert(fs.readFileSync(require('node:path').join(__dirname,'../service-worker.js'),'utf8').includes('./economy-core.js?v=jobs1'));
 console.log('PASS: 115 business levels, proportional staffing, full visible idle pay, active-only XP, 50% offline capped by stock, boost/delivery timing, blockers, legacy settlement, fraction-preserving idempotent migration, no balance/XP reset, replay resistance, Brisbane reset, PWA version pairing, script syntax and 10% refunds');
 module.exports={C,config,defs:ctx.defs,quotes:ctx.quotes,rates};
