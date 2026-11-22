@@ -2536,6 +2536,7 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 @media(prefers-reduced-motion:reduce){#bb-tutorial-focus{animation:none}}
 </style>
 <style>
+.town-hall-unavailable.bcard{filter:grayscale(1)}
 .town-hall-prompt{box-shadow:inset 0 0 0 4px #ffcf40!important}
 </style>
 <style>
@@ -9123,9 +9124,10 @@ const SVC_NAMES = ['Police', 'Fire', 'Health', 'Education'];
 const cityDecorationIds = new Set(['statue','fountain','sakura','sunhouse','pelicanLight','tidalBaths','civicClock','needle']);
 const BUILD_TABS = [
   ['homes', 'Homes', ['house', 'house2', 'dune-keeper-cottage', 'm3', 'banksiaDuplex', 'q1', 'aptS', 'aptP', 'tower', 'quay', 'southerly-tower', 'town']],
-  ['businesses', 'Businesses', ['bakery', 'red-ibis', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'sundrop', 'spindleCycles', 'orbital-gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper', 'police', 'fire', 'clinic', 'school']],
+  ['businesses', 'Businesses', ['bakery', 'red-ibis', 'workshop', 'coffee', 'books', 'fishchips', 'record', 'grocery', 'sundrop', 'spindleCycles', 'orbital-gym', 'hardware', 'factory', 'gas', 'cinema', 'warehouse', 'skyscraper']],
   ['util', 'Power & water', ['wind', 'wtower', 'pump', 'solar', 'solar2', 'nuclear']],
-  ['city', 'City & parks', ['deliveryDepot', 'road', 'tree', 'flowers', 'park', 'space', ...cityDecorationIds]],
+  ['services', 'City services', ['hall', 'school', 'clinic', 'police', 'fire', 'deliveryDepot']],
+  ['city', 'City & parks', ['road', 'tree', 'flowers', 'park', 'space', ...cityDecorationIds]],
   ['transport', 'Transport', ['hailStop','busShelter']]
 ];
 const EXPAND = [];
@@ -13008,7 +13010,6 @@ function useCoinBoost() {
 }
 function buildHTML() {
   let h = (S.tut && tutStep() && tutStep().build ? `<div class="tut-build-tip">TUTORIAL ${S.tut.step+1}/${TUT.length} · ${tutStep().t} — follow the yellow highlight</div>` : '') + `<div class="tabs" role="group" aria-label="Building types">${BUILD_TABS.map(([k, l]) => `<button class="pixel-btn pb sm" data-act="tab" data-tab="${k}" aria-pressed="${buildTab === k}">${l}</button>`).join('')}</div>`;
-  if (buildTab === 'homes' && modelReady('hall') && !findHall() && !storedHall()) h += `<div class="sect hallsect"><h3>Start here</h3><button class="pixel-btn bcard town-hall-prompt" data-act="choose" data-id="hall" aria-disabled="false"><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>Your 3×3 civic centre and gardens.</span><span class="price">Free</span></button></div>`;
   if (buildTarget) h += `<p class="note">Building on the plot you picked.</p>`;
   const tab0 = BUILD_TABS.find(t => t[0] === buildTab) || BUILD_TABS[0]; const tab = tab0;
   if(buildTab==='transport') h+='<h3 class="binlink-brand"><canvas data-ibis width="13" height="7" aria-hidden="true"></canvas> BinLink</h3>';
@@ -13017,6 +13018,7 @@ function buildHTML() {
   const item = buildTab === 'items';
   const cards = visibleIds.filter(modelReady).map(id => ({id, cost: item ? 0 : costOf(id)}));
   cards.sort((a,b)=>{
+    if(buildTab==='services'&&(a.id==='hall'||b.id==='hall'))return Number(b.id==='hall')-Number(a.id==='hall');
     if(a.cost!==b.cost)return a.cost-b.cost;
     const first=DEFS[a.id], second=DEFS[b.id];
     if(buildTab==='businesses')return catalogueIncome(first)-catalogueIncome(second) || first.jobs-second.jobs || a.cost-b.cost;
@@ -13024,6 +13026,14 @@ function buildHTML() {
     return a.cost-b.cost;
   });
   cards.forEach(({id, cost}) => {
+    if(id==='hall'){
+      const placed=Boolean(findHall()), stored=Boolean(storedHall());
+      const unavailable=placed||stored;
+      const action=unavailable?'disabled aria-disabled="true"':'data-act="choose" data-id="hall"';
+      const status=placed?'Already placed':stored?'Restore from My Items':'Free';
+      h+=`<button type="button" class="pixel-btn bcard ${unavailable?'town-hall-unavailable':'town-hall-prompt'}" ${action}><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>One per city</span><span class="price">${status}</span></button>`;
+      return;
+    }
     const d = DEFS[id];
     const locked = !item && d.lvl > S.level; const count = item ? (S.shopItems && S.shopItems[id] || 0) : 0;
     const limit = buildingLimitMessage(id);
@@ -14490,7 +14500,7 @@ function showFoundingPrompt() {
   build.onclick = () => {
     modal.classList.remove('show');
     buildTarget = null;
-    buildTab = 'homes';
+    buildTab = 'services';
     openSheet('build');
     const hallCard = sheetBody.querySelector('[data-id="hall"]');
     hallCard.focus();
