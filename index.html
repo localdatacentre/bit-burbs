@@ -2726,7 +2726,7 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #sheet[data-view="bag"],#sheet[data-view="bag"] #sheetBody{background:var(--bag-yellow);color:var(--bag-ink)}
 #sheet[data-view="bag"] .shead{background:var(--bag-yellow);border-bottom:3px solid var(--bag-ink);box-shadow:inset 0 3px var(--bag-highlight)}
 #sheet[data-view="bag"] #sheetTitle,#sheet[data-view="bag"] #sheetBody :is(h3,.note){color:var(--bag-ink);text-shadow:none}
-#sheet[data-view="bag"] #sheetBody .note{font:400 20px/1.2 'VT323',monospace}
+#sheet[data-view="bag"] #sheetBody .note{font:400 17px/1.2 'VT323',monospace}
 #sheet[data-view="bag"] .bag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 #sheet[data-view="bag"] #sheetBody .bag-card{
  --bb-face:var(--bag-card);--bb-top:var(--bag-rim);--bb-bottom:#263752;--bb-edge:var(--bag-ink);
@@ -2740,10 +2740,12 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #sheet[data-view="bag"] .bag-card canvas{display:block;image-rendering:pixelated}
 #sheet[data-view="bag"] .bag-card canvas[data-icon]{width:44px;height:44px}
 #sheet[data-view="bag"] .bag-card canvas[data-prev]{width:100%;max-width:130px;height:auto}
-#sheet[data-view="bag"] .bag-supplies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start}
-#sheet[data-view="bag"] .bag-supplies section{display:grid;gap:8px;min-width:0}
-#sheet[data-view="bag"] .bag-supplies .bag-card{height:100%;box-sizing:border-box}
-#sheet[data-view="bag"] .bag-supplies button{max-width:100%;min-height:44px;margin-top:auto;white-space:normal}
+#sheet[data-view="bag"] .bag-supplies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:8px}
+#sheet[data-view="bag"] #sheetBody .bag-supplies > .bag-card{
+ background:#a9dcff;color:var(--bag-ink);border-color:#365b80;box-shadow:inset 0 2px #d7efff;box-sizing:border-box
+}
+#sheet[data-view="bag"] .bag-supplies small{color:#244466}
+#sheet[data-view="bag"] .bag-supplies button{max-width:100%;min-height:44px;white-space:normal}
 #sheet[data-view="bag"] #sheetBody button.pixel-btn.pb{
  --bb-face:var(--bag-yellow);--bb-top:var(--bag-highlight);--bb-bottom:#e7b93b;--bb-edge:var(--bag-ink);
  color:var(--bag-ink)!important;text-shadow:none!important
@@ -12650,9 +12652,6 @@ function itemBagHTML() {
     if(!modelReady(id))return '';
     return `<button class="pixel-btn bcard bag-card" ${action}><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${DEFS[id].name}</b><span>${detail}</span><span class="price">Place</span></button>`;
   }
-  const held=buildings.filter(e=>!modelReady(e.building.id)).length +
-    Object.entries(S.shopItems).reduce((n,[id,count])=>n+(!modelReady(id)&&Number.isSafeInteger(count)&&count>0?count:0),0);
-  const heldNote=held?'<p class="note">'+held+' retired or unavailable items held in your inventory.</p>':'';
   const groups=new Map();
   buildings.forEach(({building},index)=>{
     const key=building.id+'|'+lvlOf(building);
@@ -12662,8 +12661,10 @@ function itemBagHTML() {
   const moved=Array.from(groups.values(),({building,index,count})=>card(building.id,
     `data-act="restore" data-index="${index}"`,(building.id==='road'?'Road tile':'Level '+lvlOf(building))+' · '+count+' owned')).join('');
   const owned = collectables.map(([id,count]) => card(id, `data-act="choose" data-id="${id}"`, 'Owned · '+count)).join('');
-  return '<div class="bag-supplies"><section aria-label="Coin boosts">'+coinBoostHTML()+'</section><section aria-label="Restock vouchers">'+voucherHTML()+'</section></div>' + voucherChoicesHTML() + '<h3>Stored buildings</h3>'  + (moved ? '<div class="bag-grid">'+moved+'</div>' : '<p class="note">Use the Move tool to pick up a building. Buildings that need more room after a remodel appear here too.</p>') +
-    heldNote + '<h3>Collectables</h3>' + (owned ? '<div class="bag-grid">'+owned+'</div>' : '<p class="note">Owned collectables that can be placed appear here.</p>');
+  const storedCards = moved + owned;
+  return '<div class="bag-supplies">'+coinBoostHTML()+voucherHTML()+'</div>' + voucherChoicesHTML() +
+    '<h3>Stored buildings</h3><p class="note">Pick up buildings with the Move tool. Resized buildings that need more room appear here too.</p>' +
+    (storedCards ? '<div class="bag-grid">'+storedCards+'</div>' : '');
 }
 function restoreBuilding(entry,i,j,turned=entry.building.turned) {
   const index = S.storedBuildings.indexOf(entry);
@@ -12720,8 +12721,10 @@ function redeemVoucher(i,j) {
 }
 function coinBoostHTML() {
   const tokens = Object.entries(S.coinBoostTokens || {}).filter(([min,count]) => Number(min)>0 && count>0);
-  const cards = tokens.map(([min,count]) => `<div class="bag-card"><canvas data-icon="boost" width="48" height="48" aria-hidden="true"></canvas><b>2× coins · ${Number(min)} min</b><small>Owned · ${Number(count)}</small><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}">Use</button></div>`);
-  return cards.length ? cards.join('') : '<div class="bag-card"><canvas data-icon="boost" width="48" height="48" aria-hidden="true"></canvas><b>2× coin boost</b><small>Owned · 0</small></div>';
+  const icon = '<canvas data-icon="boost" width="48" height="48" aria-hidden="true"></canvas>';
+  const options = tokens.map(([min,count]) => `<small>${tokens.length>1?Number(min)+' min · ':''}Owned · ${Number(count)}</small><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}" aria-label="Use ${Number(min)} minute coin boost">Use</button>`);
+  const title = tokens.length===1 ? '2× coins · '+Number(tokens[0][0])+' min' : '2× coin boost';
+  return '<div class="bag-card">'+icon+'<b>'+title+'</b>'+(options.join('') || '<small>Owned · 0</small>')+'</div>';
 }
 function useCoinBoost(min) {
   if (![10,15].includes(min) || !(S.coinBoostTokens?.[min]>0)) return;

@@ -68,6 +68,15 @@ def check_layout(page, base, viewport, insets):
         else:
             check("#sheet .shead")
             check('#sheet [data-act="closeSheet"]', True)
+            if menu == "Item bag":
+                cards = page.locator(".bag-supplies > .bag-card")
+                assert cards.count() == 2
+                boost, voucher = [card.bounding_box() for card in cards.all()]
+                assert abs(boost["width"] - voucher["width"]) <= 1
+                assert abs(boost["height"] - voucher["height"]) <= 1
+                assert boost["y"] == voucher["y"] and boost["x"] < voucher["x"]
+                assert cards.first.evaluate("(el) => getComputedStyle(el).backgroundColor") == "rgb(169, 220, 255)"
+                assert page.locator("#sheetBody h3").all_text_contents() == ["Stored buildings"]
             page.locator('#sheet [data-act="closeSheet"]').click()
 
 
