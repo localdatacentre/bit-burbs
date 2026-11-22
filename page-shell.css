@@ -1,0 +1,130 @@
+/* The Dosh Shop sets the proportions for every in-game menu. */
+:root {
+  --page-shell-width: 580px;
+  --page-frame-width: 4px;
+  --page-head-block: 10px;
+  --page-head-inline: 12px;
+  --page-close-size: 36px;
+  --page-currency-size: 24px;
+}
+
+body[data-menu-page] {
+  --page-ink: #fff;
+  --page-muted: #d2e3f4;
+  --page-dock-height: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+body[data-menu-page="build"] {
+  --page-surface: #355783;
+  --page-band: #446b98;
+  --page-edge: #233b59;
+}
+body[data-menu-page="tasks"] {
+  --page-surface: #202e47;
+  --page-band: #28618a;
+  --page-edge: #194465;
+}
+body[data-menu-page="bag"] {
+  --page-surface: var(--bag-yellow);
+  --page-band: var(--bag-yellow);
+  --page-edge: #192840;
+  --page-ink: #192840;
+  --page-muted: #39455c;
+}
+body[data-menu-page="settings"] {
+  --page-surface: #3d4f70;
+  --page-band: #485e80;
+  --page-edge: #253550;
+}
+body[data-menu-page="depot"] {
+  --page-surface: var(--p-panel);
+  --page-band: var(--p-header);
+  --page-edge: var(--p-outline);
+}
+body[data-menu-page="wheel"] { --page-edge: #2c294b; }
+
+body.sheet-open #scrim {
+  background: var(--page-edge);
+  transition: none;
+}
+body.sheet-open #sheet.open,
+body.sheet-open #nav {
+  box-sizing: border-box;
+  left: env(safe-area-inset-left, 0px) !important;
+  right: env(safe-area-inset-right, 0px) !important;
+  width: auto !important;
+  max-width: var(--page-shell-width) !important;
+  margin-inline: auto !important;
+  transform: none !important;
+  border: var(--page-frame-width) solid var(--page-edge) !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+body.sheet-open #sheet.open {
+  bottom: var(--page-dock-height) !important;
+  max-height: none !important;
+  padding: 0 !important;
+  border-bottom: 0 !important;
+  background: var(--page-surface);
+}
+body.sheet-open #sheet .shead.page-head {
+  display: flex;
+  position: static;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: var(--page-head-block) var(--page-head-inline);
+  color: var(--page-ink);
+  background: var(--page-band);
+  border-bottom: var(--page-frame-width) solid var(--page-edge);
+  box-shadow: none;
+}
+#sheet .page-heading {
+  flex: 1 1 0;
+  min-width: 0;
+}
+#sheet .shead.page-head #sheetTitle {
+  margin: 0;
+  color: inherit;
+  font: 400 16px/1.12 Silkscreen, monospace;
+  overflow-wrap: anywhere;
+  text-shadow: none;
+}
+#sheet .page-heading small {
+  display: block;
+  margin-top: 2px;
+  color: var(--page-muted);
+  font: 400 9px/1.2 monospace;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+#sheet .page-wallet {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+  max-width: 52%;
+}
+#sheet .page-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 400 18px/1 VT323, monospace;
+  color: var(--page-ink);
+  white-space: nowrap;
+}
+#sheet .page-balance canvas {
+  width: var(--page-currency-size);
+  height: var(--page-currency-size);
+  image-rendering: pixelated;
+}
+body.sheet-open #nav {
+  height: var(--page-dock-height) !important;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
+  background: var(--page-band) !important;
+}
+@media (max-height: 650px) and (orientation: landscape) {
+  body[data-menu-page] { --page-dock-height: calc(50px + env(safe-area-inset-bottom, 0px)); }
+  body.sheet-open #nav { padding-block: 3px calc(3px + env(safe-area-inset-bottom, 0px)) !important; }
+}

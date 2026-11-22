@@ -39,6 +39,10 @@ function useShared(view){
  rotationStart=view.rotationStart;
  showExchangeControls(true);
  shared=true;data={...view,ordinary:[],settings:{motion:false},claims:[]};
+ if(globalThis.BBStage?.liveRelease){
+  accountBar.textContent=view.crateInventoryError||'';
+  return;
+ }
  accountBar.replaceChildren(document.createTextNode('Linked city · '+view.name+' · City balance '));
  if(view.crateInventoryError)accountBar.append(document.createTextNode(view.crateInventoryError+' '));
  if(globalThis.BBStage){

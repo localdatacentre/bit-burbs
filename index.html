@@ -1852,12 +1852,6 @@ button.pixel-btn[data-act="loc"]{min-width:65px!important}
  margin:0 auto!important;
  image-rendering:pixelated!important;
 }
-#mgPanel.mg-wheel #tixRow{
- margin:0 auto!important;padding:5px 12px!important;
- display:inline-flex!important;align-items:center!important;justify-content:center!important;
- min-height:36px!important;max-width:100%!important;
- white-space:nowrap!important;
-}
 #mgPanel.mg-wheel #spinBtn,#mgPanel.mg-crates #openBtn{
  display:inline-flex!important;align-items:center!important;justify-content:center!important;
  width:min(340px,100%)!important;min-width:0!important;
@@ -2581,9 +2575,16 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #hud #voucherChip{appearance:none;background:transparent;border:0;color:white;font:inherit;cursor:pointer;pointer-events:auto;align-self:stretch}
 </style><style>.city-auth{width:min(360px,90vw);padding:22px;border:1px solid #bfcdc0;border-radius:14px;background:#fff;color:#153829;font:16px/1.4 'VT323'}.city-auth::backdrop{background:#13271f99}.city-auth form,.city-auth label{display:grid;gap:8px}.city-auth form{gap:12px}.city-auth h2,.city-auth p{margin:0}.city-auth .hint,.city-auth details{font-size:14px;color:#425749}.city-auth input,.city-auth button{box-sizing:border-box;width:100%;padding:10px;font:inherit;border-radius:7px;border:1px solid #b5c7bb;background:white;color:#153829}.city-auth button.primary{background:#174731;color:white;font-weight:bold}.city-auth [hidden],.city-auth p:empty{display:none}@media (pointer:coarse){input,textarea,select{font-size:max(16px,1em)!important}}</style><style>#card .stock-pixels{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:2px;padding:3px;height:18px;border:2px solid #14202e;border-radius:0;background:#172b3b;box-shadow:inset 2px 2px #0005}#card .stock-pixels i{display:block;min-width:0;height:8px;margin:0;border-radius:0;background:#354453}#card .stock-pixels i.on{background:#83dc6c;box-shadow:inset 0 2px #c8f29a,inset 0 -2px #369c54}</style>
 <style id="beta-welcome-page">
-.city-auth.city-welcome{position:fixed;inset:0;width:100vw;max-width:none;height:100%;height:100dvh;max-height:none;margin:0;padding:0;border:0;border-radius:0;overflow:auto;background:#172b43;color:#193149;font:15px/1.5 'VT323',monospace;box-sizing:border-box}
-.city-welcome::backdrop{background:#172b43}.beta-shell{box-sizing:border-box;min-height:100%;width:min(100%,580px);margin:auto;padding:calc(24px + env(safe-area-inset-top)) 22px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:center;gap:20px}.beta-brand{display:flex;align-items:center;justify-content:center;gap:11px;color:#f5ecd9;text-decoration:none;font:22px/1.2 'Silkscreen',monospace}.beta-brand img{image-rendering:pixelated}.beta-card{background:#f5efdf;padding:28px;border:3px solid #0f1d30;box-shadow:inset 0 3px #fff9ee,inset 0 -5px #d8d0bc;clip-path:var(--bb-cut)}.beta-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.12em;color:#237256;background:#deeadc;padding:5px 8px;border:1px solid #abc6ac}.city-welcome h2:focus{outline:none}.city-welcome h2{font:clamp(25px,6vw,34px)/1.28 'Silkscreen',monospace;letter-spacing:-.035em;margin:20px 0 13px;color:#172b43}.city-welcome .beta-intro{font-size:14px;color:#465769;margin:0}.beta-info{list-style:none;margin:21px 0;padding:0;display:grid;gap:13px}.beta-info li{padding-left:14px;border-left:3px solid #80aa91}.beta-info b{display:block;font-size:12px;color:#233e4e}.beta-info span{display:block;font-size:12px;color:#5b6870;margin-top:2px}.city-welcome form{display:block;border-top:1px solid #d6d3c5;padding-top:20px}.city-welcome form label{display:block;font-size:12px;font-weight:750;color:#233e4e;margin:0 0 7px}.city-welcome form input{box-sizing:border-box;width:100%;min-height:48px;font:16px/1.3 'VT323',sans-serif;color:#193149;background:#fffdf6;border:2px solid #a3b2b4;border-radius:0;padding:11px 12px;margin:0;outline-offset:3px}.city-welcome form input:focus-visible{outline:3px solid #1ca8db;border-color:#0e6192}.city-welcome .beta-help{font-size:11px;line-height:1.5;margin:8px 0 15px;color:#617078}.beta-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.city-welcome .beta-actions button{width:100%;min-height:48px;margin:0;padding:10px 8px;font:21px/1 'VT323',monospace;border:2px solid var(--bb-edge);border-radius:0;color:#fff;background:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)}.city-welcome .beta-actions .beta-create{--bb-face:#43a875;--bb-top:#7bc79b;--bb-bottom:#2e8259;--bb-edge:#236644}.city-welcome .beta-status{font-size:12px;font-weight:600;line-height:1.4;color:#8b3f30;min-height:17px;margin:10px 0 0}.city-welcome .beta-access{font-size:10px;line-height:1.5;color:#697675;margin:13px 0 0}.beta-footer{text-align:center;font-size:11px;color:#abbac5;margin:0}
-@media(max-width:380px){.beta-shell{padding-inline:13px;gap:14px}.beta-card{padding:21px}.city-welcome h2{font-size:25px}.beta-info{gap:10px;margin-block:17px}}
+.city-auth.city-welcome{position:fixed;inset:0;width:100vw;max-width:none;height:100%;height:var(--welcome-visible-height,100dvh);max-height:none;margin:0;padding:0;border:0;border-radius:0;overflow:hidden;background:#172b43;color:#193149;font:15px/1.5 'VT323',monospace;box-sizing:border-box}
+.city-welcome::backdrop{background:#172b43}
+.beta-shell{box-sizing:border-box;display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%;width:min(100%,var(--page-shell-width));margin:auto;padding-inline:env(safe-area-inset-left,0px) env(safe-area-inset-right,0px)}
+.beta-brand{display:flex;align-items:center;gap:10px;padding:calc(var(--page-head-block) + env(safe-area-inset-top,0px)) var(--page-head-inline) var(--page-head-block);border-bottom:var(--page-frame-width) solid #0f1d30;color:#f5ecd9;font:18px/1.15 'Silkscreen',monospace}
+.beta-brand img{width:32px;height:32px}.beta-brand small{display:block;margin-top:3px;color:#abbac5;font:14px/1 'VT323',monospace}
+.beta-scroll{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px clamp(12px,3vw,22px);scroll-padding-block:16px}
+.beta-scroll .beta-card{max-width:460px;margin:0 auto}
+.beta-shell::after{content:"";display:block;padding-bottom:env(safe-area-inset-bottom,0px);border-top:4px solid #0f1d30}
+.beta-brand img{image-rendering:pixelated}.beta-card{background:#f5efdf;padding:28px;border:3px solid #0f1d30;box-shadow:inset 0 3px #fff9ee,inset 0 -5px #d8d0bc;clip-path:var(--bb-cut)}.city-welcome h2:focus{outline:none}.city-welcome h2{font:clamp(25px,6vw,34px)/1.28 'Silkscreen',monospace;letter-spacing:-.035em;margin:20px 0 13px;color:#172b43}.city-welcome .beta-intro{font-size:14px;color:#465769;margin:0}.beta-info{list-style:none;margin:21px 0;padding:0;display:grid;gap:13px}.beta-info li{padding-left:14px;border-left:3px solid #80aa91}.beta-info b{display:block;font-size:12px;color:#233e4e}.beta-info span{display:block;font-size:12px;color:#5b6870;margin-top:2px}.city-welcome form{display:block;border-top:1px solid #d6d3c5;padding-top:20px}.city-welcome form label{display:block;font-size:12px;font-weight:750;color:#233e4e;margin:0 0 7px}.city-welcome form input{box-sizing:border-box;width:100%;min-height:48px;font:16px/1.3 'VT323',sans-serif;color:#193149;background:#fffdf6;border:2px solid #a3b2b4;border-radius:0;padding:11px 12px;margin:0;outline-offset:3px}.city-welcome form input:focus-visible{outline:3px solid #1ca8db;border-color:#0e6192}.city-welcome .beta-help{font-size:11px;line-height:1.5;margin:8px 0 15px;color:#617078}.beta-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.city-welcome .beta-actions button{width:100%;min-height:48px;margin:0;padding:10px 8px;font:21px/1 'VT323',monospace;border:2px solid var(--bb-edge);border-radius:0;color:#fff;background:linear-gradient(to bottom,var(--bb-top) 0 3px,var(--bb-face) 3px calc(100% - 5px),var(--bb-bottom) calc(100% - 5px) 100%)}.city-welcome .beta-actions .beta-create{--bb-face:#43a875;--bb-top:#7bc79b;--bb-bottom:#2e8259;--bb-edge:#236644}.city-welcome .beta-status{font-size:12px;font-weight:600;line-height:1.4;color:#8b3f30;min-height:17px;margin:10px 0 0}.city-welcome .beta-access{font-size:10px;line-height:1.5;color:#697675;margin:13px 0 0}
+@media(max-width:380px){.beta-card{padding:21px}.city-welcome h2{font-size:25px}.beta-info{gap:10px;margin-block:17px}}
 </style>
 <style id="responsive-performance">/* Keep controls immediate without changing map pan/pinch gestures. */
 button,a,input,select,summary{touch-action:manipulation}
@@ -2646,7 +2647,7 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #modalBox{max-height:100%;overflow-y:auto}
 #sheet{max-height:calc(var(--app-height,100dvh) - var(--main-dock-height,70px) - env(safe-area-inset-top,0px) - 8px)!important}
 #sheet .sbody{min-height:0;overflow-y:auto;overscroll-behavior:contain}
-.city-auth.city-welcome{width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important}
+.city-auth.city-welcome{width:100%!important;max-width:100%!important;height:var(--welcome-visible-height,100dvh)!important;max-height:100%!important}
 @media(min-width:800px){#hud>.hrow,#hud>.chips,#hud>.cpmbar{width:min(100%,1100px)!important;margin-inline:auto!important}#nav{padding-inline:max(16px,calc((100% - 660px)/2))!important}}
 @media(max-height:650px) and (orientation:landscape){
 #hud{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:18px!important;row-gap:4px!important;padding-top:calc(env(safe-area-inset-top,0px) + 5px)!important;padding-bottom:6px!important}
@@ -2767,9 +2768,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
  --bb-face:#747B87;--bb-top:#A1A7B1;--bb-bottom:#545C69;--bb-edge:#414855;
 }
 #sheet[data-view="settings"] #sheetBody{background:#3D4F70}
-#mg #mgPanel.mg-wheel{background:#464173!important}
 #mg #mgPanel.mg-market{background:#43597A!important}
-#mg #mgPanel.mg-wheel .mg-screen-head{background:#635C98!important}
 #mg #mgPanel.mg-market .mg-screen-head{background:#537AAA!important}
 #sheet .shead{box-sizing:border-box;flex:none;gap:10px;padding:8px clamp(10px,3vw,16px)}
 #sheet .shead #sheetTitle{flex:1;min-width:0;text-align:left;text-shadow:none;font-size:clamp(14px,3.6vw,19px);overflow-wrap:anywhere}
@@ -2777,6 +2776,42 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #mg #mgPanel .mg-screen-head .mgtitle{grid-column:1!important;text-align:left!important;font-size:clamp(14px,3.6vw,19px)!important}
 #mg #mgPanel .mg-screen-head button.mgx{grid-column:2!important}
 </style>
+<style>
+#mg.show:has(> .mg-wheel){
+  inset:0!important;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)!important;
+  background:#2c294b;
+}
+#mg #mgPanel.mg-wheel{
+  --wheel-face:#464173;--wheel-head:#635c98;--wheel-edge:#2c294b;
+  align-items:stretch!important;max-width:var(--page-shell-width,580px)!important;gap:0!important;padding:0!important;
+  overflow:hidden!important;border:var(--page-frame-width,4px) solid var(--wheel-edge)!important;
+  background:var(--wheel-face)!important;
+}
+#mg #mgPanel.mg-wheel .mg-screen-head{
+  grid-template-columns:minmax(0,1fr) auto var(--page-close-size,36px)!important;
+  gap:0 6px!important;width:100%!important;margin:0!important;
+  padding:var(--page-head-block,10px) var(--page-head-inline,12px)!important;
+  background:var(--wheel-head)!important;border-bottom:var(--page-frame-width,4px) solid var(--wheel-edge)!important;
+}
+#mg #mgPanel.mg-wheel .mg-screen-head .mgtitle{
+  font:16px/1.12 'Silkscreen',monospace!important;letter-spacing:-1px!important;overflow-wrap:anywhere;
+}
+#mgPanel.mg-wheel .mg-screen-head small{grid-column:1;grid-row:2;color:#e0dcf2;font:9px/1.2 monospace;letter-spacing:.14em}
+#mg #mgPanel.mg-wheel .mg-screen-head button.mgx{
+  grid-column:3!important;grid-row:1 / 3!important;
+  width:var(--page-close-size,36px)!important;height:var(--page-close-size,36px)!important;
+}
+#mgPanel .mg-wallet{grid-column:2;grid-row:1 / 3;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:#fff;font:18px/1 'VT323',monospace}
+#mgPanel .mg-wallet canvas{width:var(--page-currency-size,24px);height:var(--page-currency-size,24px);image-rendering:pixelated}
+#mg #mgPanel.mg-wheel .wheel-content{
+  box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:12px;
+  flex:1 1 0!important;min-height:0;padding:12px;overflow-y:auto;overscroll-behavior:contain;
+}
+#mgPanel .wheel-content > *{flex-shrink:0;max-width:100%}
+#mgPanel .mg-page-foot{flex:none;height:env(safe-area-inset-bottom,0px);background:var(--wheel-face)}
+</style>
+<link rel="stylesheet" href="./page-shell.css?v=shell1">
 </head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
@@ -2835,7 +2870,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 
 <div id="scrim"></div>
 <section id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="shead"><h2 id="sheetTitle">Build</h2><button class="pixel-btn pb red sq pixel-close" data-act="closeSheet" aria-label="Close">✕</button></div>
+  <header class="shead page-head"><div class="page-heading"><h2 id="sheetTitle">Build</h2><small>Banksia Bay</small></div><div class="page-wallet" id="sheetWallet" role="group" aria-label="Balances"></div><button class="pixel-btn pb red sq pixel-close" data-act="closeSheet" aria-label="Close">✕</button></header>
   <div class="sbody" id="sheetBody"></div>
 </section>
 
@@ -8863,9 +8898,14 @@ function showUsernameChange(){
 
 async function chooseCity(){
  const d=document.createElement('dialog');d.className='city-auth city-welcome';
- d.innerHTML='<div class="beta-shell"><div class="beta-brand" aria-label="Bit-Burbs"><img src="./bitburbs-icon.svg" width="44" height="44" alt=""><span>BIT-BURBS</span></div><div class="beta-card"><span class="beta-tag">BANKSIA BAY · BETA</span><h2 tabindex="-1" autofocus>Welcome,<br>beta testers.</h2><p class="beta-intro">Build your own little corner of Banksia Bay. Help us find bugs and fine-tune the city before our iOS and Android release.</p><ul class="beta-info"><li><b>Your city, wherever you play.</b><span>Progress autosaves online. Use the same username on your other devices.</span></li><li><b>Help shape the game.</b><span>Saved progression helps us balance levels, prices and rewards.</span></li><li><b>A work in progress.</b><span>Features and game balance may change during the beta.</span></li></ul><form><label for="betaUsername">Your username</label><input id="betaUsername" name="user" required minlength="1" maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Enter your username" aria-describedby="betaUserHelp"><p id="betaUserHelp" class="beta-help">Already playing? Enter your existing username. New here? Choose a name and create your city.</p><div class="beta-actions"><button class="pixel-btn primary" type="submit" value="open">Log in</button><button class="pixel-btn beta-create" type="submit" value="create">Create city</button></div><p class="beta-status" role="status" aria-live="polite"></p></form><p class="beta-access">Username-only beta access · 1–24 letters, numbers, underscores or hyphens</p></div><p class="beta-footer">Thanks for helping us build Bit-Burbs.</p></div>';
+ d.innerHTML='<div class="beta-shell"><header class="beta-brand"><img src="./bitburbs-icon.svg" width="32" height="32" alt=""><span>BIT-BURBS<small>BANKSIA BAY · BETA</small></span></header><div class="beta-scroll"><div class="beta-card"><h2 tabindex="-1" autofocus>Welcome,<br>beta testers.</h2><p class="beta-intro">Build your own little corner of Banksia Bay. Help us find bugs and fine-tune the city before our iOS and Android release.</p><ul class="beta-info"><li><b>Your city, wherever you play.</b><span>Progress autosaves online. Use the same username on your other devices.</span></li><li><b>Help shape the game.</b><span>Saved progression helps us balance levels, prices and rewards.</span></li><li><b>A work in progress.</b><span>Features and game balance may change during the beta.</span></li></ul><form><label for="betaUsername">Your username</label><input id="betaUsername" name="user" required minlength="1" maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Enter your username" aria-describedby="betaUserHelp"><p id="betaUserHelp" class="beta-help">Already playing? Enter your existing username. New here? Choose a name and create your city.</p><div class="beta-actions"><button class="pixel-btn primary" type="submit" value="open">Log in</button><button class="pixel-btn beta-create" type="submit" value="create">Create city</button></div><p class="beta-status" role="status" aria-live="polite"></p></form><p class="beta-access">Username-only beta access · 1–24 letters, numbers, underscores or hyphens</p></div></div></div>';
  let complete;const chosen=new Promise(resolve=>{complete=resolve});
- document.body.append(d);d.showModal();d.querySelector('h2').focus({preventScroll:true});d.scrollTop=0;d.oncancel=e=>e.preventDefault();
+ const viewport=window.visualViewport;
+ const fitWelcome=()=>{if(viewport)d.style.setProperty('--welcome-visible-height',viewport.height+'px');};
+ fitWelcome();
+ viewport?.addEventListener('resize',fitWelcome);
+ d.addEventListener('close',()=>viewport?.removeEventListener('resize',fitWelcome),{once:true});
+ document.body.append(d);d.showModal();d.querySelector('h2').focus({preventScroll:true});d.oncancel=e=>e.preventDefault();
  const f=d.querySelector('form');f.onsubmit=async e=>{
  e.preventDefault();if(f.dataset.busy)return;f.dataset.busy='1';
  try{
@@ -12603,8 +12643,14 @@ function animateTo(wx, wy) { const r = rotXY(wx, wy); camAnim = { sx: V.cx, sy: 
 /* ================= sheets: build + tasks ================= */
 let sheet = null, sheetKeyVal = '', buildTab = 'homes', buildTarget = null, resetArm = false, taskTab = 'tasks';
 const sheetEl = $('#sheet'), sheetBody = $('#sheetBody'), scrim = $('#scrim');
-function openSheet(name) { cityNeedsOpen=false;managingProperty=false;pickingMove=false; snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); }
-function closeSheet() { snd('close'); document.body.classList.remove('sheet-open'); sheet = null; buildTarget = null; sheetEl.classList.remove('open'); scrim.classList.remove('open'); renderCard(true); }
+function syncPageChrome(view) {
+  if (view) document.body.dataset.menuPage = view;
+  else delete document.body.dataset.menuPage;
+  const edge = getComputedStyle(document.body).getPropertyValue('--page-edge').trim();
+  document.querySelector('meta[name="theme-color"]').content = edge || '#243b5b';
+}
+function openSheet(name) { cityNeedsOpen=false;managingProperty=false;pickingMove=false; snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); syncPageChrome(name); }
+function closeSheet() { snd('close'); document.body.classList.remove('sheet-open'); sheet = null; buildTarget = null; sheetEl.classList.remove('open'); scrim.classList.remove('open'); syncPageChrome(null); renderCard(true); }
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
   if(sheet==='depot')return depotHTML();
@@ -12614,9 +12660,42 @@ function sheetKey() {
   if (sheet === 'settings') return String(S.sound !== false) + '|' + rewardSoundEnabled() + '|' + showFPS + '|' + LOC.src + '|' + resetArm;
   return '';
 }
+const sheetPages = {
+  build: ['Build', ['cash','deeds']],
+  tasks: ['Daily Tasks', ['crateVouchers','stars']],
+  bag: ['My items', ['boosts','restockVouchers']],
+  settings: ['Settings', ['cash','stars']],
+  depot: ['Delivery depot', ['cash','stars','restockVouchers']]
+};
+const sheetCurrency = {
+  cash: ['cash','Coins'], deeds: ['deed','Deeds'], stars: ['dosh','Dosh'],
+  boosts: ['boost','Coin boosts'], restockVouchers: ['voucher','Restock vouchers'],
+  crateVouchers: ['crateVoucher','Crate vouchers']
+};
+const sheetWallet = $('#sheetWallet');
+function updateSheetHeader(){
+  const [title,keys] = sheetPages[sheet];
+  if(sheetWallet.dataset.page !== sheet){
+    setText($('#sheetTitle'),title);
+    sheetWallet.dataset.page = sheet;
+    sheetWallet.innerHTML = keys.map(key=>{
+      const [icon,label]=sheetCurrency[key];
+      return `<span class="page-balance"><canvas data-icon="${icon}" width="48" height="48" role="img" aria-label="${label}"></canvas><span></span></span>`;
+    }).join('');
+  }
+  keys.forEach((key,i)=>{
+    const amount = Math.floor((key==='boosts' ? S.coinBoostTokens?.[coinToken.min] : S[key]) || 0);
+    const chip=sheetWallet.children[i];
+    if(chip.dataset.amount===String(amount))return;
+    chip.dataset.amount=amount;
+    chip.title=sheetCurrency[key][1]+' · '+amount.toLocaleString('en-AU');
+    setText(chip.lastElementChild,fmt(amount));
+  });
+}
 function renderSheet(force) {
-  if (!sheet) return; const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
-  setText($('#sheetTitle'), sheet === 'depot' ? 'Delivery depot' : sheet === 'bag' ? 'My items' : sheet === 'build' ? 'Build' : sheet === 'settings' ? 'Settings' : 'Daily Tasks');
+  if (!sheet) return;
+  updateSheetHeader();
+  const k = sheetKey(); if (!force && k === sheetKeyVal) return; sheetKeyVal = k;
   document.getElementById('sheet').dataset.view = sheet;
   const showLoginSchedule = sheet==='tasks' && sheetBody.querySelector('[data-login-schedule]')?.open;
   sheetBody.innerHTML = sheet === 'depot' ? k : sheet === 'bag' ? itemBagHTML() : sheet === 'build' ? buildHTML() : sheet === 'settings' ? settingsHTML() : tasksHTML();
@@ -12995,12 +13074,12 @@ function openMg(name) { if(name==='market' && namedPlay){void openCityExchange('
   if (sheet) closeSheet(); mg = name; card.classList.remove('show');
   mgPanel.className = 'mgp ' + (name === 'dice' ? 'tan' : 'purple') + ' mg-' + name;
   if (name === 'dice') buildDice(); else if (name === 'wheel') buildWheel(); else if (name === 'market') buildMarket(); else buildCrates();
-  mgEl.classList.add('show'); paintNewIcons();
+  mgEl.classList.add('show'); if (name === 'wheel') syncPageChrome(name); paintNewIcons();
   // The reel is initially built while the modal is hidden; center it after layout.
   if (name === 'crates') positionCrateReel(performance.now());
   const x = mgPanel.querySelector('.mgx'); if (x) x.focus();
 }
-function closeMg() { if (!mg) return; if (diceAnim || wheelAnim || crateAnim) return; snd('close'); mg = null; mgEl.classList.remove('show'); renderCard(true); }
+function closeMg() { if (!mg) return; if (diceAnim || wheelAnim || crateAnim) return; snd('close'); mg = null; mgEl.classList.remove('show'); syncPageChrome(null); renderCard(true); }
 mgEl.addEventListener('click', e => { if (e.target === mgEl) closeMg(); });
 function hiCanvas(id, w, h) { return `<canvas id="${id}" class="mgcanvas" width="${w * 2}" height="${h * 2}" style="width:${w}px;height:${h}px"></canvas>`; }
 function tableHTML(title, rows) { return `<div class="ptable"><div class="ph">${title}</div>${rows.map((r, k) => `<div class="pr"><span data-pic="${k}"></span><span>${r[1]}</span><b>${r[0]}%</b></div>`).join('')}</div>`; }
@@ -13249,17 +13328,22 @@ let wheelAnim = null;
 const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
-  mgPanel.innerHTML = `<div class="mg-screen-head"><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><button class="pixel-btn pb" data-act="skipWheel" id="skipWheelBtn" hidden>Skip animation</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg" role="status"></p><div class="wheel-rewards">
+  mgPanel.innerHTML = `<header class="mg-screen-head">
+    <h2 class="mgtitle">Lucky Wheel</h2><small>BANKSIA BAY</small>
+    <span class="mg-wallet"><canvas data-icon="ticket" width="48" height="48" role="img" aria-label="Wheel tickets"></canvas><span id="tixN"></span></span>
+    <button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close Lucky Wheel">✕</button>
+  </header>
+  <div class="wheel-content">${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><button class="pixel-btn pb" data-act="skipWheel" id="skipWheelBtn" hidden>Skip animation</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg" role="status"></p><div class="wheel-rewards">
     <div class="wheel-goal"><span id="ticketArt"></span><strong>Wheel ticket</strong><small>Login rewards · Days 3 and 6</small></div>
     <div class="wheel-goal"><span id="goldArt"></span><strong>2 crate vouchers</strong><small>Every tenth spin</small><b id="spinCount"></b><progress id="spinMeter" aria-label="Spins towards two crate vouchers" max="${SPINS_PER_VOUCHER_BONUS}"></progress></div>
-  </div>`;
+  </div></div>
+  <footer class="mg-page-foot" aria-hidden="true"></footer>`;
   const odds = Object.entries(WHEEL_RARITIES).map(([rarity, color]) => {
     const prizes = WHEEL.filter(prize => prize.rarity === rarity);
     const rows = prizes.map(prize => `<div class="orow"><span>${rewLabel(prize.r)}</span><b>${Number((prize.w * 100 / WTOT).toFixed(1))}%</b></div>`).join('');
     return `<section><h3 style="border-left-color:${color}">${rarity}</h3>${rows}</section>`;
   }).join('');
-  mgPanel.insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary><p>Each spin awards one prize. Chances below are per spin.</p>${odds}</details>`);
-  const row = $('#tixRow'); row.appendChild(iconCanvas('ticket', null, 22)); const sp = document.createElement('span'); sp.id = 'tixN'; row.appendChild(sp);
+  mgPanel.querySelector('.wheel-content').insertAdjacentHTML('beforeend', `<details class="odds wodds"><summary>See the odds</summary><p>Each spin awards one prize. Chances below are per spin.</p>${odds}</details>`);
   $('#ticketArt').appendChild(iconCanvas('ticket', null, 26));
   $('#goldArt').appendChild(iconCanvas('crateVoucher', null, 26));
   updateWheelUI();
@@ -13268,7 +13352,13 @@ function updateWheelUI() {
   if (mg !== 'wheel') return;
   const ready = now() - S.wheelT >= WHEEL_CD;
   setText($('#wheelMsg'), wheelAnim || typeof S.lastWheelMessage !== 'string' ? '' : S.lastWheelMessage);
-  setText($('#tixN'), S.tickets + (S.tickets === 1 ? ' ticket' : ' tickets'));
+  const tickets = Math.floor(S.tickets || 0);
+  const ticketCount = $('#tixN');
+  if (ticketCount.parentElement.dataset.amount !== String(tickets)) {
+    ticketCount.parentElement.dataset.amount = String(tickets);
+    ticketCount.parentElement.title = 'Wheel tickets · ' + tickets.toLocaleString('en-AU');
+    setText(ticketCount, fmt(tickets));
+  }
   $('#skipWheelBtn').hidden = !wheelAnim;
   const b = $('#spinBtn'); if (b) { b.hidden = !!wheelAnim; setText(b, ready ? 'Free spin' : 'Spin · 1 ticket'); b.disabled = !!wheelAnim || (!ready && S.tickets < 1); }
   setText($('#wheelCd'), ready ? 'Your free spin is ready!' : 'Next free spin in ' + mmss(WHEEL_CD - (now() - S.wheelT)));
