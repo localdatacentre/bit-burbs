@@ -71,3 +71,42 @@ async function checkCache() {
   }
 }
 Promise.all([checkAccount(),checkCache()]).then(()=>console.log('PASS: live page assets, city selection and PWA navigation'));
+
+async function checkRoomClaimDeadline() {
+  const source = read('index.html');
+  const start = source.indexOf('async function requestRoom(');
+  const end = source.indexOf('function closeCityRoom(',start);
+  const session = {room:'shop',visit:1,writing:false};
+  let deadline, recovered = 0, submissions = 0;
+  const context = vm.createContext({
+    cityRoom:session, username:'fixture', lastUser:'active', SAVE_KEY:'save',
+    cityRevision:'first', cityCode:'fixture', cityConflict:false, cityHandedToExchange:false,
+    localStorage:{getItem:key=>key==='active'?'fixture':null,setItem(){}},
+    saveJSON:()=> '{}', pushCity:async()=>true, AbortController,
+    setTimeout:callback=>{deadline=callback;return 1;},clearTimeout(){},
+    roomReply:(data,status=200)=>({data,status}),recordRoomReply(){},
+    cityApi:(_body,signal)=>{
+      submissions++;
+      if(submissions===2)return Promise.resolve({claims:['free'],citySettlement:{
+        baseRevision:'first',revision:'next',fields:{}
+      }});
+      return new Promise((_resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('Aborted')),{once:true}));
+    },
+    reconcileRoomCity:async()=>{recovered++;},
+    roomCityFields:[],applyRoomSettlement(){}
+  });
+  vm.runInContext(source.slice(start,end),context);
+  const request=()=>context.requestRoom(session,'releaseShop',{offer:'free',day:1});
+  const first=request();
+  await Promise.resolve();
+  assert.equal(session.writing,true);
+  assert.equal((await request()).status,409);
+  deadline();
+  assert.equal((await first).status,503);
+  assert.equal(session.writing,false);
+  assert.equal(session.needsRecovery,true);
+  assert.equal((await request()).status,200);
+  assert.equal(recovered,1);
+  assert.equal(context.cityHandedToExchange,false);
+}
+checkRoomClaimDeadline().then(()=>console.log('PASS: stuck shop claim unlocks and reconciles before retry'));
