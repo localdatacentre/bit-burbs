@@ -39,9 +39,9 @@ def check_layout(page, base, viewport, insets):
             page.get_by_role("button", name="Drop odds").click()
             check("#modalRoot .dialog", True)
 
+    page.goto(base + "/?demo=full-city", wait_until="domcontentloaded")
+    check("#hud .cname")
     for menu in ["Build", "Tasks", "Item bag", "Settings", "Wheel"]:
-        page.goto(base + "/?demo=full-city", wait_until="domcontentloaded")
-        check("#hud .cname")
         page.get_by_role("button", name=menu, exact=True).click()
         if menu == "Wheel":
             check("#mgPanel .mg-screen-head")
@@ -51,6 +51,7 @@ def check_layout(page, base, viewport, insets):
         else:
             check("#sheet .shead")
             check('#sheet [data-act="closeSheet"]', True)
+            page.locator('#sheet [data-act="closeSheet"]').click()
 
 
 def main():
@@ -60,6 +61,7 @@ def main():
         browser = pw.chromium.launch(executable_path=which("google-chrome") or which("chromium"))
         context = browser.new_context(is_mobile=True, has_touch=True, service_workers="block")
         page = context.new_page()
+        page.add_init_script("if (location.search === '?demo=full-city') localStorage.clear()")
         page.set_default_timeout(10000)
         page.route("https://**/*", lambda route: route.abort())
         # Stub the account adapter locally. No player credentials or network calls.
