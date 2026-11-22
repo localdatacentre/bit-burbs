@@ -1386,7 +1386,7 @@ body {font-size:19px;line-height:1.18;color:var(--p-text)}
 #mg{background:rgba(9,8,27,.74)}
 #mgPanel.mgp{
  display:flex;flex-direction:column;align-items:center;
- padding:calc(env(safe-area-inset-top,0px) + 10px) 12px calc(env(safe-area-inset-bottom,0px) + 16px);
+ padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 16px);
  gap:10px;overflow-x:hidden;overflow-y:auto;
 }
 #mgPanel .mgtitle{
@@ -1803,7 +1803,7 @@ button.pixel-btn[data-act="loc"]{min-width:65px!important}
  width:calc(100% + 24px)!important;min-width:0!important;
  flex:0 0 auto!important;
  margin:0 -12px 4px!important;
- padding:calc(9px + env(safe-area-inset-top,0px)) 12px 11px!important;
+ padding:9px 12px 11px!important;
  min-height:66px!important;
  background:#575083!important;border-bottom:3px solid #201A42!important;
 }
@@ -1949,7 +1949,7 @@ button.pixel-btn[data-act="loc"]{min-width:65px!important}
  width:calc(100% + 24px)!important;
  margin:0 -12px 4px!important;
  min-height:66px!important;
- padding:calc(9px + env(safe-area-inset-top,0px)) 12px 11px!important;
+ padding:9px 12px 11px!important;
  background:#575083!important;border-bottom:3px solid #201A42!important;
 }
 #mgPanel.mg-market .mg-screen-head .mgtitle{
@@ -2373,7 +2373,9 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  display:flex!important;visibility:visible!important;
  pointer-events:auto!important;transform:none!important;
  position:fixed!important;
- top:0!important;left:0!important;right:0!important;
+ top:env(safe-area-inset-top,0px)!important;
+ left:env(safe-area-inset-left,0px)!important;right:env(safe-area-inset-right,0px)!important;
+ padding-top:0;
  bottom:calc(46px + env(safe-area-inset-bottom,0px))!important;
  height:auto!important;max-height:none!important;
  max-width:none!important;margin:0!important;
@@ -2637,7 +2639,10 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #nav{left:0!important;right:0!important;bottom:0!important;width:100%!important;max-width:none!important;margin:0!important;border-radius:0!important;padding-left:max(10px,env(safe-area-inset-left,0px))!important;padding-right:max(10px,env(safe-area-inset-right,0px))!important;padding-bottom:max(10px,env(safe-area-inset-bottom,0px))!important}
 #advisor.pixel-btn{left:max(12px,env(safe-area-inset-left,0px))!important}
 #mapctl{right:max(12px,env(safe-area-inset-right,0px))!important}
-#scrim,#mg,#modal{inset:0!important;max-height:100%!important;box-sizing:border-box}
+#scrim{inset:0!important}
+#mg,#modal{inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)!important;max-height:100%!important;box-sizing:border-box}
+#modal{bottom:env(safe-area-inset-bottom,0px)!important}
+#modalBox{max-height:100%;overflow-y:auto}
 #sheet{max-height:calc(var(--app-height,100dvh) - var(--main-dock-height,70px) - env(safe-area-inset-top,0px) - 8px)!important}
 #sheet .sbody{min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .city-auth.city-welcome{width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important}
