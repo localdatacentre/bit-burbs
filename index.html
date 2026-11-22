@@ -9927,7 +9927,7 @@ function commitMove(edit,i,j){
   if(tileAt(source.i,source.j)!==object||!fpFree(i,j,object.id,turned,source))return false;
   vacate(source.i,source.j,object);
   object.turned=Number(turned)||0;occupy(i,j,object);
-  derive();changed();save();snd('build');return true;
+  changed();refreshCityStats();save();snd('build');return true;
 }
 const boostOn = () => S.boostUntil > now();
 const boostMul = () => boostOn() ? 2 : 1;
@@ -10396,11 +10396,14 @@ function busArrive() {
 /* ================= traffic removed ================= */
 /* ================= tick ================= */
 let simulationDirty=true,lastPopulation=-1;
-function tick(dt) {
-  const t = now();
+function refreshCityStats(){
   if(simulationDirty || lastPopulation!==S.pop){
     derive();simulationDirty=false;lastPopulation=S.pop;
   }
+}
+function tick(dt) {
+  const t = now();
+  refreshCityStats();
   bizTick(dt);
   ResidentialCats.update(S,D.occupiedHomes,t, tile => tile.labId ||= 'new-'+(++labState().nextId), tile => [SPR_KEY[tile.id],(ROT+Number(tile.turned||0))%4]);
   if (S.dice < 5) { while (t - S.diceT >= 1800000 && S.dice < 5) { S.dice++; S.diceT += 1800000; } } else S.diceT = t;
@@ -12861,7 +12864,7 @@ card.addEventListener('click', e => {
   if(a==='confirmPlace'&&placing){
     const g=placing.ghost;if(!g||pointers.size)return;
     const ok=placing.stored?restoreBuilding(placing.stored,g.i,g.j,placing.turned):placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
-    if(ok){placing=null;select(g.i,g.j);}return;
+    if(ok){placing=null;refreshCityStats();select(g.i,g.j);}return;
   }
   if (!sel) return;
   else if (a === 'collect') collectShop(sel.i, sel.j);

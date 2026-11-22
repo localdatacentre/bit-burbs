@@ -88,7 +88,9 @@ def check_placement(browser, base):
         except AssertionError:
             print("Placement confirmation:", page.evaluate("""() => ({
                 events: window.placementEvents, hudCoins: document.querySelector('#cash').textContent,
-                card: document.querySelector('#card').innerText, toast: document.querySelector('#toast').innerText
+                card: document.querySelector('#card').innerText, toast: document.querySelector('#toast').innerText,
+                overlays: [...document.querySelectorAll('#modal.show,dialog[open],#sheet.open,#mg.show')]
+                    .map(el => [el.id, el.innerText.slice(0, 150)])
             })"""), "save:", snapshot(), flush=True)
             raise
         if repeat_at:
@@ -120,7 +122,10 @@ def check_placement(browser, base):
     house = [mid-2, mid+3-4, "house", house_cost]
     assert after_house["plots"] == [house], after_house
     assert after_house["cash"] == original["cash"] - house_cost, after_house
-    card("closeCard").tap()
+    # A newly built home shows its name before the simulation fills in the
+    # property details. That layout moves the Close button up on the screen.
+    expect(card("manageProperty")).to_be_visible()
+    confirm("closeCard", lambda: expect(page.locator("#nav [data-open=build]")).to_be_visible())
 
     page.get_by_role("button", name="Build", exact=True).tap()
     page.locator('#sheetBody [data-tab="city"]').tap()
