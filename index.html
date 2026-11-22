@@ -8591,7 +8591,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=shop-size2"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=ten-tasks1"></script><script src="./daily-task-session.js"></script>
+<script src="./exchange-room.js?v=local-time1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=ten-tasks1"></script><script src="./daily-task-session.js"></script>
 <script>
 (async () => {
 'use strict';
@@ -8613,7 +8613,7 @@ function labAccrue(to=now(),offline=false){
  let total=0;
  while(S.economyLab.settled<to){
   const from=S.economyLab.settled;
-  const boundary=Date.parse(Core.cycle(from)+'T08:00:00Z')+86400000;
+  const boundary=nextDailyReset(from);
   // Split earnings at arrivals so a new employee starts earning from their hire time.
   const interval=15000;
   const room=Math.max(0,D.cap-S.pop);
@@ -13022,7 +13022,7 @@ function claimLoginReward(){
   changed();save();renderSheet(true);
   toast(rewards.join(' + '));
 }
-function loginRewardsHTML(){
+function loginRewardsHTML(resetTime){
   const {index,available}=loginRewardState();
   const today=(index+LOGIN_REWARDS.length-1)%LOGIN_REWARDS.length;
   const rows=LOGIN_REWARDS.map((rewards,i)=>{
@@ -13032,7 +13032,7 @@ function loginRewardsHTML(){
   return `<section class="sect"><h3>Daily Login Rewards</h3>
     <p>Claim once per day. Miss a day and your streak resets to Day 1.</p>
     <details data-login-schedule><summary>See all seven rewards</summary><ol>${rows}</ol></details>
-    <p>${available?'Day '+(index+1)+' · '+LOGIN_REWARDS[index].map(rewLabel).join(' + '):'Next reward at 6 pm Brisbane'}</p>
+    <p>${available?'Day '+(index+1)+' · '+LOGIN_REWARDS[index].map(rewLabel).join(' + '):'Next reward at '+resetTime}</p>
     <button class="pixel-btn pb sm" data-act="loginReward" ${available?'':'disabled'}>${available?'Claim login reward':'Claimed today'}</button></section>`;
 }
 function tasksHTML() {
@@ -13040,7 +13040,8 @@ function tasksHTML() {
   const daily=S.dailyGenerated;
   const tasks=daily?.tasks||[];
   const complete=tasks.filter(t=>t.claimed).length;
-  let h=loginRewardsHTML()+`<div class="daily-head"><div><small>Resets at 6 pm Brisbane</small></div><span class="daily-count">${complete}/${tasks.length}</span></div><div class="daily-list">`;
+  const resetTime=localDailyResetTime();
+  let h=loginRewardsHTML(resetTime)+`<div class="daily-head"><div><small>Resets at ${resetTime}</small></div><span class="daily-count">${complete}/${tasks.length}</span></div><div class="daily-list">`;
   if(!tasks.length)h+='<p class="note">Build and connect your city to unlock tasks.</p>';
   tasks.forEach((task,q)=>{
     const names=task.ids.length>2 ? task.ids.length+' locations' : [...new Set(task.ids.map(id=>D.list.find(b=>b.t.labId===id)?.d.name||'City'))].join(', ');
@@ -13747,19 +13748,19 @@ function weekInfo() {
   return { seed: Math.round(x.getTime() / 86400000), next: next.getTime() };
 }
 function marketStock() {
-  const w = weekInfo(), day = brisbaneTaskCycle();
+  const at = now(), w = weekInfo(), day = Core.cycle(at);
   if (!S.market) S.market = { week: 0, bought: {}, seen: 0, day: '', dailyBought: {} };
   if (!S.market.bought) S.market.bought = {};
   if (!S.market.dailyBought) S.market.dailyBought = {};
   if (S.market.day !== day) { S.market.day = day; S.market.dailyBought = {}; }
-  const nextDaily = brisbaneNextReset();
+  const nextDaily = nextDailyReset(at);
   return { next: w.next, week: w.seed, day, nextDaily };
 }
-function brisbaneNextReset() {
-  const p = Object.fromEntries(new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Brisbane',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
-  let t = Date.UTC(+p.year,+p.month-1,+p.day,8,0,0);
-  if (Date.now() >= t) t += 86400000;
-  return t;
+function nextDailyReset(at) {
+  return Date.parse(Core.cycle(at)+'T08:00:00Z') + 86400000;
+}
+function localDailyResetTime() {
+  return cityClockFormat.format(nextDailyReset(now()));
 }
 function dailyDealIds(day) {
   const keys = Object.keys(DAILY_DEALS), seed = day.split('-').reduce((a,x)=>a*31 + (+x||0),7);
@@ -14304,10 +14305,6 @@ const STREAK_REW = [{ k: 'stars', n: 5 }, { k: 'crate', tier: 'steel' }, { k: 's
 const DAILY_POOL = [
  ['restock','Supply 6 businesses',6],['collect','Collect 4 shop deliveries',4],['upgrade','Upgrade a building',1],['spin','Spin the Lucky Wheel',1],['build','Build 2 new things',2],['road','Place 5 road tiles',5],['crate','Open a crate',1],['rent','Collect rent once',1],['industry','Collect from an industry',1],['collect','Collect 8 shop deliveries',8],['restock','Restock 3 businesses',3],['road','Place 8 road tiles',8]
 ];
-function brisbaneTaskCycle() {
- const p=Object.fromEntries(new Intl.DateTimeFormat('en-AU',{timeZone:'Australia/Brisbane',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
- const d=new Date(Date.UTC(+p.year,+p.month-1,+p.day)); if(+p.hour<18)d.setUTCDate(d.getUTCDate()-1); return d.toISOString().slice(0,10);
-}
 function checkDaily(){if(S?.economyLab)labSyncTasks();}
 function showDaily() { /* Login rewards are claimed independently in the Daily Rewards tab. */ }
 function claimDaily(q){labDailyClaim(q);}
@@ -14372,9 +14369,9 @@ const INFO = {
   dice: ['City Dice', ['Tap ROLL to move around the board.', 'You win whatever tile you land on.', 'Green arrows jump you forward, red arrows push you back.', 'The ??? tile gives a mystery prize.', 'You get a free roll every 30 minutes, and you earn more by collecting from shops, homes and industry.']],
   wheel: ['Lucky Wheel', ['You get one free spin every 12 hours.', 'Wheel tickets give you extra spins.', 'You can also win wheel tickets from crates.', 'Every 10 spins pays two extra crate vouchers.']],
   crates: ['Banksia Exchange', ['Spend crate vouchers on Silver, Gold, Emerald, Ruby or Diamond crates.', 'Purchased crates go into storage. Open one or three of the same tier for one reward per crate.', 'Diamond crates have a 2% chance of a 1,000 Dosh jackpot.', 'The Exchange saves each reward before the reel starts. You can skip the reel or return after a reload.']],
-  market: ['Dosh Shop', ['Four offers refresh daily at 6 pm Brisbane.', 'Each offer can be claimed once per day.', 'Rewards go straight to your city.']],
+  get market() { return ['Dosh Shop', [`Four offers refresh daily at ${localDailyResetTime()}.`, 'Each offer can be claimed once per day.', 'Rewards go straight to your city.']]; },
   build: ['Building', ['Everything needs a road next to it.', 'Most buildings need power and water too: build a Wind Turbine and a Water Tower.', 'Shops need workers, so build homes to bring people in.', 'Tap any building to upgrade it. Levels 4 and 5 need Deeds.']],
-  tasks: ['Tasks', ['Your tasks are set for the day and refresh at 6 pm Brisbane time.', 'Claim a completed task for a crate voucher, Dosh and XP.', 'Claim a login reward each day to keep your streak.']],
+  get tasks() { return ['Tasks', [`Your tasks are set for the day and refresh at ${localDailyResetTime()}.`, 'Claim a completed task for a crate voucher, Dosh and XP.', 'Claim a login reward each day to keep your streak.']]; },
   hall: ['Town Hall', ['Expand your land here once you reach the right level.', 'Expanding costs Coins and Deeds.', 'Power and water show how much your city makes and uses.', 'Workers come from homes, and businesses need them to run.']]
 };
 function showFoundingPrompt() {

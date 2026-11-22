@@ -1,4 +1,4 @@
-"""Check live game page geometry with a simulated status bar and cutouts."""
+"""Check live game menus with simulated mobile cutouts and device time zones."""
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from itertools import combinations
@@ -385,6 +385,41 @@ def check_single_taps(page, session, base):
     print('Passed single-touch city, account, shop and crate interactions', flush=True)
 
 
+def check_local_reset_labels(browser, base):
+    # New York switches to daylight saving at 07:00 UTC on this date. Both
+    # resets still fall on the previous local calendar day in Honolulu.
+    for zone, task_time, shop_time in [
+        ("America/New_York", "4:00 am", "4:15 am"),
+        ("Pacific/Honolulu", "10:00 pm", "10:15 pm"),
+    ]:
+        context = browser.new_context(timezone_id=zone, locale="en-US", service_workers="block")
+        page = context.new_page()
+        page.set_default_timeout(10000)
+        page.clock.set_fixed_time("2026-03-08T06:30:00Z")
+        page.route("https://**/*", lambda route: route.abort())
+        page.route("**/release-account.js*", lambda route: route.fulfill(content_type="text/javascript", body="""
+            window.liveCityRelease = async () => Response.json({
+                resetAt: Date.parse('2026-03-08T08:15:00Z'), dosh: 5, claims: [],
+                offers: [{id: 'fixture', price: 0, rewards: {cash: 1000}}], day: 1
+            });
+        """))
+
+        def check_time(selector, expected):
+            label = " ".join(page.locator(selector).inner_text().lower().split())
+            assert expected in label, (zone, expected, label)
+
+        page.goto(base + "/banksia-exchange.html?page=shop", wait_until="domcontentloaded")
+        page.locator("[data-offer]").wait_for()
+        check_time(".shop-reset", shop_time)
+        page.goto(base + "/?demo=full-city", wait_until="domcontentloaded")
+        page.add_locator_handler(page.locator("#modal.show #bagLater"), lambda button: button.click())
+        page.get_by_role("button", name="Tasks", exact=True).click()
+        check_time("#sheet .daily-head small", task_time)
+        page.get_by_role("button", name="Claim login reward").click()
+        check_time("#sheet .sect p:last-of-type", task_time)
+        context.close()
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     with ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=str(root))) as server, sync_playwright() as pw:
@@ -418,6 +453,8 @@ def main():
             print(f"Passed {width} × {height} with top inset {top}", flush=True)
         page.set_viewport_size({"width": 390, "height": 844})
         check_single_taps(page, session, f"http://127.0.0.1:{server.server_port}")
+        context.close()
+        check_local_reset_labels(browser, f"http://127.0.0.1:{server.server_port}")
         browser.close()
 
 
