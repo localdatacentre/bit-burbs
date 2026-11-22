@@ -212,6 +212,13 @@ body[data-screen="shop"] .shop-menu .shop-offer {
   padding: 0;
   list-style: none;
 }
+.shop-menu .offer-rewards:has(li + li) {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  align-items: start;
+  align-content: center;
+}
 .shop-menu .offer-rewards li {
   flex: 1;
   min-width: 0;
@@ -514,6 +521,25 @@ body:not([data-city-preview]) .exchange {
   background: var(--room-surface);
   border: var(--page-frame-width) solid var(--room-frame);
 }
+.exchange > header { position: relative; }
+#roomNotice {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 8px);
+  left: var(--page-head-inline);
+  max-width: calc(100% - 2 * var(--page-head-inline));
+  pointer-events: none;
+  overflow-wrap: anywhere;
+  font: 20px/1.1 VT323, monospace;
+  color: #fff;
+}
+#roomNotice:not(:empty) {
+  padding: 7px 10px;
+  background: var(--room-chrome);
+  border: 2px solid var(--room-frame);
+  box-shadow: 0 2px 0 var(--room-rule);
+}
+#dosh-shop-status:empty { display: none; }
 body:not([data-city-preview]) .exchange > header {
   flex: none;
   padding: var(--page-head-block) var(--page-head-inline);
@@ -661,14 +687,13 @@ body.sheet-open #sheet .shead.page-head {
   box-shadow: none;
 }
 #sheet .page-heading {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 1 0 min-content;
 }
 #sheet .shead.page-head #sheetTitle {
   margin: 0;
   color: inherit;
   font: 400 16px/1.12 Silkscreen, monospace;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   text-shadow: none;
 }
 #sheet .page-heading small {
@@ -697,9 +722,27 @@ body.sheet-open #sheet .shead.page-head {
   white-space: nowrap;
 }
 #sheet .page-balance canvas {
+  flex: none;
   width: var(--page-currency-size);
   height: var(--page-currency-size);
   image-rendering: pixelated;
+}
+
+/* Keep prices and placement actions level when neighbouring cards wrap. */
+#sheetBody .bcard .price,
+#sheetBody .bag-supplies .bag-card button {
+  margin-top: auto;
+}
+
+#sheet #sheetBody button.pixel-btn.pb {
+  min-height: 44px !important;
+}
+
+#sheetBody [data-login-schedule] > summary {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding-block: 10px;
+  cursor: pointer;
 }
 
 #exchangeHandoff {
@@ -717,7 +760,7 @@ body.sheet-open #sheet .shead.page-head {
 #exchangeHandoff button { margin-top: 10px; }
 </style>
 <style>:root { --safe-top:0px; --safe-right:0px; --safe-bottom:0px; --safe-left:0px; }</style></head><body>
-<div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>
+<div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a><div id="roomNotice" role="status" aria-atomic="true"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>
 if(window.BBStage) document.querySelector('.city-close').hidden=false;
 // Begin one read while the room controls and artwork initialise.
 let initialAccountRead=null;
@@ -1108,7 +1151,18 @@ function paint(root=document){
 }
 function modal(title,body,actions){$('#modalRoot').innerHTML=\`<div class="dialog-backdrop"><section class="dialog" role="dialog" aria-modal="true" aria-label="\${title}"><h2>\${title}</h2>\${body}<div class="actions \${actions.length>2?'stack':''}">\${actions.map(([text,id,primary])=>\`<button data-action="\${id}" class="\${primary?'primary':''}">\${text}</button>\`).join('')}</div></section></div>\`;paint($('#modalRoot'));$('#modalRoot button')?.focus();}
 function closeModal(){$('#modalRoot').innerHTML='';}
-function toast(text){modal('Crates',\`<p></p>\`,[['Got it','close-modal',true]]);$('#modalRoot .dialog p').textContent=text;}
+const roomNotice=$('#roomNotice');
+let noticeTimer;
+function clearRoomNotice(){
+ clearTimeout(noticeTimer);
+ roomNotice.textContent='';
+}
+function toast(text){
+ clearTimeout(noticeTimer);
+ roomNotice.textContent=text;
+ noticeTimer=setTimeout(clearRoomNotice,Math.max(4000,text.length*65));
+}
+addEventListener('bb-room-close',clearRoomNotice);
 function head(title,sub,kind='info'){return \`<div class="page-head"><div><h2>\${title}</h2><div class="sub">\${sub}</div></div>\${kind ? \`<div class="heading-icon">\${icon(kind)}</div>\` : ''}</div>\`;}
 function rewardChips(){return \`<div class="reward-line"><span class="chip">\${icon('voucher')}1 crate voucher</span><span class="chip">\${icon('dosh')}1 dosh</span></div>\`;}
 let screenNames={vault:'Buy crates',storage:'Storage',opening:'Opening',...(globalThis.BBStage?{}:{diamond:'Diamonds'})};
@@ -1119,6 +1173,7 @@ page = data.opening ? 'opening' : (lastRoom && Object.hasOwn(screenNames,lastRoo
 const roomTitles={vault:'Buy crates',storage:'Crate storage',opening:'Crate opening',shop:'Dosh Shop',diamond:'Diamond collection'};
 function setRoom(room){
  if(document.body.dataset.screen===room)return;
+ clearRoomNotice();
  $('#screen').scrollTop=0;
  document.body.dataset.screen=room;
  $('#room-theme').content=getComputedStyle(document.documentElement).backgroundColor;
@@ -1235,8 +1290,8 @@ function startDoshShop(){
   crateVouchers:['crateVoucher','crate voucher','crate vouchers'],
   tickets:['ticket','wheel spin','wheel spins']
  };
- let shop,busy=false,reading=false,timer,needsCity=false,sequence=0,offerLayout=null;
- screen.innerHTML='<p class="sub shop-reset"></p><div class="shop-menu" aria-label="Daily offers"></div><button hidden data-shop-retry>Try again</button><p id="dosh-shop-status" class="small" role="status"></p>';
+ let shop,pendingOffer=null,reading=false,timer,needsCity=false,sequence=0,offerLayout=null;
+ screen.innerHTML='<p class="sub shop-reset"></p><p id="dosh-shop-status" class="small" role="status"></p><button hidden data-shop-retry>Try again</button><div class="shop-menu" aria-label="Daily offers"></div>';
  const menu=screen.querySelector('.shop-menu'),retry=screen.querySelector('[data-shop-retry]');
  const cityRoom=window.BBCityRoom;
  const active=()=>!cityRoom||(cityRoom.isActive()&&!document.hidden);
@@ -1252,7 +1307,7 @@ function startDoshShop(){
  }
  function refresh(){
   if(!cityRoom){void update();return;}
-  if(busy)return;
+  if(pendingOffer)return;
   const {wallet,shopClaims,cityName}=cityRoom.snapshot();
   const schedule=doshShopSchedule(Date.now());
   const claims=shopClaims?.day===schedule.day?shopClaims.claims:[];
@@ -1280,17 +1335,18 @@ function startDoshShop(){
    }
    menu.querySelectorAll('[data-offer]').forEach((button,i)=>{
     const offer=shop.offers[i],claimed=shop.claims.includes(offer.id);
-    button.textContent=claimed?'Claimed':offer.price?fmt(offer.price)+' Dosh':'FREE';
+    button.textContent=pendingOffer===offer.id?'Claiming…':claimed?'Claimed':offer.price?fmt(offer.price)+' Dosh':'FREE';
     button.classList.toggle('primary',!offer.price&&!claimed);
-    button.disabled=busy||claimed||shop.dosh<offer.price;
+    button.disabled=Boolean(pendingOffer)||claimed||shop.dosh<offer.price;
    });
   }else if(offerLayout!==null){menu.replaceChildren();offerLayout=null;}
   retry.hidden=Boolean(shop||reading||needsCity);
-  $('#dosh-shop-status').textContent=message||(busy?'Updating shop…':reading&&!shop?'Checking shop…':'');
+  $('#dosh-shop-status').textContent=shop?'':message||(reading?'Checking shop…':'');
+  if(message&&shop)toast(message);
  }
  async function update(offer){
-  if(!active()||busy||(!offer&&reading))return;
-  if(offer)busy=true;else reading=true;
+  if(!active()||pendingOffer||(!offer&&reading))return;
+  if(offer)pendingOffer=offer;else reading=true;
   const request=++sequence;
   draw();
   let message='';
@@ -1318,7 +1374,7 @@ function startDoshShop(){
    message=needsCity?error.message:'Connection interrupted. Try again.';
   }
   finally{
-   if(offer)busy=false;else reading=false;
+   if(offer)pendingOffer=null;else reading=false;
    if(request===sequence){
     draw(message);
     refreshAtReset(message?10000:1000);

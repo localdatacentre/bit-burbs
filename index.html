@@ -19,7 +19,7 @@
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
 <link rel="preload" as="script" href="./daily-task-core.js?v=ten-tasks1">
 <link rel="preload" as="script" href="./daily-task-session.js">
-<link rel="preload" as="style" href="./page-shell.css?v=home-nav1">
+<link rel="preload" as="style" href="./page-shell.css?v=mobile-polish1">
 <style>
 /* Legacy renderer styles isolated; new design is in pocket-ui.css. */
 @layer legacy {
@@ -180,8 +180,8 @@ html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}
 .mcard .pb{margin-top:auto;font-size:16px;text-transform:none}
 .chip[aria-label="Dosh"]{cursor:pointer}
 /* toast + modal */
-#toast{position:fixed;left:50%;z-index:60;transform:translate(-50%,-10px);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;background:var(--ui-deep);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:8px 14px;font-weight:700;font-size:15px;max-width:90%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast{position:fixed;left:0;z-index:60;transform:translateY(-3px);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;background:var(--ui-deep);border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:8px 14px;font-weight:700;font-size:15px;max-width:90%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#toast.show{opacity:1;transform:none}
 #modal{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(6,12,20,.65);padding:20px}
 #modal.show{display:flex}
 #modalBox{padding:18px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:12px;text-align:center;background:radial-gradient(circle at 50% 20%,#2A323D,#1C222B 70%);border:1px solid rgba(255,255,255,.07);border-radius:8px;;box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -1289,7 +1289,13 @@ body {font-size:19px;line-height:1.18;color:var(--p-text)}
 #advisor small{font-size:15px;color:var(--p-muted)}
 #advisor.warn{background:#853E5A}
 #legend{color:var(--p-text);font-size:16px;max-width:80vw;white-space:normal}
-#toast{color:var(--p-text);max-width:min(440px,92vw);font-size:19px;padding:9px 12px}
+#toast{
+ width:max-content;max-width:min(400px,92vw);box-sizing:border-box;
+ padding:5px 10px;border:2px solid #1a2c46;border-left:4px solid #80caff;
+ background:#243b5b;color:#fff;box-shadow:0 2px #15253b;clip-path:none;
+ font:19px/1.1 'VT323',monospace;text-align:left;overflow-wrap:anywhere;
+}
+#toast::before,#toast::after{content:none}
 #scrim{background:rgba(9,8,27,.68)}
 /* Consistent pixel windows: same hierarchy on Build, Tasks and Settings */
 #sheet,#card,#modalBox,#mgPanel.mgp {
@@ -2632,9 +2638,10 @@ body.sheet-open #fpsCounter,body:has(#mg.show) #fpsCounter,body:has(#modal.show)
 <style id="homepage-spacing-fix">
 html,body{background:#243b5b!important}
 :root{padding-bottom:0!important;--hud-surface:#243b5b}
+#hud button.chip, #hud #clock{appearance:none;cursor:pointer;color:inherit}
 #hud .chips{display:flex!important;justify-content:space-between!important;align-items:center!important;width:100%!important;column-gap:0!important;grid-template-columns:none!important}
 #hud .chips .chip[aria-label]{flex:0 0 auto!important;width:auto!important;max-width:none!important;min-width:0!important;justify-content:center!important;padding:0!important;gap:4px!important}
-#advisor.pixel-btn{top:calc(var(--bb-hud-bottom) + 12px)!important;left:12px!important;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;max-width:28px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;clip-path:none!important;transform:none!important;display:grid!important;place-items:center}
+#advisor.pixel-btn{top:calc(var(--bb-hud-bottom) + 4px)!important;left:4px!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;clip-path:none!important;transform:none!important;display:grid!important;place-items:center}
 #advisor.pixel-btn::before,#advisor.pixel-btn::after{display:none!important}
 #advisor.pixel-btn .adv{display:none!important}
 #advisor.pixel-btn #faceIcon{width:28px!important;height:28px!important;display:block;image-rendering:pixelated}
@@ -2649,7 +2656,7 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #game{inset:0!important;width:100%!important;height:100%!important}
 #hud{left:0!important;right:0!important;top:0!important;width:100%!important;box-sizing:border-box!important;padding-left:max(12px,env(safe-area-inset-left,0px))!important;padding-right:max(12px,env(safe-area-inset-right,0px))!important}
 #nav{left:0!important;right:0!important;bottom:0!important;width:100%!important;max-width:none!important;margin:0!important;border-radius:0!important;padding-left:max(10px,env(safe-area-inset-left,0px))!important;padding-right:max(10px,env(safe-area-inset-right,0px))!important;padding-bottom:max(10px,env(safe-area-inset-bottom,0px))!important}
-#advisor.pixel-btn{left:max(12px,env(safe-area-inset-left,0px))!important}
+#advisor.pixel-btn{left:max(4px,env(safe-area-inset-left,0px))!important}
 #mapctl{right:max(12px,env(safe-area-inset-right,0px))!important}
 #scrim{inset:0!important}
 #mg,#modal{inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)!important;max-height:100%!important;box-sizing:border-box}
@@ -2821,7 +2828,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #mgPanel .wheel-content > *{flex-shrink:0;max-width:100%}
 #mgPanel .mg-page-foot{flex:none;height:env(safe-area-inset-bottom,0px);background:var(--wheel-face)}
 </style>
-<link rel="stylesheet" href="./page-shell.css?v=home-nav1">
+<link rel="stylesheet" href="./page-shell.css?v=mobile-polish1">
 <style>
 .city-exchange-room { position:fixed; inset:0; box-sizing:border-box; width:100%; height:100%; max-width:none; max-height:none; margin:0; border:0; padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); overflow:hidden; background:#171b28; }
 .city-exchange-room[data-room=shop] { background:#102b20; }
@@ -2836,7 +2843,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
   <div class="hrow">
     <div class="lvl" aria-label="City level"><span id="lvlNum">1</span></div>
     <div class="cname"><b class="wm">BIT-BURBS</b><small class="beta-label" style="display:block;color:#ffda85">BETA</small><div class="xp-row"><div class="xp" aria-hidden="true"><i id="xpFill"></i></div><span id="xpCount">0/60 XP</span></div></div>
-    <div class="clock-stack"><output id="fpsCounter" aria-label="Rendered frames per second">— fps</output><div id="clock" aria-label="Local time, the sky follows it"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></div><div id="boost" hidden aria-label="Double coin earnings"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><b>2×</b> <span id="boostT"></span></div></div>
+    <div class="clock-stack"><output id="fpsCounter" aria-live="off" aria-label="Rendered frames per second">— fps</output><button id="clock" type="button" aria-label="Local time and daylight hours" aria-describedby="clockT"><canvas id="clockIcon" width="28" height="28" style="width:14px;height:14px"></canvas><span id="clockT">--</span></button><div id="boost" hidden aria-label="Double coin earnings"><canvas class="coin-boost-icon" data-icon="cash" width="48" height="48" aria-hidden="true"></canvas><b>2×</b> <span id="boostT"></span></div></div>
   </div>
   <div class="cpmbar">
     <div class="city-stats">
@@ -2851,7 +2858,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
   </div>
   <div class="chips">
     <div class="chip" aria-label="Coins"><canvas data-icon="cash" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="cash">0</span></div>
-    <div class="chip" aria-label="Dosh"><canvas data-icon="dosh" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="stars">0</span></div>
+    <button class="chip" type="button" aria-label="Dosh" aria-describedby="stars" title="Open Dosh Shop"><canvas data-icon="dosh" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="stars">0</span></button>
     <div class="chip" aria-label="Deeds"><canvas data-icon="deed" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="deeds">0</span></div>
 
     <div class="chip" aria-label="Wheel tickets"><canvas data-icon="ticket" width="56" height="56" style="width:18px;height:18px" aria-hidden="true"></canvas><span id="tix">0</span></div>
@@ -2890,16 +2897,17 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 </section>
 
 <div id="mg" role="dialog" aria-modal="true"><div id="mgPanel" class="mgp"></div></div>
-<div id="toast" role="status"></div>
+<div id="toast" role="status" aria-atomic="true"></div>
 <div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
 
 <script>
-// Leave single-finger scrolling and control taps to the browser.
-function blockPagePinch(event) {
-  if (event.cancelable && (!event.touches || event.touches.length > 1)) event.preventDefault();
-}
-for (const type of ['gesturestart','gesturechange','touchmove']) {
-  document.querySelector('canvas#game')?.addEventListener(type, blockPagePinch, {passive:false});
+// Map gestures use pointer events. Suppress native touch scrolling and mouse clicks
+// at their source, including clicks generated after a map swipe on mobile.
+const cityGestureCanvas=document.querySelector('canvas#game');
+for(const type of ['touchstart','gesturestart','gesturechange']){
+  cityGestureCanvas.addEventListener(type,event=>{
+    if(event.cancelable)event.preventDefault();
+  },{passive:false});
 }
 </script>
 <script>
@@ -8591,7 +8599,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=local-time1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=ten-tasks1"></script><script src="./daily-task-session.js"></script>
+<script src="./exchange-room.js?v=mobile-polish1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=ten-tasks1"></script><script src="./daily-task-session.js"></script>
 <script>
 (async () => {
 'use strict';
@@ -9859,7 +9867,7 @@ function fpOf(id,turned=false,compactHall=false){
 }
 const anchorOf = (i, j) => { const t = tileAt(i, j); return t && t.id === '_occ' ? { i: t.ref[0], j: t.ref[1] } : { i, j }; };
 function roadNearFP(i, j, id, turned=tileAt(i,j)?.turned) { if(id==="warehouse")return !missingGateRoad(i,j,id,turned); if(id==='space'&&DEFS.space.fx===10)return facilityGateConnected(i,j,turned); const [fx, fy] = fpOf(id,turned); for (let a = 0; a < fx; a++) { if (isRoad(i + a, j - 1) || isRoad(i + a, j + fy)) return true; } for (let b = 0; b < fy; b++) { if (isRoad(i - 1, j + b) || isRoad(i + fx, j + b)) return true; } return false; }
-const roadWidthMessage = 'roads must stay one tile wide.';
+const roadWidthMessage = 'Roads must stay one tile wide.';
 function completesRoadSquare(i, j, source = null, planned = null) {
   const road = (x,y) => !(source && x === source.i && y === source.j) && (isRoad(x,y) || (x>=0 && y>=0 && x<N && y<N && planned?.has(y*N+x)));
   for (const dx of [-1,1]) for (const dy of [-1,1]) {
@@ -9920,7 +9928,7 @@ function commitMove(edit,i,j){
   if(tileAt(source.i,source.j)!==object||!fpFree(i,j,object.id,turned,source))return false;
   vacate(source.i,source.j,object);
   object.turned=Number(turned)||0;occupy(i,j,object);
-  derive();changed();save();snd('build');return true;
+  changed();refreshCityStats();save();snd('build');return true;
 }
 const boostOn = () => S.boostUntil > now();
 const boostMul = () => boostOn() ? 2 : 1;
@@ -10100,20 +10108,26 @@ function updateWildlife(dt){
  }
  wildlife=wildlife.filter(a=>!a.retire);
 }
-function addNativeObjects(objs,left,right,top,bottom){
+function staticScenery(network,left,right,top,bottom){
  ensureNativeWorld();
+ const cached=network.scenery;
+ if(cached&&cached.base===network.renderObjects&&cached.plots===nativePlots&&
+    cached.left===left&&cached.right===right&&cached.top===top&&cached.bottom===bottom)return cached.objects;
+ const objects=network.renderObjects.slice();
  for(let j=top;j<=bottom;j++)for(let n=nativeRowStart[j];n<nativeRowStart[j+1];n++){
    const p=nativePlots[n];
    if(p.i>right)break;
    if(p.i<left||tileAt(p.i,p.j))continue;
-   const q=P(p.i+.5,p.j+.5),pad=44*V.z;
-   if(q.x < -pad || q.x>W+pad || q.y < -pad || q.y>H+pad)continue;
-   objs.push({native:p,d:vdepth(p.i+.5,p.j+.5)});
+   objects.push({native:p,d:vdepth(p.i+.5,p.j+.5)});
  }
- for(const a of wildlife)if(a.x>=left&&a.x<=right+1&&a.y>=top&&a.y<=bottom+1&&nativeWalkable(Math.floor(a.x),Math.floor(a.y)))objs.push({animal:a,d:vdepth(a.x,a.y)+.01});
+ objects.sort((a,b)=>a.d-b.d);
+ network.scenery={base:network.renderObjects,plots:nativePlots,left,right,top,bottom,objects};
+ return objects;
 }
 function drawNativePlot(p){
- const ctx=V.ctx,s=SPRK.nativeSprite(NATIVE_KINDS[p.kind]),q=P(p.i+.5,p.j+.5),z=V.z*p.scale*.95;
+ const q=P(p.i+.5,p.j+.5),pad=44*V.z;
+ if(q.x < -pad || q.x>W+pad || q.y < -pad || q.y>H+pad)return;
+ const ctx=V.ctx,s=SPRK.nativeSprite(NATIVE_KINDS[p.kind]),z=V.z*p.scale*.95;
  ctx.save();ctx.globalAlpha=fadedBuildings()?.3:1;ctx.imageSmoothingEnabled=false;
  ctx.fillStyle='rgba(44,70,40,.16)';ctx.fillRect(q.x-8*z,q.y-2*z,16*z,4*z);
  ctx.drawImage(s.tile,s.x0,s.y0,s.w,s.h,Math.round(q.x-s.rootX*z),Math.round(q.y-s.h*z),s.w*z,s.h*z);ctx.restore();
@@ -10327,13 +10341,15 @@ function placeAt(i, j, id, fromItem, turned=false) {
   const cost = fromItem ? 0 : costOf(id);
   if (S.cash < cost) { snd('error'); toast('You need ' + fmt(cost) + ' Coins.'); return false; }
   if (fromItem && !(S.shopItems && S.shopItems[id] > 0)) { snd('error'); toast('You have none of this Dosh Shop item left.'); return false; }
-  S.cash -= cost; const tile=newTile(id);tile.purchaseCoins=cost;tile.labId='new-'+(++labState().nextId);if(turned)tile.turned=Number(turned);occupy(i,j,tile); if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
+  S.cash-=cost;const tile=newTile(id);tile.purchaseCoins=cost;tile.labId='new-'+(++labState().nextId);
+  if(turned)tile.turned=Number(turned);occupy(i,j,tile);
+  if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
   if (id === 'hall' && S.foundingGrant) {
     delete S.foundingGrant; S.cash += 8000; save(); toast('Town founded · 8,000 starter coins');
   }
   if (id === 'deliveryDepot' || isStop(id)) { snd('build'); changed(); save(); return true; }
   if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build');labDevelopment('build:'+id,20); popup(i, j, d.name + '!', '#FFF3D6'); }
-  if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
+  if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id, turned)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
 }
 function pickUpBuilding(i,j,t) {
@@ -10381,11 +10397,14 @@ function busArrive() {
 /* ================= traffic removed ================= */
 /* ================= tick ================= */
 let simulationDirty=true,lastPopulation=-1;
-function tick(dt) {
-  const t = now();
+function refreshCityStats(){
   if(simulationDirty || lastPopulation!==S.pop){
     derive();simulationDirty=false;lastPopulation=S.pop;
   }
+}
+function tick(dt) {
+  const t = now();
+  refreshCityStats();
   bizTick(dt);
   ResidentialCats.update(S,D.occupiedHomes,t, tile => tile.labId ||= 'new-'+(++labState().nextId), tile => [SPR_KEY[tile.id],(ROT+Number(tile.turned||0))%4]);
   if (S.dice < 5) { while (t - S.diceT >= 1800000 && S.dice < 5) { S.dice++; S.diceT += 1800000; } } else S.diceT = t;
@@ -10477,6 +10496,19 @@ function syncMapTools(){
   $('#eyeTool').setAttribute('aria-pressed',String(fadedBuildings()));
 }
 function fitsEdit(g){return g&&fpFree(g.i,g.j,placing.id,placing.turned,placing.source);}
+function blockedPlacementHint(g){
+  const {id,source,turned}=placing;
+  if(!inB(g.i,g.j))return 'Choose clear land on the island.';
+  if(id==='road'){
+    if(source&&(source.i!==g.i||source.j!==g.j)&&gateUsesRoad(source.i,source.j))return 'Move the facility before moving its entrance road.';
+    if(isRoad(g.i,g.j))return 'There is already a road here.';
+    if(completesRoadSquare(g.i,g.j,source))return roadWidthMessage;
+  }
+  if(isStop(id)&&!stopKerb(g.i,g.j))return 'Choose a free plot beside a straight road.';
+  if(missingGateRoad(g.i,g.j,id,turned))return 'Connect the entrance to a road, or rotate the building.';
+  const [w,h]=fpOf(id,turned);
+  return w*h>1?'This footprint needs '+w+' × '+h+' clear tiles.':'This tile is occupied.';
+}
 function pickForMove(i,j){
   const source=anchorOf(i,j),object=tileAt(source.i,source.j);
   if(!object||!DEFS[object.id])return false;
@@ -10498,7 +10530,7 @@ function unrotXY(vx, vy) { return ROT === 0 ? [vx, vy] : ROT === 1 ? [vy, N - vx
 function Pv(vx, vy) { return { x: V.cx + (vx - vy) * (TW / 2) * V.z, y: V.cy + (vx + vy) * (TH / 2) * V.z }; }
 function P(x, y) { const r = rotXY(x, y); return Pv(r[0], r[1]); }
 const vdepth = (x, y) => { const r = rotXY(x, y); return r[0] + r[1]; };
-let previousMapMid=null,viewportResizeFrame=0;
+let mapCenterY=0, viewportResizeFrame=0, canvasBounds;
 function readGameViewport(){
   const v=window.visualViewport;
   const standalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
@@ -10508,32 +10540,44 @@ function readGameViewport(){
     left:standalone?0:Math.max(0,v?.offsetLeft||0),top:standalone?0:Math.max(0,v?.offsetTop||0)};
 }
 function resize() {
-  const focus=W&&H?screenToWorld(W/2,previousMapMid??H/2):null;
+  const focus=W&&H?screenToWorld(W/2,mapCenterY):null;
   const view=readGameViewport(),style=document.documentElement.style;
   style.setProperty('--app-width',view.width+'px');style.setProperty('--app-height',view.height+'px');
   style.setProperty('--app-left',view.left+'px');style.setProperty('--app-top',view.top+'px');
   DPR=Math.min(3,window.devicePixelRatio||1);W=view.width;H=view.height;
   const pixelW=Math.round(W*DPR),pixelH=Math.round(H*DPR);
   if(cv.width!==pixelW||cv.height!==pixelH){cv.width=pixelW;cv.height=pixelH;}
+  canvasBounds = cv.getBoundingClientRect();
   layoutUI();
+  const navTop = $('#nav').getBoundingClientRect().top - canvasBounds.top;
+  mapCenterY = (hudBottom + navTop) / 2;
   if(focus){zoomAnim=null;camAnim=null;centerOn(focus.x,focus.y);}
-  previousMapMid=mapMidY();
 }
 function queueViewportResize(){
   if(viewportResizeFrame)return;
   viewportResizeFrame=requestAnimationFrame(()=>{viewportResizeFrame=0;resize();clampCam();});
 }
 function canvasPoint(e){
-  const r=cv.getBoundingClientRect();
-  return {x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};
+  return {x:(e.clientX-canvasBounds.left)*W/canvasBounds.width,
+    y:(e.clientY-canvasBounds.top)*H/canvasBounds.height};
 }
-function mapMidY() { const top = $('#hud').getBoundingClientRect().bottom; const bot = $('#nav').getBoundingClientRect().top; return (top + bot) / 2 - cv.getBoundingClientRect().top; }
-function centerOn(wx, wy) { const r = rotXY(wx, wy); V.cx = W / 2 - (r[0] - r[1]) * (TW / 2) * V.z; V.cy = mapMidY() - (r[0] + r[1]) * (TH / 2) * V.z; }
-const ZLEVELS = [.15, .2, .25, .35, .5, .7, 1, 1.4, 2, 2.8]; let zoomAnim = null, wheelSnapT = 0, pinchC = null;
-function snapZoom(sx, sy, dir) { camAnim = null; let target; if (dir > 0) target = ZLEVELS.find(z => z > V.z + .01) || ZLEVELS[ZLEVELS.length - 1]; else if (dir < 0) target = [...ZLEVELS].reverse().find(z => z < V.z - .01) || ZLEVELS[0]; else target = ZLEVELS.reduce((a, b) => Math.abs(Math.log(b / V.z)) < Math.abs(Math.log(a / V.z)) ? b : a);
-  zoomAnim = { from: V.z, to: target, t0: performance.now(), sx, sy }; }
+function centerOn(wx, wy) { const r = rotXY(wx, wy); V.cx = W / 2 - (r[0] - r[1]) * (TW / 2) * V.z; V.cy = mapCenterY - (r[0] + r[1]) * (TH / 2) * V.z; }
+const ZLEVELS = [.15, .2, .25, .35, .5, .7, 1, 1.4, 2, 2.8, 3.2];
+const maxZoom = ZLEVELS[ZLEVELS.length - 1];
+let zoomAnim = null, wheelSnapT = 0, pinchC = null;
+function snapZoom(sx, sy, dir) {
+  clearTimeout(wheelSnapT);
+  camAnim = null;
+  const start = zoomAnim?.to ?? V.z;
+  let target;
+  if (dir > 0) target = ZLEVELS.find(z => z > start + .01) ?? maxZoom;
+  else if (dir < 0) target = [...ZLEVELS].reverse().find(z => z < start - .01) ?? ZLEVELS[0];
+  else target = ZLEVELS.reduce((a,b) => Math.abs(Math.log(b / start)) < Math.abs(Math.log(a / start)) ? b : a);
+  if (zoomAnim?.to === target) return;
+  zoomAnim = target === V.z ? null : { from: V.z, to: target, t0: performance.now(), sx, sy };
+}
 function stepZoomAnim() { if (!zoomAnim) return; const a = zoomAnim; const p = Math.min(1, (performance.now() - a.t0) / 160); const e = 1 - Math.pow(1 - p, 3); const nz = a.from * Math.pow(a.to / a.from, e); zoomAt(nz / V.z, a.sx, a.sy); clampCam(); if (p >= 1) { V.z = a.to; zoomAnim = null; } }
-function zoomAt(f, sx, sy) { const nz = clamp(V.z * f, .14, 2.9); const k = nz / V.z; V.cx = sx - (sx - V.cx) * k; V.cy = sy - (sy - V.cy) * k; V.z = nz; }
+function zoomAt(f, sx, sy) { const nz = clamp(V.z * f, .14, maxZoom); const k = nz / V.z; V.cx = sx - (sx - V.cx) * k; V.cy = sy - (sy - V.cy) * k; V.z = nz; }
 function screenToWorld(sx, sy) { const a = (sx - V.cx) / (TW / 2 * V.z), b = (sy - V.cy) / (TH / 2 * V.z); const w = unrotXY((a + b) / 2, (b - a) / 2); return { x: w[0], y: w[1] }; }
 
 /* ================= primitives ================= */
@@ -10646,23 +10690,32 @@ function drawSky() {
     c.globalAlpha = 1;
   }
 }
+let seaSwells=null;
 function drawSea() {
-  const m = 40; const pts = [P(-m, -m), P(N + m, -m), P(N + m, N + m), P(-m, N + m)];
-  const c = V.ctx; const topY = pts[0].y, botY = pts[2].y;
+  if(!seaSwells||seaSwells.size!==N){
+    const points=[],margin=40;
+    for(let k=0;k<70;k++){
+      const x=-margin+hash(k,11)*(N+2*margin),y=-margin+hash(k,12)*(N+2*margin);
+      if(x>-1&&x<N+1&&y>-1&&y<N+1)continue;
+      points.push({x,y,k});
+    }
+    seaSwells={size:N,points};
+  }
+  const c=V.ctx;
   const seaTop = mix(mix(SK.bot, '#4E7C92', .6), '#0E1626', DARK * .8), seaBot = mix('#2F566B', '#070C16', DARK);
-  void topY; void botY; c.fillStyle = lg(0, 0, 0, innerHeight, seaTop, seaBot); c.fillRect(-10, -10, W + 20, innerHeight + 20);
+  c.fillStyle = lg(0, 0, 0, innerHeight, seaTop, seaBot); c.fillRect(-10, -10, W + 20, innerHeight + 20);
   c.save();
   const t = performance.now() / 1000;
   c.strokeStyle = DARK > .5 ? 'rgba(180,200,255,.25)' : 'rgba(255,255,255,.4)'; c.lineWidth = 2;
-  for (let k = 0; k < 70; k++) {
-    const wx = -m + hash(k, 11) * (N + 2 * m), wy = -m + hash(k, 12) * (N + 2 * m);
-    if (wx > -1 && wx < N + 1 && wy > -1 && wy < N + 1) continue;
-    const p = Pv(wx + Math.sin(t * .5 + k) * .2, wy); const s = .5 + .5 * Math.sin(t * 1.5 + k * 2);
-    c.globalAlpha = s; c.beginPath(); c.moveTo(p.x - 8 * V.z, p.y); c.quadraticCurveTo(p.x, p.y - 3 * V.z, p.x + 8 * V.z, p.y); c.stroke();
+  const padX=(8+TW*.1)*V.z+4,padY=(3+TH*.1)*V.z+4;
+  for(const {x,y,k} of seaSwells.points){
+    const p=Pv(x,y);
+    if(p.x < -padX||p.x>W+padX||p.y < -padY||p.y>H+padY)continue;
+    const drift=Math.sin(t*.5+k)*.1*V.z,px=p.x+TW*drift,py=p.y+TH*drift;
+    c.globalAlpha=.5+.5*Math.sin(t*1.5+k*2);
+    c.beginPath();c.moveTo(px-8*V.z,py);c.quadraticCurveTo(px,py-3*V.z,px+8*V.z,py);c.stroke();
   }
   c.globalAlpha = 1; c.restore();
-  const g1 = Pv(-.25, N + .25), g2 = Pv(N + .25, N + .25), g3 = Pv(N + .25, -.25);
-  void g1; void g2; void g3;
 }
 let grassPat = null;
 function grassPattern() {
@@ -10674,7 +10727,7 @@ function grassPattern() {
 function drawIsland() {}
 
 function drawGround(i, j, margin=0) {
-  { const cc = P(i + .5, j + .5), m = TW * V.z+margin; if (cc.x < -m || cc.x > W + m || cc.y < -m || cc.y > innerHeight + m) return; }
+  { const cc = P(i + .5, j + .5), m = TW * V.z+margin; if (cc.x < -m || cc.x > W + m || cc.y < -m || cc.y > H + m) return; }
   const t = tileAt(i, j), open = inB(i, j), k = j * N + i;
   if (!ISL.land[k]) { if (ISL.shallow[k]) poly(diamond(i, j), T(DARK > .5 ? '#2A6878' : (ISL.ed[k] > -0.9 ? '#8EDCDA' : '#62C4D0'))); return; }
   const dm = diamond(i, j); const cy = (dm[0].y + dm[2].y) / 2, side = 6 * V.z;
@@ -10758,7 +10811,9 @@ function addJunctionSignals(objects,i,j,arms) {
 }
 function signalPhase(i,j,dx,seconds){return (seconds+i*3+j*5+(dx?0:10))%20;}
 function drawJunctionSignal(o,seconds){
-  paintJunctionSignal(V.ctx,P,V.z,T,o,signalLamp(o.i,o.j,o.dx,seconds));
+  const p=P(o.x,o.y),pad=32*V.z+4;
+  if(p.x < -pad||p.x>W+pad||p.y < -pad||p.y>H+pad)return;
+  paintJunctionSignal(V.ctx,P,V.z,T,o,signalLamp(o.i,o.j,o.dx,seconds),p);
 }
 function signalLamp(i,j,dx,seconds){
   const time=signalPhase(i,j,dx,seconds);
@@ -10766,8 +10821,8 @@ function signalLamp(i,j,dx,seconds){
 }
 const signalOn=['#FF5B49','#FFC34A','#5CDF99'],signalOff=['#613d37','#62523b','#375248'];
 const signalLensColours=new Map([...signalOff,...signalOn].map((col,i)=>[parseInt(col.slice(1),16),i%3]));
-function paintJunctionSignal(c,project,z,tint,o,active){
-  const p=project(o.x,o.y), face=project(o.x+o.dx,o.y+o.dy);
+function paintJunctionSignal(c,project,z,tint,o,active,p=project(o.x,o.y)){
+  const face=project(o.x+o.dx,o.y+o.dy);
   // Project the width across the lane and the visor out towards its driver.
   const cross=project(o.x-o.dy,o.y+o.dx);
   const across=[Math.sign(cross.x-p.x)*.9,Math.sign(cross.y-p.y)*.45];
@@ -11076,9 +11131,16 @@ function spriteBox(i, j, id, turned=tileAt(i,j)?.turned, stop=tileAt(i,j)) {
    if(!SPR.has(variant))SPR.set(variant,SPRK.render(key,false,open));
    facilitySprite=SPR.get(variant);
   }
-  const sp=id==='warehouse'?parcelSprite((ROT+Number(turned||0))%4):(facility||parkSizes[id])?facilitySprite:transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id,(ROT+(Number(turned)||0))%4,stop?.id==='wtower'?(stop.towerPaint??Math.abs(i+2*j)%3):5); if (!sp) return null; const [fx, fy] = fpOf(id,turned,compact); const cs = [P(i, j), P(i + fx, j), P(i + fx, j + fy), P(i, j + fy)];
-  const minx = Math.min(...cs.map(p => p.x)), miny = Math.min(...cs.map(p => p.y)), maxy = Math.max(...cs.map(p => p.y)); const s = TW * V.z / (64 * (sp.sc || 1) * (compact?sp.fx:1)); const mir = !fourSidedModels.has(id) && !transport && (Boolean(turned%2)!==(ROT%2===1)); const gx = mir ? sp.w - sp.gMaxX : sp.gMinX;
-  return { sp, mir, s, x: minx - gx * s, y: miny - sp.gMinY * s, w: sp.w * s, h: sp.h * s, groundY: maxy }; }
+  const sp=id==='warehouse'?parcelSprite((ROT+Number(turned||0))%4):(facility||parkSizes[id])?facilitySprite:transport?stopSprite(id,(orientation+ROT)%4):spriteOf(id,(ROT+(Number(turned)||0))%4,stop?.id==='wtower'?(stop.towerPaint??Math.abs(i+2*j)%3):5);
+  if(!sp)return null;
+  const [fx,fy]=fpOf(id,turned,compact),center=P(i+fx/2,j+fy/2);
+  // The footprint has the same projected half-extents in all four rotations.
+  const extent=(fx+fy)*V.z/4,halfWidth=extent*TW,halfHeight=extent*TH;
+  const s=TW*V.z/(64*(sp.sc||1)*(compact?sp.fx:1));
+  const mir=!fourSidedModels.has(id)&&!transport&&(Boolean(turned%2)!==(ROT%2===1));
+  const gx=mir?sp.w-sp.gMaxX:sp.gMinX;
+  return {sp,mir,s,x:center.x-halfWidth-gx*s,y:center.y-halfHeight-sp.gMinY*s,w:sp.w*s,h:sp.h*s,groundY:center.y+halfHeight};
+}
 // Frames are rendered from the approved models at the same metres-per-tile scale.
 const streetArt = new Image();
 const stopSprites = new Map();
@@ -11505,7 +11567,7 @@ function streetLightPool(){
 }
 function drawStreetLamp(lamp,ground,strength){
   const {x,y,dx,dy}=lamp,z=V.z;
-  const base=P(x,y),arm=P(x-dx*.19,y-dy*.19);
+  const base=P(x,y);
   if(base.x<-45*z||base.x>W+45*z||base.y<-15*z||base.y>H+45*z)return;
   const c=V.ctx;
   if(ground){
@@ -11515,7 +11577,7 @@ function drawStreetLamp(lamp,ground,strength){
     c.drawImage(streetLightPool(),pool.x-23*z,pool.y-11.5*z,46*z,23*z);
     c.restore();return;
   }
-  paintStreetPole(c,base,arm,z,T,strength?'#ffe4ad':T('#bfd0c8'));
+  paintStreetPole(c,base,P(x-dx*.19,y-dy*.19),z,T,strength?'#ffe4ad':T('#bfd0c8'));
 }
 function paintStreetPole(c,base,arm,z,tint,bulb){
   const sign=Math.sign(arm.x-base.x), rise=(arm.y-base.y)/z;
@@ -11718,6 +11780,8 @@ function drawParkedApproach(v){
 }
 function drawVehicle(v){
   const c=V.ctx,p=P(v.x,v.y),frames=v.frames;
+  const padX=56*V.z+4,padY=44*V.z+4;
+  if(p.x < -padX||p.x>W+padX||p.y < -padY||p.y>H+padY)return;
   const index=(Math.round((v.angle+ROT*Math.PI/2)*frames/(2*Math.PI))%frames+frames)%frames;
   c.save();c.globalAlpha*=v.alpha;
   if(v.frames===16){
@@ -11929,19 +11993,24 @@ function groundBounds(pad){
   const bottom = Math.min(N-1,Math.ceil(Math.max(...corners.map(p=>p.y))));
   return {left,right,top,bottom};
 }
-// Retain a padded ground image while the camera pans. Dynamic objects are drawn above it.
+// Reuse the oversampled ground while moving the camera. Actors draw at the current zoom.
 const groundCanvas=document.createElement('canvas');
 const groundContext=groundCanvas.getContext('2d');
 let groundCache=null;
 function drawGroundLayer(network,lw,lh){
   const gutter=48,margin=gutter*PX;
   const width=(lw+2*gutter)*2,height=(lh+2*gutter)*2;
+  const imageWidth=width*PX/2,imageHeight=height*PX/2;
   const shade=Math.round(DARK*20),grid=Boolean(placing);
   const c=groundCache;
-  if(!c||c.network!==network||c.island!==ISL||c.zoom!==V.z||c.rotation!==ROT||
+  let scale=c?V.z/c.zoom:1;
+  let x=c?V.cx-(c.x+margin)*scale:0,y=c?V.cy-(c.y+margin)*scale:0;
+  // Scale around the map origin. Repaint at rest and when road detail changes.
+  const reuseZoom=scale===1||((pinchC||zoomAnim)&&scale>=.85&&scale<=1.2&&(c.zoom>1)===(V.z>1));
+  if(!c||c.network!==network||c.island!==ISL||!reuseZoom||c.rotation!==ROT||
      c.shade!==shade||c.nightShallows!==(DARK>.5)||c.grid!==grid||c.pixel!==PX||
      groundCanvas.width!==width||groundCanvas.height!==height||
-     Math.abs(V.cx-c.x)>margin||Math.abs(V.cy-c.y)>margin){
+     x>0||y>0||x+imageWidth*scale<lw*PX||y+imageHeight*scale<lh*PX){
     if(groundCanvas.width!==width||groundCanvas.height!==height){groundCanvas.width=width;groundCanvas.height=height;}
     groundContext.setTransform(1,0,0,1,0,0);
     groundContext.clearRect(0,0,width,height);
@@ -11959,8 +12028,9 @@ function drawGroundLayer(network,lw,lh){
     drawRoadNetwork(network);
     V.ctx=target;
     groundCache={network,island:ISL,zoom:V.z,rotation:ROT,shade,nightShallows:DARK>.5,grid,pixel:PX,x:V.cx,y:V.cy};
+    x=y=-margin;scale=1;
   }
-  V.ctx.drawImage(groundCanvas,V.cx-groundCache.x-margin,V.cy-groundCache.y-margin,width*PX/2,height*PX/2);
+  V.ctx.drawImage(groundCanvas,x,y,imageWidth*scale,imageHeight*scale);
 }
 
 // Erase the foreground silhouette from the cat stamp before it enters the world canvas.
@@ -12029,13 +12099,11 @@ function render() {
     const {i,j}=placing.source,[w,h]=fpOf(placing.id,placing.turned,placing.object?.compactHall);
     poly([P(i,j),P(i+w,j),P(i+w,j+h),P(i,j+h)],'rgba(255,215,105,.24)','#FFD23F',2);
   }
-  if(roadStroke && dragMoved){
-    for(const tile of roadStroke.tiles)poly(diamond(tile.i,tile.j), 'rgba(74,215,122,.35)');
-    if(roadStroke.invalid)poly(diamond(roadStroke.invalid.i,roadStroke.invalid.j), 'rgba(230,60,60,.65)');
-  }
+  const ghostFits=placing?.ghost&&fitsEdit(placing.ghost);
   if (placing && placing.ghost) {
-    const gi = placing.ghost; const ok = fitsEdit(gi); const [gfx, gfy] = fpOf(placing.id,placing.turned);
-    poly([P(gi.i, gi.j), P(gi.i + gfx, gi.j), P(gi.i + gfx, gi.j + gfy), P(gi.i, gi.j + gfy)], ok ? 'rgba(80,230,80,.5)' : 'rgba(230,60,60,.5)', '#FFFFFF', 2);
+    const gi = placing.ghost; const ok = ghostFits; const [gfx, gfy] = fpOf(placing.id,placing.turned);
+    if(ok&&placing.id==='road')drawRoadPreview(gi,network);
+    poly([P(gi.i, gi.j), P(gi.i + gfx, gi.j), P(gi.i + gfx, gi.j + gfy), P(gi.i, gi.j + gfy)], ok ? 'rgba(80,230,80,.27)' : 'rgba(230,60,60,.5)', ok?'#A6F3AD':'#FF998A', 2);
     const d = DEFS[placing.id];
     if (ok && d.rad) poly([P(gi.i - d.rad, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j - d.rad), P(gi.i + d.rad + 1, gi.j + d.rad + 1), P(gi.i - d.rad, gi.j + d.rad + 1)], d.poll ? 'rgba(229,59,59,.15)' : 'rgba(62,123,250,.15)', d.poll ? '#E53B3B' : '#7FB2FF', 2);
   }
@@ -12067,16 +12135,20 @@ function render() {
     objs.push({vehicle,d:depth});
   }
   for(const walker of walkers)objs.push({walker,d:vdepth(walker.x,walker.y)+.015});
-  if (placing && placing.ghost && placing.id !== 'road' && fitsEdit(placing.ghost)) {
+  if (placing && placing.ghost && placing.id !== 'road') {
     const { i, j } = placing.ghost, [fx, fy] = fpOf(placing.id,placing.turned);
-    objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id });
+    objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id, valid: ghostFits });
   }
-  addNativeObjects(objs,left,right,top,bottom);
+  const scenery=staticScenery(network,left,right,top,bottom);
+  for(const a of wildlife)if(a.x>=left&&a.x<=right+1&&a.y>=top&&a.y<=bottom+1&&nativeWalkable(Math.floor(a.x),Math.floor(a.y)))objs.push({animal:a,d:vdepth(a.x,a.y)+.01});
   objs.sort((a, b) => a.d - b.d);
   const ordered=[];let staticIndex=0,dynamicIndex=0;
-  while(staticIndex<network.renderObjects.length||dynamicIndex<objs.length){
-    if(dynamicIndex>=objs.length||(staticIndex<network.renderObjects.length&&network.renderObjects[staticIndex].d<=objs[dynamicIndex].d))ordered.push(network.renderObjects[staticIndex++]);
-    else ordered.push(objs[dynamicIndex++]);
+  while(staticIndex<scenery.length||dynamicIndex<objs.length){
+    const fixed=scenery[staticIndex],moving=objs[dynamicIndex];
+    // At equal depth, props precede traffic, then plants, then wildlife.
+    if(!moving||(fixed&&(fixed.d<moving.d||(fixed.d===moving.d&&(!fixed.native||moving.animal))))){
+      ordered.push(fixed);staticIndex++;
+    }else{ordered.push(moving);dynamicIndex++;}
   }
   hulls = [];
   const visibleCats=[];
@@ -12089,9 +12161,9 @@ function render() {
       const p=o.vehicle.parking?.p||o.vehicle.gateTail?.p;if(p)drawParkingGate(p.i,p.j,p.t,o.vehicle);return;}
     if(o.walker){drawWalker(o.walker);return;}
     if(o.signal){drawJunctionSignal(o,signalSeconds);return;}
-    if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = .6; drawBuilding(o.i, o.j, o.ghost,placing.turned,null); V.ctx.restore(); return; }
-    if(placing?.object===o.t && placing.ghost && fitsEdit(placing.ghost))return;
-    const sb=spriteBox(o.i,o.j,o.t.id);
+    if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = o.valid ? .72 : .36; drawBuilding(o.i, o.j, o.ghost,placing.turned,null); V.ctx.restore(); return; }
+    if(placing?.object===o.t && ghostFits)return;
+    const sb=spriteBox(o.i,o.j,o.t.id,o.t.turned||0,o.t);
     if(sb&&!sb.sp.rotor&&(sb.x+sb.w < -4||sb.x>W+4||sb.y+sb.h < -4||sb.y>H+4))return;
     if(isDriveShop(o.t.id)){V.ctx.save();if(fadedBuildings())V.ctx.globalAlpha*=.22;drawShopLayer(o.i,o.j,o.t.id,o.t.turned,'shell');V.ctx.restore();}
     else if (fadedBuildings()) { V.ctx.save(); V.ctx.globalAlpha = .22; drawBuilding(o.i,o.j,o.t.id,o.t.turned,o.t,sb); V.ctx.restore(); }
@@ -12176,42 +12248,66 @@ function render() {
 /* ================= input ================= */
 const pointers = new Map();
 let dragMoved = false, startPt = null, pinchD = 0;
-let roadStroke = null;
-function roadPoint(point) {
-  const world = screenToWorld(point.x,point.y);
+let placementDrag=null;
+function tileAtPoint(point) {
+  const world=screenToWorld(point.x,point.y);
   return {i:Math.floor(world.x),j:Math.floor(world.y)};
 }
-function extendRoadStroke(end) {
-  const stroke=roadStroke;
-  if(!stroke || stroke.error)return;
-  // Visit each orthogonal tile crossed by a sample, including skipped
-  // pointer events. Simultaneous corner crossings take the x step first.
-  let {i,j}=stroke.tail;
-  const di=end.i-i,dj=end.j-j,ni=Math.abs(di),nj=Math.abs(dj);
-  let ix=0,iy=0;
-  function queue(){
-    const key=j*N+i;
-    if(!inB(i,j) || (tileAt(i,j)&&!isRoad(i,j)))stroke.error='Choose clear buildable land.';
-    else if(!isRoad(i,j)&&!stroke.planned.has(key)){
-      if(completesRoadSquare(i,j,null,stroke.planned))stroke.error=roadWidthMessage;
-      else if((stroke.tiles.length+1)*costOf('road')>S.cash)stroke.error='More coins needed for this road.';
-      else {stroke.planned.add(key);stroke.tiles.push({i,j});}
-    }
-    if(stroke.error)stroke.invalid={i,j};
+function layingRoads(){return placing?.id==='road'&&!placing.source&&!placing.stored;}
+function drawRoadPreview(ghost,network){
+  const {i,j}=ghost,source=placing.source;
+  // Reuse the live road renderer so the preview shows its connections at this tile.
+  if(placing.roadSurface?.ghost!==ghost||placing.roadSurface.network!==network){
+    const roadAt=(x,y)=>x===i&&y===j||(!(source&&source.i===x&&source.j===y)&&isRoad(x,y));
+    const arms=[];
+    directions.forEach(([dx,dy],k)=>{if(roadAt(i+dx,j+dy))arms.push(k);});
+    placing.roadSurface={ghost,network,surface:makeRoadSurface([{i,j,arms}],roadAt)};
   }
-  queue();
-  while(!stroke.error && (ix<ni||iy<nj)){
-    if(ix<ni && (iy===nj||(2*ix+1)*nj<=(2*iy+1)*ni)){i+=Math.sign(di);ix++;}
-    else {j+=Math.sign(dj);iy++;}
-    queue();
-  }
-  stroke.tail=end;
+  V.ctx.save();V.ctx.globalAlpha=.8;
+  paintRoadSurface(V.ctx,placing.roadSurface.surface,P,V.z,T);V.ctx.restore();
+}
+function confirmRoad(){
+  if(!layingRoads()||!placing.ghost||pointers.size)return;
+  const {i,j}=placing.ghost;
+  if(placeAt(i,j,'road',false)){placing.ghost=null;placing.roadSurface=null;}
+  renderCard(true);
+}
+function spriteHit(sx,sy,box){
+  if(!box)return false;
+  const {sp,s,mir}=box,u=Math.floor((sx-box.x)/s),v=Math.floor((sy-box.y)/s);
+  if(v<0||v>=sp.h||u<0||u>=sp.w)return false;
+  if(!sp.hitPixels)sp.hitPixels=sp.img.getContext('2d').getImageData(0,0,sp.w,sp.h).data;
+  return sp.hitPixels[4*(v*sp.w+(mir?sp.w-1-u:u))+3]>=32;
+}
+function startPlacementDrag(point){
+  if(!placing?.ghost||placing.id==='road'||placing.action==='choose')return;
+  const g=placing.ghost,start=tileAtPoint(point);
+  const [w,h]=fpOf(placing.id,placing.turned);
+  const onFootprint=start.i>=g.i&&start.i<g.i+w&&start.j>=g.j&&start.j<g.j+h;
+  if(!onFootprint&&!spriteHit(point.x,point.y,spriteBox(g.i,g.j,placing.id,placing.turned,null)))return;
+  placementDrag={edit:placing,origin:g,start:screenToWorld(point.x,point.y)};
+}
+function updatePlacementDrag(point){
+  const drag=placementDrag;
+  if(!drag||drag.edit!==placing)return;
+  const world=screenToWorld(point.x,point.y);
+  const i=drag.origin.i+Math.round(world.x-drag.start.x),j=drag.origin.j+Math.round(world.y-drag.start.y);
+  if(placing.ghost.i===i&&placing.ghost.j===j)return;
+  placing.ghost={i,j};
+  renderCard();
+}
+function cancelPlacementDrag(){
+  const drag=placementDrag;
+  placementDrag=null;
+  if(!drag||drag.edit!==placing)return;
+  placing.ghost=drag.origin;
+  renderCard();
 }
 function resetPinch() {
   pinchC = null;
   pinchD = 0;
   if (pointers.size !== 2) return;
-  roadStroke=null;
+  cancelPlacementDrag();
   const [a,b] = pointers.values();
   pinchD = Math.hypot(a.x-b.x, a.y-b.y);
   pinchC = {x:(a.x+b.x)/2, y:(a.y+b.y)/2};
@@ -12221,19 +12317,27 @@ cv.addEventListener('pointerdown', e => {
   zoomAnim = null;
   camAnim = null;
   cv.setPointerCapture(e.pointerId);
-  const point = {x:e.clientX,y:e.clientY};
+  const point = canvasPoint(e);
   pointers.set(e.pointerId, point);
-  if(pointers.size===1 && placing?.id==='road' && !placing.source && !placing.stored){
-    roadStroke={tail:roadPoint(point),planned:new Set(),tiles:[]};
-  }
+  if(pointers.size===1)startPlacementDrag(point);
   startPt = pointers.size === 1 ? point : null;
   dragMoved = pointers.size > 1;
   resetPinch();
 });
+function moveSinglePointer(prev,point){
+  if(!dragMoved){
+    if(!startPt||Math.hypot(point.x-startPt.x,point.y-startPt.y)<=8)return;
+    dragMoved=true;
+    prev=startPt;
+  }
+  if(placementDrag){updatePlacementDrag(point);return;}
+  V.cx+=point.x-prev.x;V.cy+=point.y-prev.y;
+  clampCam();
+}
 cv.addEventListener('pointermove', e => {
   const prev = pointers.get(e.pointerId);
   if (!prev) return;
-  const cur = {x:e.clientX,y:e.clientY};
+  const cur = canvasPoint(e);
   pointers.set(e.pointerId,cur);
   if (pointers.size > 2) return;
   if (pointers.size === 2) {
@@ -12247,37 +12351,46 @@ cv.addEventListener('pointermove', e => {
     }
     return;
   }
-  if (startPt && Math.hypot(cur.x-startPt.x,cur.y-startPt.y)>8) dragMoved = true;
-  if(dragMoved && roadStroke){
-    extendRoadStroke(roadPoint(cur));return;
-  }
-  if (dragMoved) { V.cx += cur.x-prev.x; V.cy += cur.y-prev.y; clampCam(); }
+  moveSinglePointer(prev,cur);
 });
 function endPtr(e) {
-  if (!pointers.delete(e.pointerId)) return;
-  const tap = e.type==='pointerup' && !pointers.size && !dragMoved && startPt;
-  if(roadStroke && dragMoved && e.type==='pointerup' && placing?.id==='road'){
-    extendRoadStroke(roadPoint({x:e.clientX,y:e.clientY}));
-    if(roadStroke.error){placing.ghost=roadStroke.invalid;toast(roadStroke.error);}
-    else{
-      for(const {i,j} of roadStroke.tiles)if(!placeAt(i,j,'road',false))break;
-      placing.ghost=null;
+  const prev=pointers.get(e.pointerId);
+  if(!prev)return;
+  let tap=null;
+  if(e.type==='pointerup'){
+    if(pointers.size===1&&startPt){
+      // A fast swipe may deliver its final displacement only on release.
+      const point=canvasPoint(e);
+      moveSinglePointer(prev,point);
+      if(!dragMoved&&!placementDrag)tap=point;
     }
-    renderCard(true);
+    placementDrag=null;
+  }else{
+    cancelPlacementDrag();
+    dragMoved=true;
   }
-  roadStroke=null;
-  if (e.type!=='pointerup') dragMoved = true;
-  startPt = null;
+  pointers.delete(e.pointerId);
+  startPt=null;
   resetPinch();
-  if (tap) onTap(e.clientX,e.clientY);
+  if(tap)onTap(tap.x,tap.y);
 }
 for (const type of ['pointerup','pointercancel','lostpointercapture']) cv.addEventListener(type,endPtr);
-cv.addEventListener('wheel', e => { e.preventDefault(); zoomAnim = null; zoomAt(e.deltaY < 0 ? 1.08 : 1 / 1.08, e.clientX, e.clientY); clampCam(); clearTimeout(wheelSnapT); const x = e.clientX, y = e.clientY; wheelSnapT = setTimeout(() => snapZoom(x, y, 0), 160); }, { passive: false });
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  if (!e.deltaY) return;
+  zoomAnim = null;
+  camAnim = null;
+  const {x,y} = canvasPoint(e);
+  zoomAt(e.deltaY < 0 ? 1.08 : 1 / 1.08, x, y);
+  clampCam();
+  clearTimeout(wheelSnapT);
+  wheelSnapT = setTimeout(() => snapZoom(x,y,0), 160);
+}, { passive: false });
 function clampCam() {
   // Let every edge tile reach the usable viewport centre, with room for
   // tall sprites and shoreline panning. The old centre-radius limits cut
   // off the outer 40% of the island's horizontal reach.
-  const mx = W / 2, my = mapMidY();
+  const mx = W / 2, my = mapCenterY;
   const halfX = N * TW / 2 * V.z + Math.max(W * .25, TW * V.z * 2);
   const halfY = N * TH / 2 * V.z + Math.max(H * .25, TH * V.z * 4);
   V.cx = clamp(V.cx, mx - halfX, mx + halfX);
@@ -12288,13 +12401,7 @@ function pickTile(sx, sy) {
   if(!fadedBuildings())for(let n=hulls.length-1;n>=0;n--){
     const h=hulls[n];
     if(sx<h.x0||sx>=h.x1||sy<h.y0||sy>h.y1)continue;
-    if(h.box){
-      const {sp,s,mir}=h.box;
-      const u=Math.floor((sx-h.x0)/s),v=Math.floor((sy-h.y0)/s);
-      if(v<0||v>=sp.h||u<0||u>=sp.w)continue;
-      if(!sp.hitPixels)sp.hitPixels=sp.img.getContext('2d').getImageData(0,0,sp.w,sp.h).data;
-      if(sp.hitPixels[4*(v*sp.w+(mir?sp.w-1-u:u))+3]<32)continue;
-    }
+    if(h.box&&!spriteHit(sx,sy,h.box))continue;
     return {i:h.i,j:h.j};
   }
   const w = screenToWorld(sx, sy); const i = Math.floor(w.x), j = Math.floor(w.y);
@@ -12306,12 +12413,11 @@ function onTap(x, y) {
     if(!hit||!pickForMove(hit.i,hit.j))toast('Tap a building, road or decoration.');
     return;
   }
-  if (placing) { const gw = screenToWorld(x, y); const gi = Math.floor(gw.x), gj = Math.floor(gw.y); const tl = gi >= 0 && gj >= 0 && gi < N && gj < N ? { i: gi, j: gj } : null; if (!tl) return; if (placing.id === 'road' && !placing.source && !placing.stored) {
-    placing.ghost = placeAt(tl.i, tl.j, 'road', false) ? null : tl;
-  } else {
-    placing.ghost=tl;
-    if(placing.id==='road' && completesRoadSquare(tl.i,tl.j,placing.source))toast(roadWidthMessage);
-  } renderCard(true); return; }
+  if(placing){
+    const tile=tileAtPoint({x,y});
+    placing.ghost=tile;
+    renderCard(true);return;
+  }
   for (let k = badgeHits.length - 1; k >= 0; k--) {
     const b = badgeHits[k];
     if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
@@ -12448,10 +12554,11 @@ $('#advisor').addEventListener('click',()=>{
 });
 function dot(el, n) { el.hidden = !(n > 0); if (n > 0) setText(el, n > 99 ? '99+' : n); }
 function layoutUI() {
-  const origin=cv.getBoundingClientRect().top;
+  const origin=canvasBounds.top;
   const hb = hudBottom = $('#hud').getBoundingClientRect().bottom-origin;
   document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
-  $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 12) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
+  $('#mapctl').style.top = (hb + 10) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px';
+  if ($('#toast').classList.contains('show')) positionToast();
   const panel = $('#card');
   const cardSpace = H - ($('#eyeTool').getBoundingClientRect().bottom-origin) - 18;
   panel.style.bottom = 'calc(10px + env(safe-area-inset-bottom, 0px))';
@@ -12564,16 +12671,19 @@ function renderCard(force) {
         `<div class="row"><button class="pixel-btn pb" data-act="chooseMove">Move ${road?'road':'building'}</button>${rotateButton}</div>`+
         (road||placing.id==='hall'?'':'<button class="pixel-btn pb" data-act="pickUpBuilding">Pick up</button>');
     }else if(placing.source){
-      const message=!g?'Tap the new spot on the map.':ok?'Confirm this position and facing.':isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.';
+      const message=!g?'Tap a tile to preview the new spot.':!ok?blockedPlacementHint(g):placing.id==='road'?'Tap another tile or confirm this spot.':'Drag the preview or tap a new spot.';
       html=head('Move '+d.name,message)+
         `<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok?'':'disabled'}>Confirm</button>${rotateButton}</div>`;
-    }else if(placing.id==='road'&&!placing.stored){
-      html=head('Laying roads','Tap or drag to lay road, '+costOf('road')+' Coins each.')+'<div class="row"><button class="pixel-btn pb" data-act="donePlace">Done</button></div>';
+    }else if(layingRoads()){
+      const cost=costOf('road'),canBuy=S.cash>=cost;
+      const hint=!g?'Tap a tile to preview a road. Drag to pan.':!ok?blockedPlacementHint(g):!canBuy?'You need '+fmt(cost)+' coins for this road.':'1 road tile · Tap another tile to reposition.';
+      html=head('Lay road',hint)+'<div class="row"><button class="pixel-btn pb cream" data-act="donePlace">Done</button><button class="pixel-btn pb green" data-act="confirmRoad" '+(ok&&canBuy?'':'disabled')+'>Build · '+fmt(cost)+' coins</button></div>';
     }else{
       const cost=placing.stored||placing.fromItem?0:costOf(placing.id);
-      const msg=!g?'Tap a tile to preview the footprint.':!ok?(isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.') :
+      const msg=!g?'Tap a tile to preview the footprint.':!ok?blockedPlacementHint(g):
+        S.cash<cost?'You need '+fmt(cost)+' coins to build here.':
         placing.id==='space'&&d.fx===10?(facilityGateConnected(g.i,g.j,placing.turned)?'Service gate connected.':'Connect a road to the service gate.'):
-        d.type==='depot'||d.type==='decor'||roadNearFP(g.i,g.j,placing.id,placing.turned)?'Ready to place.':'This spot has no adjacent road.';
+        d.type==='depot'||d.type==='decor'||roadNearFP(g.i,g.j,placing.id,placing.turned)?'Drag the preview or tap a new spot.':'This spot has no adjacent road.';
       html=head('Place '+d.name,msg)+`<div class="row"><button class="pixel-btn pb cream" data-act="cancelPlace">Cancel</button><button class="pixel-btn pb green" data-act="confirmPlace" ${ok&&S.cash>=cost?'':'disabled'}>${cost?'Build · '+fmt(cost):'Place'}</button>${rotateButton}</div>`;
     }
   } else if (sel) {
@@ -12605,7 +12715,7 @@ function renderCard(force) {
     }
     if (t && t.id === 'road') html = head('Road', 'Shops, homes and services need a road next to them.') + `<div class="row"><button class="pixel-btn pb red" data-act="demolish">Remove road</button></div>`;
   }
-  if (force) card.innerHTML = html;
+  if (force && !placing) card.innerHTML = html;
   else refreshPanelMarkup(card, html);
   paintNewIcons(); card.classList.toggle('show', !!html); liveCard();
 }
@@ -12699,7 +12809,7 @@ card.addEventListener('click', e => {
   if(sel && (a==='businessMove'||a==='businessRotate')){
     const {i,j}=sel;managingProperty=false;
     if(pickForMove(i,j)){
-      placing.action='move';placing.ghost=a==='businessRotate'?{i,j}:null;
+      placing.action='move';placing.ghost={i,j};
       if(a==='businessRotate')placing.turned=(placing.turned+1)%(fourSidedModels.has(placing.id)?4:2);
       renderCard(true);
     }
@@ -12714,13 +12824,14 @@ card.addEventListener('click', e => {
     snd('tap');renderCard(true);return;
   }
   if(placing?.action==='choose'&&a==='chooseMove'){
-    placing.action='move';
+    placing.action='move';placing.ghost={...placing.source};
     renderCard(true);return;
   }
+  if(a==='confirmRoad'){confirmRoad();return;}
   if(a==='confirmPlace'&&placing){
-    const g=placing.ghost;if(!g)return;
+    const g=placing.ghost;if(!g||pointers.size)return;
     const ok=placing.stored?restoreBuilding(placing.stored,g.i,g.j,placing.turned):placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
-    if(ok){placing=null;select(g.i,g.j);}return;
+    if(ok){placing=null;refreshCityStats();select(g.i,g.j);}return;
   }
   if (!sel) return;
   else if (a === 'collect') collectShop(sel.i, sel.j);
@@ -12741,7 +12852,7 @@ card.addEventListener('click', e => {
 function storedHall(){return S.storedBuildings?.find(entry=>entry.building?.id==='hall');}
 function findHall() { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const t = tileAt(i, j); if (t && t.id === 'hall') return { i, j }; } return null; }
 let camAnim = null;
-function animateTo(wx, wy) { const r = rotXY(wx, wy); camAnim = { sx: V.cx, sy: V.cy, tx: W / 2 - (r[0] - r[1]) * (TW / 2) * V.z, ty: mapMidY() - (r[0] + r[1]) * (TH / 2) * V.z, t0: performance.now() }; }
+function animateTo(wx, wy) { const r = rotXY(wx, wy); camAnim = { sx: V.cx, sy: V.cy, tx: W / 2 - (r[0] - r[1]) * (TW / 2) * V.z, ty: mapCenterY - (r[0] + r[1]) * (TH / 2) * V.z, t0: performance.now() }; }
 
 /* ================= sheets: build + tasks ================= */
 let sheet = null, sheetKeyVal = '', buildTab = 'homes', buildTarget = null, resetArm = false, taskTab = 'tasks';
@@ -12749,6 +12860,7 @@ const sheetEl = $('#sheet'), sheetBody = $('#sheetBody'), scrim = $('#scrim');
 function syncPageChrome(view) {
   if (view) document.body.dataset.menuPage = view;
   else delete document.body.dataset.menuPage;
+  if ($('#toast').classList.contains('show')) positionToast();
   const edge = getComputedStyle(document.body).getPropertyValue('--page-edge').trim();
   document.querySelector('meta[name="theme-color"]').content = edge || '#243b5b';
 }
@@ -13141,8 +13253,10 @@ sheetEl.addEventListener('click', e => {
     const limit = buildingLimitMessage(id);
     if (limit) { toast(limit); return; }
     if (b.getAttribute('aria-disabled') === 'true') { toast(fromItem ? 'Purchase this weekly exclusive in the Dosh Shop.' : d.lvl > S.level ? 'Unlocks at Lv ' + d.lvl + '.' : 'You need ' + fmt(costOf(id)) + ' Coins.'); return; }
-    if (buildTarget && id !== 'road') { const tg = buildTarget; if (placeAt(tg.i, tg.j, id, fromItem)) { closeSheet(); select(tg.i, tg.j); } return; }
-    placing = { id, fromItem, ghost: (S.tut && tutStep() && tutStep().build === id ? suggestTile(id) : null) }; closeSheet(); sel = null; if(placing.ghost)animateTo(placing.ghost.i+.5,placing.ghost.j+.5); renderCard(true); return;
+    const suggested=!buildTarget&&S.tut&&tutStep()?.build===id?suggestTile(id):null;
+    placing={id,fromItem,ghost:buildTarget||suggested};sel=null;closeSheet();
+    if(suggested)animateTo(suggested.i+.5,suggested.j+.5);
+    return;
   }
   if (a === 'loc') { updateSky(true); askLocation(true); sheetKeyVal=''; renderSheet(true); return; }
   if (a === 'loginclaim') { const d=dayNum(); if (S.loginClaimDay!==d) { const day=Math.max(1,Math.min(7,((S.streak||1)-1)%7+1)); const label=grant(STREAK_REW[day-1]); S.loginClaimDay=d; snd('rare'); toast('Day '+day+' reward: '+label); changed(); renderSheet(true); } return; }
@@ -13355,7 +13469,7 @@ function openMg(name) { if(name==='market' && namedPlay){void openCityExchange('
   if (sheet) closeSheet(); mg = name; card.classList.remove('show');
   mgPanel.className = 'mgp ' + (name === 'dice' ? 'tan' : 'purple') + ' mg-' + name;
   if (name === 'dice') buildDice(); else if (name === 'wheel') buildWheel(); else if (name === 'market') buildMarket(); else buildCrates();
-  mgEl.classList.add('show'); if (name === 'wheel') syncPageChrome(name); paintNewIcons();
+  mgEl.classList.add('show'); if (name === 'wheel') syncPageChrome(name); else if ($('#toast').classList.contains('show')) positionToast(); paintNewIcons();
   // The reel is initially built while the modal is hidden; center it after layout.
   if (name === 'crates') positionCrateReel(performance.now());
   const x = mgPanel.querySelector('.mgx'); if (x) x.focus();
@@ -14408,7 +14522,25 @@ document.addEventListener('click', e => {
 }, true);
 /* ================= toast + modal ================= */
 let toastT = 0;
-function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+function positionToast() {
+  const notice = $('#toast');
+  const origin = document.body.getBoundingClientRect();
+  const header = document.querySelector('#sheet.open .shead, #mg.show .mg-screen-head, #mg.show .mg-dice .mgtitle');
+  const anchor = (header || $('#advisor')).getBoundingClientRect();
+  const left = header ? anchor.left + 8 : anchor.right + 4;
+  const right = header ? anchor.right - 8 : $('#mapctl').getBoundingClientRect().left - 6;
+  notice.style.left = Math.round(left - origin.left) + 'px';
+  notice.style.top = Math.round(Math.max(origin.top, header ? anchor.bottom : anchor.top) - origin.top + 6) + 'px';
+  notice.style.maxWidth = Math.min(400, Math.max(0, Math.floor(right - left))) + 'px';
+}
+function toast(msg) {
+  const notice = $('#toast');
+  notice.textContent = msg;
+  positionToast();
+  notice.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => notice.classList.remove('show'), Math.min(6000, Math.max(2600, msg.length * 55)));
+}
 function showLevel() {
   if (!pendingLevel) return; const p = pendingLevel; pendingLevel = null;
   $('#modalBox').innerHTML = `<h2>Level ${p.level}!</h2><p class="note">${stage(p.level)} · keep growing Bit-Burbs</p><ul>${p.labels.map(l => `<li>${l}</li>`).join('')}</ul>${p.unlocks.length ? `<p class="note" style="font-weight:700">New to build: ${p.unlocks.join(', ')}</p>` : ''}<button class="pixel-btn pb" id="modalOk">Nice!</button>`;
@@ -14446,7 +14578,7 @@ $('#moveTool').addEventListener('click',()=>{
   sel=null;renderCard(true);
 });
 $('#turnView').addEventListener('click',()=>{
-  const focus=screenToWorld(W/2,mapMidY());
+  const focus=screenToWorld(W/2,mapCenterY);
   zoomAnim=null; camAnim=null;
   ROT=(ROT+1)%4;
   centerOn(focus.x,focus.y);
@@ -14456,8 +14588,8 @@ $('#turnView').addEventListener('click',()=>{
 $('#eyeTool').addEventListener('click',()=>{
   transparency=!fadedBuildings();syncMapTools();
 });
-$('#zin').addEventListener('click', () => snapZoom(W / 2, mapMidY(), 1));
-$('#zout').addEventListener('click', () => snapZoom(W / 2, mapMidY(), -1));
+$('#zin').addEventListener('click', () => snapZoom(W / 2, mapCenterY, 1));
+$('#zout').addEventListener('click', () => snapZoom(W / 2, mapCenterY, -1));
 
 /* ================= loop ================= */
 let dirty = false, hudDirty = false;
