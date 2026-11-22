@@ -1,16 +1,23 @@
 // Shares the Exchange page's renderers. Account commands always settle on the server.
-let shared=false, marketBusy=false,refreshing=false,viewGeneration=0,viewDisplayKey='';
-const requestedCity=new URLSearchParams(location.search).get('city');
+let shared=Boolean(embeddedCrates?.accountRef&&Number.isSafeInteger(embeddedCrates.crateRevision));
+let marketBusy=false,refreshing=false,viewGeneration=0,viewDisplayKey='';
+let requestedCity=embeddedCrates?.cityName||new URLSearchParams(location.search).get('city');
+let visit=0,awake=false,storageReadNeeded=false,redrawOnWake=false;
+const roomActive=()=>!embeddedCrates||window.BBCityRoom.isActive();
 function showExchangeControls(visible){
  for(const id of ['wallet','pageNav','screen','modalRoot'])document.getElementById(id).style.display=visible?'':'none';
 }
-if(requestedCity||globalThis.BBStage)showExchangeControls(false);
+if(requestedCity&&!globalThis.BBStage)showExchangeControls(false);
 const incomingLink=new URLSearchParams(location.hash.slice(1)).get('link');
 if(incomingLink)sessionStorage.setItem('exchange-invite',incomingLink);
 const accountBar=document.getElementById('exchangeAccount');
 async function exchangeFetch(body){
+ if(!roomActive())throw Error('Room closed.');
+ const startedIn=visit;
  const res=globalThis.BBStage?.liveRelease?await (body?window.liveCityRelease('releaseExchange',body):readRoom('releaseExchange')):await fetch(globalThis.BBStage?'/staging/api/exchange':'/api/exchange',body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'});
- const result=await res.json();if(!res.ok)throw Object.assign(new Error(result.error||'Exchange unavailable.'),{status:res.status});
+ const result=await res.json();
+ if(startedIn!==visit||!roomActive())throw Error('Room closed.');
+ if(!res.ok)throw Object.assign(new Error(result.error||'Exchange unavailable.'),{status:res.status});
  return result;
 }
 function addRefreshButton(){
@@ -41,6 +48,7 @@ function useShared(view){
   throw Object.assign(Error('Open the Exchange with the account linked to '+requestedCity+'.'),{status:403});
  }
  viewDisplayKey=displayKey(view);
+ storageReadNeeded=false;
  rotationStart=view.rotationStart;
  showExchangeControls(true);
  shared=true;data={...view,ordinary:[],settings:{motion:false},claims:[]};
@@ -64,6 +72,8 @@ function leaveSharedView(){
  if(!requestedCity&&!globalThis.BBStage)render();
 }
 async function loadExchange(background=false){
+ if(!roomActive())return;
+ const startedIn=visit;
  const passive=background===true&&shared&&!sessionStorage.getItem(pendingKey(data.accountRef));
  if(marketBusy||animation||(passive&&refreshing))return;
  if(passive)refreshing=true;else marketBusy=true;
@@ -80,6 +90,7 @@ async function loadExchange(background=false){
    if(changed)render();
    return;
   }
+  const previousOpening=data.opening;
   clearTimeout(animation?.timer);animation=null;useShared(view);
   const saved=sessionStorage.getItem(pendingKey(view.accountRef));
   if(saved){
@@ -94,7 +105,10 @@ async function loadExchange(background=false){
     return;
    }
   }
-  closeModal();render();
+  // Keep locally opened drop odds visible while the first account read finishes.
+  if(saved||previousOpening||data.opening)closeModal();
+  render();
+  return !saved;
  }catch(err){
   if(generation!==viewGeneration)return;
   if(passive&&err.status!==401&&err.status!==403)return;
@@ -108,11 +122,12 @@ async function loadExchange(background=false){
    accountBar.textContent='Could not load your crates. '+err.message+' ';
    addRefreshButton();
   }
- }finally{if(passive)refreshing=false;else marketBusy=false;}
+ }finally{if(startedIn===visit){if(passive)refreshing=false;else marketBusy=false;}}
 }
 async function settle(command,button){
  let dismissPending;
- if(marketBusy||!shared)return;
+ if(marketBusy||!shared||!roomActive())return;
+ const startedIn=visit;
  ++viewGeneration;
  marketBusy=true;
  button.disabled=true;
@@ -133,13 +148,14 @@ async function settle(command,button){
   if(request.action==='open'&&!saved){render(false);showOpening(false);}
   else render();
  }catch(err){
+  if(startedIn!==visit||!roomActive())return;
   if(err.status===409){
    try{useShared(await exchangeFetch());closeModal();render();if(!data.opening)toast(err.message);return;}catch{}
   }
   showExchangeControls(false);
   accountBar.textContent='Refresh to check your last action. ';
   addRefreshButton();
- }finally{dismissPending?.();marketBusy=false;}
+ }finally{dismissPending?.();if(startedIn===visit)marketBusy=false;}
 }
 function sharedRoutes(b){
  const d=b.dataset,a=d.action||'';
@@ -151,8 +167,32 @@ function sharedRoutes(b){
  if(a.startsWith('confirm-buy-')){const [listing,price]=a.slice(12).split('@');return {action:'buy',listing,price:Number(price)};}
  if(a.startsWith('confirm-sell-'))return {action:'list',asset:a.slice(13),price:Number($('#sellPrice').value)};
 }
+let firstViewRead=null,waitingForView=false;
+function readFirstView(){
+ if(!firstViewRead){
+  const request=loadExchange().finally(()=>{if(firstViewRead===request)firstViewRead=null;});
+  firstViewRead=request;
+ }
+ return firstViewRead;
+}
+async function settleEmbedded(command,button){
+ if(waitingForView||!roomActive())return;
+ const startedIn=visit;
+ if(!shared||firstViewRead){
+  waitingForView=true;
+  button.disabled=true;
+  button.setAttribute('aria-busy','true');
+  try{
+   if(!await readFirstView()||startedIn!==visit||!roomActive()||!shared||data.crateInventoryError)return;
+   if(data.opening && (command.action!=='finish'||command.receipt!==data.opening.receipt))return;
+   if(command.action==='finish'&&!data.opening)return;
+  }finally{if(startedIn===visit)waitingForView=false;}
+ }
+ await settle(command,button);
+}
 document.addEventListener('click',e=>{
- const b=e.target.closest('button');if(!b||!shared)return;
+ const b=e.target.closest('button');if(!b||(!shared&&!embeddedCrates))return;
+ if(embeddedCrates&&storageReadNeeded&&b.dataset.page==='storage'&&roomActive())void readFirstView();
  if(b.dataset.claim||b.dataset.replace||['shop-3','boost-demo'].includes(b.dataset.action)){
   e.stopImmediatePropagation();toast('Open your city to use this action.');return;
  }
@@ -160,16 +200,54 @@ document.addEventListener('click',e=>{
  if(cmd){
   e.stopImmediatePropagation();
   if(cmd.action==='crate' && $('#modalRoot').children.length)return;
-  if(!b.disabled&&!marketBusy)settle(cmd,b);
+  if(!b.disabled){
+   if(embeddedCrates)void settleEmbedded(cmd,b);
+   else if(!marketBusy)void settle(cmd,b);
+  }
  }
 },true);
-window.addEventListener('focus',()=>{if(shared&&!data.opening&&!$('#modalRoot').children.length)loadExchange(true);});
+window.addEventListener('focus',()=>{if(!embeddedCrates&&shared&&!data.opening&&!$('#modalRoot').children.length)loadExchange(true);});
 
 if(globalThis.BBStage){
  setInterval(()=>{
-  if(shared && !document.hidden && !marketBusy && !animation && !$('#modalRoot').children.length &&
+  if(roomActive() && shared && !document.hidden && !marketBusy && !animation && !$('#modalRoot').children.length &&
      data.featured && Date.now()>=data.bullEndsAt)loadExchange(true);
  },5000);
 }
 
-loadExchange();
+function wakeCrates(){
+ if(awake||!roomActive())return;
+ awake=true;
+ embeddedCrates=window.BBCityRoom.snapshot();
+ const next=crateRoomData(embeddedCrates);
+ const sameVault=page==='vault'&&tierIndex===0&&!data.opening&&!next.opening&&
+  data.wallet.crateVouchers===next.wallet.crateVouchers&&data.stock[0]===next.stock[0]&&
+  data.crateInventoryError===next.crateInventoryError;
+ data=next;
+ requestedCity=embeddedCrates.cityName;
+ shared=Boolean(data.accountRef&&Number.isSafeInteger(data.crateRevision));
+ storageReadNeeded=Boolean(embeddedCrates.needsStorageRead);
+ accountBar.textContent=data.crateInventoryError||'';
+ showExchangeControls(true);
+ page='vault';tierIndex=0;
+ if(redrawOnWake||!sameVault)render();
+ redrawOnWake=false;
+ // A lost response (including one from before a city rename) must be reconciled on return.
+ const pending=embeddedCrates.accountRef ? sessionStorage.getItem(pendingKey(embeddedCrates.accountRef))
+  : Object.keys(sessionStorage).some(key=>key.startsWith(pendingKey('')));
+ if(!Array.isArray(embeddedCrates.stock)||pending)void readFirstView();
+}
+function sleepCrates(){
+ redrawOnWake=waitingForView||marketBusy;
+ awake=false;
+ visit++;viewGeneration++;
+ firstViewRead=null;waitingForView=false;marketBusy=false;refreshing=false;
+ clearTimeout(animation?.timer);animation=null;
+ closeModal();
+}
+if(!embeddedCrates)loadExchange();
+else{
+ window.addEventListener('bb-room-open',wakeCrates);
+ window.addEventListener('bb-room-close',sleepCrates);
+ wakeCrates();
+}

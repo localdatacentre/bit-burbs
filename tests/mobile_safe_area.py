@@ -145,6 +145,7 @@ def check_single_taps(page, session, base):
     # account response below is intercepted locally, including the save on exit.
     city = page.evaluate("JSON.parse(localStorage.getItem('bit-burbs-full-test-city-v1'))")
     assert city and city['v'] == 2
+    city.update(stars=600, crateVouchers=10, crates={}, crateConversion={'version': 1})
     # Give the existing bakery a known City Advisor entry, regardless of stock.
     tiles = city['tiles']
     side = isqrt(len(tiles))
@@ -168,7 +169,9 @@ def check_single_taps(page, session, base):
         requests.append(action)
         data = {'name': 'fixture', 'progress': 'fixture', 'revision': '1'}
         if action == 'username':
-            data.update(city=city, code='fixture-code')
+            data.update(city=city, code='fixture-code', crateExchange={
+                'stock': [3, 0, 0, 0, 0], 'revision': 2, 'opening': None,
+            })
         route.fulfill(json=data, headers={'access-control-allow-origin': '*'})
 
     page.route('**/api/live-city', account)
@@ -233,21 +236,54 @@ def check_single_taps(page, session, base):
     session.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
     page.locator('#card [data-act="manageBack"]').wait_for(state='visible')
 
-    for dock, room in [('Crates', 'vault'), ('Dosh Shop', 'shop')]:
-        page.get_by_role('button', name=dock, exact=True).tap()
-        page.locator(f'body[data-screen="{room}"] #wallet .currency').wait_for(state='visible')
-        if room == 'vault':
-            assert page.locator('script[src*="building-renderer"]').count() == 0
-            page.locator('#pageNav [data-page="storage"]').tap()
-            page.wait_for_function('''() => {
-                const sprite = document.querySelector('canvas[data-model="statue"]');
-                if (!sprite || !window.BBModels) return false;
-                const rgba = sprite.getContext('2d').getImageData(0, 0, sprite.width, sprite.height).data;
-                return rgba.some((v, i) => i % 4 === 3 && v > 0);
-            }''')
-            assert page.locator('script[src*="building-renderer"]').count() == 1
-        page.locator('.city-close').tap()
-        page.wait_for_function(has_city, arg=city['level'])
+    # The renderer swap must keep the original map alive. Both the first tap
+    # and a reopen must work without downloading another page or reading an account.
+    page.evaluate("window.preExchangeCanvas = document.querySelector('#game')")
+    room_downloads = []
+
+    def record_request(request):
+        if request.url.startswith(('http:', 'https:')) and (
+            request.resource_type == 'document' or request.frame.parent_frame
+        ):
+            room_downloads.append(request.url)
+
+    page.on('request', record_request)
+    for attempt in range(2):
+        for dock, room in [('Crates', 'vault'), ('Dosh Shop', 'shop')]:
+            page.get_by_role('button', name=dock, exact=True).tap()
+            # Each dock button must work with a single real touch.
+            panel = page.frame_locator('.city-exchange-room[open] iframe')
+            panel.locator(f'body[data-screen="{room}"] #wallet .currency').wait_for(state='visible')
+            if room == 'vault':
+                purchase = panel.locator('[data-action="buy-crate"]')
+                assert purchase.is_enabled()
+                panel.locator('#pageNav [data-page="storage"]').tap()
+                assert panel.get_by_role('button', name='Select Silver crate, 3 stored').is_enabled()
+            else:
+                assert panel.locator('[data-offer]').count() == 4
+                assert panel.locator('[data-offer]').first.is_enabled()
+            check_city_covered()
+            if attempt == 1 and room == 'shop':
+                page.evaluate('history.back()')
+            else:
+                panel.locator('.city-close').tap()
+            page.locator('.city-exchange-room[open]').wait_for(state='hidden')
+            page.wait_for_function('!history.state?.bitBurbsRoom')
+            assert page.evaluate("window.preExchangeCanvas === document.querySelector('#game')")
+            assert page.url == base + '/'
+    assert not room_downloads, room_downloads
+    assert all(action not in ('releaseShop', 'releaseExchange') for action in requests), requests
+    page.remove_listener('request', record_request)
+
+    # Direct links can still lazily load a building model when storage contains one.
+    page.goto(base + '/banksia-exchange.html?page=storage&city=fixture', wait_until='domcontentloaded')
+    page.wait_for_function("""() => {
+        const sprite = document.querySelector('canvas[data-model="statue"]');
+        if (!sprite || !window.BBModels) return false;
+        const rgba = sprite.getContext('2d').getImageData(0, 0, sprite.width, sprite.height).data;
+        return rgba.some((v, i) => i % 4 === 3 && v > 0);
+    }""")
+    assert page.locator('script[src*="building-renderer"]').count() == 1
     print('Passed single-touch city, account, shop and crate interactions', flush=True)
 
 

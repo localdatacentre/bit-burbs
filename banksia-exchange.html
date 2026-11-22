@@ -222,7 +222,7 @@ body:not([data-city-preview]) #exchangeAccount {
 if(window.BBStage) document.querySelector('.city-close').hidden=false;
 // Begin one read while the room controls and artwork initialise.
 let initialAccountRead=null;
-if(window.BBStage?.liveRelease){
+if(window.BBStage?.liveRelease&&!window.BBCityRoom){
  const action=new URLSearchParams(location.search).get('page')==='shop'?'releaseShop':'releaseExchange';
  initialAccountRead=Promise.resolve().then(()=>window.liveCityRelease(action)).then(response=>({response}),error=>({error}));
 }
@@ -537,9 +537,19 @@ function fresh(){return {wallet:{cash:125400,dosh:420,crateVouchers:98,deeds:8,r
 const cityView = new URLSearchParams(location.search);
 const practiceCity = !globalThis.BBStage && cityView.get('wallet') === 'practice' && cityView.get('view') === 'city'
   && window.parent !== window && window.parent.BBPracticeExchange;
+let embeddedCrates = window.BBCityRoom?.room==='vault' ? window.BBCityRoom.snapshot() : null;
+function crateRoomData(snapshot){
+ const state={wallet:{},settings:{},assets:[],listings:[],sales:[],stock:[],history:[]};
+ if(!snapshot)return state;
+ return Object.assign(state,snapshot.exchangeView||{},{
+  name:snapshot.cityName,wallet:snapshot.wallet,stock:snapshot.stock||[],
+  opening:snapshot.opening,accountRef:snapshot.accountRef,crateRevision:snapshot.crateRevision,
+  crateInventoryError:snapshot.crateInventoryError||snapshot.exchangeView?.crateInventoryError||null
+ });
+}
 let data;
 if (globalThis.BBStage) {
-  data={wallet:{},settings:{},assets:[],listings:[],sales:[],stock:[],history:[]};
+  data=crateRoomData(embeddedCrates);
 } else if (practiceCity) {
   document.body.dataset.cityPreview = '';
   data = practiceCity.read(fresh());
@@ -642,7 +652,7 @@ function render(showReceipt=true){
  }
  if(page==='diamond')showBalance('dosh','Dosh',data.wallet.dosh);
  else showBalance('crateVoucher','crate vouchers',data.wallet.crateVouchers);
- if(page==='storage')$('#screen').innerHTML=tiers.map(([name],i)=>`<button class="stock-crate" style="--tier:${tiers[i][2]}" data-inspect="${i}" aria-label="Select ${name} crate, ${data.stock[i]} stored" ${data.stock[i]?'':'disabled'}>${crateSprite(i)}<b>${name}</b><span>× ${fmt(data.stock[i])}</span></button>`).join('');
+ if(page==='storage')$('#screen').innerHTML=tiers.map(([name],i)=>`<button class="stock-crate" style="--tier:${tiers[i][2]}" data-inspect="${i}" aria-label="Select ${name} crate, ${storedCount(i)} stored" ${data.stock[i]?'':'disabled'}>${crateSprite(i)}<b>${name}</b><span>× ${storedCount(i)}</span></button>`).join('');
  if(page==='storage' && globalThis.BBStage && owned().length)$('#screen').innerHTML+=renderDiamond();
  else if(page==='opening')$('#screen').innerHTML=renderOpeningRoom();
  else if(page!=='storage')$('#screen').innerHTML=page==='diamond'?renderDiamond():renderVault();
@@ -654,8 +664,11 @@ function crateSprite(i,extraClass=''){
  const tier=tiers[i][0].toLowerCase();
  return `<img class="crate-sprite ${extraClass}" src="exchange-art/${tier}.png?v=freight-face-v2" width="32" height="24" alt="">`;
 }
+function storedCount(i){
+ return data.stock[i]==null?'—':fmt(data.stock[i]);
+}
 function crateDisplay(i) {
- return `<div class="crate-status"><h2>${tiers[i][0]} crate</h2><span aria-live="polite">${fmt(data.stock[i])} stored</span></div>
+ return `<div class="crate-status"><h2>${tiers[i][0]} crate</h2><span aria-live="polite">${storedCount(i)} stored</span></div>
    <div class="crate-display">${crateSprite(i)}</div>`;
 }
 function oddsControl() {
@@ -717,6 +730,29 @@ function startDoshShop(){
  let shop,busy=false,reading=false,timer,needsCity=false,sequence=0,offerLayout=null;
  screen.innerHTML='<p class="sub shop-reset">Refreshes daily at 6 pm Brisbane</p><div class="shop-menu" aria-label="Daily offers"></div><button hidden data-shop-retry>Try again</button><p id="dosh-shop-status" class="small" role="status"></p>';
  const menu=screen.querySelector('.shop-menu'),retry=screen.querySelector('[data-shop-retry]');
+ const cityRoom=window.BBCityRoom;
+ const active=()=>!cityRoom||(cityRoom.isActive()&&!document.hidden);
+ function markVisited(city){
+  if(active()&&city&&globalThis.BBStage.liveRelease){
+   const date=new Date(shop.day*86400000).toISOString().slice(0,10);
+   try{localStorage.setItem('bit-burbs:roster2:'+city+':shop-visit',date);}catch{}
+  }
+ }
+ function refreshAtReset(minDelay=1000){
+  clearTimeout(timer);
+  if(shop&&active())timer=setTimeout(refresh,Math.max(minDelay,shop.resetAt-Date.now()+250));
+ }
+ function refresh(){
+  if(!cityRoom){void update();return;}
+  if(busy)return;
+  const {wallet,shopClaims,cityName}=cityRoom.snapshot();
+  const schedule=doshShopSchedule(Date.now());
+  const claims=shopClaims?.day===schedule.day?shopClaims.claims:[];
+  shop={...schedule,claims:claims||[],dosh:wallet.dosh};
+  markVisited(cityName);
+  draw();
+  refreshAtReset();
+ }
  function draw(message=''){
   if(shop){
    showBalance('dosh','Dosh',shop.dosh);
@@ -744,7 +780,7 @@ function startDoshShop(){
   $('#dosh-shop-status').textContent=message||(busy?'Updating shop…':reading&&!shop?'Checking shop…':'');
  }
  async function update(offer){
-  if(busy||(!offer&&reading))return;
+  if(!active()||busy||(!offer&&reading))return;
   if(offer)busy=true;else reading=true;
   const request=++sequence;
   draw();
@@ -762,11 +798,7 @@ function startDoshShop(){
    needsCity=false;
    if(result.offers){
     shop=result;
-    const city=cityView.get('city');
-    if(city && globalThis.BBStage.liveRelease && response.ok){
-     const offerDate=new Date(result.day*86400000).toISOString().slice(0,10);
-     localStorage.setItem('bit-burbs:roster2:'+city+':shop-visit',offerDate);
-    }
+    if(response.ok)markVisited(cityRoom?cityRoom.snapshot().cityName:cityView.get('city'));
    }
    if(!response.ok)message=result.error||'Could not load the shop.';
    else if(offer)message='Rewards added to your city.';
@@ -780,19 +812,27 @@ function startDoshShop(){
    if(offer)busy=false;else reading=false;
    if(request===sequence){
     draw(message);
-    clearTimeout(timer);
-    if(shop)timer=setTimeout(()=>update(),Math.max(message?10000:1000,shop.resetAt-Date.now()+250));
+    refreshAtReset(message?10000:1000);
    }
   }
  }
  screen.addEventListener('click',event=>{
   const button=event.target.closest('button');
-  if(button?.dataset.offer)update(button.dataset.offer);
-  else if(button?.hasAttribute('data-shop-retry'))update();
+  if(button?.dataset.offer){
+   if(cityRoom && Date.now()>=shop.resetAt){refresh();return;}
+   void update(button.dataset.offer);
+  }else if(button?.hasAttribute('data-shop-retry'))refresh();
  });
- addEventListener('pageshow',event=>{if(event.persisted)update();});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)update();});
- update();
+ if(cityRoom){
+  addEventListener('bb-room-open',refresh);
+  addEventListener('bb-room-close',()=>clearTimeout(timer));
+ }
+ addEventListener('pageshow',event=>{if(event.persisted&&active())refresh();});
+ document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&active())refresh();
+  else if(cityRoom)clearTimeout(timer);
+ });
+ refresh();
 }
 function renderShop(){return head('Dosh shop','Design preview · 6 pm Brisbane reset','dosh')+`<div class="notice small shop-review-note">Price layout preview · exact offer prices awaiting recovery from the approved table.</div><div class="grid">${[['City supplies',`${icon('deed')} 2 deeds`,`${icon('crateVoucher')} 3 crate vouchers`,'Price TBC'],['Keep it moving',`${icon('voucher')} 2 restock vouchers`,`${icon('ticket')} 1 wheel ticket`,'Price TBC'],['More possibilities',`${icon('crateVoucher')} 6 crate vouchers`,`${icon('dosh')} 5 dosh`,'Price TBC'],['On the house',`${icon('cash')} 2,000 coins`,'One claim today','FREE']].map(([title,a,b,price],i)=>`<article class="tile shop-offer"><div class="offer-title">${title}</div><div class="reward-line"><div>${a}</div><div>${b}</div></div><button ${'disabled'} class="${i===3?'primary':''}" data-action="shop-${i}">${price}</button></article>`).join('')}</div><p class="small muted"></p>`;}
 function renderSettings(){return head('Settings','Make Banksia Bay feel like yours','settings')+`<div class="panel"><div class="row"><div class="row">${icon('face','account-art')}<div><span class="pixel small">grievezz</span><br><span class="green small">City saved · demo status</span></div></div><button class="quiet small" data-action="account-demo">Account</button></div><div class="rule"></div><div class="row"><button data-action="save-demo">Save city</button><span class="muted small">Last synced: just now</span></div></div><div class="section-title">DISPLAY & MOTION</div><div class="panel">${setting('fps','FPS counter')}${setting('motion','Reduce motion')}</div><div class="section-title">SOUND & FEEL</div><div class="panel">${setting('sound','Sound effects')}${setting('music','Music')}${setting('vibration','Vibration')}</div><div class="panel"><button class="quiet wide" data-page="bag">My item bag</button><button class="quiet wide" style="margin-top:8px" data-page="diamond">Diamond collection & trading</button></div><div class="row small muted"><span>BIT-BURBS · BETA</span><button class="quiet small danger" data-action="logout-demo">Log out</button></div>`;}
@@ -892,6 +932,8 @@ document.addEventListener('click',e=>{
  if(b.dataset.cancelListing){const l=data.listings.find(l=>l.id===b.dataset.cancelListing),a=data.assets.find(a=>a.id===l.asset);a.state='inventory';data.listings=data.listings.filter(x=>x.id!==l.id);save();render();return;}
  if(b.dataset.ordinary){toast('Placement preview: this ordinary building keeps its upgrade level and costs no coins to restore.');return;}
  const action=b.dataset.action;if(!action)return;
+ // Live purchases and rewards are handled exclusively by the account controller.
+ if(globalThis.BBStage && ['buy-crate','open-crate','open-three','finish-opening'].includes(action))return;
  if(action==='close-modal'){closeModal();return;}
  if(action==='buy-crate'){if($('#modalRoot').children.length)return;const cost=tiers[tierIndex][1];if(data.wallet.crateVouchers<cost)return;data.wallet.crateVouchers-=cost;data.stock[tierIndex]++;save();render();return;}
  if(action==='view-storage'){closeModal();page='storage';render();return;}
@@ -918,9 +960,10 @@ if(shopPreview && globalThis.BBStage)startDoshShop();
 else if(shopPreview||testWallet)render();
 else{
  const bar=document.getElementById('exchangeAccount');
- bar.textContent='Loading your Exchange…';
+ if(globalThis.BBStage){bar.textContent=data.crateInventoryError||'';render(!embeddedCrates);}
+ else bar.textContent='Loading your Exchange…';
  const accountScript=document.createElement('script');
- accountScript.src='./exchange-account.js?v=room-perf1';
+ accountScript.src='./exchange-account.js?v=instant-rooms';
  accountScript.onerror=()=>{bar.textContent='Exchange could not load. ';const retry=document.createElement('button');retry.textContent='Retry';retry.onclick=()=>location.reload();bar.append(retry);};
  document.body.append(accountScript);
 }

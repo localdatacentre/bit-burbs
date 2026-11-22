@@ -4,6 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
+require('node:child_process').execFileSync(process.execPath, [path.join(root,'tools/bundle-exchange.cjs'),'--check']);
 const base = new URL('https://localdatacentre.github.io/bit-burbs/');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 function checkAsset(reference) {
