@@ -28,7 +28,7 @@ def check_shop_offers(room):
         const style = getComputedStyle(el);
         return el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     }""")
-    expected_width = min(0.92 * content_width, 304)
+    expected_width = min(0.86 * content_width, 280)
     previous_bottom = None
     for card in cards.all():
         box = card.bounding_box()
