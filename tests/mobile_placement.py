@@ -163,7 +163,7 @@ def check_placement(browser, base):
     confirm("closeCard", lambda: expect(page.locator("#nav [data-open=build]")).to_be_visible())
 
     tap_control(page.get_by_role("button", name="Build", exact=True))
-    tap_control(page.locator('#sheetBody [data-tab="city"]'))
+    tap_control(page.locator('#sheetBody [data-tab="transport"]'))
     road_cost = choose("road")
     build = card("confirmRoad")
     expect(build).to_be_disabled()

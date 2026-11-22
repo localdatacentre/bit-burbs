@@ -279,7 +279,7 @@ function nextLocalReset(at){
 const liveGroups=[
   ['project','buildAny',[1,2,3,4],n=>n===1?'Build a building of your choice':'Build '+n+' buildings of your choice'],
   ['roadwork','buildRoad',[1,2,3,4,5,6],n=>'Place '+n+' road '+(n===1?'tile':'tiles')],
-  ['decoration','buildDecor',[1,2,3],n=>'Place '+n+' '+(n===1?'decoration':'decorations')],
+  ['decoration','buildDecor',[1,2,3],n=>'Place '+n+' from Parks & Greenery'],
   ['upgrade','upgradeAny',[1,2,3,4],n=>'Upgrade '+n+' '+(n===1?'building':'buildings')],
   ['supplies','cityOrder',[1,2,3,4],n=>n===1?'Order a restock':'Restock '+n+' different businesses'],
   ['deliveries','cityDelivery',[1,2,3,4],n=>n===1?'Receive a delivery':'Receive deliveries at '+n+' different businesses'],
