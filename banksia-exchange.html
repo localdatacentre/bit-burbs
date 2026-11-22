@@ -79,7 +79,55 @@ body[data-screen="shop"] .sub{color:#c1dfb8}
 body[data-screen="shop"] :is(#pageNav,#exchangeAccount):empty{display:none}
 body[data-screen="shop"] .shop-offer{background:#305d40;border-color:#53835b}
 body[data-screen="shop"] .shop-reset{margin:0 0 10px}
-body[data-screen="shop"] .shop-offer:has([data-offer]){height:auto;min-height:108px}
+.exchange .shop-menu {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  max-width: 352px;
+  margin: 0 auto;
+}
+body[data-screen="shop"] .shop-menu .shop-offer {
+  aspect-ratio: 1;
+  height: auto;
+  min-height: 0;
+  padding: clamp(12px, 4vw, 20px);
+  border: 2px solid #63916c;
+  box-shadow: inset 0 2px #477653, inset 0 -3px #244c33;
+}
+.shop-menu .offer-rewards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.shop-menu .offer-rewards li {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 10px;
+  text-align: center;
+  font-size: clamp(22px, 6vw, 28px);
+  line-height: 1;
+}
+.shop-menu .offer-rewards .icon {
+  width: 84px;
+  height: 84px;
+  max-width: 100%;
+  object-fit: contain;
+}
+.shop-menu .offer-rewards:has(li + li) .icon { width: 70px; height: 70px; }
+body[data-screen="shop"] #screen .shop-offer button {
+  min-height: 50px;
+  font-size: 24px;
+}
+body[data-screen="shop"] .shop-reset { max-width: 352px; margin: 2px auto 12px; }
+
 body[data-screen="shop"] #screen .shop-offer button:disabled{--button-fill:#466453;--button-text:#dfebe1;opacity:1}
 body[data-screen="shop"] .offer-title{color:#c3f299}
 body[data-screen="shop"] .heading-icon{background:#254f34;border-color:#142f20}
@@ -6059,22 +6107,24 @@ function startDoshShop(){
  };
  let shop,busy=false,timer,needsCity=false;
  function draw(message=''){
+  const scrollTop=screen.scrollTop;
   screen.innerHTML='<p class="sub shop-reset">Refreshes daily at 6 pm Brisbane</p>';
   if(shop){
    $('#wallet').innerHTML=icon('dosh')+' '+fmt(shop.dosh);
-   screen.innerHTML+='<div class="grid" aria-label="Daily offers">'+shop.offers.map(offer=>{
+   screen.innerHTML+='<div class="shop-menu" aria-label="Daily offers">'+shop.offers.map(offer=>{
     const claimed=shop.claims.includes(offer.id);
     const lines=Object.entries(offer.rewards).map(([key,amount])=>{
      const [sprite,one,many]=rewardLabels[key];
-     return `<div>${icon(sprite)} ${fmt(amount)} ${amount===1?one:many}</div>`;
+     return `<li>${icon(sprite)}<span>${fmt(amount)} ${amount===1?one:many}</span></li>`;
     }).join('');
     const label=claimed?'Claimed':offer.price?fmt(offer.price)+' Dosh':'FREE';
-    return `<article class="tile shop-offer"><div class="reward-line">${lines}</div><button data-offer="${offer.id}" class="${!offer.price&&!claimed?'primary':''}" ${busy||claimed||shop.dosh<offer.price?'disabled':''}>${label}</button></article>`;
+    return `<article class="tile shop-offer"><ul class="offer-rewards">${lines}</ul><button data-offer="${offer.id}" class="${!offer.price&&!claimed?'primary':''}" ${busy||claimed||shop.dosh<offer.price?'disabled':''}>${label}</button></article>`;
    }).join('')+'</div>';
   }else if(!busy && !needsCity)screen.innerHTML+='<button data-shop-retry>Try again</button>';
   screen.innerHTML+='<p id="dosh-shop-status" class="small" role="status"></p>';
   $('#dosh-shop-status').textContent=message||(busy?'Checking shop…':'');
   paint();
+  screen.scrollTop=scrollTop;
  }
  async function update(offer){
   if(busy)return;

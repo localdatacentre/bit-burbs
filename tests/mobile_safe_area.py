@@ -36,6 +36,11 @@ def check_layout(page, base, viewport, insets):
         if room == "shop":
             offers = page.locator("[data-offer]")
             offers.first.wait_for()
+            cards = page.locator(".shop-menu article")
+            first, second = [cards.nth(i).bounding_box() for i in range(2)]
+            assert first["width"] >= 280 and abs(first["width"] - first["height"]) <= 1, first
+            assert second["y"] >= first["y"] + first["height"], second
+            assert page.locator("#screen").evaluate("(el) => el.scrollHeight > el.clientHeight")
             # Resize the already-open shop, including a height below the offers.
             for current_height in (height, max(300, height // 2), height):
                 page.set_viewport_size({"width": width, "height": current_height})
@@ -80,7 +85,7 @@ def main():
         page.route("**/release-account.js*", lambda route: route.fulfill(content_type="text/javascript", body="""
             window.liveCityRelease = async action => Response.json(action === 'releaseShop'
               ? {day: 1, resetAt: Date.now() + 86400000, dosh: 50, claims: [], offers: Array.from({length: 4}, (_, i) =>
-                   ({id: String(i), price: i, rewards: {cash: 10}}))}
+                   ({id: String(i), price: i, rewards: i % 2 ? {cash: 3000, restockVouchers: 2} : {cash: 2000}}))}
               : {name: 'fixture', accountRef: 'fixture', wallet: {crateVouchers: 10, dosh: 50},
                  stock: [3,0,0,0,0], assets: [], listings: [], sales: [], visible: []});
         """))
