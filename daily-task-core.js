@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-// Isolated release candidate. Deliberately not loaded by index.html.
+// Daily task assignment, progress and reward receipts.
 const Core = typeof module === 'undefined' ? globalThis.LabCore : require('./economy-core.js');
 const M = 60000;
 const DIFFICULTIES = ['straightforward', 'standard', 'challenging'];
@@ -20,7 +20,7 @@ function snapshot(city, list, config, defs, rates, at, extra = {}) {
   const businesses = list.filter(b => config[b.t.id]).map(b => {
     const p=config[b.t.id], pr=b.t.pr?.[0] || {}, employees=b.employees ?? b.workers ?? 0;
     return {id:b.t.labId,model:b.t.id,category:defs[b.t.id].cat,connected:!!(b.ok&&b.pow&&b.wat),employees,jobs:p.jobs,
-      rate:Core.gross(defs[b.t.id],b.t,employees,p,rates),stock:p.stock,remaining:Math.max(0,(pr.s-at)/M),
+      rate:Core.gross(defs[b.t.id],b.t,employees,p,rates),stock:p.stock,remaining:Math.max(0,((pr.s||0)-at)/M),
       pending:pr.o ? Math.max(0,(pr.o-at)/M) : null,delivery:p.delivery,fee:Core.fee(defs[b.t.id],b.t,employees,p,rates)};
   });
   if(businesses.some(b=>!b.id)||new Set(businesses.map(b=>b.id)).size!==businesses.length)throw Error('Stable unique labId required');
@@ -161,7 +161,7 @@ function select(pool,seed,previous=[],resources) {
 }
 function assign(saved,s,player,at,previous=[],sessionEvents) {
   const day=Core.cycle(at);
-  if(saved?.day===day && saved.status!=='empty')return clone(saved);
+  if(saved?.day===day && saved.status!=='empty' && !(saved.status==='blocked' && sessionEvents))return clone(saved);
   let result;
   if(sessionEvents){
     const tasks=sessionGoals(s,at,sessionEvents,player,previous);
@@ -171,16 +171,6 @@ function assign(saved,s,player,at,previous=[],sessionEvents) {
     result=select(candidates(s),player+':'+day,previous,s);
   }
   return {version:1,day,assignedAt:at,...result,tasks:result.tasks.map((t,i)=>({...t,key:day+':'+i,assignedAt:at,progress:0,claimed:false})),receipts:{},replacementUsed:false,revision:0};
-}
-function replace(state,key,s,at,player,sessionEvents) {
-  state=clone(state);const i=state.tasks.findIndex(t=>t.key===key),old=state.tasks[i];
-  if(state.status!=='ready'||state.day!==Core.cycle(at)||state.replacementUsed||!old||old.claimed)return {state,changed:false};
-  const others=state.tasks.filter((_,j)=>j!==i);
-  const pool=sessionEvents ? completedGoals(s,at,sessionEvents).completed : candidates(s);
-  const options=pool.filter(c=>c.rank===old.rank&&c.signature!==old.signature&&others.every(t=>compatible(c,t))&&others.filter(t=>t.family===c.family).length<2&&(!c.maintenance||others.filter(t=>t.maintenance).length<2)&&affordable([...others,c],s));
-  const c=options.sort((a,b)=>a.id.localeCompare(b.id))[Math.floor(random(player+state.day+':replacement')()*options.length)];
-  if(!c)return {state,changed:false};
-  state.tasks[i]={...c,key:key+':replacement',assignedAt:at,progress:0,claimed:false};state.replacementUsed=true;state.revision++;return {state,changed:true};
 }
 // Events must come from the canonical economy adapter, never UI-provided totals.
 // Interval facts use stable instance IDs; minutes only accrue while foreground
@@ -227,8 +217,6 @@ function claim(record,key,at,expectedRevision) {
   if(!t||t.claimed||s.receipts[key]||t.progress<t.target)return {ok:false,reason:'unclaimable'};
   const give=r=>{for(const [k,n]of Object.entries(r))next.wallet[k]=(next.wallet[k]||0)+n;};
   t.claimed=true;s.receipts[key]=true;give(t.reward);
-  const n=s.tasks.filter(t=>t.claimed).length;
-  for(const [threshold,reward]of [[5,{restockVouchers:1,wheelTickets:1}],[10,{crateVouchers:4,restockVouchers:1,wheelTickets:1,dosh:2,xp:20}]])if(n>=threshold&&!s.receipts['milestone:'+threshold]){s.receipts['milestone:'+threshold]=true;give(reward);}
   next.revision++;return {ok:true,record:next};
 }
 // Inspect an affordable simulated session before publishing a proposed daily set.
@@ -240,7 +228,7 @@ function completedGoals(snapshot,at,events) {
   const finishedAt=new Map();
   for(const event of events) {
     if(event.at>at+120*M)continue;
-    state=progress(state,event);
+    state=progress(state,event,true);
     for(let i=0;i<pool.length;i++) {
       if(!finishedAt.has(pool[i]) && state.tasks[i].progress>=pool[i].target)
         finishedAt.set(pool[i],(event.at-at)/M);
@@ -274,7 +262,7 @@ function sessionGoals(snapshot,at,events,player='',previous=[]) {
   }
   return best;
 }
-const dailyTaskAPI={sessionGoals,TEMPLATES,DIFFICULTIES,QUOTAS,snapshot,candidates,compatible,select,assign,replace,progress,claim};
+const dailyTaskAPI={sessionGoals,TEMPLATES,DIFFICULTIES,QUOTAS,snapshot,candidates,compatible,select,assign,progress,claim};
 if(typeof module==='undefined')globalThis.DailyTasks=dailyTaskAPI;
 else module.exports=dailyTaskAPI;
 })();
