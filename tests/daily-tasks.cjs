@@ -77,11 +77,11 @@ function simulate(s,seed,time=at) {
   let record={revision:0,wallet:{},daily};
   for(const task of daily.tasks){const result=T.claim(record,task.key,time+120*M,record.revision);assert(result.ok);record=result.record;}
   const count=daily.tasks.length;
-  assert.equal(record.wallet.crateVouchers,count+(count===10?4:0));
-  assert.equal(record.wallet.dosh,count+(count===10?2:0));
-  assert.equal(record.wallet.wheelTickets||0,Number(count>=5)+Number(count===10));
+  assert.equal(record.wallet.crateVouchers,count);
+  assert.equal(record.wallet.dosh,count);
+  assert.equal(record.wallet.wheelTickets||0,0);
   assert.equal(record.wallet.restockVouchers,record.wallet.wheelTickets);
-  assert.equal(record.wallet.xp,daily.tasks.reduce((sum,t)=>sum+t.reward.xp,0)+(count===10?20:0));
+  assert.equal(record.wallet.xp,daily.tasks.reduce((sum,t)=>sum+t.reward.xp,0));
   return {taskCount:count,completeAtMinute:completion,coinsAfterSession:Math.round(city.cash),dailyRewards:record.wallet};
 }
 for(const [name,s]of Object.entries(profiles))report.profiles[name].simulation=simulate(s,'test-player');
@@ -171,22 +171,14 @@ replaySession(busCity,event=>busEvents.push(event));
 assert(!busEvents.some(e=>e.type==='busVisit'));
 assert(!T.sessionGoals(busCity,at,busEvents).some(t=>t.transport));
 
-// Exercise daily variation, previous-day preference, and actual same-rank swaps.
-let replacements=0;
+// The daily selection is fixed until the next Brisbane reset.
+assert.equal(T.replace,undefined);
 for(let day=0;day<14;day++) {
   const time=at+day*1440*M,s=profiles.growing;
   const assigned=T.assign(null,s,'rotation-player',time);
   assert.equal(assigned.status,'ready');
-  const changed=T.replace(assigned,assigned.tasks[0].key,s,time+M,'rotation-player');
-  if(changed.changed) {
-    replacements++;const replacement=changed.state.tasks[0];
-    assert.equal(replacement.rank,assigned.tasks[0].rank);assert.deepEqual(replacement.reward,assigned.tasks[0].reward);
-    assert.equal(replacement.progress,0);assert.equal(replacement.assignedAt,time+M);
-    assert(!T.replace(changed.state,changed.state.tasks[1].key,s,time+2*M,'rotation-player').changed);
-    assert.deepEqual(T.assign(changed.state,s,'rotation-player',time+3*M),changed.state);
-  }
+  assert.deepEqual(T.assign(assigned,s,'rotation-player',time+M),assigned);
 }
-assert(replacements>0,'exercise real replacement path');
 // Seven stable-city days with actually empty stock after the overnight absence.
 report.completionWeek={};
 for(const [name,source]of Object.entries(profiles)) {
@@ -220,8 +212,8 @@ for(const t of synthetic.tasks) {
   assert(!T.claim(record,t.key,at,record.revision).ok);
   assert(!T.claim(record,t.key,at,old.revision).ok,'stale-device compare-and-swap conflict');
 }
-assert.deepEqual(record.wallet,{crateVouchers:14,dosh:12,xp:220,restockVouchers:2,wheelTickets:2});
-assert.equal(record.revision,10);assert.equal(Object.keys(record.daily.receipts).length,12);
+assert.deepEqual(record.wallet,{crateVouchers:10,dosh:10,xp:200});
+assert.equal(record.revision,10);assert.equal(Object.keys(record.daily.receipts).length,10);
 assert(!T.claim(record,'t0',at+24*60*M,record.revision).ok);
 // Two devices can compute a valid response from the same revision. Only the
 // canonical store's atomic CAS makes one commit lose; reducer checks alone do not.
@@ -252,7 +244,7 @@ daily=T.progress(daily,{...ev,id:'away',from:at+M,at:at+2*M,foreground:false});a
 daily=T.progress(daily,{id:'d1',type:'delivery',subject:'b',at:at+3*M});assert.equal(daily.tasks[1].progress,1);
 daily=T.progress(daily,{id:'d2',type:'delivery',subject:'b',at:at+4*M});assert.equal(daily.tasks[1].progress,1);
 // Weekly values are conditional on completion, never a starter-city guarantee.
-report.weekly={fullCompletion:{crateVouchers:98,dosh:84,restockVouchers:14,wheelTickets:14,xp:1540},wheelVoucherEV:.9+.2,with7Free:98+21*1.1,with14Free:98+28*1.1,legacyWeeklyTicketsExtra:3*1.1,levelTickets:'1 every five levels; variable, excluded',shopSpins:'0.66 expected vouchers if the five free offers are uniform',completionGuaranteed:false};
+report.weekly={fullCompletion:{crateVouchers:70,dosh:70},completionGuaranteed:false};
 fs.mkdirSync(require('node:path').join(__dirname,'../docs'),{recursive:true});
 fs.writeFileSync(require('node:path').join(__dirname,'../docs/daily-task-scenarios.json'),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify({profiles:Object.fromEntries(Object.entries(report.profiles).map(([k,v])=>[k,{status:v.status,count:v.count,candidates:v.candidates,searchExhausted:v.searchExhausted}])),weekly:report.weekly},null,2));

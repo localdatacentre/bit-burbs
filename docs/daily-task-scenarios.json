@@ -42,7 +42,7 @@
       "simulation": {
         "taskCount": 4,
         "completeAtMinute": 90,
-        "coinsAfterSession": 102339,
+        "coinsAfterSession": 102830,
         "dailyRewards": {
           "crateVouchers": 4,
           "dosh": 4,
@@ -137,8 +137,8 @@
           "scope": [
             "books-3"
           ],
-          "target": 714,
-          "estimatedMinutes": 20
+          "target": 862,
+          "estimatedMinutes": 19.996404358844988
         },
         {
           "template": "12",
@@ -174,13 +174,11 @@
       "simulation": {
         "taskCount": 10,
         "completeAtMinute": 90,
-        "coinsAfterSession": 118209,
+        "coinsAfterSession": 122045,
         "dailyRewards": {
-          "crateVouchers": 14,
-          "dosh": 12,
-          "xp": 220,
-          "restockVouchers": 2,
-          "wheelTickets": 2
+          "crateVouchers": 10,
+          "dosh": 10,
+          "xp": 200
         }
       }
     },
@@ -188,70 +186,58 @@
       "status": "blocked",
       "count": 8,
       "upperBound": 8,
-      "candidates": 388,
+      "candidates": 367,
       "searchExhausted": false,
       "tasks": [
         {
-          "template": "07",
+          "template": "24",
           "difficulty": "challenging",
           "metric": "sellingMinutes",
           "scope": [
-            "cinema-7",
-            "gym-5",
-            "orbital-gym-4"
+            "school-13"
           ],
           "target": 90,
           "estimatedMinutes": 90
-        },
-        {
-          "template": "04",
-          "difficulty": "challenging",
-          "metric": "sales",
-          "scope": [
-            "fire-11"
-          ],
-          "target": 2820,
-          "estimatedMinutes": 60
         },
         {
           "template": "08",
           "difficulty": "challenging",
           "metric": "sellingMinutes",
           "scope": [
-            "books-20"
+            "warehouse-15"
           ],
           "target": 90,
           "estimatedMinutes": 90
         },
         {
           "template": "24",
-          "difficulty": "standard",
+          "difficulty": "challenging",
           "metric": "sellingMinutes",
-          "scope": [
-            "warehouse-15"
-          ],
-          "target": 35,
-          "estimatedMinutes": 35
-        },
-        {
-          "template": "28",
-          "difficulty": "standard",
-          "metric": "staffedMinutes",
           "scope": [
             "fishchips-21"
           ],
+          "target": 90,
+          "estimatedMinutes": 90
+        },
+        {
+          "template": "08",
+          "difficulty": "standard",
+          "metric": "sellingMinutes",
+          "scope": [
+            "record-19"
+          ],
           "target": 35,
           "estimatedMinutes": 35
         },
         {
-          "template": "33",
+          "template": "04",
           "difficulty": "standard",
-          "metric": "visits",
+          "metric": "sales",
           "scope": [
-            "stop-1"
+            "coffee-2"
           ],
-          "target": 4,
-          "estimatedMinutes": 40
+          "target": 1521,
+          "estimatedMinutes": 39.988169180715765
         },
         {
           "template": "10",
@@ -265,27 +251,34 @@
           "estimatedMinutes": 36
         },
         {
-          "template": "11",
+          "template": "35",
+          "difficulty": "standard",
+          "metric": "visits",
+          "scope": [
+            "stop-1"
+          ],
+          "target": 4,
+          "estimatedMinutes": 40
+        },
+        {
+          "template": "12",
           "difficulty": "straightforward",
           "metric": "sellingMinutes",
           "scope": [
-            "gas-14",
-            "spindleCycles-17"
+            "police-10"
           ],
-          "target": 18,
-          "estimatedMinutes": 18
+          "target": 12,
+          "estimatedMinutes": 12
         }
       ],
       "simulation": {
         "taskCount": 8,
         "completeAtMinute": 90,
-        "coinsAfterSession": 521679,
+        "coinsAfterSession": 609183,
         "dailyRewards": {
           "crateVouchers": 8,
           "dosh": 8,
-          "xp": 160,
-          "restockVouchers": 1,
-          "wheelTickets": 1
+          "xp": 160
         }
       }
     },
@@ -357,8 +350,8 @@
           "scope": [
             "books-3"
           ],
-          "target": 714,
-          "estimatedMinutes": 20
+          "target": 862,
+          "estimatedMinutes": 19.996404358844988
         },
         {
           "template": "12",
@@ -404,13 +397,11 @@
       "simulation": {
         "taskCount": 10,
         "completeAtMinute": 95,
-        "coinsAfterSession": 118209,
+        "coinsAfterSession": 122045,
         "dailyRewards": {
-          "crateVouchers": 14,
-          "dosh": 12,
-          "xp": 220,
-          "restockVouchers": 2,
-          "wheelTickets": 2
+          "crateVouchers": 10,
+          "dosh": 10,
+          "xp": 200
         }
       }
     }
@@ -1328,7 +1319,7 @@
     },
     "growing": {
       "completedDays": 7,
-      "taskVouchers": 67,
+      "taskVouchers": 63,
       "completionMinutes": [
         93,
         95,
@@ -1342,7 +1333,7 @@
     },
     "fullyStockedLate": {
       "completedDays": 7,
-      "taskVouchers": 92,
+      "taskVouchers": 68,
       "completionMinutes": [
         90,
         102,
@@ -1371,18 +1362,9 @@
   },
   "weekly": {
     "fullCompletion": {
-      "crateVouchers": 98,
-      "dosh": 84,
-      "restockVouchers": 14,
-      "wheelTickets": 14,
-      "xp": 1540
+      "crateVouchers": 70,
+      "dosh": 70
     },
-    "wheelVoucherEV": 1.1,
-    "with7Free": 121.1,
-    "with14Free": 128.8,
-    "legacyWeeklyTicketsExtra": 3.3000000000000003,
-    "levelTickets": "1 every five levels; variable, excluded",
-    "shopSpins": "0.66 expected vouchers if the five free offers are uniform",
     "completionGuaranteed": false
   }
 }

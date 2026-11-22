@@ -15,7 +15,7 @@ async function exchangeFetch(body){
 }
 function addRefreshButton(){
  const button=document.createElement('button');
- button.textContent='Refresh collection';
+ button.textContent='Retry';
  button.onclick=loadExchange;
  accountBar.append(button);
 }
@@ -81,9 +81,13 @@ async function loadExchange(){
   if(err.status===401||err.status===403)leaveSharedView();
   if(err.status===409)sessionStorage.removeItem('exchange-invite');
   if(shared||requestedCity||globalThis.BBStage)showExchangeControls(false);
-  accountBar.textContent=err.status===401?(requestedCity?'Sign in to open your city Exchange. ':'Practice mode · '):'Account sync unavailable · '+err.message+' ';
-  if(err.status===401){const a=document.createElement('a');a.href='/signin-with-chatgpt?return_to='+encodeURIComponent(location.pathname+location.search+location.hash);a.textContent='Sign in for shared trading';accountBar.append(a);}
-  else addRefreshButton();
+  if(err.status===401||err.status===403){
+   accountBar.textContent=err.message+' ';
+   const city=document.createElement('a');city.href='./';city.textContent='Back to city';accountBar.append(city);
+  }else{
+   accountBar.textContent='Could not load your crates. '+err.message+' ';
+   addRefreshButton();
+  }
  }finally{marketBusy=false;}
 }
 async function settle(command){

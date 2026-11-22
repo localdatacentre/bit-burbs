@@ -15,16 +15,16 @@ vm.runInContext(`
 const Core=LabCore, ECON={bakery:{jobs:3,stock:150,delivery:3,fee:.04,factor:1}};
 const DEFS={bakery:{type:'shop',cat:'retail',cost:100}};
 const businessRates={bakery:[10,10,10,10,10]};
-let S={cash:10000,level:1,economyLab:{version:1,balanceVersion:2,lastAction:at,settled:at,nextId:0,weekDays:[]}};
+let S={tiles:[],cash:10000,level:1,economyLab:{version:1,balanceVersion:2,lastAction:at,settled:at,nextId:0,weekDays:[]}};
 const tile={id:'bakery',lvl:1,pr:[{s:at+30*60000,o:0}]};
 const D={list:[{t:tile,d:DEFS.bakery,employees:3,ok:true,pow:true,wat:true}]};
 const now=()=>time, labState=()=>S.economyLab, streetMap=()=>({stops:[]});
 const labAward=n=>Core.award(S,n),changed=()=>{},renderSheet=()=>{};
 const save=()=>{saved=JSON.stringify(S)};
-`+html.slice(html.indexOf('const Daily = window.DailyTasks;'),html.indexOf('function labWeeklyClaim')),context);
+`+html.slice(html.indexOf('const Daily = window.DailyTasks;'),html.indexOf('function economyMigrate')),context);
 const run = code => vm.runInContext(code,context);
 run('labSyncTasks()');
-assert(run('S.dailyGenerated.tasks.length')>=3);
+assert.equal(run('S.dailyGenerated.tasks.length'),10);
 const keys = run('JSON.stringify(S.dailyGenerated.tasks.map(t=>t.key))');
 run('save();S=JSON.parse(saved);labSyncTasks()');
 assert.equal(run('JSON.stringify(S.dailyGenerated.tasks.map(t=>t.key))'),keys);
@@ -38,9 +38,12 @@ for (let tick=1;tick<=120;tick++) {
   dailySettlement(time-60000,time,false);
   Core.settle(S,D.list,time,ECON,businessRates);`);
 }
-assert(run('S.dailyGenerated.tasks.every(t=>t.progress>=t.target)'));
+run('labSyncTasks()');
+assert(run("S.dailyGenerated.tasks.filter(t=>!t.id.startsWith('start-')).every(t=>t.progress>=t.target)"));
+const completed=run('S.dailyGenerated.tasks.filter(t=>t.progress>=t.target).length');
+assert(completed>0);
 run('for(const task of S.dailyGenerated.tasks)labDailyClaim(task.key)');
-assert.equal(run('S.crateVouchers'),run('S.dailyGenerated.tasks.length'));
+assert.equal(run('S.crateVouchers'),completed);
 const before = context.saved;
 run('S=JSON.parse(saved);labDailyClaim(S.dailyGenerated.tasks[0].key)');
 assert.equal(context.saved,before);

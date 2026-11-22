@@ -1,5 +1,5 @@
-const CACHE='bit-burbs-orbital-gym-20261118-v1-daily1-earnings2075-cats4-yard1-concepts1-release1';
-const ASSETS=['./residential-cats.js?v=yard1','./cats/lot-maps.json?v=1','./cats/megatron-day.png','./cats/megatron-night.png','./cats/sweetie-day.png','./cats/sweetie-night.png','./','./index.html','./economy-core.js?v=balance2','./daily-task-core.js','./daily-task-session.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
+const CACHE='bit-burbs-orbital-gym-20261118-v1-daily1-earnings2075-cats4-yard1-concepts1-release2';
+const ASSETS=['./residential-cats.js?v=yard1','./cats/lot-maps.json?v=1','./cats/megatron-day.png','./cats/megatron-night.png','./cats/sweetie-day.png','./cats/sweetie-night.png','./','./index.html','./economy-core.js?v=balance2','./daily-task-core.js?v=ten-tasks1','./dosh-shop-dock.png','./exchange-art/silver.png?v=freight-face-v2','./daily-task-session.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
@@ -12,7 +12,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
     const keys=await caches.keys();
-    await Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)));
+    await Promise.all(keys.filter(key=>key.startsWith('bit-burbs-')&&key!==CACHE).map(key=>caches.delete(key)));
     await self.clients.claim();
   })());
 });
@@ -25,7 +25,9 @@ self.addEventListener('fetch',event=>{
 
   if(url.pathname.endsWith('/banksia-exchange.html'))return;
 
-  const isPage=request.mode==='navigate'||url.pathname.endsWith('/index.html');
+  const gameRoot=new URL('./',self.location.href);
+  const isPage=url.pathname===gameRoot.pathname||url.pathname===new URL('index.html',gameRoot).pathname;
+  if(request.mode==='navigate'&&!isPage)return;
   if(isPage){
     event.respondWith((async()=>{
       try{
