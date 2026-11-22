@@ -1,0 +1,25 @@
+body[data-city-preview] { background:#171b28; }
+body[data-city-preview] .exchange {
+  width:100%; max-width:none; height:100dvh; min-height:0; padding:0; margin:0;
+  display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr) auto;
+  gap:0; background:#171b28; border:0; box-shadow:none;
+}
+body[data-city-preview] .exchange header {
+  grid-row:1; padding:5px 12px; min-height:0; background:#171b28; border:0;
+  justify-content:flex-end; box-shadow:none;
+}
+body[data-city-preview] .exchange header :is(h1,small), body[data-city-preview] #exchangeAccount { display:none; }
+body[data-city-preview] .exchange #screen {
+  grid-row:2; min-height:0; overflow:auto; padding:4px clamp(8px,3vw,16px);
+  border:0; background:#171b28; overscroll-behavior:contain;
+}
+body[data-city-preview] #pageNav {
+  grid-row:3; position:static; margin:0; padding:6px 6px max(6px,env(safe-area-inset-bottom));
+  background:#202638; border:0; min-width:0;
+}
+body[data-city-preview] #modalRoot:empty { display:none; }
+body[data-city-preview] .crate-console { padding-top:6px; }
+body[data-city-preview] #reelTiming { background:#242d40; padding:3px; font:inherit; }
+body[data-city-preview] .reel-controls { text-align:center; color:#bcc8db; margin:8px 0; font:17px VT323,monospace; }
+body[data-city-preview] .reel-controls summary { cursor:pointer; padding:6px; }
+body[data-city-preview] #wallet { white-space:nowrap; }

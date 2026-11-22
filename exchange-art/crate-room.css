@@ -1,0 +1,210 @@
+/* The shop, opening room, and reel share the dark navy of the Exchange frame. */
+body:is([data-screen="vault"],[data-screen="opening"]) .exchange,
+body:is([data-screen="vault"],[data-screen="opening"]) .exchange main {
+  background: var(--exchange-navy);
+}
+.crate-console {
+  --tier: var(--opening-tier);
+  padding: clamp(12px,3vw,20px) 4px;
+  color: var(--cream);
+}
+.crate-status {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.exchange .crate-status h2 {
+  margin: 0;
+  color: var(--tier);
+  font: clamp(17px,4.5vw,23px)/1.2 Silkscreen,monospace;
+}
+.crate-status span { color: #ced6eb; white-space: nowrap; }
+.crate-display {
+  display: grid;
+  place-items: center;
+  min-height: clamp(124px,25svh,200px);
+}
+.crate-display .crate-sprite { width: 192px; }
+.exchange .crate-console .tier-picks { gap: 4px; margin: 0; }
+.exchange .crate-console .tier-picks button {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: 62px;
+}
+.exchange .crate-console .tier-picks .crate-sprite { width: min(100%,48px); margin: 3px auto 2px; }
+.shop-actions,.opening-actions,.room-inventory {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0,1fr);
+  gap: 6px;
+  margin-top: 9px;
+}
+.shop-actions { grid-template-columns: 1.4fr 1fr; }
+.buy-action span { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; }
+.buy-action .icon { width: 22px; height: 22px; }
+body .exchange #screen .crate-console .odds-control {
+  display: block;
+  margin: 7px auto 0;
+  background: transparent;
+  color: #c4d0e5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 18px;
+}
+body .exchange #screen .crate-console .odds-control::before { background: transparent; box-shadow: none; }
+body .exchange #screen .crate-console .odds-control:focus-visible::before { box-shadow: inset 0 0 0 2px var(--tier); }
+.featured-details { margin-top: 4px; border-top: 1px solid #394258; padding: 10px 0; }
+.featured-details summary { color: var(--tier); cursor: pointer; }
+.featured-details .panel { margin-bottom: 0; }
+body[data-screen="opening"] #modalRoot :is(.roll-dialog,.reward-dialog) {
+  width: min(560px,calc(100vw - 20px));
+  max-height: 92dvh;
+  border: 2px solid #48546d;
+  border-radius: 0;
+  padding: clamp(10px,2.6vw,16px);
+  background: var(--exchange-navy);
+  box-shadow: 0 4px 0 #0c101d;
+}
+:is(.roll-dialog,.reward-dialog) h2 { margin: 0 0 12px; color: var(--opening-tier); font: 17px/1.2 Silkscreen,monospace; }
+#modalRoot .roll-dialog .reel-shell {
+  margin: 8px 0;
+  height: clamp(86px,16dvh,124px);
+  background: var(--exchange-navy);
+  border: 2px solid #384253;
+}
+#modalRoot .roll-dialog[data-lanes="1"] .reel-shell { height: clamp(124px,25dvh,176px); }
+#modalRoot .roll-dialog .reel { left: 50%; top: 4px; bottom: 4px; gap: 5px; }
+#modalRoot .roll-dialog .prize {
+  width: 96px;
+  flex: 0 0 96px;
+  height: 100%;
+  padding: 4px;
+  align-content: center;
+  gap: 5px;
+  font: 18px/1 VT323,monospace;
+  background: color-mix(in srgb,var(--opening-tier) 9%,var(--exchange-navy));
+  border-bottom: 2px solid color-mix(in srgb,var(--opening-tier) 53%,var(--exchange-navy));
+}
+#modalRoot .roll-dialog .prize .icon { width: 42px; height: 42px; }
+#modalRoot .roll-dialog[data-lanes="1"] .prize .icon { width: 56px; height: 56px; }
+#modalRoot .roll-dialog .prize .art { width: 65px; height: 45px; object-fit: contain; }
+#modalRoot .roll-dialog .prize.landed {
+  box-shadow: inset 0 0 0 2px var(--opening-tier);
+  background: color-mix(in srgb,var(--opening-tier) 24%,var(--exchange-navy));
+}
+#modalRoot .roll-dialog .reel-shell::before,
+#modalRoot .roll-dialog .reel-shell::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: calc(50% - 6px);
+  top: 0;
+  bottom: auto;
+  width: 0;
+  height: 0;
+  border-inline: 6px solid transparent;
+  border-top: 7px solid var(--opening-tier);
+  background: none;
+  box-shadow: none;
+  pointer-events: none;
+}
+#modalRoot .roll-dialog .reel-shell::after { top: auto; bottom: 0; transform: rotate(180deg); }
+.reward-origin { color: #cbd2e2; margin: 0 0 10px; }
+.reward-display { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0,1fr); gap: 4px; }
+.reward-plinth {
+  display: grid;
+  grid-template-rows: 84px auto;
+  align-items: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 4px;
+  text-align: center;
+  background: #222a3c;
+  border-bottom: 3px solid var(--opening-tier);
+}
+#modalRoot .reward-plinth .icon { width: 64px; height: 64px; image-rendering: pixelated; }
+#modalRoot .reward-plinth .art { width: min(100%,120px); height: 80px; object-fit: contain; }
+.reward-plinth strong { font: 22px/1 VT323,monospace; color: #fff4df; }
+@media(max-width:370px) {
+  .exchange .crate-console .tier-picks { gap: 2px; }
+  .room-inventory button { padding-inline: 5px; }
+}
+@media(max-height:540px) {
+  .crate-display { min-height: 84px; }
+  .crate-display .crate-sprite { width: 128px; }
+  #modalRoot .roll-dialog[data-lanes="3"] .reel-shell { height: 62px; }
+  #modalRoot .roll-dialog[data-lanes="3"] .prize { grid-auto-flow: column; gap: 3px; font-size: 16px; }
+  #modalRoot .roll-dialog[data-lanes="3"] .prize :is(.art,.icon) { width: 28px; height: 28px; }
+}
+
+/* Inventory-sized sprites on compact, stepped game buttons. */
+body[data-screen="vault"] #screen .tier-picks button {
+  padding: 4px 1px 6px;
+  min-height: 62px;
+  gap: 1px;
+  --button-fill: #283347;
+  font: 18px/1 VT323, monospace;
+}
+body[data-screen="vault"] #screen .tier-picks button[aria-pressed="true"] {
+  --button-fill: color-mix(in srgb,var(--tier) 24%,#243144);
+  --button-text: #fff7df;
+  /* The button silhouette supplies the stepped frame around its inset face. */
+  background: var(--tier);
+  outline: none;
+}
+body[data-screen="vault"] #screen .tier-picks .crate-sprite { width:32px; margin:2px auto; }
+body:is([data-screen="vault"],[data-screen="opening"]) #screen .crate-display .crate-sprite { width:128px; margin:0; justify-self:center; }
+body:is([data-screen="vault"],[data-screen="opening"]) #screen :is(.shop-actions,.opening-actions,.room-inventory) button {
+  min-height:48px;
+  padding:6px 8px;
+  font:22px/1 VT323,monospace;
+}
+body[data-screen="opening"] #screen .opening-actions [data-action="open-three"]:enabled {
+  --button-fill:color-mix(in srgb,var(--opening-tier) 80%,white);
+  --button-text:#142239;
+}
+body[data-screen="opening"] #screen .room-inventory button[data-page="storage"] {
+  --button-fill:#d2d5da;
+  --button-text:#15122e;
+}
+body[data-screen="storage"] #screen button.stock-crate {
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  gap:12px;
+  align-items:center;
+  width:100%;
+  margin:6px 0;
+  padding:6px 14px;
+  min-height:52px;
+  font:22px/1 VT323,monospace;
+  text-align:left;
+  --button-fill:#293749;
+  --button-text:#eff4f3;
+}
+body[data-screen="storage"] #screen button.stock-crate[data-inspect]:enabled {
+  --button-fill:color-mix(in srgb,var(--tier) 20%,#263248);
+  --button-text:#fff7df;
+}
+body[data-screen="storage"] #screen .stock-crate .crate-sprite { width:32px; height:24px; margin:0; justify-self:center; }
+body[data-screen="storage"] #screen .stock-crate span { color:var(--tier); }
+body:is([data-screen="opening"],[data-screen="vault"],[data-screen="storage"]) :is(#screen,#modalRoot,#pageNav) button:active:enabled {
+  transform:translateY(1px);
+}
+
+#modalRoot .roll-dialog .prize.landed {
+  background:color-mix(in srgb,var(--opening-tier) 34%,#171b28);
+  box-shadow:inset 0 0 0 3px var(--opening-tier);
+}
+@media (prefers-reduced-motion:no-preference) {
+  #modalRoot .landed :is(.icon,.art) { animation:crate-settle 280ms steps(4,end) both; }
+  #modalRoot .reward-arrival .reward-plinth { animation:crate-settle 320ms steps(5,end) both; }
+  #modalRoot .reward-arrival .reward-plinth:nth-child(2) { animation-delay:60ms; }
+  #modalRoot .reward-arrival .reward-plinth:nth-child(3) { animation-delay:120ms; }
+}
+@keyframes crate-settle {
+  0% { transform:translateY(5px); }
+  55% { transform:translateY(-3px); }
+  100% { transform:translateY(0); }
+}
