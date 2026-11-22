@@ -13,7 +13,7 @@ const doshOffers = [
   ['free-dosh-small',0,{stars:5}], ['free-dosh-large',0,{stars:10}], ['free-spin',0,{tickets:1}]
 ];
 const doshShopDayMs = 86400000;
-const doshShopResetUtcMs = 8 * 3600000; // Brisbane is UTC+10 year-round.
+const doshShopResetUtcMs = 8 * 3600000; // All cities share the 08:00 UTC refresh.
 function shopRank(seed,id) {
   let value = seed | 0;
   for (const char of id) value = Math.imul(value ^ char.charCodeAt(0), 16777619);
