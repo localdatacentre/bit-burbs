@@ -43,7 +43,7 @@ def check_layout(page, base, viewport, insets):
                 rect = frame.bounding_box()
                 assert abs(rect["y"] + rect["height"] - current_height) <= 1, rect
                 assert frame.evaluate("(el) => getComputedStyle(el).borderBottomWidth") == "4px"
-                offers.last.scroll_into_view_if_needed()
+                page.locator("#screen").evaluate("(el) => { el.scrollTop = el.scrollHeight }")
                 last = offers.last.bounding_box()
                 assert last["y"] + last["height"] <= current_height - bottom + 1, last
                 check(".exchange header h1")
