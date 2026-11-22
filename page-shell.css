@@ -1,3 +1,25 @@
+@font-face {
+  font-family: 'VT323';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/vt323-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Silkscreen';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/silkscreen-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Silkscreen';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/silkscreen-700.woff2') format('woff2');
+}
+
 /* The Dosh Shop sets the proportions for every in-game menu. */
 :root {
   --page-shell-width: 580px;
@@ -128,3 +150,17 @@ body.sheet-open #nav {
   body[data-menu-page] { --page-dock-height: calc(50px + env(safe-area-inset-bottom, 0px)); }
   body.sheet-open #nav { padding-block: 3px calc(3px + env(safe-area-inset-bottom, 0px)) !important; }
 }
+
+#exchangeHandoff {
+  max-width: calc(100% - 32px);
+  margin: auto;
+  padding: 12px 18px;
+  border: 3px solid #121623;
+  background: #30364b;
+  color: #f4f1fb;
+  font: 22px/1.2 VT323, monospace;
+  text-align: center;
+}
+#exchangeHandoff::backdrop { background: #121623a8; }
+#exchangeHandoff p { margin: 0; }
+#exchangeHandoff button { margin-top: 10px; }

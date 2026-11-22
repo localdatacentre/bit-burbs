@@ -1,5 +1,5 @@
 // Shares the Exchange page's renderers. Account commands always settle on the server.
-let shared=false, marketBusy=false;
+let shared=false, marketBusy=false,refreshing=false,viewGeneration=0,viewDisplayKey='';
 const requestedCity=new URLSearchParams(location.search).get('city');
 function showExchangeControls(visible){
  for(const id of ['wallet','pageNav','screen','modalRoot'])document.getElementById(id).style.display=visible?'':'none';
@@ -9,7 +9,7 @@ const incomingLink=new URLSearchParams(location.hash.slice(1)).get('link');
 if(incomingLink)sessionStorage.setItem('exchange-invite',incomingLink);
 const accountBar=document.getElementById('exchangeAccount');
 async function exchangeFetch(body){
- const res=globalThis.BBStage?.liveRelease?await window.liveCityRelease('releaseExchange',body):await fetch(globalThis.BBStage?'/staging/api/exchange':'/api/exchange',body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'});
+ const res=globalThis.BBStage?.liveRelease?await (body?window.liveCityRelease('releaseExchange',body):readRoom('releaseExchange')):await fetch(globalThis.BBStage?'/staging/api/exchange':'/api/exchange',body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'});
  const result=await res.json();if(!res.ok)throw Object.assign(new Error(result.error||'Exchange unavailable.'),{status:res.status});
  return result;
 }
@@ -31,11 +31,16 @@ async function sendSavedCommand(command){
   throw error;
  }
 }
+function displayKey(view){
+ return JSON.stringify([view.accountRef,view.name,view.wallet,view.stock,view.opening,view.assets,view.listings,
+  view.crateInventoryError,view.featured,view.rotationStart,view.visible,view.issued]);
+}
 function useShared(view){
  if(requestedCity&&view.name!==requestedCity){
   showExchangeControls(false);
-  throw Error('Open the Exchange with the account linked to '+requestedCity+'.');
+  throw Object.assign(Error('Open the Exchange with the account linked to '+requestedCity+'.'),{status:403});
  }
+ viewDisplayKey=displayKey(view);
  rotationStart=view.rotationStart;
  showExchangeControls(true);
  shared=true;data={...view,ordinary:[],settings:{motion:false},claims:[]};
@@ -58,14 +63,23 @@ function leaveSharedView(){
  closeModal();
  if(!requestedCity&&!globalThis.BBStage)render();
 }
-async function loadExchange(){
- if(marketBusy||animation)return;
- marketBusy=true;
+async function loadExchange(background=false){
+ const passive=background===true&&shared&&!sessionStorage.getItem(pendingKey(data.accountRef));
+ if(marketBusy||animation||(passive&&refreshing))return;
+ if(passive)refreshing=true;else marketBusy=true;
+ const generation=++viewGeneration;
  try{
   const token=!globalThis.BBStage&&sessionStorage.getItem('exchange-invite');
   const view=await exchangeFetch(token?{action:'link',token}:null);
+  if(generation!==viewGeneration)return;
   if(token){sessionStorage.removeItem('exchange-invite');history.replaceState(null,'',location.pathname+location.search);}
   if(view.linked===false){leaveSharedView();accountBar.textContent=requestedCity?'Open the owner dashboard invite for '+requestedCity+' to link your city.':'Practice mode · Open your city invite from the owner dashboard to link this account.';return;}
+  if(passive){
+   const changed=displayKey(view)!==viewDisplayKey;
+   useShared(view);
+   if(changed)render();
+   return;
+  }
   clearTimeout(animation?.timer);animation=null;useShared(view);
   const saved=sessionStorage.getItem(pendingKey(view.accountRef));
   if(saved){
@@ -82,6 +96,8 @@ async function loadExchange(){
   }
   closeModal();render();
  }catch(err){
+  if(generation!==viewGeneration)return;
+  if(passive&&err.status!==401&&err.status!==403)return;
   if(err.status===401||err.status===403)leaveSharedView();
   if(err.status===409)sessionStorage.removeItem('exchange-invite');
   if(shared||requestedCity||globalThis.BBStage)showExchangeControls(false);
@@ -92,12 +108,16 @@ async function loadExchange(){
    accountBar.textContent='Could not load your crates. '+err.message+' ';
    addRefreshButton();
   }
- }finally{marketBusy=false;}
+ }finally{if(passive)refreshing=false;else marketBusy=false;}
 }
-async function settle(command){
+async function settle(command,button){
  let dismissPending;
  if(marketBusy||!shared)return;
+ ++viewGeneration;
  marketBusy=true;
+ button.disabled=true;
+ button.setAttribute('aria-busy','true');
+ if(command.action==='open')button.textContent='Opening…';
  try{
   const key=pendingKey(data.accountRef);
   const saved=sessionStorage.getItem(key);
@@ -140,15 +160,15 @@ document.addEventListener('click',e=>{
  if(cmd){
   e.stopImmediatePropagation();
   if(cmd.action==='crate' && $('#modalRoot').children.length)return;
-  if(!b.disabled&&!marketBusy)settle(cmd);
+  if(!b.disabled&&!marketBusy)settle(cmd,b);
  }
 },true);
-window.addEventListener('focus',()=>{if(shared&&!data.opening&&!$('#modalRoot').children.length)loadExchange();});
+window.addEventListener('focus',()=>{if(shared&&!data.opening&&!$('#modalRoot').children.length)loadExchange(true);});
 
 if(globalThis.BBStage){
  setInterval(()=>{
   if(shared && !document.hidden && !marketBusy && !animation && !$('#modalRoot').children.length &&
-     data.featured && Date.now()>=data.bullEndsAt)loadExchange();
+     data.featured && Date.now()>=data.bullEndsAt)loadExchange(true);
  },5000);
 }
 

@@ -1,6 +1,7 @@
 """Check live game page geometry with a simulated status bar and cutouts."""
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from math import isqrt
 from pathlib import Path
 from shutil import which
 from threading import Thread
@@ -93,8 +94,9 @@ def check_layout(page, base, viewport, insets):
                 assert last["y"] + last["height"] <= current_height - bottom + 1, last
                 check(".exchange header h1")
         if room == "opening":
-            page.get_by_role("button", name="Drop odds").click()
+            page.get_by_role("button", name="Drop odds").tap()
             check("#modalRoot .dialog", True)
+        assert page.locator('script[src*="building-renderer"]').count() == 0, room
 
     page.goto(base + "/?demo=full-city", wait_until="domcontentloaded")
     check("#hud .cname")
@@ -110,9 +112,9 @@ def check_layout(page, base, viewport, insets):
             # Open via the same depot control when the fixture has empty shelves.
             if not page.locator("#rsAll").is_enabled():
                 continue
-            page.locator("#rsAll").click()
+            page.locator("#rsAll").tap()
         else:
-            page.get_by_role("button", name=menu, exact=True).click()
+            page.get_by_role("button", name=menu, exact=True).tap()
         if menu == "Wheel":
             header_controls("#mgPanel .mgtitle", "#mgPanel .mg-wallet", "#mgPanel .mgx")
             assert page.locator("#mgPanel .mg-wallet [data-icon=ticket]").count() == 1
@@ -135,7 +137,110 @@ def check_layout(page, base, viewport, insets):
                 assert boost["y"] == voucher["y"] and boost["x"] < voucher["x"]
                 assert cards.first.evaluate("(el) => getComputedStyle(el).backgroundColor") == "rgb(169, 220, 255)"
                 assert page.locator("#sheetBody h3").all_text_contents() == ["Stored buildings"]
-            page.locator('#sheet [data-act="closeSheet"]').click()
+            page.locator('#sheet [data-act="closeSheet"]').tap()
+
+
+def check_single_taps(page, session, base):
+    # Reuse the CI city's snapshot in the normal sign-in and city routes. Every
+    # account response below is intercepted locally, including the save on exit.
+    city = page.evaluate("JSON.parse(localStorage.getItem('bit-burbs-full-test-city-v1'))")
+    assert city and city['v'] == 2
+    # Give the existing bakery a known City Advisor entry, regardless of stock.
+    tiles = city['tiles']
+    side = isqrt(len(tiles))
+    bakery = next(i for i, tile in enumerate(tiles) if tile and tile['id'] == 'bakery')
+    col, row = bakery % side, bakery // side
+    for y in range(max(0, row - 3), min(side, row + 5)):
+        for x in range(max(0, col - 3), min(side, col + 5)):
+            i = y * side + x
+            if tiles[i] and tiles[i]['id'] == 'road':
+                tiles[i] = None
+    requests = []
+
+    def account(route):
+        if route.request.method == 'OPTIONS':
+            route.fulfill(status=204, headers={
+                'access-control-allow-origin': '*', 'access-control-allow-methods': 'POST',
+                'access-control-allow-headers': 'Content-Type',
+            })
+            return
+        action = route.request.post_data_json['action']
+        requests.append(action)
+        data = {'name': 'fixture', 'progress': 'fixture', 'revision': '1'}
+        if action == 'username':
+            data.update(city=city, code='fixture-code')
+        route.fulfill(json=data, headers={'access-control-allow-origin': '*'})
+
+    page.route('**/api/live-city', account)
+    page.goto(base + '/', wait_until='domcontentloaded')
+    page.locator('#betaUsername').fill('fixture')
+    page.get_by_role('button', name='Log in', exact=True).tap()
+    has_city = "level => document.querySelector('#lvlNum')?.textContent === String(level)"
+    page.wait_for_function(has_city, arg=city['level'])
+    assert requests.count('username') == 1, requests
+
+    # Count final composites on the actual city canvas. This measures render
+    # work independently of the runner's frame rate or screenshot timing.
+    page.evaluate('''() => {
+        const ctx = document.querySelector('#game').getContext('2d');
+        const draw = ctx.drawImage;
+        window.cityPaints = 0;
+        ctx.drawImage = function (...args) { ++window.cityPaints; return draw.apply(this, args); };
+    }''')
+    page.wait_for_function('window.cityPaints > 0')
+
+    def check_city_covered():
+        draws = page.evaluate('''async () => {
+            const before = window.cityPaints;
+            for (let frame = 0; frame < 6; frame++) await new Promise(requestAnimationFrame);
+            return window.cityPaints - before;
+        }''')
+        assert draws == 0, f'{draws} city composites behind an opaque menu'
+
+    page.get_by_role('button', name='Settings', exact=True).tap()
+    toggle = page.get_by_role('button', name='Game sounds', exact=True)
+    before = toggle.get_attribute('aria-pressed')
+    assert before in ('true', 'false')
+    toggle.tap()
+    assert toggle.get_attribute('aria-pressed') == ('false' if before == 'true' else 'true')
+    check_city_covered()
+    page.locator('#sheet [data-act="closeSheet"]').tap()
+    page.get_by_role('button', name='Wheel', exact=True).tap()
+    page.locator('#mgPanel .wodds summary').tap()
+    assert page.locator('#mgPanel .wodds').evaluate('(el) => el.open')
+    check_city_covered()
+    count = page.evaluate('window.cityPaints')
+    page.locator('#mgPanel .mgx').tap()
+    page.wait_for_function('(n) => window.cityPaints > n', arg=count)
+
+    page.locator('#advisor').tap()
+    page.locator(f'#card button[data-i="{col}"][data-j="{row}"]').tap()
+    manage = page.locator('#card [data-act="manageProperty"]')
+    manage.scroll_into_view_if_needed()
+    box = manage.bounding_box()
+    point = {'x': box['x'] + box['width'] / 2, 'y': box['y'] + box['height'] / 2}
+    session.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [point]})
+    # Holding across a business timer update used to replace the pressed node.
+    page.wait_for_timeout(1300)
+    session.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
+    page.locator('#card [data-act="manageBack"]').wait_for(state='visible')
+
+    for dock, room in [('Crates', 'vault'), ('Dosh Shop', 'shop')]:
+        page.get_by_role('button', name=dock, exact=True).tap()
+        page.locator(f'body[data-screen="{room}"] #wallet .currency').wait_for(state='visible')
+        if room == 'vault':
+            assert page.locator('script[src*="building-renderer"]').count() == 0
+            page.locator('#pageNav [data-page="storage"]').tap()
+            page.wait_for_function('''() => {
+                const sprite = document.querySelector('canvas[data-model="statue"]');
+                if (!sprite || !window.BBModels) return false;
+                const rgba = sprite.getContext('2d').getImageData(0, 0, sprite.width, sprite.height).data;
+                return rgba.some((v, i) => i % 4 === 3 && v > 0);
+            }''')
+            assert page.locator('script[src*="building-renderer"]').count() == 1
+        page.locator('.city-close').tap()
+        page.wait_for_function(has_city, arg=city['level'])
+    print('Passed single-touch city, account, shop and crate interactions', flush=True)
 
 
 def main():
@@ -154,7 +259,9 @@ def main():
               ? {day: 1, resetAt: Date.now() + 86400000, dosh: 12345678, claims: [], offers: Array.from({length: 4}, (_, i) =>
                    ({id: String(i), price: i, rewards: i % 2 ? {cash: 3000, restockVouchers: 2} : {cash: 2000}}))}
               : {name: 'fixture', accountRef: 'fixture', wallet: {crateVouchers: 10, dosh: 50},
-                 stock: [3,0,0,0,0], assets: [], listings: [], sales: [], visible: []});
+                 stock: [3,0,0,0,0], listings: [], sales: [], visible: [],
+                 assets: new URLSearchParams(location.search).has('city')
+                     ? [{id:'fixture-copy', owner:'you', model:'statue', state:'inventory'}] : []});
         """))
         session = context.new_cdp_session(page)
         for width, height, top, side, bottom in [
@@ -167,6 +274,8 @@ def main():
             check_layout(page, f"http://127.0.0.1:{server.server_port}",
                          (width, height), (top, side, bottom))
             print(f"Passed {width} × {height} with top inset {top}", flush=True)
+        page.set_viewport_size({"width": 390, "height": 844})
+        check_single_taps(page, session, f"http://127.0.0.1:{server.server_port}")
         browser.close()
 
 
