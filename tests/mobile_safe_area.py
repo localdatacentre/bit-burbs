@@ -8,6 +8,7 @@ from shutil import which
 from threading import Thread
 
 from playwright.sync_api import sync_playwright
+from mobile_placement import check_placement
 
 
 class QuietHandler(SimpleHTTPRequestHandler):
@@ -81,6 +82,30 @@ def check_layout(page, base, viewport, insets):
             after = y(selector)
             assert abs(before - after) <= 1, (selector, before, after)
 
+    def check_toast(header, selector="#toast"):
+        toast = page.locator(selector)
+        page.wait_for_function("""selector => {
+            const el = document.querySelector(selector);
+            return el.textContent.trim() && el.getClientRects().length && getComputedStyle(el).opacity >= 0.95;
+        }""", arg=selector)
+        rect = check(selector, True)
+        assert rect["width"] > 0 and rect["height"] > 0
+        header_rect = page.locator(header).bounding_box()
+        assert rect["y"] >= header_rect["y"] + header_rect["height"] - 1, (header, rect, header_rect)
+        assert toast.evaluate("(el) => el.scrollWidth <= el.clientWidth + 1")
+        assert toast.evaluate("(el) => getComputedStyle(el).pointerEvents") == "none"
+        # Temporarily include the toast in hit testing to detect an opaque sheet
+        # or minigame painted over it, even if the CSS box is marked visible.
+        assert toast.evaluate("""el => {
+            const rect = el.getBoundingClientRect();
+            const oldStyle = el.style.pointerEvents;
+            el.style.setProperty('pointer-events', 'auto', 'important');
+            const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+            el.style.pointerEvents = oldStyle;
+            return el.contains(hit);
+        }""")
+        return rect
+
     page.goto(base + "/", wait_until="domcontentloaded")
     check(".beta-brand img", True)
     check_home_menu(page, False)
@@ -121,6 +146,16 @@ def check_layout(page, base, viewport, insets):
                 last = offers.last.bounding_box()
                 assert last["y"] + last["height"] <= current_height - bottom + 1, last
                 check(".exchange header h1")
+            scroller = page.locator("#screen")
+            before = scroller.evaluate("el => el.scrollTop")
+            assert before > 0
+            offers.last.tap()
+            page.locator("#roomNotice").filter(has_text="Rewards added to your city.").wait_for()
+            assert offers.last.is_disabled()
+            notice = check_toast(".exchange > header", "#roomNotice")
+            head = page.locator(".exchange > header").bounding_box()
+            assert notice["y"] <= head["y"] + head["height"] + 16, (head, notice)
+            assert abs(scroller.evaluate("el => el.scrollTop") - before) <= 1
         if room == "opening":
             page.get_by_role("button", name="Drop odds").tap()
             check("#modalRoot .dialog", True)
@@ -135,6 +170,14 @@ def check_layout(page, base, viewport, insets):
         later.tap()
     check("#hud .cname")
     check_home_menu(page, True)
+    page.locator("#clock").tap()
+    notice = check_toast("#hud")
+    assert "Daylight" in page.locator("#toast").inner_text()
+    advisor = check("#advisor", True)
+    map_tools = check("#mapctl")
+    assert 0 <= notice["x"] - (advisor["x"] + advisor["width"]) <= 24, (advisor, notice)
+    assert notice["y"] < advisor["y"] + advisor["height"] and notice["y"] + notice["height"] > advisor["y"], (advisor, notice)
+    assert notice["x"] + notice["width"] <= map_tools["x"] + 1, (map_tools, notice)
     wallets = {
         "Build": ["cash", "deed"],
         "Tasks": ["crateVoucher", "dosh"],
@@ -176,6 +219,9 @@ def check_layout(page, base, viewport, insets):
                     assert tab.get_attribute("aria-pressed") == "true"
                     check_home_menu(page, False)
             if menu == "Tasks":
+                page.get_by_role("button", name="Claim login reward").tap()
+                check_toast("#sheet .shead")
+                assert "voucher" in page.locator("#toast").inner_text().lower()
                 schedule = page.locator('#sheet details[data-login-schedule]')
                 schedule.locator("summary").tap()
                 assert schedule.evaluate("(el) => el.open")
@@ -206,6 +252,10 @@ def check_layout(page, base, viewport, insets):
     for menu in ["Crates", "Dosh Shop"]:
         page.get_by_role("button", name=menu, exact=True).tap()
         check_home_menu(page, False)
+        if menu == "Dosh Shop":
+            page.locator('#mgPanel [data-act="buyDaily"][data-id="wheel"]').tap()
+            check_toast("#mgPanel .mg-screen-head")
+            assert "wheel spin" in page.locator("#toast").inner_text().lower()
         page.locator("#mgPanel .mgx").tap()
         check_home_menu(page, True)
 
@@ -432,8 +482,9 @@ def main():
         page.route("https://**/*", lambda route: route.abort())
         # Stub the account adapter locally. No player credentials or network calls.
         page.route("**/release-account.js*", lambda route: route.fulfill(content_type="text/javascript", body="""
-            window.liveCityRelease = async action => Response.json(action === 'releaseShop'
-              ? {day: 1, resetAt: Date.now() + 86400000, dosh: 12345678, claims: [], offers: Array.from({length: 4}, (_, i) =>
+            window.liveCityRelease = async (action, payload) => Response.json(action === 'releaseShop'
+              ? {day: 1, resetAt: Date.now() + 86400000, dosh: 12345678 - Number(payload?.offer || 0),
+                 claims: payload ? [payload.offer] : [], offers: Array.from({length: 4}, (_, i) =>
                    ({id: String(i), price: i, rewards: i % 2 ? {cash: 3000, restockVouchers: 2} : {cash: 2000}}))}
               : {name: 'fixture', accountRef: 'fixture', wallet: {crateVouchers: 10, dosh: 50},
                  stock: [3,0,0,0,0], listings: [], sales: [], visible: [],
@@ -455,6 +506,7 @@ def main():
         check_single_taps(page, session, f"http://127.0.0.1:{server.server_port}")
         context.close()
         check_local_reset_labels(browser, f"http://127.0.0.1:{server.server_port}")
+        check_placement(browser, f"http://127.0.0.1:{server.server_port}")
         browser.close()
 
 

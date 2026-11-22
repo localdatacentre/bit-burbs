@@ -99,14 +99,13 @@ body.sheet-open #sheet .shead.page-head {
   box-shadow: none;
 }
 #sheet .page-heading {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 1 0 min-content;
 }
 #sheet .shead.page-head #sheetTitle {
   margin: 0;
   color: inherit;
   font: 400 16px/1.12 Silkscreen, monospace;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
   text-shadow: none;
 }
 #sheet .page-heading small {
@@ -135,9 +134,27 @@ body.sheet-open #sheet .shead.page-head {
   white-space: nowrap;
 }
 #sheet .page-balance canvas {
+  flex: none;
   width: var(--page-currency-size);
   height: var(--page-currency-size);
   image-rendering: pixelated;
+}
+
+/* Keep prices and placement actions level when neighbouring cards wrap. */
+#sheetBody .bcard .price,
+#sheetBody .bag-supplies .bag-card button {
+  margin-top: auto;
+}
+
+#sheet #sheetBody button.pixel-btn.pb {
+  min-height: 44px !important;
+}
+
+#sheetBody [data-login-schedule] > summary {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding-block: 10px;
+  cursor: pointer;
 }
 
 #exchangeHandoff {

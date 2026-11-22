@@ -5,12 +5,14 @@ on:
       - '*.html'
       - '**/*.css'
       - 'tests/mobile_safe_area.py'
+      - 'tests/mobile_placement.py'
       - '.github/workflows/mobile-layout.yml'
   pull_request:
     paths:
       - '*.html'
       - '**/*.css'
       - 'tests/mobile_safe_area.py'
+      - 'tests/mobile_placement.py'
       - '.github/workflows/mobile-layout.yml'
 permissions:
   contents: read
