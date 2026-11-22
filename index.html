@@ -8805,6 +8805,7 @@ const rosterReady='bit-burbs:roster2:ready';
 const legacySlot=n=>n===localStorage.getItem('bit-burbs:first-username')?'blocktown-save-v1':oldProfilePrefix+n;
 const localSlot=n=>profilePrefix+n;
 let username='',cityCode='',cityRevision=null,cityConflict=false,cityRequest=null,lastCityPush=0,cityRenaming=false;
+let cityHandedToExchange=false;
 const validName=n=>typeof n==='string'&&/^[a-z0-9_-]{1,24}$/.test(n);
 const randomKey=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,'0')).join('');
 
@@ -9681,7 +9682,7 @@ function lastSyncLabel(slot){
 }
 let cityRequestSnapshot=null;
 async function pushCity(force=false){
- if(!namedPlay||!username||(!force&&(document.hidden||cityRenaming)))return false;
+ if(!namedPlay||!username||cityHandedToExchange||(!force&&(document.hidden||cityRenaming)))return false;
  if(cityConflict){if(force)toast('Another browser saved. Reopen to load its city.');return false}
  if(cityRequest){
   if(!force)return cityRequest;
@@ -9713,7 +9714,7 @@ async function pushCity(force=false){
  try{return await cityRequest}finally{cityRequest=null;cityRequestSnapshot=null}
 }
 
-function save() { if(micksDriveDemo)return;try { S.saved = now(); const raw=saveJSON();localStorage.setItem(SAVE_KEY,raw);void reportProgress();void pushCity();if(betaMode)betaSync.sync(raw); } catch (e) { /* storage unavailable */ } cloudSave(false); }
+function save() { if(micksDriveDemo||cityHandedToExchange)return;try { S.saved = now(); const raw=saveJSON();localStorage.setItem(SAVE_KEY,raw);void reportProgress();void pushCity();if(betaMode)betaSync.sync(raw); } catch (e) { /* storage unavailable */ } cloudSave(false); }
 /* cloud save: keeps each player's city on their claude.ai account so it survives cleared browsers and other devices */
 let CLOUD = null, cloudT = 0, cloudBusy = false;
 function cloudSave(force) { if (testCity || micksDriveDemo || facilityRoadDemo || !CLOUD || cloudBusy) return; const t = Date.now(); if (!force && t - cloudT < 30000) return; cloudT = t; cloudBusy = true;
@@ -13142,7 +13143,7 @@ sheetEl.addEventListener('click', e => {
 /* ================= mini-games ================= */
 const mgEl = $('#mg'), mgPanel = $('#mgPanel');
 let mg = null;
-let openingCityExchange=false,cityHandedToExchange=false;
+let openingCityExchange=false;
 addEventListener('pageshow',event=>{if(event.persisted&&sessionStorage.getItem("bb-release-exchange-visited")){sessionStorage.removeItem("bb-release-exchange-visited");location.reload();}});
 async function openCityExchange(room='vault'){
   if(openingCityExchange)return;
