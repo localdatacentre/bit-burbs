@@ -13046,13 +13046,14 @@ function buildHTML() {
       const unavailable=placed||stored;
       const action=unavailable?'disabled aria-disabled="true"':'data-act="choose" data-id="hall"';
       const status=placed?'Already placed':stored?'Restore from My Items':'Free';
-      h+=`<button type="button" class="pixel-btn bcard ${unavailable?'town-hall-unavailable':'town-hall-prompt'}" ${action}><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b><span>One per city</span><span class="price">${status}</span></button>`;
+      h+=`<button type="button" class="pixel-btn bcard ${unavailable?'town-hall-unavailable':'town-hall-prompt'}" ${action}><canvas data-prev="hall" width="220" height="184" aria-hidden="true"></canvas><b>Town Hall</b>${placed?'':'<span>One per city</span>'}<span class="price">${status}</span></button>`;
       return;
     }
     const d = DEFS[id];
     const locked = !item && d.lvl > S.level; const count = item ? (S.shopItems && S.shopItems[id] || 0) : 0;
     const limit = buildingLimitMessage(id);
-    const cant = locked || !!limit || (id === 'deliveryDepot' && hasB(id)) || (item ? count < 1 : S.cash < cost);
+    const placedService = buildTab==='services' && hasB(id);
+    const cant = locked || !!limit || placedService || (item ? count < 1 : S.cash < cost);
     let sub = '';
     if(d.type==='transport') sub='Free · One per city';
     else if (isBiz(d)) sub = `${d.type==='svc'?SVC_NAMES[d.svc]+' · ':''}Up to ${fmt(catalogueIncome(d))} coins/min`;
@@ -13060,14 +13061,14 @@ function buildHTML() {
     else if (d.type === 'util') sub = (d.supP ? `+${d.supP} power` : `+${d.supW} water`);
     else if(parkSizes[id])sub=parkSlots(parkSpec(id)).length+' bays · one per city · road required at gate';
     else if (d.type === 'decor') sub = buildTab==='parks'?'Parks & Greenery':'Landmark';
-    else if (d.type === 'depot') sub = hasB(id) ? 'Already placed · 2×2' : '2×2 · one per city';
+    else if (d.type === 'depot') sub = '2×2 · one per city';
     else if (d.type === 'hall') sub = 'Your city centre, free';
     else sub = 'Connects everything';
     if (id==='school') sub = 'Citywide business income +1% per level (up to +5%) with road access, power and water · one per city';
     if (isBiz(d)) sub += ` · ${jobCapacity(null, d)} jobs`;
     if (locked) sub += ` · Unlocks at Lv ${d.lvl}`;
-    const price = isStop(id) ? (limit ? 'Owned' : 'Place beside a straight road') : limit || (item ? `You have ${count}` : coinSvg() + cost.toLocaleString('en-AU'));
-    h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b><span>${sub}</span><span class="price">${price}</span></button>`;
+    const price = placedService ? 'Already placed' : isStop(id) ? (limit ? 'Owned' : 'Place beside a straight road') : limit || (item ? `You have ${count}` : coinSvg() + cost.toLocaleString('en-AU'));
+    h += `<button class="pixel-btn bcard" data-act="choose" data-id="${id}" aria-disabled="${cant}"><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${d.name}</b>${placedService?'':`<span>${sub}</span>`}<span class="price">${price}</span></button>`;
   });
   h += '</div>';
   if (buildTab === 'items') h += `<p class="note">Place collectables you own from the Dosh Shop for free.</p>`;
