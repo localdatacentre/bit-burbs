@@ -25,6 +25,11 @@ self.addEventListener('fetch',event=>{
 
   if(url.pathname.endsWith('/banksia-exchange.html'))return;
 
+  // Hand the response stream to the browser while its copy is written to disk.
+  function cacheInBackground(key,response){
+    const copy=response.clone();
+    event.waitUntil(caches.open(CACHE).then(cache=>cache.put(key,copy)).catch(()=>{}));
+  }
   const gameRoot=new URL('./',self.location.href);
   const isPage=url.pathname===gameRoot.pathname||url.pathname===new URL('index.html',gameRoot).pathname;
   if(request.mode==='navigate'&&!isPage)return;
@@ -32,10 +37,7 @@ self.addEventListener('fetch',event=>{
     event.respondWith((async()=>{
       try{
         const fresh=await fetch(new Request(request,{cache:'no-cache'}));
-        if(fresh&&fresh.ok){
-          const cache=await caches.open(CACHE);
-          await cache.put('./index.html',fresh.clone());
-        }
+        if(fresh&&fresh.ok)cacheInBackground('./index.html',fresh);
         return fresh;
       }catch(error){
         return (await caches.match('./index.html'))||Response.error();
@@ -49,10 +51,7 @@ self.addEventListener('fetch',event=>{
     if(cached)return cached;
     try{
       const response=await fetch(request);
-      if(response&&response.ok){
-        const cache=await caches.open(CACHE);
-        await cache.put(request,response.clone());
-      }
+      if(response&&response.ok)cacheInBackground(request,response);
       return response;
     }catch(error){
       return cached||Response.error();

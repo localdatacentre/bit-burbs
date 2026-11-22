@@ -172,6 +172,14 @@ def check_single_taps(page, session, base):
         route.fulfill(json=data, headers={'access-control-allow-origin': '*'})
 
     page.route('**/api/live-city', account)
+    # A migrated, signed-in city can show its building-storage or welcome
+    # notice at startup. Acknowledge the same buttons a player would tap.
+    def acknowledge(notice_button):
+        print('Acknowledged city notice:', page.locator('#modalBox h2').inner_text(), flush=True)
+        notice_button.tap()
+
+    page.add_locator_handler(page.locator('#modal.show #bagLater'), acknowledge)
+    page.add_locator_handler(page.locator('#modal.show #modalOk'), acknowledge)
     page.goto(base + '/', wait_until='domcontentloaded')
     page.locator('#betaUsername').fill('fixture')
     page.get_by_role('button', name='Log in', exact=True).tap()

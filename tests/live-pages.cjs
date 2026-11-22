@@ -43,13 +43,26 @@ async function checkAccount() {
 async function checkCache() {
   const events = {};
   const worker = {location:new URL('service-worker.js',base), addEventListener:(name,fn)=>events[name]=fn, skipWaiting(){}};
-  let precached;
-  vm.runInNewContext(read('service-worker.js'), {self:worker, URL, Request:class {constructor(url){this.url=url;}},
-    caches:{open:async()=>({addAll:files=>precached=files})}});
+  let precached, finishWrite, writeStarted;
+  const writing = new Promise(resolve=>{writeStarted=resolve;});
+  const cache = {
+    addAll:files=>{precached=files;},
+    put:()=>new Promise(resolve=>{finishWrite=resolve;writeStarted();})
+  };
+  const fresh = {ok:true,clone(){return {...this};}};
+  vm.runInNewContext(read('service-worker.js'), {self:worker, URL, fetch:async()=>fresh,
+    Request:class {constructor(url){this.url=url;}}, caches:{open:async()=>cache}});
   let install;
   events.install({waitUntil:promise=>install=promise});
   await install;
   for(const file of precached)checkAsset(file.url);
+  let navigation, backgroundWrite;
+  events.fetch({request:{method:'GET',url:base.href,mode:'navigate'},
+    respondWith:promise=>{navigation=promise;}, waitUntil:promise=>{backgroundWrite=promise;}});
+  await writing;
+  assert.equal(await Promise.race([navigation, new Promise(resolve=>setImmediate(()=>resolve('blocked')))]),fresh);
+  assert.ok(backgroundWrite);
+  finishWrite();await backgroundWrite;
   for(const file of ['banksia-exchange.html?page=shop','missing-page.html']){
     events.fetch({request:{method:'GET',url:new URL(file,base).href,mode:'navigate'},
       respondWith:()=>assert.fail('City cache intercepted '+file)});
