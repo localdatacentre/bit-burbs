@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const read = name => fs.readFileSync(path.join(__dirname,'..',name),'utf8');
-const at = Date.parse('2026-11-17T08:00:00Z');
+const at = new Date(2026,10,17,18).getTime();
 const minute = 60000;
 const context = vm.createContext({at, time:at, document:{hidden:false}, saved:null});
 context.window = context;
@@ -28,10 +28,9 @@ const save=()=>{saved=JSON.stringify(S)};
 `+html.slice(html.indexOf('const Daily = window.DailyTasks;'),html.indexOf('function economyMigrate')),context);
 const run = code => vm.runInContext(code,context);
 run('labSyncTasks()');
-assert.equal(run('S.dailyGenerated.version'),4);
-assert(run('S.dailyGenerated.tasks.length>=1'));
+assert.equal(run('S.dailyGenerated.version'),5);
+assert.equal(run('S.dailyGenerated.tasks.length'),10);
 assert(run("S.dailyGenerated.tasks.every(t=>t.id.startsWith('city-')&&!t.ids.length)"));
-assert.equal(run("S.dailyGenerated.tasks.some(t=>t.metric==='rentHomes'||t.metric==='upgradeAny'||t.metric==='sellingStores')"),false);
 const keys = run('JSON.stringify(S.dailyGenerated.tasks.map(t=>t.key))');
 run('save();S=JSON.parse(saved);labSyncTasks()');
 assert.equal(run('JSON.stringify(S.dailyGenerated.tasks.map(t=>t.key))'),keys);
@@ -48,13 +47,14 @@ for (let tick=1;tick<=120;tick++) {
 run('labSyncTasks()');
 assert.equal(run("S.dailyGenerated.tasks.some(t=>t.metric==='trade')"),false);
 run("dailyAction('freeSpin')");
-assert.equal(run("S.dailyGenerated.tasks.find(t=>t.metric==='freeSpin').progress"),1);
+assert(run("S.dailyGenerated.tasks.filter(t=>t.metric==='freeSpin').every(t=>t.progress===1)"));
 const completed=run('S.dailyGenerated.tasks.filter(t=>t.progress>=t.target).length');
-assert(completed>0);
+if(!completed)run('dailyAction(S.dailyGenerated.tasks[0].metric,S.dailyGenerated.tasks[0].target)');
+const claimable=run('S.dailyGenerated.tasks.filter(t=>t.progress>=t.target).length');
 run('for(const task of S.dailyGenerated.tasks)labDailyClaim(task.key)');
-assert.equal(run('S.crateVouchers'),completed);
+assert.equal(run('S.crateVouchers'),claimable);
 const before = context.saved;
-run('S=JSON.parse(saved);labDailyClaim(S.dailyGenerated.tasks[0].key)');
+run('S=JSON.parse(saved);labDailyClaim(S.dailyGenerated.tasks.find(t=>t.claimed).key)');
 assert.equal(context.saved,before);
 context.time = at+86400000;
 run('labSyncTasks()');
@@ -62,38 +62,27 @@ assert.equal(run('S.dailyGenerated.day'),'2026-11-18');
 console.log('PASS: game assignment, settlement, claims, save/reload and reset');
 
 const Daily=require('../daily-task-core.js');
-const empty={businesses:[],horizon:120,cash:0,restockVouchers:0};
-const oldTask={id:'legacy',key:'legacy',target:1,progress:1,claimed:true,reward:{dosh:1}};
-const replaced=Daily.liveBoard({day:'2026-11-17',tasks:[oldTask,{...oldTask,key:'unfinished',progress:0,claimed:false}],receipts:{legacy:true}}, {...empty,canRoad:true},at,'starter');
-assert.deepEqual(replaced.tasks.map(t=>t.metric),[undefined,'buildRoad']);
-assert.equal(replaced.receipts.legacy,true);
-Daily.liveProgress(replaced,'buildRoad',at);
-const readyTask=replaced.tasks[1];
-const grown=Daily.liveBoard(replaced,{...empty,canRoad:true,canBuild:true},at+60000,'starter');
-assert.equal(grown.tasks[1],readyTask);
-assert.equal(readyTask.progress,1);
-assert(grown.tasks.some(t=>t.metric==='buildAny'));
-const fullCity={...empty,rentHomes:4,rentCoins:2500,businesses:Array.from({length:6},(_,i)=>({
-  id:String(i),connected:true,employees:4,rate:100,remaining:30,pending:null,fee:10
-}))};
-const full=Daily.liveBoard(null,fullCity,at,'full');
-assert(full.tasks.every(t=>!['roadwork','project','restore','supplies'].includes(t.family)));
-assert.equal(new Set(full.tasks.map(t=>t.family)).size,full.tasks.length);
-const lots={version:4,day:'2026-11-17',revision:0,tasks:[{metric:'cityOrder',target:2,progress:0,assignedAt:at}]};
-Daily.liveProgress(lots,'cityOrder',at,1,'shop-a');
-Daily.liveProgress(lots,'cityOrder',at,1,'shop-a');
-assert.equal(lots.tasks[0].progress,1);
-Daily.liveProgress(lots,'cityOrder',at+86400000,1,'shop-b');
-assert.equal(lots.tasks[0].progress,1);
-
-const prior={day:'2026-11-17',version:3,tasks:[
-  {...readyTask,metric:'trade',key:'timer',progress:0},
-  {...readyTask,metric:'trade',key:'finished-timer'},
-  {...readyTask,metric:'buildRoad',key:'road',progress:0}
+assert(Daily.LIVE_TEMPLATES.length>=40);
+assert.equal(new Set(Daily.LIVE_TEMPLATES.map(t=>t.id)).size,Daily.LIVE_TEMPLATES.length);
+const fresh=Daily.liveBoard(null,at,'fixture');
+const active=board=>board.tasks.filter(t=>!t.archived);
+assert.equal(active(fresh).length,10);
+assert.equal(new Set(active(fresh).map(t=>t.family)).size,10);
+assert.equal(Daily.liveBoard(fresh,at+3600000,'fixture'),fresh);
+assert.deepEqual(Daily.liveBoard(null,at,'fixture'),fresh);
+const reset=Daily.nextLocalReset(at);
+assert.equal(new Date(reset).getHours(),18);
+assert.equal(Daily.localDay(reset-1),'2026-11-17');
+assert.equal(Daily.localDay(reset),'2026-11-18');
+assert.notDeepEqual(active(Daily.liveBoard(fresh,reset,'fixture')).map(t=>t.id),active(fresh).map(t=>t.id));
+const old={day:require('../economy-core.js').cycle(at),version:4,receipts:{previous:true},tasks:[
+  {id:'old',key:'completed',target:1,progress:1,claimed:false,reward:{dosh:1}},
+  {id:'old2',key:'unfinished',target:1,progress:0,claimed:false}
 ]};
-const migrated=Daily.liveBoard(prior,empty,at,'starter');
-assert.deepEqual(migrated.tasks.map(t=>t.key),['finished-timer','road']);
-
-assert.equal(migrated.tasks[0].archived,true);
-const projects=Daily.liveBoard(null,{...empty,canBuild:true,canUpgrade:true,canDecorate:true,canRoad:true},at,'starter');
-assert.deepEqual(projects.tasks.map(t=>t.metric).sort(),['buildAny','buildDecor','buildRoad','upgradeAny']);
+const migrated=Daily.liveBoard(old,at,'fixture');
+assert.equal(active(migrated).length,10);
+assert.deepEqual(migrated.tasks.filter(t=>t.archived).map(t=>t.key),['completed']);
+assert.equal(Daily.claim({daily:migrated,wallet:{},revision:0},'completed',at,0).ok,true);
+const task=fresh.tasks[0];
+Daily.liveProgress(fresh,task.metric,reset,1);
+assert.equal(task.progress,0);

@@ -444,8 +444,8 @@ def check_local_reset_labels(browser, base):
     # New York switches to daylight saving at 07:00 UTC on this date. Both
     # resets still fall on the previous local calendar day in Honolulu.
     for zone, task_time, shop_time in [
-        ("America/New_York", "4:00 am", "4:15 am"),
-        ("Pacific/Honolulu", "10:00 pm", "10:15 pm"),
+        ("America/New_York", "6:00 pm", "4:15 am"),
+        ("Pacific/Honolulu", "6:00 pm", "10:15 pm"),
     ]:
         context = browser.new_context(timezone_id=zone, locale="en-US", service_workers="block")
         page = context.new_page()
@@ -470,6 +470,7 @@ def check_local_reset_labels(browser, base):
         page.add_locator_handler(page.locator("#modal.show #bagLater"), lambda button: button.click())
         page.get_by_role("button", name="Tasks", exact=True).click()
         check_time("#sheet .daily-head small", task_time)
+        assert page.locator("#sheet .daily-task-card").count() == 10
         page.get_by_role("button", name="Claim login reward").click()
         check_time("#sheet .sect p:last-of-type", task_time)
         context.close()
