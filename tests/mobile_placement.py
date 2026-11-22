@@ -11,7 +11,6 @@ def check_placement(browser, base):
     page.on("pageerror", lambda error: print(f"Placement page error: {error}", flush=True))
     page.set_default_timeout(10000)
     page.route("https://**/*", lambda route: route.abort())
-    page.clock.set_fixed_time("2026-03-08T06:30:00Z")
     page.goto(base + "/?demo=full-city", wait_until="domcontentloaded")
     page.locator("body.city-ready").wait_for()
     # Start from the game's normal demo schema, clearing the map before reload.
@@ -29,16 +28,30 @@ def check_placement(browser, base):
     page.evaluate("document.fonts.ready")
     session = context.new_cdp_session(page)
 
-    def snapshot():
-        # The visibility handler flushes the actual city save synchronously.
+    def snapshot(fresh=False):
+        if fresh:
+            # The fixture has no income sources. Observe a normal autosave
+            # completed after the action without changing focus or visibility.
+            stamp = page.evaluate("Date.now()")
+            page.wait_for_function("""stamp =>
+                JSON.parse(localStorage.getItem('bit-burbs-full-test-city-v1')).saved > stamp""",
+                                   arg=stamp, polling=100, timeout=20000)
         return page.evaluate("""() => {
-            document.dispatchEvent(new Event('visibilitychange'));
             const city = JSON.parse(localStorage.getItem('bit-burbs-full-test-city-v1'));
             const side = Math.sqrt(city.tiles.length);
             const plots = city.tiles.flatMap((tile, n) => tile && tile.id !== '_occ'
                 ? [[n % side, Math.floor(n / side), tile.id, tile.purchaseCoins]] : []);
             return {cash: city.cash, plots, mid: side / 2};
         }""")
+
+    def purchased(plot, cash):
+        page.wait_for_function("""([plot, cash]) => {
+            const city = JSON.parse(localStorage.getItem('bit-burbs-full-test-city-v1'));
+            const [i, j, model, price] = plot;
+            const tile = city.tiles[j * Math.sqrt(city.tiles.length) + i];
+            return tile?.id === model && tile.purchaseCoins === price && city.cash === cash;
+        }""", arg=[plot, cash], polling=100, timeout=20000)
+        return snapshot()
 
     # The full-city demo opens at (mid, mid+3), zoom 0.65. Aim for tile centres.
     centre = page.evaluate("""() => [
@@ -87,10 +100,20 @@ def check_placement(browser, base):
     def confirm(action, finished, repeat_at=None):
         page.evaluate("""() => {
             window.placementEvents = [];
-            for (const name of ['pointerdown', 'pointerup', 'click']) {
+            let pressed;
+            const label = el => el?.closest('[data-act]')?.dataset.act || el?.id || el?.tagName;
+            for (const name of ['pointerdown', 'touchstart', 'pointerup', 'pointercancel',
+                                'touchend', 'touchcancel', 'mousedown', 'mouseup', 'click']) {
                 document.addEventListener(name, e => {
-                    const node = e.target.closest('[data-act]');
-                    window.placementEvents.push([name, node?.dataset.act || e.target.id]);
+                    if (name === 'pointerdown') pressed = e.target;
+                    const touch = e.changedTouches?.[0] || e;
+                    const hit = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const info = {name, target: label(e.target), hit: label(hit), same: e.target === pressed,
+                                  x: touch.clientX, y: touch.clientY, cancelable: e.cancelable};
+                    window.placementEvents.push(info);
+                    setTimeout(() => Object.assign(info, {
+                        prevented: e.defaultPrevented, connected: e.target.isConnected
+                    }), 0);
                 }, {once: true, capture: true});
             }
         }""")
@@ -118,7 +141,7 @@ def check_placement(browser, base):
     expect(card("confirmPlace")).to_be_enabled()
     assert snapshot() == original, "Choosing a building on a selected plot spent coins"
     tap_control(card("cancelPlace"))
-    assert snapshot() == original
+    assert snapshot(fresh=True) == original
 
     if card("closeCard").is_visible():
         tap_control(card("closeCard"))
@@ -130,8 +153,8 @@ def check_placement(browser, base):
     drag(anchor, moved)
     assert snapshot() == original
     confirm("confirmPlace", lambda: expect(page.locator("#card h2")).to_have_text("Modern House"))
-    after_house = snapshot()
     house = [mid-2, mid+3-4, "house", house_cost]
+    after_house = purchased(house, original["cash"] - house_cost)
     assert after_house["plots"] == [house], after_house
     assert after_house["cash"] == original["cash"] - house_cost, after_house
     # A newly built home shows its name before the simulation fills in the
@@ -171,8 +194,8 @@ def check_placement(browser, base):
     expect(build).to_be_enabled()
     assert snapshot() == after_house, "Swiping away or cancelling committed the road"
     confirm("confirmRoad", lambda: expect(build).to_be_disabled(), repeat_at=button_centre)
-    after_road = snapshot()
     road = [mid-4, mid+3, "road", road_cost]
+    after_road = purchased(road, after_house["cash"] - road_cost)
     assert after_road["plots"] == [house, road], after_road
     assert after_road["cash"] == after_house["cash"] - road_cost, after_road
     expect(build).to_be_disabled()
@@ -201,6 +224,6 @@ def check_placement(browser, base):
     touch("touchEnd")
     expect(build).to_be_enabled()
     tap_control(card("donePlace"))
-    assert snapshot() == after_road
+    assert snapshot(fresh=True) == after_road
     context.close()
     print("Passed mobile building placement and tap-only road placement", flush=True)
