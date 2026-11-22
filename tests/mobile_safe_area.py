@@ -169,6 +169,8 @@ def check_layout(page, base, viewport, insets):
         check_home_menu(page, False)
         later.tap()
     check("#hud .cname")
+    check("#hud #cpmLbl")
+    assert page.locator("#hud #popLbl, #hud #jobsLbl").count() == 0
     check_home_menu(page, True)
     page.locator("#clock").tap()
     notice = check_toast("#hud")
@@ -352,6 +354,9 @@ def check_single_taps(page, session, base):
     page.wait_for_function('(n) => window.cityPaints > n', arg=count)
 
     page.locator('#advisor').tap()
+    assert page.locator('#card .city-overview dt').all_text_contents() == [
+        'Residents', 'Working', 'Unemployed', 'Open jobs', 'Free home spaces'
+    ]
     check_home_menu(page, False)
     page.locator(f'#card button[data-i="{col}"][data-j="{row}"]').tap()
     manage = page.locator('#card [data-act="manageProperty"]')
