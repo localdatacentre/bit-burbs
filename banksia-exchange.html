@@ -103,6 +103,18 @@ body {
   overflow: auto;
 }
 .exchange { min-height: min(calc(100svh - var(--safe-top)), 760px); }
+/* Keep the shop frame on screen as browser chrome moves or the phone rotates. */
+body[data-screen="shop"] .exchange {
+  height: 100%;
+  height: calc(100dvh - var(--safe-top));
+  min-height: 0;
+}
+body[data-screen="shop"] #screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 #modalRoot .dialog-backdrop {
   inset: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
   grid-template: minmax(0, 1fr) / minmax(0, 1fr);

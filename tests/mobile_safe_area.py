@@ -34,7 +34,19 @@ def check_layout(page, base, viewport, insets):
         check(".exchange .city-close", True)
         check("#wallet", True)
         if room == "shop":
-            page.locator("[data-offer]").first.wait_for()
+            offers = page.locator("[data-offer]")
+            offers.first.wait_for()
+            # Resize the already-open shop, including a height below the offers.
+            for current_height in (height, max(300, height // 2), height):
+                page.set_viewport_size({"width": width, "height": current_height})
+                frame = page.locator(".exchange")
+                rect = frame.bounding_box()
+                assert abs(rect["y"] + rect["height"] - current_height) <= 1, rect
+                assert frame.evaluate("(el) => getComputedStyle(el).borderBottomWidth") == "4px"
+                offers.last.scroll_into_view_if_needed()
+                last = offers.last.bounding_box()
+                assert last["y"] + last["height"] <= current_height - bottom + 1, last
+                check(".exchange header h1")
         if room == "opening":
             page.get_by_role("button", name="Drop odds").click()
             check("#modalRoot .dialog", True)
@@ -67,7 +79,8 @@ def main():
         # Stub the account adapter locally. No player credentials or network calls.
         page.route("**/release-account.js*", lambda route: route.fulfill(content_type="text/javascript", body="""
             window.liveCityRelease = async action => Response.json(action === 'releaseShop'
-              ? {day: 1, dosh: 50, claims: [], offers: [{id: 'free', price: 0, rewards: {cash: 10}}]}
+              ? {day: 1, dosh: 50, claims: [], offers: Array.from({length: 4}, (_, i) =>
+                   ({id: String(i), price: i, rewards: {cash: 10}}))}
               : {name: 'fixture', accountRef: 'fixture', wallet: {crateVouchers: 10, dosh: 50},
                  stock: [3,0,0,0,0], assets: [], listings: [], sales: [], visible: []});
         """))
