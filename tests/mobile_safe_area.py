@@ -1,6 +1,7 @@
 """Check live game page geometry with a simulated status bar and cutouts."""
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from itertools import combinations
 from math import isqrt
 from pathlib import Path
 from shutil import which
@@ -36,12 +37,12 @@ def check_layout(page, base, viewport, insets):
 
         return rect
 
-    def header_controls(title, wallet, close):
-        title_box, wallet_box, close_box = [check(selector, True) for selector in (title, wallet, close)]
-        for a, b in [(title_box, wallet_box), (title_box, close_box), (wallet_box, close_box)]:
+    def header_controls(*selectors):
+        boxes = [check(selector, True) for selector in selectors]
+        for a, b in combinations(boxes, 2):
             overlap_x = min(a["x"] + a["width"], b["x"] + b["width"]) - max(a["x"], b["x"])
             overlap_y = min(a["y"] + a["height"], b["y"] + b["height"]) - max(a["y"], b["y"])
-            assert min(overlap_x, overlap_y) <= 1, (title, wallet, close, a, b)
+            assert min(overlap_x, overlap_y) <= 1, (selectors, a, b)
 
     def background(selector):
         return page.locator(selector).evaluate("(el) => getComputedStyle(el).backgroundColor")
@@ -117,7 +118,7 @@ def check_layout(page, base, viewport, insets):
     wallets = {
         "Build": ["cash", "deed"],
         "Tasks": ["crateVoucher", "dosh"],
-        "Item bag": ["boost", "voucher"],
+        "Item bag": [],
         "Settings": ["cash", "dosh"],
         "Delivery depot": ["cash", "dosh", "voucher"],
     }
@@ -137,7 +138,13 @@ def check_layout(page, base, viewport, insets):
             check_pinned("#mgPanel .wheel-content", "#mgPanel .mg-screen-head", "#mgPanel .mg-page-foot")
             page.locator("#mgPanel .mgx").tap()
         else:
-            header_controls("#sheetTitle", "#sheetWallet", '#sheet [data-act="closeSheet"]')
+            close = '#sheet [data-act="closeSheet"]'
+            if wallets[menu]:
+                header_controls("#sheetTitle", "#sheetWallet", close)
+            else:
+                header_controls("#sheetTitle", close)
+                assert page.locator("#sheetWallet").is_hidden()
+                assert page.locator("#sheetWallet > *").count() == 0
             icons = page.locator("#sheetWallet [data-icon]").evaluate_all("(els) => els.map(el => el.dataset.icon)")
             assert icons == wallets[menu], (menu, icons)
             for chip in page.locator("#sheetWallet .page-balance").all():
@@ -161,6 +168,12 @@ def check_layout(page, base, viewport, insets):
             if menu == "Item bag":
                 cards = page.locator(".bag-supplies > .bag-card")
                 assert cards.count() == 2
+                city = page.evaluate("JSON.parse(localStorage.getItem('bit-burbs-full-test-city-v1'))")
+                expected = [("boost", city.get("coinBoostTokens", {}).get("10", 0)),
+                            ("voucher", city.get("restockVouchers", 0))]
+                for card, (icon, count) in zip(cards.all(), expected):
+                    assert card.locator(f'canvas[data-icon="{icon}"]').is_visible()
+                    assert card.locator("small").inner_text() == f"Owned · {count}"
                 boost, voucher = [card.bounding_box() for card in cards.all()]
                 assert abs(boost["width"] - voucher["width"]) <= 1
                 assert abs(boost["height"] - voucher["height"]) <= 1
