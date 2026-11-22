@@ -8,6 +8,7 @@ def check_placement(browser, base):
     context = browser.new_context(viewport={"width": 428, "height": 926},
                                   is_mobile=True, has_touch=True, service_workers="block")
     page = context.new_page()
+    page.on("pageerror", lambda error: print(f"Placement page error: {error}", flush=True))
     page.set_default_timeout(10000)
     page.route("https://**/*", lambda route: route.abort())
     page.clock.set_fixed_time("2026-03-08T06:30:00Z")
@@ -15,6 +16,7 @@ def check_placement(browser, base):
     page.locator("body.city-ready").wait_for()
     # Start from the game's normal demo schema, clearing the map before reload.
     page.add_init_script("""(() => {
+        if (window.top !== window || location.search !== '?demo=full-city') return;
         const slot = 'bit-burbs-full-test-city-v1';
         const city = JSON.parse(localStorage.getItem(slot));
         if (!city) return;
@@ -70,6 +72,26 @@ def check_placement(browser, base):
     def card(action):
         return page.locator(f'#card [data-act="{action}"]')
 
+    def confirm(action, finished):
+        page.evaluate("""() => {
+            window.placementEvents = [];
+            for (const name of ['pointerdown', 'pointerup', 'click']) {
+                document.addEventListener(name, e => {
+                    const node = e.target.closest('[data-act]');
+                    window.placementEvents.push([name, node?.dataset.act || e.target.id]);
+                }, {once: true, capture: true});
+            }
+        }""")
+        card(action).tap()
+        try:
+            finished()
+        except AssertionError:
+            print("Placement confirmation:", page.evaluate("""() => ({
+                events: window.placementEvents, hudCoins: document.querySelector('#cash').textContent,
+                card: document.querySelector('#card').innerText, toast: document.querySelector('#toast').innerText
+            })"""), "save:", snapshot(), flush=True)
+            raise
+
     original = snapshot()
     mid = original["mid"]
     assert original["plots"] == [], original
@@ -91,7 +113,7 @@ def check_placement(browser, base):
     expect(card("confirmPlace")).to_be_enabled()
     drag(anchor, moved)
     assert snapshot() == original
-    card("confirmPlace").tap()
+    confirm("confirmPlace", lambda: expect(page.locator("#card h2")).to_have_text("Modern House"))
     after_house = snapshot()
     house = [mid-2, mid+3-4, "house", house_cost]
     assert after_house["plots"] == [house], after_house
@@ -122,7 +144,7 @@ def check_placement(browser, base):
     camera_y -= 18
     expect(build).to_be_enabled()
     assert snapshot() == after_house
-    build.tap()
+    confirm("confirmRoad", lambda: expect(build).to_be_disabled())
     after_road = snapshot()
     road = [mid-4, mid+3, "road", road_cost]
     assert after_road["plots"] == [house, road], after_road

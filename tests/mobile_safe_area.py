@@ -475,6 +475,7 @@ def main():
     with ThreadingHTTPServer(("127.0.0.1", 0), partial(QuietHandler, directory=str(root))) as server, sync_playwright() as pw:
         Thread(target=server.serve_forever, daemon=True).start()
         browser = pw.chromium.launch(executable_path=which("google-chrome") or which("chromium"))
+        check_placement(browser, f"http://127.0.0.1:{server.server_port}")
         context = browser.new_context(is_mobile=True, has_touch=True, service_workers="block")
         page = context.new_page()
         page.add_init_script("if (location.search === '?demo=full-city') localStorage.clear()")
@@ -506,7 +507,6 @@ def main():
         check_single_taps(page, session, f"http://127.0.0.1:{server.server_port}")
         context.close()
         check_local_reset_labels(browser, f"http://127.0.0.1:{server.server_port}")
-        check_placement(browser, f"http://127.0.0.1:{server.server_port}")
         browser.close()
 
 
