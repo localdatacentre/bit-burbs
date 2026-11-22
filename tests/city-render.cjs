@@ -58,4 +58,50 @@ map.nativePlots = [{i: 0, j: 0}, {i: 2, j: 1}];
 assert.equal(map.staticScenery(network, 2, 2, 0, 1)[1].native, map.nativePlots[1]);
 map.tileAt = (i, j) => i === 2 && j === 1;
 assert.equal(map.staticScenery({renderObjects: [building]}, 0, 2, 0, 1).length, 2);
-console.log('PASS: isometric sprite bounds and scenery cache invalidation');
+
+// A zoomed cache must cover the viewport and keep the ground under the actors.
+let baked, paints = 0, placement;
+Object.assign(map, {
+  PX: 1.5, DARK: 0, ISL: {}, placing: false, zoomAnim: {}, pinchC: null,
+  groundCanvas: {}, groundContext: {setTransform() {}, clearRect() {}},
+  groundBounds: () => ({left: 0, right: 0, top: 0, bottom: 0}), drawGround() {},
+  drawRoadNetwork() { paints++; baked = {...map.V}; }
+});
+load(map, 'let groundCache=null;', '// Erase the foreground');
+map.V = {cx: -545.5, cy: -2810.25, z: 1.25, ctx: {drawImage(...args) { placement = args; }}};
+const lw = 262, lh = 568;
+function drawFrame() {
+  map.drawGroundLayer(network, lw, lh);
+  const [canvas, x, y, w, h] = placement, scale = map.V.z/baked.z;
+  assert.ok(x <= 0 && y <= 0 && x+w >= lw*map.PX && y+h >= lh*map.PX);
+  assert.ok(Math.abs(w - canvas.width*map.PX/2*scale) < 1e-8);
+  assert.ok(Math.abs(h - canvas.height*map.PX/2*scale) < 1e-8);
+  const margin = (canvas.width/2-lw)*map.PX/2;
+  const groundX = x+(baked.cx+13*baked.z+margin)*scale;
+  const groundY = y+(baked.cy+20*baked.z+margin)*scale;
+  assert.ok(Math.abs(groundX-(map.V.cx+13*map.V.z)) < 1e-8);
+  assert.ok(Math.abs(groundY-(map.V.cy+20*map.V.z)) < 1e-8);
+}
+function zoomFrame(ratio, focusX, focusY) {
+  map.V.cx = focusX+(map.V.cx-focusX)*ratio;
+  map.V.cy = focusY+(map.V.cy-focusY)*ratio;
+  map.V.z *= ratio;
+  drawFrame();
+}
+drawFrame();
+for (let n=0; n<30; n++) zoomFrame(1.005, 340, 700);
+assert.equal(paints, 1);
+map.zoomAnim = null;
+drawFrame();
+assert.equal(paints, 2);
+assert.equal(baked.z, map.V.z);
+map.pinchC = {};
+for (let n=0; n<80; n++) {
+  zoomFrame(.992, 75, 100);
+  assert.equal(baked.z > 1, map.V.z > 1);
+}
+assert.ok(paints < 20);
+map.pinchC = null;
+drawFrame();
+assert.equal(baked.z, map.V.z);
+console.log('PASS: sprite bounds, scenery invalidation, and ground coverage during camera gestures');

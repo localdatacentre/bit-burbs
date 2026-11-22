@@ -131,15 +131,18 @@ def check_placement(browser, base):
     page.touchscreen.tap(*point(-4, 0))
     expect(build).to_be_disabled()
 
-    # A cancelled touch or two-finger zoom must never lay a road or select one.
+    # A cancelled touch must not replace the blocked selection.
     a, b = point(-6, -1), point(-2, -1)
     touch("touchStart", a)
     touch("touchCancel")
     expect(build).to_be_disabled()
+    page.touchscreen.tap(*a)
+    expect(build).to_be_enabled()
+    # Zooming preserves the proposed tile. Done discards it without charging.
     touch("touchStart", a, b)
     touch("touchMove", (a[0]-12, a[1]), (b[0]+12, b[1]))
     touch("touchEnd")
-    expect(build).to_be_disabled()
+    expect(build).to_be_enabled()
     card("donePlace").tap()
     assert snapshot() == after_road
     context.close()

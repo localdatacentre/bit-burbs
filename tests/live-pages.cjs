@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
+require('./camera.cjs');
 const root = path.join(__dirname, '..');
 require('node:child_process').execFileSync(process.execPath, [path.join(root,'tools/bundle-exchange.cjs'),'--check']);
 const base = new URL('https://localdatacentre.github.io/bit-burbs/');

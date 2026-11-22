@@ -10723,7 +10723,7 @@ function grassPattern() {
 function drawIsland() {}
 
 function drawGround(i, j, margin=0) {
-  { const cc = P(i + .5, j + .5), m = TW * V.z+margin; if (cc.x < -m || cc.x > W + m || cc.y < -m || cc.y > innerHeight + m) return; }
+  { const cc = P(i + .5, j + .5), m = TW * V.z+margin; if (cc.x < -m || cc.x > W + m || cc.y < -m || cc.y > H + m) return; }
   const t = tileAt(i, j), open = inB(i, j), k = j * N + i;
   if (!ISL.land[k]) { if (ISL.shallow[k]) poly(diamond(i, j), T(DARK > .5 ? '#2A6878' : (ISL.ed[k] > -0.9 ? '#8EDCDA' : '#62C4D0'))); return; }
   const dm = diamond(i, j); const cy = (dm[0].y + dm[2].y) / 2, side = 6 * V.z;
@@ -11989,19 +11989,24 @@ function groundBounds(pad){
   const bottom = Math.min(N-1,Math.ceil(Math.max(...corners.map(p=>p.y))));
   return {left,right,top,bottom};
 }
-// Retain a padded ground image while the camera pans. Dynamic objects are drawn above it.
+// Reuse the oversampled ground while moving the camera. Actors draw at the current zoom.
 const groundCanvas=document.createElement('canvas');
 const groundContext=groundCanvas.getContext('2d');
 let groundCache=null;
 function drawGroundLayer(network,lw,lh){
   const gutter=48,margin=gutter*PX;
   const width=(lw+2*gutter)*2,height=(lh+2*gutter)*2;
+  const imageWidth=width*PX/2,imageHeight=height*PX/2;
   const shade=Math.round(DARK*20),grid=Boolean(placing);
   const c=groundCache;
-  if(!c||c.network!==network||c.island!==ISL||c.zoom!==V.z||c.rotation!==ROT||
+  let scale=c?V.z/c.zoom:1;
+  let x=c?V.cx-(c.x+margin)*scale:0,y=c?V.cy-(c.y+margin)*scale:0;
+  // Scale around the map origin. Repaint at rest and when road detail changes.
+  const reuseZoom=scale===1||((pinchC||zoomAnim)&&scale>=.85&&scale<=1.2&&(c.zoom>1)===(V.z>1));
+  if(!c||c.network!==network||c.island!==ISL||!reuseZoom||c.rotation!==ROT||
      c.shade!==shade||c.nightShallows!==(DARK>.5)||c.grid!==grid||c.pixel!==PX||
      groundCanvas.width!==width||groundCanvas.height!==height||
-     Math.abs(V.cx-c.x)>margin||Math.abs(V.cy-c.y)>margin){
+     x>0||y>0||x+imageWidth*scale<lw*PX||y+imageHeight*scale<lh*PX){
     if(groundCanvas.width!==width||groundCanvas.height!==height){groundCanvas.width=width;groundCanvas.height=height;}
     groundContext.setTransform(1,0,0,1,0,0);
     groundContext.clearRect(0,0,width,height);
@@ -12019,8 +12024,9 @@ function drawGroundLayer(network,lw,lh){
     drawRoadNetwork(network);
     V.ctx=target;
     groundCache={network,island:ISL,zoom:V.z,rotation:ROT,shade,nightShallows:DARK>.5,grid,pixel:PX,x:V.cx,y:V.cy};
+    x=y=-margin;scale=1;
   }
-  V.ctx.drawImage(groundCanvas,V.cx-groundCache.x-margin,V.cy-groundCache.y-margin,width*PX/2,height*PX/2);
+  V.ctx.drawImage(groundCanvas,x,y,imageWidth*scale,imageHeight*scale);
 }
 
 // Erase the foreground silhouette from the cat stamp before it enters the world canvas.
@@ -12089,8 +12095,9 @@ function render() {
     const {i,j}=placing.source,[w,h]=fpOf(placing.id,placing.turned,placing.object?.compactHall);
     poly([P(i,j),P(i+w,j),P(i+w,j+h),P(i,j+h)],'rgba(255,215,105,.24)','#FFD23F',2);
   }
+  const ghostFits=placing?.ghost&&fitsEdit(placing.ghost);
   if (placing && placing.ghost) {
-    const gi = placing.ghost; const ok = fitsEdit(gi); const [gfx, gfy] = fpOf(placing.id,placing.turned);
+    const gi = placing.ghost; const ok = ghostFits; const [gfx, gfy] = fpOf(placing.id,placing.turned);
     if(ok&&placing.id==='road')drawRoadPreview(gi,network);
     poly([P(gi.i, gi.j), P(gi.i + gfx, gi.j), P(gi.i + gfx, gi.j + gfy), P(gi.i, gi.j + gfy)], ok ? 'rgba(80,230,80,.27)' : 'rgba(230,60,60,.5)', ok?'#A6F3AD':'#FF998A', 2);
     const d = DEFS[placing.id];
@@ -12126,7 +12133,7 @@ function render() {
   for(const walker of walkers)objs.push({walker,d:vdepth(walker.x,walker.y)+.015});
   if (placing && placing.ghost && placing.id !== 'road') {
     const { i, j } = placing.ghost, [fx, fy] = fpOf(placing.id,placing.turned);
-    objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id, valid: fitsEdit(placing.ghost) });
+    objs.push({ d: vdepth(i + fx / 2, j + fy / 2) + (fx + fy - 2) * .5, i, j, ghost: placing.id, valid: ghostFits });
   }
   const scenery=staticScenery(network,left,right,top,bottom);
   for(const a of wildlife)if(a.x>=left&&a.x<=right+1&&a.y>=top&&a.y<=bottom+1&&nativeWalkable(Math.floor(a.x),Math.floor(a.y)))objs.push({animal:a,d:vdepth(a.x,a.y)+.01});
@@ -12151,7 +12158,7 @@ function render() {
     if(o.walker){drawWalker(o.walker);return;}
     if(o.signal){drawJunctionSignal(o,signalSeconds);return;}
     if (o.ghost) { V.ctx.save(); V.ctx.globalAlpha = o.valid ? .72 : .36; drawBuilding(o.i, o.j, o.ghost,placing.turned,null); V.ctx.restore(); return; }
-    if(placing?.object===o.t && placing.ghost && fitsEdit(placing.ghost))return;
+    if(placing?.object===o.t && ghostFits)return;
     const sb=spriteBox(o.i,o.j,o.t.id,o.t.turned||0,o.t);
     if(sb&&!sb.sp.rotor&&(sb.x+sb.w < -4||sb.x>W+4||sb.y+sb.h < -4||sb.y>H+4))return;
     if(isDriveShop(o.t.id)){V.ctx.save();if(fadedBuildings())V.ctx.globalAlpha*=.22;drawShopLayer(o.i,o.j,o.t.id,o.t.turned,'shell');V.ctx.restore();}
@@ -12238,7 +12245,7 @@ function render() {
 const pointers = new Map();
 let dragMoved = false, startPt = null, pinchD = 0;
 let placementDrag=null;
-function roadPoint(point) {
+function tileAtPoint(point) {
   const world=screenToWorld(point.x,point.y);
   return {i:Math.floor(world.x),j:Math.floor(world.y)};
 }
@@ -12256,7 +12263,7 @@ function drawRoadPreview(ghost,network){
   paintRoadSurface(V.ctx,placing.roadSurface.surface,P,V.z,T);V.ctx.restore();
 }
 function confirmRoad(){
-  if(!layingRoads()||!placing.ghost)return;
+  if(!layingRoads()||!placing.ghost||pointers.size)return;
   const {i,j}=placing.ghost;
   if(placeAt(i,j,'road',false)){placing.ghost=null;placing.roadSurface=null;}
   renderCard(true);
@@ -12270,7 +12277,7 @@ function spriteHit(sx,sy,box){
 }
 function startPlacementDrag(point){
   if(!placing?.ghost||placing.id==='road'||placing.action==='choose')return;
-  const g=placing.ghost,start=roadPoint(point);
+  const g=placing.ghost,start=tileAtPoint(point);
   const [w,h]=fpOf(placing.id,placing.turned);
   const onFootprint=start.i>=g.i&&start.i<g.i+w&&start.j>=g.j&&start.j<g.j+h;
   if(!onFootprint&&!spriteHit(point.x,point.y,spriteBox(g.i,g.j,placing.id,placing.turned,null)))return;
@@ -12313,6 +12320,16 @@ cv.addEventListener('pointerdown', e => {
   dragMoved = pointers.size > 1;
   resetPinch();
 });
+function moveSinglePointer(prev,point){
+  if(!dragMoved){
+    if(!startPt||Math.hypot(point.x-startPt.x,point.y-startPt.y)<=8)return;
+    dragMoved=true;
+    prev=startPt;
+  }
+  if(placementDrag){updatePlacementDrag(point);return;}
+  V.cx+=point.x-prev.x;V.cy+=point.y-prev.y;
+  clampCam();
+}
 cv.addEventListener('pointermove', e => {
   const prev = pointers.get(e.pointerId);
   if (!prev) return;
@@ -12330,24 +12347,28 @@ cv.addEventListener('pointermove', e => {
     }
     return;
   }
-  if (startPt && Math.hypot(cur.x-startPt.x,cur.y-startPt.y)>8) dragMoved = true;
-  if(dragMoved&&placementDrag){updatePlacementDrag(cur);return;}
-  if (dragMoved) { V.cx += cur.x-prev.x; V.cy += cur.y-prev.y; clampCam(); }
+  moveSinglePointer(prev,cur);
 });
 function endPtr(e) {
-  if (!pointers.delete(e.pointerId)) return;
-  const tap=e.type==='pointerup'&&!pointers.size&&!dragMoved&&startPt&&!placementDrag;
+  const prev=pointers.get(e.pointerId);
+  if(!prev)return;
+  let tap=null;
   if(e.type==='pointerup'){
-    if(dragMoved&&placementDrag)updatePlacementDrag(canvasPoint(e));
+    if(pointers.size===1&&startPt){
+      // A fast swipe may deliver its final displacement only on release.
+      const point=canvasPoint(e);
+      moveSinglePointer(prev,point);
+      if(!dragMoved&&!placementDrag)tap=point;
+    }
     placementDrag=null;
-  }else cancelPlacementDrag();
-  if (e.type!=='pointerup') dragMoved = true;
-  startPt = null;
-  resetPinch();
-  if (tap) {
-    const point = canvasPoint(e);
-    onTap(point.x,point.y);
+  }else{
+    cancelPlacementDrag();
+    dragMoved=true;
   }
+  pointers.delete(e.pointerId);
+  startPt=null;
+  resetPinch();
+  if(tap)onTap(tap.x,tap.y);
 }
 for (const type of ['pointerup','pointercancel','lostpointercapture']) cv.addEventListener(type,endPtr);
 cv.addEventListener('wheel', e => {
@@ -12389,7 +12410,7 @@ function onTap(x, y) {
     return;
   }
   if(placing){
-    const tile=roadPoint({x,y});
+    const tile=tileAtPoint({x,y});
     placing.ghost=tile;
     renderCard(true);return;
   }
@@ -12804,7 +12825,7 @@ card.addEventListener('click', e => {
   }
   if(a==='confirmRoad'){confirmRoad();return;}
   if(a==='confirmPlace'&&placing){
-    const g=placing.ghost;if(!g)return;
+    const g=placing.ghost;if(!g||pointers.size)return;
     const ok=placing.stored?restoreBuilding(placing.stored,g.i,g.j,placing.turned):placing.source?commitMove(placing,g.i,g.j):placeAt(g.i,g.j,placing.id,placing.fromItem,placing.turned);
     if(ok){placing=null;select(g.i,g.j);}return;
   }
