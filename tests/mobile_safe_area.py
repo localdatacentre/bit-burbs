@@ -79,7 +79,7 @@ def main():
         # Stub the account adapter locally. No player credentials or network calls.
         page.route("**/release-account.js*", lambda route: route.fulfill(content_type="text/javascript", body="""
             window.liveCityRelease = async action => Response.json(action === 'releaseShop'
-              ? {day: 1, dosh: 50, claims: [], offers: Array.from({length: 4}, (_, i) =>
+              ? {day: 1, resetAt: Date.now() + 86400000, dosh: 50, claims: [], offers: Array.from({length: 4}, (_, i) =>
                    ({id: String(i), price: i, rewards: {cash: 10}}))}
               : {name: 'fixture', accountRef: 'fixture', wallet: {crateVouchers: 10, dosh: 50},
                  stock: [3,0,0,0,0], assets: [], listings: [], sales: [], visible: []});
