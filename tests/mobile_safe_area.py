@@ -21,6 +21,30 @@ def check_home_menu(page, visible):
     assert dock.get_by_role("button").count() == (6 if visible else 0)
 
 
+def check_shop_offers(room):
+    cards = room.locator(".shop-menu .shop-offer")
+    cards.first.wait_for()
+    content_width = room.locator("#screen").evaluate("""el => {
+        const style = getComputedStyle(el);
+        return el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    }""")
+    expected_width = min(0.92 * content_width, 304)
+    previous_bottom = None
+    for card in cards.all():
+        box = card.bounding_box()
+        bottom = box["y"] + box["height"]
+        assert abs(box["width"] - expected_width) <= 1, (box, expected_width)
+        assert abs(box["height"] - box["width"]) <= 1, box
+        assert previous_bottom is None or box["y"] >= previous_bottom, box
+        previous_bottom = bottom
+        button = card.locator("[data-offer]").bounding_box()
+        assert button["height"] >= 44 and button["y"] + button["height"] <= bottom + 1, button
+        for reward in card.locator(".offer-rewards li").all():
+            item = reward.bounding_box()
+            assert item["y"] >= box["y"] and item["y"] + item["height"] <= button["y"] + 1, item
+            assert reward.evaluate("(el) => el.scrollWidth <= el.clientWidth + 1")
+
+
 def check_layout(page, base, viewport, insets):
     width, height = viewport
     top, side, bottom = insets
@@ -84,11 +108,7 @@ def check_layout(page, base, viewport, insets):
             check_pinned("#screen", ".exchange header", "#pageNav")
         if room == "shop":
             offers = page.locator("[data-offer]")
-            offers.first.wait_for()
-            cards = page.locator(".shop-menu article")
-            first, second = [cards.nth(i).bounding_box() for i in range(2)]
-            assert first["width"] >= 280 and abs(first["width"] - first["height"]) <= 1, first
-            assert second["y"] >= first["y"] + first["height"], second
+            check_shop_offers(page)
             assert page.locator("#screen").evaluate("(el) => el.scrollHeight > el.clientHeight")
             # Resize the already-open shop, including a height below the offers.
             for current_height in (height, max(300, height // 2), height):
@@ -338,6 +358,7 @@ def check_single_taps(page, session, base):
             else:
                 assert panel.locator('[data-offer]').count() == 4
                 assert panel.locator('[data-offer]').first.is_enabled()
+                check_shop_offers(panel)
             check_city_covered()
             if attempt == 1 and room == 'shop':
                 page.evaluate('history.back()')
