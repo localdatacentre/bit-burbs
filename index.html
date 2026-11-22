@@ -2901,12 +2901,13 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 <div id="modal" role="dialog" aria-modal="true"><div id="modalBox"></div></div>
 
 <script>
-// Leave single-finger scrolling and control taps to the browser.
-function blockPagePinch(event) {
-  if (event.cancelable && (!event.touches || event.touches.length > 1)) event.preventDefault();
-}
-for (const type of ['gesturestart','gesturechange','touchmove']) {
-  document.querySelector('canvas#game')?.addEventListener(type, blockPagePinch, {passive:false});
+// Map gestures use pointer events. Suppress native touch scrolling and mouse clicks
+// at their source, including clicks generated after a map swipe on mobile.
+const cityGestureCanvas=document.querySelector('canvas#game');
+for(const type of ['touchstart','gesturestart','gesturechange']){
+  cityGestureCanvas.addEventListener(type,event=>{
+    if(event.cancelable)event.preventDefault();
+  },{passive:false});
 }
 </script>
 <script>
