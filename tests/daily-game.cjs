@@ -28,8 +28,8 @@ const save=()=>{saved=JSON.stringify(S)};
 `+html.slice(html.indexOf('const Daily = window.DailyTasks;'),html.indexOf('function economyMigrate')),context);
 const run = code => vm.runInContext(code,context);
 run('labSyncTasks()');
-assert.equal(run('S.dailyGenerated.version'),2);
-assert(run('S.dailyGenerated.tasks.length>=2'));
+assert.equal(run('S.dailyGenerated.version'),3);
+assert(run('S.dailyGenerated.tasks.length>=1'));
 assert(run("S.dailyGenerated.tasks.every(t=>t.id.startsWith('city-')&&!t.ids.length)"));
 assert.equal(run("S.dailyGenerated.tasks.some(t=>t.metric==='rentHomes'||t.metric==='upgradeAny'||t.metric==='sellingStores')"),false);
 const keys = run('JSON.stringify(S.dailyGenerated.tasks.map(t=>t.key))');
@@ -46,7 +46,7 @@ for (let tick=1;tick<=120;tick++) {
   Core.settle(S,D.list,time,ECON,businessRates);`);
 }
 run('labSyncTasks()');
-assert(run("S.dailyGenerated.tasks.find(t=>t.metric==='trade').progress>=5"));
+assert.equal(run("S.dailyGenerated.tasks.some(t=>t.metric==='trade')"),false);
 run("dailyAction('freeSpin')");
 assert.equal(run("S.dailyGenerated.tasks.find(t=>t.metric==='freeSpin').progress"),1);
 const completed=run('S.dailyGenerated.tasks.filter(t=>t.progress>=t.target).length');
@@ -79,9 +79,17 @@ const fullCity={...empty,rentHomes:4,rentCoins:2500,businesses:Array.from({lengt
 const full=Daily.liveBoard(null,fullCity,at,'full');
 assert(full.tasks.every(t=>!['roadwork','project','restore','supplies'].includes(t.family)));
 assert.equal(new Set(full.tasks.map(t=>t.family)).size,full.tasks.length);
-const lots={version:2,day:'2026-11-17',revision:0,tasks:[{metric:'cityOrder',target:2,progress:0,assignedAt:at}]};
+const lots={version:3,day:'2026-11-17',revision:0,tasks:[{metric:'cityOrder',target:2,progress:0,assignedAt:at}]};
 Daily.liveProgress(lots,'cityOrder',at,1,'shop-a');
 Daily.liveProgress(lots,'cityOrder',at,1,'shop-a');
 assert.equal(lots.tasks[0].progress,1);
 Daily.liveProgress(lots,'cityOrder',at+86400000,1,'shop-b');
 assert.equal(lots.tasks[0].progress,1);
+
+const prior={day:'2026-11-17',version:2,tasks:[
+  {...readyTask,metric:'trade',key:'timer',progress:0},
+  {...readyTask,metric:'trade',key:'finished-timer'},
+  {...readyTask,metric:'buildRoad',key:'road',progress:0}
+]};
+const migrated=Daily.liveBoard(prior,empty,at,'starter');
+assert.deepEqual(migrated.tasks.map(t=>t.key),['finished-timer','road']);

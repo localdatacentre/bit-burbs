@@ -17,7 +17,7 @@
 <link rel="preload" as="font" type="font/woff2" href="./fonts/silkscreen-400.woff2" crossorigin>
 <link rel="preload" as="script" href="./residential-cats.js?v=yard1">
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
-<link rel="preload" as="script" href="./daily-task-core.js?v=city-goals1">
+<link rel="preload" as="script" href="./daily-task-core.js?v=city-goals2">
 <link rel="preload" as="script" href="./daily-task-session.js">
 <link rel="preload" as="style" href="./page-shell.css?v=mobile-polish1">
 <style>
@@ -8599,7 +8599,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=mobile-polish1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=city-goals1"></script>
+<script src="./exchange-room.js?v=mobile-polish1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=city-goals2"></script>
 <script>
 (async () => {
 'use strict';
@@ -8698,7 +8698,7 @@ let nextDailyOfferCheck=0;
 function labSyncTasks(){
  if(!S?.economyLab||!D?.list)return;
  const at=now(),saved=S.dailyGenerated;
- if(saved?.version===2&&saved.day===Core.cycle(at)&&(saved.tasks.length>=10||at<nextDailyOfferCheck))return;
+ if(saved?.version===3&&saved.day===Core.cycle(at)&&(saved.tasks.length>=10||at<nextDailyOfferCheck))return;
  const board=Daily.liveBoard(saved,dailySnapshot(at),at,username||'guest');
  nextDailyOfferCheck=at+60000;
  if(board===saved)return;
@@ -8714,16 +8714,15 @@ function dailyEvent(event){
 }
 function dailySettlement(from,to,offline){
  const daily=S.dailyGenerated;
- if(daily?.version!==2||daily.status!=='ready')return;
+ if(daily?.version!==3||daily.status!=='ready')return;
  from=Math.max(from,daily.assignedAt);
  if(to<=from||daily.day!==Core.cycle(to))return;
  const open=metric=>daily.tasks.some(t=>t.metric===metric&&!t.claimed&&t.progress<t.target);
  const delivery=open('cityDelivery');
- const trading=!offline&&!document.hidden&&(open('trade')||open('cityCoins')||open('sellingStores'));
+ const trading=!offline&&!document.hidden&&(open('cityCoins')||open('sellingStores'));
  if(!delivery&&!trading)return;
  const config=Core.configFor(S,ECON);
  const activeUntil=Math.min(to,(S.economyLab.lastAction||0)+600000);
- const activeRanges=[];
  let coins=0;
  for(const b of D.list){
   const p=config[b.t.id],product=b.t.pr?.[0];
@@ -8735,12 +8734,10 @@ function dailySettlement(from,to,offline){
   if(!ranges.length)continue;
   const rate=Core.gross(b.d,b.t,employees,p,businessRates)*(D.schoolMultiplier||1);
   for(const [lo,hi] of ranges){
-   activeRanges.push([lo,hi]);
    coins+=rate*(hi-lo+Math.max(0,Math.min(hi,S.boostUntil||0)-lo))/60000;
   }
   dailyAction('sellingStores',1,b.t.labId,to);
  }
- dailyAction('trade',Core.unionMs(activeRanges)/60000,null,to);
  dailyAction('cityCoins',coins,null,to);
 }
 function labDailyClaim(key){

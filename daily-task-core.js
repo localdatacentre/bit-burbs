@@ -267,8 +267,8 @@ function sessionGoals(snapshot,at,events,player='',previous=[]) {
 function liveBoard(saved, city, at, player) {
   const day=Core.cycle(at);
   const sameDay=saved?.day===day;
-  const current=sameDay&&saved.version===2;
-  const carried=sameDay?(saved.tasks||[]).filter(t=>current||t.claimed||t.progress>=t.target):[];
+  const current=sameDay&&saved.version===3;
+  const carried=sameDay?(saved.tasks||[]).filter(t=>t.claimed||t.progress>=t.target||((current||saved.version===2)&&t.metric!=='trade')):[];
   const pool=[];
   function add(id,family,metric,target,text,rank=0) {
     if(target>0)pool.push({id:'city-'+id,family,metric,target,text,rank,ids:[],
@@ -278,15 +278,11 @@ function liveBoard(saved, city, at, player) {
   const stores=businesses.filter(b=>b.connected&&b.employees>0&&b.rate>0);
   const stocked=stores.filter(b=>b.remaining>=1);
   const coins=stocked.reduce((total,b)=>total+b.rate*Math.min(b.remaining,30,horizon),0);
-  const trade=Math.floor(Math.min(Math.max(0,...stocked.map(b=>b.remaining)),horizon));
-  for(const [rank,n] of [5,15,30].entries()){
-    if(trade>=n)add('trade-'+n,'trade','trade',n,'Trade for '+n+' active minutes',rank);
-  }
   for(const [rank,n] of [100,500,2000,5000].entries()){
     if(coins>=n)add('sales-'+n,'sales','cityCoins',n,'Earn '+n.toLocaleString('en-AU')+' coins from sales while playing',Math.min(rank,2));
   }
   for(const [rank,n] of [2,4,6].entries()){
-    if(stocked.length>=n&&trade>=1)add('stores-'+n,'sales','sellingStores',n,'Make sales at '+n+' different businesses',rank);
+    if(stocked.length>=n&&horizon>=1)add('stores-'+n,'sales','sellingStores',n,'Make sales at '+n+' different businesses',rank);
   }
   // Orders must be due during this session. Deliveries already in flight
   // can qualify independently, including after the player signs back in.
@@ -328,12 +324,12 @@ function liveBoard(saved, city, at, player) {
     picked.push({...t,key:day+':city:'+t.family,assignedAt:at,progress:0,claimed:false});
   }
   if(current&&picked.length===carried.length)return saved;
-  return {version:2,day,status:'ready',assignedAt:current?saved.assignedAt:at,tasks:picked,
+  return {version:3,day,status:'ready',assignedAt:current?saved.assignedAt:at,tasks:picked,
     receipts:sameDay?saved.receipts||{}:{},revision:sameDay?saved.revision||0:0};
 }
 
 function liveProgress(board,type,at,amount=1,subject=null){
-  if(board?.version!==2||board.day!==Core.cycle(at))return;
+  if(board?.version!==3||board.day!==Core.cycle(at))return;
   for(const task of board.tasks){
     if(!Number.isFinite(amount)||amount<=0||task.metric!==type||task.claimed||task.progress>=task.target||at<task.assignedAt)continue;
     if(subject!==null){
