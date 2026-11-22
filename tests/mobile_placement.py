@@ -55,8 +55,20 @@ def check_placement(browser, base):
     def touch(kind, *points):
         session.send("Input.dispatchTouchEvent", {
             "type": kind, "touchPoints": [
-                {"id": index, "x": p[0], "y": p[1]} for index, p in enumerate(points, 1)
+                {"id": index, "x": p[0], "y": p[1]} for index, p in enumerate(points)
             ]})
+
+    def tap(*position):
+        # Use the same Chromium input source as dragging and pinching. A real
+        # finger stays on the control across at least one displayed frame.
+        touch("touchStart", position)
+        page.evaluate("new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)))")
+        touch("touchEnd")
+
+    def tap_control(locator):
+        locator.tap(trial=True)
+        bounds = locator.bounding_box()
+        tap(bounds["x"] + bounds["width"]/2, bounds["y"] + bounds["height"]/2)
 
     def drag(start, end):
         touch("touchStart", start)
@@ -66,7 +78,7 @@ def check_placement(browser, base):
     def choose(model):
         button = page.locator(f'#sheetBody [data-act="choose"][data-id="{model}"]')
         price = int(re.sub(r"[^0-9]", "", button.locator(".price").inner_text()))
-        button.tap()
+        tap_control(button)
         return price
 
     def card(action):
@@ -82,7 +94,7 @@ def check_placement(browser, base):
                 }, {once: true, capture: true});
             }
         }""")
-        card(action).tap()
+        tap_control(card(action))
         try:
             finished()
         except AssertionError:
@@ -94,26 +106,26 @@ def check_placement(browser, base):
             })"""), "save:", snapshot(), flush=True)
             raise
         if repeat_at:
-            page.touchscreen.tap(*repeat_at)
+            tap(*repeat_at)
 
     original = snapshot()
     mid = original["mid"]
     assert original["plots"] == [], original
     anchor, moved = point(-4, -4), point(-2, -4)
-    page.touchscreen.tap(*anchor)
-    card("buildHere").tap()
+    tap(*anchor)
+    tap_control(card("buildHere"))
     house_cost = choose("house")
     expect(card("confirmPlace")).to_be_enabled()
     assert snapshot() == original, "Choosing a building on a selected plot spent coins"
-    card("cancelPlace").tap()
+    tap_control(card("cancelPlace"))
     assert snapshot() == original
 
     if card("closeCard").is_visible():
-        card("closeCard").tap()
-    page.get_by_role("button", name="Build", exact=True).tap()
+        tap_control(card("closeCard"))
+    tap_control(page.get_by_role("button", name="Build", exact=True))
     choose("house")
     expect(card("confirmPlace")).to_be_disabled()
-    page.touchscreen.tap(*anchor)
+    tap(*anchor)
     expect(card("confirmPlace")).to_be_enabled()
     drag(anchor, moved)
     assert snapshot() == original
@@ -127,8 +139,8 @@ def check_placement(browser, base):
     expect(card("manageProperty")).to_be_visible()
     confirm("closeCard", lambda: expect(page.locator("#nav [data-open=build]")).to_be_visible())
 
-    page.get_by_role("button", name="Build", exact=True).tap()
-    page.locator('#sheetBody [data-tab="city"]').tap()
+    tap_control(page.get_by_role("button", name="Build", exact=True))
+    tap_control(page.locator('#sheetBody [data-tab="city"]'))
     road_cost = choose("road")
     build = card("confirmRoad")
     expect(build).to_be_disabled()
@@ -138,12 +150,12 @@ def check_placement(browser, base):
     drag(start, (start[0]+42, start[1]+21))
     camera_x, camera_y = 42, 21
     expect(build).to_be_disabled()
-    page.touchscreen.tap(*point(-2, -4))
+    tap(*point(-2, -4))
     expect(build).to_be_disabled()
     assert snapshot() == after_house
 
     road_point = point(-4, 0)
-    page.touchscreen.tap(*road_point)
+    tap(*road_point)
     expect(build).to_be_enabled()
     # A drag that starts on the road preview must only move the camera.
     drag(road_point, (road_point[0]+45, road_point[1]-18))
@@ -164,7 +176,7 @@ def check_placement(browser, base):
     assert after_road["plots"] == [house, road], after_road
     assert after_road["cash"] == after_house["cash"] - road_cost, after_road
     expect(build).to_be_disabled()
-    page.touchscreen.tap(*point(-4, 0))
+    tap(*point(-4, 0))
     expect(build).to_be_disabled()
 
     # A cancelled touch must not replace the blocked selection.
@@ -181,14 +193,14 @@ def check_placement(browser, base):
     camera_y += 16
     expect(build).to_be_disabled()
     a, b = point(-6, -1), point(-2, -1)
-    page.touchscreen.tap(*a)
+    tap(*a)
     expect(build).to_be_enabled()
     # Zooming preserves the proposed tile. Done discards it without charging.
     touch("touchStart", a, b)
     touch("touchMove", (a[0]-12, a[1]), (b[0]+12, b[1]))
     touch("touchEnd")
     expect(build).to_be_enabled()
-    card("donePlace").tap()
+    tap_control(card("donePlace"))
     assert snapshot() == after_road
     context.close()
     print("Passed mobile building placement and tap-only road placement", flush=True)
