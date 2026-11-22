@@ -17,7 +17,7 @@
 <link rel="preload" as="font" type="font/woff2" href="./fonts/silkscreen-400.woff2" crossorigin>
 <link rel="preload" as="script" href="./residential-cats.js?v=yard1">
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
-<link rel="preload" as="script" href="./daily-task-core.js?v=city-goals2">
+<link rel="preload" as="script" href="./daily-task-core.js?v=city-goals3">
 <link rel="preload" as="script" href="./daily-task-session.js">
 <link rel="preload" as="style" href="./page-shell.css?v=mobile-polish1">
 <style>
@@ -8591,7 +8591,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=mobile-polish1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=city-goals2"></script>
+<script src="./exchange-room.js?v=mobile-polish1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=city-goals3"></script>
 <script>
 (async () => {
 'use strict';
@@ -8648,13 +8648,6 @@ function labRestock(tile){const e=labState();e.restocks++;
  if(tile.labSold>0&&e.restockAwards<2){e.restockAwards++;labAward(7);tile.labSold=0;}labSyncTasks();}
 function labServicesOK(){const relevant=D?.list?.filter(b=>b.d.type==='home'||ECON[b.t.id])||[];return relevant.length>0&&relevant.every(b=>b.ok&&b.pow&&b.wat);}
 const Daily = window.DailyTasks;
-const starterTaskLabels={
- hall:'Place your Town Hall', home:'Connect a home to roads, power and water',
- business:'Get a staffed business running', road:'Place a road',
- utilityPower:'Connect a power producer to a road', utilityWater:'Connect a water producer to a road',
- residents:'Welcome 3 residents', jobs:'Fill 3 jobs',
- operation:'Trade for 15 active minutes', revenue:'Earn 100 coins from active trading'
-};
 function dailySnapshot(at){
  const horizon=Math.min(120,Math.max(0,(nextDailyReset(at)-at)/60000));
  const homes=D.list.filter(b=>b.d.type==='home'&&(b.t.rent||0)>=1);
@@ -8690,7 +8683,7 @@ let nextDailyOfferCheck=0;
 function labSyncTasks(){
  if(!S?.economyLab||!D?.list)return;
  const at=now(),saved=S.dailyGenerated;
- if(saved?.version===3&&saved.day===Core.cycle(at)&&(saved.tasks.length>=10||at<nextDailyOfferCheck))return;
+ if(saved?.version===4&&saved.day===Core.cycle(at)&&(saved.tasks.filter(t=>!t.archived).length>=10||at<nextDailyOfferCheck))return;
  const board=Daily.liveBoard(saved,dailySnapshot(at),at,username||'guest');
  nextDailyOfferCheck=at+60000;
  if(board===saved)return;
@@ -8706,7 +8699,7 @@ function dailyEvent(event){
 }
 function dailySettlement(from,to,offline){
  const daily=S.dailyGenerated;
- if(daily?.version!==3||daily.status!=='ready')return;
+ if(daily?.version!==4||daily.status!=='ready')return;
  from=Math.max(from,daily.assignedAt);
  if(to<=from||daily.day!==Core.cycle(to))return;
  const open=metric=>daily.tasks.some(t=>t.metric===metric&&!t.claimed&&t.progress<t.target);
@@ -13155,15 +13148,17 @@ function loginRewardsHTML(resetTime){
 function tasksHTML() {
   labSyncTasks();
   const daily=S.dailyGenerated;
-  const tasks=daily?.tasks||[];
+  const tasks=(daily?.tasks||[]).filter(t=>!t.archived);
+  const rewards=(daily?.tasks||[]).filter(t=>t.archived&&!t.claimed);
   const complete=tasks.filter(t=>t.claimed).length;
   const resetTime=localDailyResetTime();
-  let h=loginRewardsHTML(resetTime)+`<div class="daily-head"><div><small>Resets at ${resetTime}</small></div><span class="daily-count">${complete}/${tasks.length}</span></div><div class="daily-list">`;
+  const previousRewards=rewards.length?'<section class="sect"><h3>Previous task rewards</h3>'+rewards.map(t=>
+    `<button class="pixel-btn pb sm" data-act="dclaim" data-k="${t.key}">Collect reward · ${t.reward.xp} XP</button>`).join(' ')+'</section>':'';
+  let h=loginRewardsHTML(resetTime)+previousRewards+`<div class="daily-head"><div><small>Resets at ${resetTime}</small></div><span class="daily-count">${complete}/${tasks.length}</span></div><div class="daily-list">`;
   if(!tasks.length)h+='<p class="note">More tasks become available as your city grows.</p>';
   tasks.forEach((task,q)=>{
-    const labels={sales:'Earn coins through sales',tradingCoverage:'Open for trade',sellingMinutes:'Keep trading',staffedMinutes:'Keep businesses staffed',order:'Order stock',delivery:'Receive stock',visits:'Receive BinLink visits',improve:'Improve a building',arrivals:'Welcome new residents',suppliedHomeMinutes:'Keep homes supplied',powerMinutes:'Keep power connected',waterMinutes:'Keep water connected',connectedMinutes:'Keep businesses connected'};
     const done=task.progress>=task.target;
-    h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-copy"><b>${task.id.startsWith('city-')?String(task.text||'City task').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]):starterTaskLabels[task.metric]||labels[task.metric]||'City task'}</b><small>${task.difficulty} · ${fmt(task.progress)} / ${fmt(task.target)}</small><small>1 crate voucher, 1 dosh, ${task.reward.xp} XP</small></div>${dailyTaskProgress({p:task.progress,n:task.target})}<button class="pixel-btn pb sm" data-act="dclaim" data-k="${task.key}" ${task.claimed||!done?'disabled':''}>${task.claimed?'Claimed':done?'Collect reward':'In progress'}</button></div>`;
+    h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-copy"><b>${String(task.text||'City task').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c])}</b><small>${task.difficulty} · ${fmt(task.progress)} / ${fmt(task.target)}</small><small>1 crate voucher, 1 dosh, ${task.reward.xp} XP</small></div>${dailyTaskProgress({p:task.progress,n:task.target})}<button class="pixel-btn pb sm" data-act="dclaim" data-k="${task.key}" ${task.claimed||!done?'disabled':''}>${task.claimed?'Claimed':done?'Collect reward':'In progress'}</button></div>`;
   });
   h+='</div>';
   return h;

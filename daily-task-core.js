@@ -267,8 +267,16 @@ function sessionGoals(snapshot,at,events,player='',previous=[]) {
 function liveBoard(saved, city, at, player) {
   const day=Core.cycle(at);
   const sameDay=saved?.day===day;
-  const current=sameDay&&saved.version===3;
-  const carried=sameDay?(saved.tasks||[]).filter(t=>t.claimed||t.progress>=t.target||((current||saved.version===2)&&t.metric!=='trade')):[];
+  const current=sameDay&&saved.version===4;
+  const carried=[];
+  if(sameDay)for(const task of saved.tasks||[]){
+    if(task.id.startsWith('city-')&&task.metric!=='trade'){
+      const family={buildDecor:'decoration',upgradeAny:'upgrade',cityDelivery:'deliveries'}[task.metric]||task.family;
+      carried.push(family===task.family?task:{...task,family});
+    }else if(task.claimed||task.progress>=task.target){
+      carried.push(task.archived?task:{...task,archived:true});
+    }
+  }
   const pool=[];
   function add(id,family,metric,target,text,rank=0) {
     if(target>0)pool.push({id:'city-'+id,family,metric,target,text,rank,ids:[],
@@ -292,7 +300,7 @@ function liveBoard(saved, city, at, player) {
   for(const [rank,n] of [1,2,3].entries()){
     if(stock.length>=n&&stock.slice(0,n).slice(0,Math.max(0,n-city.restockVouchers)).reduce((a,b)=>a+b,0)<=city.cash)
       add('order-'+n,'supplies','cityOrder',n,n===1?'Order a restock':'Restock '+n+' different businesses',rank);
-    if(deliverable>=n)add('deliver-'+n,'supplies','cityDelivery',n,n===1?'Receive a delivery':'Receive deliveries at '+n+' different businesses',rank);
+    if(deliverable>=n)add('deliver-'+n,'deliveries','cityDelivery',n,n===1?'Receive a delivery':'Receive deliveries at '+n+' different businesses',rank);
   }
   const {rentHomes=0,rentCoins=0,arrivals=0,jobs=0,canBuild,canRoad,canUpgrade,canRestore,canDecorate,freeSpin}=city;
   for(const [rank,n] of [1,2,4].entries()){
@@ -309,27 +317,29 @@ function liveBoard(saved, city, at, player) {
   }
   if(canBuild)add('build','project','buildAny',1,'Build a building of your choice');
   if(canRoad)add('road','roadwork','buildRoad',1,'Place a road tile');
-  if(canDecorate)add('decoration','project','buildDecor',1,'Place a decoration');
-  if(canUpgrade)add('upgrade','project','upgradeAny',1,'Upgrade a building of your choice');
+  if(canDecorate)add('decoration','decoration','buildDecor',1,'Place a decoration');
+  if(canUpgrade)add('upgrade','upgrade','upgradeAny',1,'Upgrade a building of your choice');
   if(canRestore)add('restore','restore','restoreAny',1,'Place a building from My Items');
   if(freeSpin)add('spin','bonus','freeSpin',1,'Use your free Lucky Wheel spin');
   const previous=new Set(saved?.tasks?.map(t=>t.id));
   const rng=random(player+':'+day);
-  const ranked=pool.map(t=>({t,score:rng()+Number(previous.has(t.id))})).sort((a,b)=>a.score-b.score);
+  const ranked=pool.map(t=>({t,score:rng()+Number(previous.has(t.id))+(t.family==='bonus'?3:0)})).sort((a,b)=>a.score-b.score);
   const picked=[...carried], families=new Set(carried.map(t=>t.family));
+  let activeCount=carried.filter(t=>!t.archived).length;
   for(const {t} of ranked){
-    if(picked.length>=10)break;
+    if(activeCount>=10)break;
     if(families.has(t.family))continue;
     families.add(t.family);
-    picked.push({...t,key:day+':city:'+t.family,assignedAt:at,progress:0,claimed:false});
+    activeCount++;
+    picked.push({...t,key:day+':city4:'+t.family,assignedAt:at,progress:0,claimed:false});
   }
   if(current&&picked.length===carried.length)return saved;
-  return {version:3,day,status:'ready',assignedAt:current?saved.assignedAt:at,tasks:picked,
+  return {version:4,day,status:'ready',assignedAt:current?saved.assignedAt:at,tasks:picked,
     receipts:sameDay?saved.receipts||{}:{},revision:sameDay?saved.revision||0:0};
 }
 
 function liveProgress(board,type,at,amount=1,subject=null){
-  if(board?.version!==3||board.day!==Core.cycle(at))return;
+  if(board?.version!==4||board.day!==Core.cycle(at))return;
   for(const task of board.tasks){
     if(!Number.isFinite(amount)||amount<=0||task.metric!==type||task.claimed||task.progress>=task.target||at<task.assignedAt)continue;
     if(subject!==null){
