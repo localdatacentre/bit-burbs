@@ -1,4 +1,4 @@
-const CACHE='bit-burbs-orbital-gym-20261118-v1-daily1-earnings2075-cats4-yard1-concepts1-release3-jobs1-shell1-instantrooms1-home-nav1';
+const CACHE='bit-burbs-orbital-gym-20261118-v1-daily1-earnings2075-cats4-yard1-concepts1-release3-jobs1-shell1-instantrooms1-home-nav1-bag2';
 const ASSETS=['./exchange-room.js?v=home-nav1','./page-shell.css?v=home-nav1','./fonts/vt323-400.woff2','./fonts/silkscreen-400.woff2','./fonts/silkscreen-700.woff2','./residential-cats.js?v=yard1','./cats/lot-maps.json?v=1','./cats/megatron-day.png','./cats/megatron-night.png','./cats/sweetie-day.png','./cats/sweetie-night.png','./index.html','./economy-core.js?v=jobs1','./daily-task-core.js?v=ten-tasks1','./dosh-shop-dock.png','./exchange-art/silver.png?v=freight-face-v2','./daily-task-session.js','./manifest.webmanifest','./bitburbs-icon.svg','./apple-touch-icon.png','./icon-192.png','./icon-512.png','./binlink-streets.png?v=88'];
 
 self.addEventListener('install',event=>{
