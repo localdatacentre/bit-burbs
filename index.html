@@ -2512,7 +2512,8 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #nav .dock-icon{width:28px;height:28px}
 @media(max-width:540px){#nav > button.pixel-btn[data-open]{font-size:clamp(14px,4vw,16px)!important}}
 #sheet.open{bottom:var(--main-dock-height,calc(62px + env(safe-area-inset-bottom,0px)))!important}
-#nav > button.pixel-btn[data-open="bag"]{--bb-face:#ffdf70;--bb-top:#ffe994;--bb-bottom:#d4a12d;--bb-edge:#916b21}</style>
+:root{--bag-yellow:#ffdf70;--bag-highlight:#ffe994}
+#nav > button.pixel-btn[data-open="bag"]{--bb-face:var(--bag-yellow);--bb-top:var(--bag-highlight);--bb-bottom:#d4a12d;--bb-edge:#916b21}</style>
 <style>#nav > button.pixel-btn.bag-unread[data-open="bag"]{border-color:#ffdb59!important;box-shadow:inset 0 0 0 2px #ffdb59!important}#nav .bag-unread .dock-icon{filter:drop-shadow(0 1px 1px #ffdc65)}</style>
 <style>#remodelDemoPanel{position:fixed;top:max(6px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:9999;width:min(92vw,430px);box-sizing:border-box;background:#182d45;color:white;padding:8px 12px;border:2px solid #78adc3;font:16px/1.2 monospace;text-align:center}#remodelDemoPanel p{margin:0 0 4px}#remodelDemoPanel a{color:#ffe391;font-size:14px}</style>
 <style>
@@ -2721,22 +2722,32 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #sheet[data-view="tasks"] .daily-task-copy b{color:#eff7ff;font:400 23px/1.2 'VT323',monospace;overflow-wrap:anywhere}
 #sheet[data-view="tasks"] :is(.daily-task-copy small,.daily-head small,.note,.sect p){color:#c6dcef;font:400 20px/1.2 'VT323',monospace}
 #sheet[data-view="tasks"] :is(.daily-task-card,.sect) button.pixel-btn{min-height:36px}
-#sheet[data-view="bag"],#sheet[data-view="bag"] #sheetBody{background:#FBE7BA;color:#392916}
-#sheet[data-view="bag"] .shead{background:#725021;border-bottom:3px solid #4e3419}
-#sheet[data-view="bag"] #sheetTitle{color:white}
-#sheet[data-view="bag"] #sheetBody :is(h3,.note){color:#392916}
+#sheet[data-view="bag"]{--bag-ink:#192840;--bag-card:#304462;--bag-rim:#506987}
+#sheet[data-view="bag"],#sheet[data-view="bag"] #sheetBody{background:var(--bag-yellow);color:var(--bag-ink)}
+#sheet[data-view="bag"] .shead{background:var(--bag-yellow);border-bottom:3px solid var(--bag-ink);box-shadow:inset 0 3px var(--bag-highlight)}
+#sheet[data-view="bag"] #sheetTitle,#sheet[data-view="bag"] #sheetBody :is(h3,.note){color:var(--bag-ink);text-shadow:none}
+#sheet[data-view="bag"] #sheetBody .note{font:400 20px/1.2 'VT323',monospace}
 #sheet[data-view="bag"] .bag-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 #sheet[data-view="bag"] #sheetBody .bag-card{
- display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;margin:0;padding:12px 7px;text-align:center;
- background:#fff3d9;color:#392916;border:2px solid #a97937;border-radius:0;box-shadow:inset 0 3px white,0 2px #bd9154
+ --bb-face:var(--bag-card);--bb-top:var(--bag-rim);--bb-bottom:#263752;--bb-edge:var(--bag-ink);
+ display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;margin:0;padding:12px;text-align:center;
+ background:var(--bag-card);color:white;border:2px solid var(--bag-ink);border-radius:0;box-shadow:inset 0 2px var(--bag-rim)
 }
-#sheet[data-view="bag"] .bag-card :is(b,small,span){color:#392916;overflow-wrap:anywhere}
+#sheet[data-view="bag"] .bag-card :is(b,small,span){overflow-wrap:anywhere;text-shadow:none}
 #sheet[data-view="bag"] .bag-card b{font:21px/1.12 'VT323',monospace}
-#sheet[data-view="bag"] .bag-card :is(small,span){font:17px/1.15 'VT323',monospace}
+#sheet[data-view="bag"] .bag-card :is(small,span){font:18px/1.15 'VT323',monospace}
+#sheet[data-view="bag"] .bag-card small{color:var(--bag-yellow)}
 #sheet[data-view="bag"] .bag-card canvas{display:block;image-rendering:pixelated}
 #sheet[data-view="bag"] .bag-card canvas[data-icon]{width:44px;height:44px}
 #sheet[data-view="bag"] .bag-card canvas[data-prev]{width:100%;max-width:130px;height:auto}
-#sheet[data-view="bag"] .bag-card button{margin-top:auto;min-height:36px;white-space:normal}
+#sheet[data-view="bag"] .bag-supplies{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start}
+#sheet[data-view="bag"] .bag-supplies section{display:grid;gap:8px;min-width:0}
+#sheet[data-view="bag"] .bag-supplies .bag-card{height:100%;box-sizing:border-box}
+#sheet[data-view="bag"] .bag-supplies button{max-width:100%;min-height:44px;margin-top:auto;white-space:normal}
+#sheet[data-view="bag"] #sheetBody button.pixel-btn.pb{
+ --bb-face:var(--bag-yellow);--bb-top:var(--bag-highlight);--bb-bottom:#e7b93b;--bb-edge:var(--bag-ink);
+ color:var(--bag-ink)!important;text-shadow:none!important
+}
 </style>
 <style>
 body,button,input,select,textarea{font-family:'VT323',monospace}
@@ -2758,6 +2769,11 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #mg #mgPanel.mg-market{background:#43597A!important}
 #mg #mgPanel.mg-wheel .mg-screen-head{background:#635C98!important}
 #mg #mgPanel.mg-market .mg-screen-head{background:#537AAA!important}
+#sheet .shead{box-sizing:border-box;flex:none;gap:10px;padding:8px clamp(10px,3vw,16px)}
+#sheet .shead #sheetTitle{flex:1;min-width:0;text-align:left;text-shadow:none;font-size:clamp(14px,3.6vw,19px);overflow-wrap:anywhere}
+#mg #mgPanel .mg-screen-head{grid-template-columns:minmax(0,1fr) auto!important;min-height:0!important;padding-block:8px!important}
+#mg #mgPanel .mg-screen-head .mgtitle{grid-column:1!important;text-align:left!important;font-size:clamp(14px,3.6vw,19px)!important}
+#mg #mgPanel .mg-screen-head button.mgx{grid-column:2!important}
 </style>
 </head>
 <body>
@@ -2817,7 +2833,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 
 <div id="scrim"></div>
 <section id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-  <div class="shead"><button class="pixel-btn pb sq infob" data-act="info" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 id="sheetTitle">Build</h2><button class="pixel-btn pb red sq pixel-close" data-act="closeSheet" aria-label="Close">✕</button></div>
+  <div class="shead"><h2 id="sheetTitle">Build</h2><button class="pixel-btn pb red sq pixel-close" data-act="closeSheet" aria-label="Close">✕</button></div>
   <div class="sbody" id="sheetBody"></div>
 </section>
 
@@ -10196,7 +10212,7 @@ function stopCount(id, includeStored=false) {
   return placed+(includeStored?(S.storedBuildings||[]).filter(e=>e.building?.id===id).length:0);
 }
 function buildingLimitMessage(id, restoring=false) {
-  if((parkSizes[id]||isStop(id))&&stopCount(id,!restoring)>=1)return 'Limit of one per city.';
+  if((id==='deliveryDepot'||parkSizes[id]||isStop(id))&&stopCount(id,!restoring)>=1)return 'Limit of one per city.';
   if (id !== 'school') return '';
   if (hasB('school')) return 'Your city already has a school.';
   if (!restoring && S.storedBuildings?.some(entry => entry.building.id === 'school'))
@@ -10226,6 +10242,14 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (id === 'road') { track('road'); addXP(1); snd('road'); } else { snd('build'); track('build');labDevelopment('build:'+id,20); popup(i, j, d.name + '!', '#FFF3D6'); }
   if (id !== 'road' && d.type !== 'decor' && !roadNearFP(i, j, id)) toast('Tip: it needs a road next to it to work.');
   changed(); return true;
+}
+function pickUpBuilding(i,j,t) {
+  if (!t || tileAt(i,j)!==t || t.id==='road' || t.id==='hall' || t.id==='_occ') return false;
+  vacate(i,j,t);
+  delete t._;
+  (S.storedBuildings ||= []).push({building:t,from:[i,j]});
+  changed();save();
+  return true;
 }
 function demolitionRefund(tile) {
   if (!tile || isStop(tile.id) || tile.id === 'road' || tile.id === 'hall') return 0;
@@ -12394,7 +12418,8 @@ function renderCard(force) {
       const road=placing.id==='road';
       const hint=road?'Roads automatically connect to adjacent roads.':'Choose an action or tap another building.';
       html=head(d.name,hint)+
-        `<div class="row"><button class="pixel-btn pb" data-act="chooseMove">Move ${road?'road':'building'}</button>${rotateButton}</div>`;
+        `<div class="row"><button class="pixel-btn pb" data-act="chooseMove">Move ${road?'road':'building'}</button>${rotateButton}</div>`+
+        (road||placing.id==='hall'?'':'<button class="pixel-btn pb" data-act="pickUpBuilding">Pick up</button>');
     }else if(placing.source){
       const message=!g?'Tap the new spot on the map.':ok?'Confirm this position and facing.':isStop(placing.id)?'Choose a free plot beside a straight road.':'This footprint needs clear land.';
       html=head('Move '+d.name,message)+
@@ -12442,6 +12467,7 @@ function renderCard(force) {
 function managePanel(d){
     return head(d.name,'Manage building')+
       '<div class="preview-row"><button class="pixel-btn pb grow" data-act="businessMove">Move</button><button class="pixel-btn pb grow" data-act="businessRotate">Rotate</button></div>'+
+      '<button class="pixel-btn pb" data-act="pickUpBuilding">Pick up</button>'+
       '<div class="preview-row"><button class="pixel-btn pb secondary grow" data-act="manageBack">Back</button>'+demoBtn('Remove')+'</div>';
 }
 function homePanel(b){
@@ -12513,6 +12539,14 @@ card.addEventListener('click', e => {
     if(!tileAt(i,j))return;
     animateTo(i+.5,j+.5);select(i,j);return;
   }
+  if(a==='pickUpBuilding'){
+    const edit=placing?.action==='choose'?placing:null;
+    const source=edit?.source||sel;
+    if(source && pickUpBuilding(source.i,source.j,edit?.object||tileAt(source.i,source.j))){
+      placing=null;select(null);toast('Building stored in My Items.');
+    }
+    return;
+  }
   if(sel && a==='businessStock'){manualRestock(+b.dataset.fee,sel.j*N+sel.i,b.dataset.voucher==="true");return;}
   if(sel && (a==='manageProperty'||a==='manageBack')){
     managingProperty=a==='manageProperty';demoArm=false;renderCard(true);return;
@@ -12573,7 +12607,7 @@ scrim.addEventListener('click', closeSheet);
 function sheetKey() {
   if(sheet==='depot')return depotHTML();
   if (sheet === 'build') return buildTab + '|' + S.level + '|' + Object.keys(DEFS).map(k => S.cash >= (DEFS[k].cost || 0) ? 1 : 0).join('') + '|' + JSON.stringify(S.items);
-  if (sheet === 'bag') return (S.storedBuildings?.length || 0) + '|' + JSON.stringify([S.shopItems,S.coinBoostTokens,S.restockVouchers,choosingVoucher?voucherHTML():'']);
+  if (sheet === 'bag') return (S.storedBuildings?.length || 0) + '|' + JSON.stringify([S.shopItems,S.coinBoostTokens,S.restockVouchers,choosingVoucher?voucherChoicesHTML():'']);
   if(sheet==='tasks'){labSyncTasks();return JSON.stringify([S.dailyGenerated?.tasks,loginRewardState()]);}
   if (sheet === 'settings') return String(S.sound !== false) + '|' + rewardSoundEnabled() + '|' + showFPS + '|' + LOC.src + '|' + resetArm;
   return '';
@@ -12628,8 +12662,8 @@ function itemBagHTML() {
   const moved=Array.from(groups.values(),({building,index,count})=>card(building.id,
     `data-act="restore" data-index="${index}"`,(building.id==='road'?'Road tile':'Level '+lvlOf(building))+' · '+count+' owned')).join('');
   const owned = collectables.map(([id,count]) => card(id, `data-act="choose" data-id="${id}"`, 'Owned · '+count)).join('');
-  return voucherHTML() + coinBoostHTML() + heldNote + '<h3>Moved buildings</h3>' + (moved ? '<div class="bag-grid">'+moved+'</div>' : '<p class="note">If a remodel needs more space, your building will be kept here with its upgrades.</p>') +
-    '<h3>Collectables</h3>' + (owned ? '<div class="bag-grid">'+owned+'</div>' : '<p class="note">Owned collectables that can be placed appear here.</p>');
+  return '<div class="bag-supplies"><section aria-label="Coin boosts">'+coinBoostHTML()+'</section><section aria-label="Restock vouchers">'+voucherHTML()+'</section></div>' + voucherChoicesHTML() + '<h3>Stored buildings</h3>'  + (moved ? '<div class="bag-grid">'+moved+'</div>' : '<p class="note">Use the Move tool to pick up a building. Buildings that need more room after a remodel appear here too.</p>') +
+    heldNote + '<h3>Collectables</h3>' + (owned ? '<div class="bag-grid">'+owned+'</div>' : '<p class="note">Owned collectables that can be placed appear here.</p>');
 }
 function restoreBuilding(entry,i,j,turned=entry.building.turned) {
   const index = S.storedBuildings.indexOf(entry);
@@ -12661,10 +12695,13 @@ function missingStock(b, time) {
 }
 function voucherHTML() {
   const count = S.restockVouchers || 0;
-  let html = '<h3>Restock vouchers</h3><div class="bag-grid"><div class="bag-card"><canvas data-icon="voucher" width="48" height="48" aria-hidden="true"></canvas><b>Restock voucher</b><small>Owned · '+count+'</small>';
+  let html = '<div class="bag-card"><canvas data-icon="voucher" width="48" height="48" aria-hidden="true"></canvas><b>Restock voucher</b><small>Owned · '+count+'</small>';
   if (count) html += '<button class="pixel-btn pb" data-act="pickVoucher">'+(choosingVoucher?'Cancel':'Choose business')+'</button>';
-  html += '</div></div>';
-  if (!count || !choosingVoucher) return html;
+  return html+'</div>';
+}
+function voucherChoicesHTML() {
+  if (!S.restockVouchers || !choosingVoucher) return '';
+  let html='';
   const time = now();
   const choices = D.list.filter(b => missingStock(b,time).length);
   if(!choices.length){
@@ -12684,7 +12721,7 @@ function redeemVoucher(i,j) {
 function coinBoostHTML() {
   const tokens = Object.entries(S.coinBoostTokens || {}).filter(([min,count]) => Number(min)>0 && count>0);
   const cards = tokens.map(([min,count]) => `<div class="bag-card"><canvas data-icon="boost" width="48" height="48" aria-hidden="true"></canvas><b>2× coins · ${Number(min)} min</b><small>Owned · ${Number(count)}</small><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}">Use</button></div>`);
-  return '<h3>Coin boosts</h3>' + (cards.length ? '<div class="bag-grid">'+cards.join('')+'</div>' : '<p class="note">Earn boosts from rewards, then tap Use here to start the timer.</p>');
+  return cards.length ? cards.join('') : '<div class="bag-card"><canvas data-icon="boost" width="48" height="48" aria-hidden="true"></canvas><b>2× coin boost</b><small>Owned · 0</small></div>';
 }
 function useCoinBoost(min) {
   if (![10,15].includes(min) || !(S.coinBoostTokens?.[min]>0)) return;
@@ -13109,7 +13146,7 @@ const BW = 340, BH = 250, BTW = 82, BTH = 41, BTK = 14;
 function bpt(ix, iy) { return { x: BW / 2 + (ix - iy) * BTW / 2, y: 58 + (ix + iy) * BTH / 2 }; }
 function pipsHTML(v) { const on = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }[v]; return Array.from({ length: 9 }, (_, k) => `<i class="${on.indexOf(k) >= 0 ? 'on' : ''}"></i>`).join(''); }
 function buildDice() {
-  mgPanel.innerHTML = `<button class="pixel-btn pb sq infob" data-act="info" data-k="dice" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CITY DICE</h2>${hiCanvas('board', BW, BH)}<div class="bigdie" id="bigdie" aria-label="Die">${pipsHTML(S.lastDie || 1)}</div><span class="cnt" id="rollsLeft">${S.dice}</span><button class="pixel-btn pb" data-act="roll" id="rollBtn" style="min-width:170px;font-size:20px">Roll</button><p class="mgmsg" id="diceNext"></p><div class="grind"><span>Earn a roll</span><div class="bar"><i id="gD"></i></div><b id="gDt"></b></div><p class="mgmsg" style="font-size:13px;font-weight:500">Collecting from shops (2 pts), homes, industry and the bus (1 pt) fills the bar.</p><p class="mgmsg" id="diceMsg">${diceMsg}</p>` + tableHTML('??? MYSTERY REWARDS', MYSTERY);
+  mgPanel.innerHTML = `<button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button><h2 class="mgtitle">CITY DICE</h2>${hiCanvas('board', BW, BH)}<div class="bigdie" id="bigdie" aria-label="Die">${pipsHTML(S.lastDie || 1)}</div><span class="cnt" id="rollsLeft">${S.dice}</span><button class="pixel-btn pb" data-act="roll" id="rollBtn" style="min-width:170px;font-size:20px">Roll</button><p class="mgmsg" id="diceNext"></p><div class="grind"><span>Earn a roll</span><div class="bar"><i id="gD"></i></div><b id="gDt"></b></div><p class="mgmsg" style="font-size:13px;font-weight:500">Collecting from shops (2 pts), homes, industry and the bus (1 pt) fills the bar.</p><p class="mgmsg" id="diceMsg">${diceMsg}</p>` + tableHTML('??? MYSTERY REWARDS', MYSTERY);
   fillTableIcons(MYSTERY); updateDiceUI();
 }
 function updateDiceUI() {
@@ -13209,7 +13246,7 @@ let wheelAnim = null;
 const WS = 300;
 function buildWheel() {
   const ready = now() - S.wheelT >= WHEEL_CD;
-  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="wheel" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><button class="pixel-btn pb" data-act="skipWheel" id="skipWheelBtn" hidden>Skip animation</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg" role="status"></p><div class="wheel-rewards">
+  mgPanel.innerHTML = `<div class="mg-screen-head"><h2 class="mgtitle">LUCKY WHEEL</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="tixRow"></div>${hiCanvas('wheel', WS, WS)}<button class="pixel-btn pb" data-act="spin" id="spinBtn" style="min-width:190px;font-size:20px">${ready ? 'Free spin' : 'Spin · 1 ticket'}</button><button class="pixel-btn pb" data-act="skipWheel" id="skipWheelBtn" hidden>Skip animation</button><p class="mgmsg" id="wheelCd"></p><p class="mgmsg" id="wheelMsg" role="status"></p><div class="wheel-rewards">
     <div class="wheel-goal"><span id="ticketArt"></span><strong>Wheel ticket</strong><small>Login rewards · Days 3 and 6</small></div>
     <div class="wheel-goal"><span id="goldArt"></span><strong>2 crate vouchers</strong><small>Every tenth spin</small><b id="spinCount"></b><progress id="spinMeter" aria-label="Spins towards two crate vouchers" max="${SPINS_PER_VOUCHER_BONUS}"></progress></div>
   </div>`;
@@ -13360,7 +13397,7 @@ function buildMarket() {
   const m = marketStock(), daily = dailyDealIds(m.day);
   if (S.market.seen !== m.week) { snd('shop'); S.market.seen = m.week; }
   S.market.dailySeen = m.day; S.market.renderedDay = m.day; S.market.renderedWeek = m.week;
-  mgPanel.innerHTML = `<div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="market" aria-label="How it works"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">DOSH SHOP</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
+  mgPanel.innerHTML = `<div class="mg-screen-head"><h2 class="mgtitle">DOSH SHOP</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div><div class="cnt" style="color:var(--cream);display:flex;align-items:center;gap:6px" id="starRow"></div>
   <section class="msection"><div class="msection-head"><b>DAILY DEALS</b><span>One of each · resets with Daily Tasks</span></div><p class="mgmsg" id="dailyMktCd"></p><div class="mgrid">${daily.map(id => { const it=DAILY_DEALS[id], bought=!!S.market.dailyBought[id]; return `<div class="mcard"><span data-dmic="${id}"></span><div class="minfo"><b>${it.name}</b><span>${it.desc}</span><span class="mleft">${bought?'Purchased today':'1 available today'}</span><button class="pixel-btn pb" data-act="buyDaily" data-id="${id}" ${bought?'disabled':''}><span data-star></span>${it.price}</button></div></div>`; }).join('')}</div></section>
 <p class="mgmsg" id="mktMsg"></p>`;
   const row = $('#starRow'); row.appendChild(iconCanvas('stars', null, 22)); const sp = document.createElement('span'); sp.id = 'starN'; row.appendChild(sp);
@@ -13474,7 +13511,7 @@ function buildCrates() {
 #mg #mgPanel.mg-wheel button.pixel-btn:focus-visible::after,
 #sheet[data-view="settings"] button.pixel-btn:focus-visible::after{box-shadow:inset 0 0 0 3px #fff7e7}
 </style>
-  <div class="mg-screen-head"><button class="pixel-btn pb sq infob" data-act="info" data-k="crates" aria-label="How crates work"><canvas data-icon="info" width="56" height="56" style="width:22px;height:22px" aria-hidden="true"></canvas></button><h2 class="mgtitle">THE VAULT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
+  <div class="mg-screen-head"><h2 class="mgtitle">THE VAULT</h2><button class="pixel-btn pb red sq mgx pixel-close" data-act="mgclose" aria-label="Close">✕</button></div>
   <div class="vault-stage"><div class="vault-caption"><strong>${TIER[crateSel]} crate</strong><small>${S.crates[crateSel]} READY</small></div><canvas id="chest" width="288" height="156" aria-label="${TIER[crateSel]} pixel crate"></canvas></div>
   <div class="crate-shelf">${tiers}</div>
   <div class="crate-drop-heading"><b>DROP REEL</b><small>${C.guaranteed.length?'one random bonus':'one random reward'}</small></div>
@@ -13731,7 +13768,7 @@ function costOf(id) {
   const schedule = BUILDING_QUOTES[id];
   if (!schedule) return 0;
   if (schedule.purchases.length === 1) return schedule.first;
-  return schedule.purchases[countOf(id)] ?? Infinity;
+  return schedule.purchases[stopCount(id,true)] ?? Infinity;
 }
 function rushCost(t,k,tn){return Math.max(0,Math.ceil((t.pr[k].o-tn)/(20 * 60000)));}
 function pendingRush(tn) {
@@ -14755,7 +14792,7 @@ async function playRemodelDemo() {
   $('#bagLater')?.click();
   await say('The satchel stays highlighted after choosing Later.',2300);
   $('#nav [data-open="bag"]').click();
-  await say('Open My items. The cottage is under Moved buildings, still level 4.',3600);
+  await say('Open My items. The cottage is under Stored buildings, still level 4.',3600);
   sheetBody.querySelector('[data-act="restore"]')?.click();
   if (!placing?.stored) return;
   placing.ghost={i:27,j:24}; renderCard(true);
