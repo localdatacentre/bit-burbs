@@ -33,7 +33,6 @@
 body[data-menu-page] {
   --page-ink: #fff;
   --page-muted: #d2e3f4;
-  --page-dock-height: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 body[data-menu-page="build"] {
   --page-surface: #355783;
@@ -68,8 +67,7 @@ body.sheet-open #scrim {
   background: var(--page-edge);
   transition: none;
 }
-body.sheet-open #sheet.open,
-body.sheet-open #nav {
+body.sheet-open #sheet.open {
   box-sizing: border-box;
   left: env(safe-area-inset-left, 0px) !important;
   right: env(safe-area-inset-right, 0px) !important;
@@ -80,13 +78,13 @@ body.sheet-open #nav {
   border: var(--page-frame-width) solid var(--page-edge) !important;
   border-radius: 0;
   box-shadow: none !important;
-}
-body.sheet-open #sheet.open {
-  bottom: var(--page-dock-height) !important;
-  max-height: none !important;
   padding: 0 !important;
-  border-bottom: 0 !important;
   background: var(--page-surface);
+}
+body.sheet-open #sheet.open::after {
+  content: "";
+  flex: 0 0 env(safe-area-inset-bottom, 0px);
+  background: var(--page-band);
 }
 body.sheet-open #sheet .shead.page-head {
   display: flex;
@@ -140,15 +138,6 @@ body.sheet-open #sheet .shead.page-head {
   width: var(--page-currency-size);
   height: var(--page-currency-size);
   image-rendering: pixelated;
-}
-body.sheet-open #nav {
-  height: var(--page-dock-height) !important;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
-  background: var(--page-band) !important;
-}
-@media (max-height: 650px) and (orientation: landscape) {
-  body[data-menu-page] { --page-dock-height: calc(50px + env(safe-area-inset-bottom, 0px)); }
-  body.sheet-open #nav { padding-block: 3px calc(3px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 #exchangeHandoff {
