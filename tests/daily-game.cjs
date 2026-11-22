@@ -18,13 +18,20 @@ const businessRates={bakery:[10,10,10,10,10]};
 let S={tiles:[],cash:10000,level:1,economyLab:{version:1,balanceVersion:2,lastAction:at,settled:at,nextId:0,weekDays:[]}};
 const tile={id:'bakery',lvl:1,pr:[{s:at+30*60000,o:0}]};
 const D={list:[{t:tile,d:DEFS.bakery,employees:3,ok:true,pow:true,wat:true}]};
-const now=()=>time, labState=()=>S.economyLab, streetMap=()=>({stops:[]});
+const now=()=>time, labState=()=>S.economyLab, username='fixture';
+const WHEEL_CD=43200000, BUILD_TABS=[], cityDecorationIds=new Set();
+const nextDailyReset=at=>Date.parse(Core.cycle(at)+'T08:00:00Z')+86400000;
+const canUp=()=>false, modelReady=()=>false, costOf=()=>1, isStop=()=>false; DEFS.hall={lvl:1};
+
 const labAward=n=>Core.award(S,n),changed=()=>{},renderSheet=()=>{};
 const save=()=>{saved=JSON.stringify(S)};
 `+html.slice(html.indexOf('const Daily = window.DailyTasks;'),html.indexOf('function economyMigrate')),context);
 const run = code => vm.runInContext(code,context);
 run('labSyncTasks()');
-assert.equal(run('S.dailyGenerated.tasks.length'),10);
+assert.equal(run('S.dailyGenerated.version'),2);
+assert(run('S.dailyGenerated.tasks.length>=2'));
+assert(run("S.dailyGenerated.tasks.every(t=>t.id.startsWith('city-')&&!t.ids.length)"));
+assert.equal(run("S.dailyGenerated.tasks.some(t=>t.metric==='rentHomes'||t.metric==='upgradeAny'||t.metric==='sellingStores')"),false);
 const keys = run('JSON.stringify(S.dailyGenerated.tasks.map(t=>t.key))');
 run('save();S=JSON.parse(saved);labSyncTasks()');
 assert.equal(run('JSON.stringify(S.dailyGenerated.tasks.map(t=>t.key))'),keys);
@@ -39,7 +46,9 @@ for (let tick=1;tick<=120;tick++) {
   Core.settle(S,D.list,time,ECON,businessRates);`);
 }
 run('labSyncTasks()');
-assert(run("S.dailyGenerated.tasks.filter(t=>!t.id.startsWith('start-')).every(t=>t.progress>=t.target)"));
+assert(run("S.dailyGenerated.tasks.find(t=>t.metric==='trade').progress>=5"));
+run("dailyAction('freeSpin')");
+assert.equal(run("S.dailyGenerated.tasks.find(t=>t.metric==='freeSpin').progress"),1);
 const completed=run('S.dailyGenerated.tasks.filter(t=>t.progress>=t.target).length');
 assert(completed>0);
 run('for(const task of S.dailyGenerated.tasks)labDailyClaim(task.key)');
@@ -51,3 +60,28 @@ context.time = at+86400000;
 run('labSyncTasks()');
 assert.equal(run('S.dailyGenerated.day'),'2026-11-18');
 console.log('PASS: game assignment, settlement, claims, save/reload and reset');
+
+const Daily=require('../daily-task-core.js');
+const empty={businesses:[],horizon:120,cash:0,restockVouchers:0};
+const oldTask={id:'legacy',key:'legacy',target:1,progress:1,claimed:true,reward:{dosh:1}};
+const replaced=Daily.liveBoard({day:'2026-11-17',tasks:[oldTask,{...oldTask,key:'unfinished',progress:0,claimed:false}],receipts:{legacy:true}}, {...empty,canRoad:true},at,'starter');
+assert.deepEqual(replaced.tasks.map(t=>t.metric),[undefined,'buildRoad']);
+assert.equal(replaced.receipts.legacy,true);
+Daily.liveProgress(replaced,'buildRoad',at);
+const readyTask=replaced.tasks[1];
+const grown=Daily.liveBoard(replaced,{...empty,canRoad:true,canBuild:true},at+60000,'starter');
+assert.equal(grown.tasks[1],readyTask);
+assert.equal(readyTask.progress,1);
+assert(grown.tasks.some(t=>t.metric==='buildAny'));
+const fullCity={...empty,rentHomes:4,rentCoins:2500,businesses:Array.from({length:6},(_,i)=>({
+  id:String(i),connected:true,employees:4,rate:100,remaining:30,pending:null,fee:10
+}))};
+const full=Daily.liveBoard(null,fullCity,at,'full');
+assert(full.tasks.every(t=>!['roadwork','project','restore','supplies'].includes(t.family)));
+assert.equal(new Set(full.tasks.map(t=>t.family)).size,full.tasks.length);
+const lots={version:2,day:'2026-11-17',revision:0,tasks:[{metric:'cityOrder',target:2,progress:0,assignedAt:at}]};
+Daily.liveProgress(lots,'cityOrder',at,1,'shop-a');
+Daily.liveProgress(lots,'cityOrder',at,1,'shop-a');
+assert.equal(lots.tasks[0].progress,1);
+Daily.liveProgress(lots,'cityOrder',at+86400000,1,'shop-b');
+assert.equal(lots.tasks[0].progress,1);
