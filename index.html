@@ -12711,7 +12711,7 @@ function renderCard(force) {
     }
     if (t && t.id === 'road') html = head('Road', 'Shops, homes and services need a road next to them.') + `<div class="row"><button class="pixel-btn pb red" data-act="demolish">Remove road</button></div>`;
   }
-  if (force) card.innerHTML = html;
+  if (force && !placing) card.innerHTML = html;
   else refreshPanelMarkup(card, html);
   paintNewIcons(); card.classList.toggle('show', !!html); liveCard();
 }
@@ -12783,6 +12783,40 @@ function liveCard() {
   if(d.type==='transport')setText($('#stopTime'),stopKerb(sel.i,sel.j,t.stopDir)?'Next bus in '+mmss((stopInterval-(t.serviceElapsed||0))*1000)+' · '+(t.visits||0)+' visits':'Service paused · reconnect a straight road beside the stop.');
   if (d.type === 'ind') setText($('#liveStock'), 'Ready to collect: ' + fmt(t.stock || 0) + ' Coins');
 }
+// Chromium can drop the compatibility click on the first tap after a canvas swipe.
+let confirmTouch=null;
+document.addEventListener('touchstart',event=>{
+  if(confirmTouch&&event.touches.length>1)confirmTouch.cancelled=true;
+},{capture:true,passive:true});
+card.addEventListener('touchstart',event=>{
+  const button=event.target.closest('button[data-act="confirmPlace"],button[data-act="confirmRoad"]');
+  if(!button||button.disabled||!placing||!event.cancelable)return;
+  // Own just this touch sequence. Mouse, keyboard and assistive clicks stay native.
+  event.preventDefault();
+  if(event.touches.length!==1||pointers.size)return;
+  const touch=event.changedTouches[0];
+  confirmTouch={button,id:touch.identifier,x:touch.clientX,y:touch.clientY,
+    edit:placing,ghost:placing.ghost,turned:placing.turned,quote:button.textContent,cancelled:false};
+},{passive:false});
+function checkConfirmTouch(event){
+  const tap=confirmTouch;
+  if(!tap)return null;
+  const touch=Array.from(event.changedTouches).find(t=>t.identifier===tap.id);
+  if(touch&&Math.hypot(touch.clientX-tap.x,touch.clientY-tap.y)>8)tap.cancelled=true;
+  return touch;
+}
+card.addEventListener('touchmove',checkConfirmTouch,{passive:true});
+card.addEventListener('touchcancel',()=>{confirmTouch=null;},{passive:true});
+card.addEventListener('touchend',event=>{
+  const tap=confirmTouch,touch=checkConfirmTouch(event);
+  if(!touch)return;
+  confirmTouch=null;
+  if(event.cancelable)event.preventDefault();
+  if(tap.cancelled||event.touches.length||pointers.size||placing!==tap.edit||
+     placing.ghost!==tap.ghost||placing.turned!==tap.turned||tap.button.disabled||tap.button.textContent!==tap.quote)return;
+  const releasedOn=document.elementFromPoint(touch.clientX,touch.clientY);
+  if(tap.button.contains(releasedOn))tap.button.click();
+},{passive:false});
 card.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return; const a = b.dataset.act;
   if(a==='locateNeed'||a==='needsRestock'){

@@ -72,7 +72,7 @@ def check_placement(browser, base):
     def card(action):
         return page.locator(f'#card [data-act="{action}"]')
 
-    def confirm(action, finished):
+    def confirm(action, finished, repeat_at=None):
         page.evaluate("""() => {
             window.placementEvents = [];
             for (const name of ['pointerdown', 'pointerup', 'click']) {
@@ -91,6 +91,8 @@ def check_placement(browser, base):
                 card: document.querySelector('#card').innerText, toast: document.querySelector('#toast').innerText
             })"""), "save:", snapshot(), flush=True)
             raise
+        if repeat_at:
+            page.touchscreen.tap(*repeat_at)
 
     original = snapshot()
     mid = original["mid"]
@@ -144,7 +146,14 @@ def check_placement(browser, base):
     camera_y -= 18
     expect(build).to_be_enabled()
     assert snapshot() == after_house
-    confirm("confirmRoad", lambda: expect(build).to_be_disabled())
+    bounds = build.bounding_box()
+    button_centre = (bounds["x"] + bounds["width"]/2, bounds["y"] + bounds["height"]/2)
+    drag(button_centre, (button_centre[0], bounds["y"] - 48))
+    touch("touchStart", button_centre)
+    touch("touchCancel")
+    expect(build).to_be_enabled()
+    assert snapshot() == after_house, "Swiping away or cancelling committed the road"
+    confirm("confirmRoad", lambda: expect(build).to_be_disabled(), repeat_at=button_centre)
     after_road = snapshot()
     road = [mid-4, mid+3, "road", road_cost]
     assert after_road["plots"] == [house, road], after_road
@@ -158,6 +167,15 @@ def check_placement(browser, base):
     touch("touchStart", a)
     touch("touchCancel")
     expect(build).to_be_disabled()
+    # Some swipes deliver their full displacement only in the final pointerup.
+    session.send("Input.dispatchMouseEvent", {"type": "mousePressed", "button": "left",
+                 "buttons": 1, "clickCount": 1, "x": a[0], "y": a[1]})
+    session.send("Input.dispatchMouseEvent", {"type": "mouseReleased", "button": "left",
+                 "buttons": 0, "clickCount": 1, "x": a[0]-32, "y": a[1]+16})
+    camera_x -= 32
+    camera_y += 16
+    expect(build).to_be_disabled()
+    a, b = point(-6, -1), point(-2, -1)
     page.touchscreen.tap(*a)
     expect(build).to_be_enabled()
     # Zooming preserves the proposed tile. Done discards it without charging.
