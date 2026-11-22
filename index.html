@@ -9081,22 +9081,22 @@ const coins = (low, high) => ({ k:'cash', low, high });
 const dosh = (low, high) => ({ k:'stars', low, high });
 const freight = tier => ({ k:'crate', tier });
 const oneSpin = { k:'ticket', n:1 };
-const coinToken = { k:'boost', min:15 };
+const coinToken = { k:'boost', min:10 };
 const CRATES = {
   steel: { guaranteed:[], table:[
     [56, 'Coins', coins(200,400)], [23, 'Dosh', dosh(8,16)],
     [5, '1 wheel spin', oneSpin], [6, 'Gold crate', freight('gold')],
-    [7.8, '15 min double coins', coinToken], [2, 'Diamond crate', freight('diamond')],
+    [7.8, coinToken.min+' min double coins', coinToken], [2, 'Diamond crate', freight('diamond')],
     [0.2, 'Premium crate', freight('premium')]
   ]},
   gold: { guaranteed:[], table:[
     [38, 'Coins', coins(500,900)], [30, 'Dosh', dosh(20,36)],
     [5, '1 wheel spin', oneSpin], [15, '2 deeds', {k:'deed',n:2}],
-    [9.8, '15 min double coins', coinToken], [2, 'Diamond crate', freight('diamond')],
+    [9.8, coinToken.min+' min double coins', coinToken], [2, 'Diamond crate', freight('diamond')],
     [0.2, 'Premium crate', freight('premium')]
   ]},
   diamond: { guaranteed:[coins(1200,2000), dosh(40,65)], table:[
-    [45, '2 deeds', {k:'deed',n:2}], [30, '15 min double coins', coinToken],
+    [45, '2 deeds', {k:'deed',n:2}], [30, coinToken.min+' min double coins', coinToken],
     [20, 'Extra dosh', dosh(12,24)], [4.8, '1 wheel spin', oneSpin],
     [0.2, 'Premium crate', freight('premium')]
   ]},
@@ -10133,7 +10133,7 @@ function rollReward(table) {
 function resolveR(r) { if (r.k === 'crate') {
     const value = {wood:2,steel:2,silver:2,gold:6,diamond:14,premium:30}[r.tier];
     if (value) return {k:'crateVoucher', n:(r.n||1)*value};
-  } if (r.k === 'boost') return {k:'boost', min:15}; if (r.k === 'cash' && r.m) return { k: 'cash', n: r.m * 20 * S.level }; return r; }
+  } if (r.k === 'boost') return coinToken; if (r.k === 'cash' && r.m) return { k: 'cash', n: r.m * 20 * S.level }; return r; }
 function grant(r) {
   r = resolveR(r); const n = r.n || 1;
   switch (r.k) {
@@ -11821,7 +11821,7 @@ function queueRewardPopup(data) { rewardQueue.push(data); }
 function rewardPopup(data) {
   const r = data.reward || {k:'cash',n:1};
   const kind = rewIconKind(r), tier = r.tier || '';
-  const amount = r.k === 'item' ? 'UNLOCKED' : (r.k === 'boost' ? (r.min + ' MIN') : ('+' + rewAmt(r)));
+  const amount = r.k === 'item' ? 'UNLOCKED' : (r.k === 'boost' ? (coinToken.min + ' MIN') : ('+' + rewAmt(r)));
   const name = rewLabel(r);
   const extra = data.extra ? `<div class="reward-extra">${data.extra}</div>` : '';
   $('#modalBox').innerHTML = `<h2 class="wl-t">${data.title || 'REWARD UNLOCKED'}</h2><p class="wl-s">${data.subtitle || 'A little something for your city.'}</p><div class="reward-reveal"><div class="reward-icon"><canvas data-icon="${kind}" ${tier ? `data-tier="${tier}"` : ''} width="112" height="112" aria-hidden="true"></canvas></div><div class="reward-amount">${amount}</div><div class="reward-name">${name}</div></div>${extra}<button class="pixel-btn pb wl-r" id="rewardOk">Awesome!</button>`;
@@ -12720,14 +12720,14 @@ function redeemVoucher(i,j) {
   }else renderSheet(true);
 }
 function coinBoostHTML() {
-  const tokens = Object.entries(S.coinBoostTokens || {}).filter(([min,count]) => Number(min)>0 && count>0);
+  const count = S.coinBoostTokens?.[coinToken.min] || 0;
   const icon = '<canvas data-icon="boost" width="48" height="48" aria-hidden="true"></canvas>';
-  const options = tokens.map(([min,count]) => `<small>${tokens.length>1?Number(min)+' min · ':''}Owned · ${Number(count)}</small><button class="pixel-btn pb" data-act="useCoinBoost" data-min="${Number(min)}" aria-label="Use ${Number(min)} minute coin boost">Use</button>`);
-  const title = tokens.length===1 ? '2× coins · '+Number(tokens[0][0])+' min' : '2× coin boost';
-  return '<div class="bag-card">'+icon+'<b>'+title+'</b>'+(options.join('') || '<small>Owned · 0</small>')+'</div>';
+  const use = count ? `<button class="pixel-btn pb" data-act="useCoinBoost" aria-label="Use ${coinToken.min} minute coin boost">Use</button>` : '';
+  return `<div class="bag-card">${icon}<b>2× coins · ${coinToken.min} min</b><small>Owned · ${count}</small>${use}</div>`;
 }
-function useCoinBoost(min) {
-  if (![10,15].includes(min) || !(S.coinBoostTokens?.[min]>0)) return;
+function useCoinBoost() {
+  const min = coinToken.min;
+  if (!(S.coinBoostTokens?.[min]>0)) return;
   if (--S.coinBoostTokens[min]===0) delete S.coinBoostTokens[min];
   S.boostUntil = Math.max(now(), S.boostUntil || 0) + min*60000;
   changed(); save(); updateHUD(); renderSheet(true); snd('confirm');
@@ -12934,7 +12934,7 @@ sheetEl.addEventListener('click', e => {
   if(a==='accountSave'&&betaMode){S.saved=now();const raw=saveJSON();localStorage.setItem(SAVE_KEY,raw);betaSync.sync(raw,true);return;}
   if (a === 'pickVoucher') { choosingVoucher = !choosingVoucher; renderSheet(true); return; }
   if (a === 'redeemVoucher') { redeemVoucher(+b.dataset.i,+b.dataset.j); return; }
-  if (a === 'useCoinBoost') { useCoinBoost(Number(b.dataset.min)); return; }
+  if (a === 'useCoinBoost') { useCoinBoost(); return; }
   if (a === 'closeSheet') { closeSheet(); return; }
   if (a === 'info') { showInfo(sheet); return; }
   if (a === 'tab') { snd('tab'); buildTab = b.dataset.tab; renderSheet(true); return; }
@@ -14563,17 +14563,15 @@ function replaceLegacyGyms(city) {
 
 function standardiseCoinBoosts(city) {
   const saved = Object.entries(city.coinBoostTokens || {});
-  const legacy = saved.filter(([duration]) => duration !== '10' && duration !== '15');
-  if (!legacy.length) return;
-  const minutes = legacy.reduce((sum,[duration,count]) =>
-    sum + (Number(duration)>0 && Number.isSafeInteger(count) && count>0 ? Number(duration)*count : 0),0);
-  const keep = {};
-  for (const duration of [10,15]) {
-    const count = city.coinBoostTokens[duration];
-    if (Number.isSafeInteger(count) && count > 0) keep[duration] = count;
+  if (saved.every(([duration]) => duration === String(coinToken.min))) return;
+  let tokens = 0, legacyMinutes = 0;
+  for (const [duration, count] of saved) {
+    if (!Number.isSafeInteger(count) || count <= 0) continue;
+    if (Number(duration) === coinToken.min || duration === '15') tokens += count;
+    else if (Number.isFinite(Number(duration)) && Number(duration) > 0) legacyMinutes += Number(duration)*count;
   }
-  if (minutes) keep[15] = (keep[15] || 0) + Math.ceil(minutes/15);
-  city.coinBoostTokens = keep;
+  tokens += Math.ceil(legacyMinutes/coinToken.min);
+  city.coinBoostTokens = tokens ? {[coinToken.min]:tokens} : {};
 }
 SPRK.facilityRoadArt={facilityStreetTiles,directions,paintRoadSurface,makeRoadSurface,addJunctionSignals,signalLamp,paintJunctionSignal,signalLensColours,signalOn,streetLampSites,paintStreetPole};
 S = remodelDemo || micksDriveDemo ? newGame() : load() || newGame();
