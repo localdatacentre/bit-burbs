@@ -212,7 +212,7 @@ function progress(state,event,inPlace=false) {
 function claim(record,key,at,expectedRevision) {
   const next=clone(record),s=next.daily;
   if(expectedRevision!==record.revision)return {ok:false,reason:'conflict'};
-  if(s.status!=='ready'||s.day!==Core.cycle(at))return {ok:false,reason:'inactive'};
+  if(s.status!=='ready'||s.day!==(s.version===LIVE_VERSION?localDay(at):Core.cycle(at)))return {ok:false,reason:'inactive'};
   const t=s.tasks.find(x=>x.key===key);
   if(!t||t.claimed||s.receipts[key]||t.progress<t.target)return {ok:false,reason:'unclaimable'};
   const give=r=>{for(const [k,n]of Object.entries(r))next.wallet[k]=(next.wallet[k]||0)+n;};
@@ -262,86 +262,66 @@ function sessionGoals(snapshot,at,events,player='',previous=[]) {
   }
   return best;
 }
-// Live boards use city-wide actions. The original forecast API remains available
-// to the economy simulator and to finish progress on a legacy task.
-function liveBoard(saved, city, at, player) {
-  const day=Core.cycle(at);
-  const sameDay=saved?.day===day;
-  const current=sameDay&&saved.version===4;
-  const carried=[];
-  if(sameDay)for(const task of saved.tasks||[]){
-    if(task.id.startsWith('city-')&&task.metric!=='trade'){
-      const family={buildDecor:'decoration',upgradeAny:'upgrade',cityDelivery:'deliveries'}[task.metric]||task.family;
-      carried.push(family===task.family?task:{...task,family});
-    }else if(task.claimed||task.progress>=task.target){
-      carried.push(task.archived?task:{...task,archived:true});
-    }
-  }
-  const pool=[];
-  function add(id,family,metric,target,text,rank=0) {
-    if(target>0)pool.push({id:'city-'+id,family,metric,target,text,rank,ids:[],
-      difficulty:DIFFICULTIES[rank],reward:{crateVouchers:1,dosh:1,xp:XP[rank]}});
-  }
-  const {businesses,horizon}=city;
-  const stores=businesses.filter(b=>b.connected&&b.employees>0&&b.rate>0);
-  const stocked=stores.filter(b=>b.remaining>=1);
-  const coins=stocked.reduce((total,b)=>total+b.rate*Math.min(b.remaining,30,horizon),0);
-  for(const [rank,n] of [100,500,2000,5000].entries()){
-    if(coins>=n)add('sales-'+n,'sales','cityCoins',n,'Earn '+n.toLocaleString('en-AU')+' coins from sales while playing',Math.min(rank,2));
-  }
-  for(const [rank,n] of [2,4,6].entries()){
-    if(stocked.length>=n&&horizon>=1)add('stores-'+n,'sales','sellingStores',n,'Make sales at '+n+' different businesses',rank);
-  }
-  // Orders must be due during this session. Deliveries already in flight
-  // can qualify independently, including after the player signs back in.
-  const orders=stores.filter(b=>b.connected&&b.pending===null&&b.remaining<=horizon);
-  const stock=orders.map(b=>b.fee).sort((a,b)=>a-b);
-  const deliverable=businesses.filter(b=>b.pending!==null&&b.pending<=horizon).length;
-  for(const [rank,n] of [1,2,3].entries()){
-    if(stock.length>=n&&stock.slice(0,n).slice(0,Math.max(0,n-city.restockVouchers)).reduce((a,b)=>a+b,0)<=city.cash)
-      add('order-'+n,'supplies','cityOrder',n,n===1?'Order a restock':'Restock '+n+' different businesses',rank);
-    if(deliverable>=n)add('deliver-'+n,'deliveries','cityDelivery',n,n===1?'Receive a delivery':'Receive deliveries at '+n+' different businesses',rank);
-  }
-  const {rentHomes=0,rentCoins=0,arrivals=0,jobs=0,canBuild,canRoad,canUpgrade,canRestore,canDecorate,freeSpin}=city;
-  for(const [rank,n] of [1,2,4].entries()){
-    if(rentHomes>=n)add('homes-'+n,'rent','rentHomes',n,n===1?'Collect rent once':'Collect rent from '+n+' different homes',rank);
-  }
-  for(const [rank,n] of [50,250,1000].entries()){
-    if(rentCoins>=n)add('rent-'+n,'rent','rentCoins',n,'Collect '+n.toLocaleString('en-AU')+' coins in rent',rank);
-  }
-  for(const [rank,n] of [1,3,6].entries()){
-    if(arrivals>=n)add('residents-'+n,'residents','newResidents',n,'Welcome '+n+(n===1?' new resident':' new residents'),rank);
-  }
-  for(const [rank,n] of [1,3,6].entries()){
-    if(jobs>=n)add('jobs-'+n,'jobs','newJobs',n,'Fill '+n+(n===1?' open job':' open jobs'),rank);
-  }
-  if(canBuild)add('build','project','buildAny',1,'Build a building of your choice');
-  if(canRoad)add('road','roadwork','buildRoad',1,'Place a road tile');
-  if(canDecorate)add('decoration','decoration','buildDecor',1,'Place a decoration');
-  if(canUpgrade)add('upgrade','upgrade','upgradeAny',1,'Upgrade a building of your choice');
-  if(canRestore)add('restore','restore','restoreAny',1,'Place a building from My Items');
-  if(freeSpin)add('spin','bonus','freeSpin',1,'Use your free Lucky Wheel spin');
-  const previous=new Set(saved?.tasks?.map(t=>t.id));
+// Daily tasks use local wall time. Economy and shop cycles keep their own clock.
+const LIVE_VERSION=5;
+function localDay(at){
+  const day=new Date(at);
+  if(day.getHours()<18)day.setDate(day.getDate()-1);
+  return [day.getFullYear(),String(day.getMonth()+1).padStart(2,'0'),String(day.getDate()).padStart(2,'0')].join('-');
+}
+function nextLocalReset(at){
+  const reset=new Date(at);
+  reset.setHours(18,0,0,0);
+  if(reset.getTime()<=at)reset.setDate(reset.getDate()+1);
+  return reset.getTime();
+}
+
+const liveGroups=[
+  ['project','buildAny',[1,2,3,4],n=>n===1?'Build a building of your choice':'Build '+n+' buildings of your choice'],
+  ['roadwork','buildRoad',[1,2,3,4,5,6],n=>'Place '+n+' road '+(n===1?'tile':'tiles')],
+  ['decoration','buildDecor',[1,2,3],n=>'Place '+n+' '+(n===1?'decoration':'decorations')],
+  ['upgrade','upgradeAny',[1,2,3,4],n=>'Upgrade '+n+' '+(n===1?'building':'buildings')],
+  ['supplies','cityOrder',[1,2,3,4],n=>n===1?'Order a restock':'Restock '+n+' different businesses'],
+  ['deliveries','cityDelivery',[1,2,3,4],n=>n===1?'Receive a delivery':'Receive deliveries at '+n+' different businesses'],
+  ['rent','rentHomes',[1,2,3,4],n=>n===1?'Collect rent once':'Collect rent from '+n+' different homes'],
+  ['rent','rentCoins',[50,100,250,500],n=>'Collect '+n+' coins in rent'],
+  ['residents','newResidents',[1,2,3,6],n=>'Welcome '+n+' new '+(n===1?'resident':'residents')],
+  ['jobs','newJobs',[1,2,3,6],n=>'Fill '+n+' open '+(n===1?'job':'jobs')],
+  ['sales','cityCoins',[100,250,500,1000,2000],n=>'Earn '+n.toLocaleString('en-AU')+' coins from sales while playing'],
+  ['sales','sellingStores',[1,2,3,4],n=>n===1?'Make a sale at a business':'Make sales at '+n+' different businesses'],
+  ['restore','restoreAny',[1,2],n=>n===1?'Place a building from My Items':'Place '+n+' buildings from My Items'],
+  ['bonus','freeSpin',[1],()=>'Use your free Lucky Wheel spin']
+];
+const LIVE_TEMPLATES=liveGroups.flatMap(([family,metric,targets,label])=>targets.map((target,i)=>{
+  const rank=Math.min(2,i);
+  return {id:'city-'+metric+'-'+target,family,metric,target,text:label(target),rank,ids:[],
+    difficulty:DIFFICULTIES[rank],reward:{crateVouchers:1,dosh:1,xp:XP[rank]}};
+}));
+
+function liveBoard(saved,at,player){
+  const day=localDay(at);
+  if(saved?.version===LIVE_VERSION&&saved.day===day)return saved;
+  const oldCycle=saved&&saved.version<LIVE_VERSION&&saved.day===Core.cycle(at);
+  const carried=oldCycle?(saved.tasks||[]).filter(t=>t.claimed||t.progress>=t.target)
+    .map(t=>({...t,archived:true})):[];
   const rng=random(player+':'+day);
-  const ranked=pool.map(t=>({t,score:rng()+Number(previous.has(t.id))+(t.family==='bonus'?3:0)})).sort((a,b)=>a.score-b.score);
-  const picked=[...carried], families=new Set(carried.map(t=>t.family));
-  let activeCount=carried.filter(t=>!t.archived).length;
+  const ranked=LIVE_TEMPLATES.map(t=>({t,score:rng()})).sort((a,b)=>a.score-b.score);
+  const picked=[...carried];
+  const families=new Set();
   for(const {t} of ranked){
-    if(activeCount>=10)break;
     if(families.has(t.family))continue;
     families.add(t.family);
-    activeCount++;
-    picked.push({...t,key:day+':city4:'+t.family,assignedAt:at,progress:0,claimed:false});
+    picked.push({...clone(t),key:day+':fixed:'+t.family,assignedAt:at,progress:0,claimed:false});
+    if(families.size===10)break;
   }
-  if(current&&picked.length===carried.length)return saved;
-  return {version:4,day,status:'ready',assignedAt:current?saved.assignedAt:at,tasks:picked,
-    receipts:sameDay?saved.receipts||{}:{},revision:sameDay?saved.revision||0:0};
+  return {version:LIVE_VERSION,day,status:'ready',assignedAt:at,tasks:picked,
+    receipts:oldCycle?saved.receipts||{}:{},revision:oldCycle?saved.revision||0:0};
 }
 
 function liveProgress(board,type,at,amount=1,subject=null){
-  if(board?.version!==4||board.day!==Core.cycle(at))return;
+  if(board?.version!==LIVE_VERSION||board.day!==localDay(at))return;
   for(const task of board.tasks){
-    if(!Number.isFinite(amount)||amount<=0||task.metric!==type||task.claimed||task.progress>=task.target||at<task.assignedAt)continue;
+    if(!Number.isFinite(amount)||amount<=0||task.archived||task.metric!==type||task.claimed||task.progress>=task.target||at<task.assignedAt)continue;
     if(subject!==null){
       task.seen ||= [];
       if(task.seen.includes(subject))continue;
@@ -351,7 +331,7 @@ function liveProgress(board,type,at,amount=1,subject=null){
     board.revision++;
   }
 }
-const dailyTaskAPI={liveBoard,liveProgress,sessionGoals,TEMPLATES,DIFFICULTIES,QUOTAS,snapshot,candidates,compatible,select,assign,progress,claim};
+const dailyTaskAPI={LIVE_VERSION,LIVE_TEMPLATES,localDay,nextLocalReset,liveBoard,liveProgress,sessionGoals,TEMPLATES,DIFFICULTIES,QUOTAS,snapshot,candidates,compatible,select,assign,progress,claim};
 if(typeof module==='undefined')globalThis.DailyTasks=dailyTaskAPI;
 else module.exports=dailyTaskAPI;
 })();
