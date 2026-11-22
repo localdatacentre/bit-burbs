@@ -19,7 +19,7 @@
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
 <link rel="preload" as="script" href="./daily-task-core.js?v=ten-tasks1">
 <link rel="preload" as="script" href="./daily-task-session.js">
-<link rel="preload" as="style" href="./page-shell.css?v=perf1">
+<link rel="preload" as="style" href="./page-shell.css?v=home-nav1">
 <style>
 /* Legacy renderer styles isolated; new design is in pocket-ui.css. */
 @layer legacy {
@@ -2334,7 +2334,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  width:100%!important;min-width:0!important;
  height:36px!important;min-height:36px!important;
  margin:0!important;padding:2px!important;gap:4px!important;
- visibility:visible!important;opacity:1!important;
+ opacity:1!important;
  box-sizing:border-box!important;
  color:#fff!important;
  font:16px/1 'VT323',monospace!important;
@@ -2362,8 +2362,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
 @media(max-width:350px){#nav > button.pixel-btn[data-open]{font-size:12px!important}}
 </style>
 <style id="bb-sheet-dock-fix">
-/* v75: sheet must not appear on startup; the dock stays above regular sheets.
-   The existing JavaScript .open toggle is the only way to show this panel. */
+/* The sheet and its scrim open together. */
 #sheet:not(.open){
  display:none!important;visibility:hidden!important;
  pointer-events:none!important;transform:none!important;
@@ -2375,7 +2374,7 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  top:env(safe-area-inset-top,0px)!important;
  left:env(safe-area-inset-left,0px)!important;right:env(safe-area-inset-right,0px)!important;
  padding-top:0;
- bottom:calc(46px + env(safe-area-inset-bottom,0px))!important;
+ bottom:0!important;
  height:auto!important;max-height:none!important;
  max-width:none!important;margin:0!important;
  overflow:hidden!important;z-index:31!important;
@@ -2387,6 +2386,13 @@ html,body{width:100%;max-width:100%;min-height:100%;overflow-x:hidden}
  z-index:35!important;
 }
 #scrim{z-index:30!important}
+/* Keep the dock measurable for the city camera while hiding it from taps and focus. */
+body:not(.city-ready) > #nav,
+body.sheet-open > #nav,
+body:has(> #card.show, > #mg.show, > #modal.show, > dialog[open]) > #nav{
+ visibility:hidden!important;
+ pointer-events:none!important;
+}
 </style>
 <style id="bb-tutorial-menu-isolation">
 /* Tutorial overlays are only shown on the playable city screen. */
@@ -2510,7 +2516,6 @@ body.sheet-open #coach,body:has(#mg.show) #coach,body:has(#modal.show) #coach{
 #nav > button.pixel-btn[data-open]{height:52px!important;min-height:52px!important;max-height:52px!important;gap:2px!important}
 #nav .dock-icon{width:28px;height:28px}
 @media(max-width:540px){#nav > button.pixel-btn[data-open]{font-size:clamp(14px,4vw,16px)!important}}
-#sheet.open{bottom:var(--main-dock-height,calc(62px + env(safe-area-inset-bottom,0px)))!important}
 :root{--bag-yellow:#ffdf70;--bag-highlight:#ffe994}
 #nav > button.pixel-btn[data-open="bag"]{--bb-face:var(--bag-yellow);--bb-top:var(--bag-highlight);--bb-bottom:#d4a12d;--bb-edge:#916b21}</style>
 <style>#nav > button.pixel-btn.bag-unread[data-open="bag"]{border-color:#ffdb59!important;box-shadow:inset 0 0 0 2px #ffdb59!important}#nav .bag-unread .dock-icon{filter:drop-shadow(0 1px 1px #ffdc65)}</style>
@@ -2650,7 +2655,6 @@ body{position:fixed!important;inset:auto!important;left:var(--app-left,0px)!impo
 #mg,#modal{inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)!important;max-height:100%!important;box-sizing:border-box}
 #modal{bottom:env(safe-area-inset-bottom,0px)!important}
 #modalBox{max-height:100%;overflow-y:auto}
-#sheet{max-height:calc(var(--app-height,100dvh) - var(--main-dock-height,70px) - env(safe-area-inset-top,0px) - 8px)!important}
 #sheet .sbody{min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .city-auth.city-welcome{width:100%!important;max-width:100%!important;height:var(--welcome-visible-height,100dvh)!important;max-height:100%!important}
 @media(min-width:800px){#hud>.hrow,#hud>.chips,#hud>.cpmbar{width:min(100%,1100px)!important;margin-inline:auto!important}#nav{padding-inline:max(16px,calc((100% - 660px)/2))!important}}
@@ -2816,7 +2820,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #mgPanel .wheel-content > *{flex-shrink:0;max-width:100%}
 #mgPanel .mg-page-foot{flex:none;height:env(safe-area-inset-bottom,0px);background:var(--wheel-face)}
 </style>
-<link rel="stylesheet" href="./page-shell.css?v=perf1">
+<link rel="stylesheet" href="./page-shell.css?v=home-nav1">
 <style>
 .city-exchange-room { position:fixed; inset:0; box-sizing:border-box; width:100%; height:100%; max-width:none; max-height:none; margin:0; border:0; padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); overflow:hidden; background:#171b28; }
 .city-exchange-room[data-room=shop] { background:#102b20; }
@@ -8586,7 +8590,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=instant1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=ten-tasks1"></script><script src="./daily-task-session.js"></script>
+<script src="./exchange-room.js?v=home-nav1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=ten-tasks1"></script><script src="./daily-task-session.js"></script>
 <script>
 (async () => {
 'use strict';
@@ -12447,10 +12451,10 @@ function layoutUI() {
   const hb = hudBottom = $('#hud').getBoundingClientRect().bottom-origin;
   document.documentElement.style.setProperty('--bb-hud-bottom', Math.round(hb) + 'px');
   $('#mapctl').style.top = (hb + 10) + 'px'; $('#advisor').style.top = (hb + 12) + 'px'; $('#coach').style.top = (hb + 8) + 'px'; $('#legend').style.top = (hb + 70) + 'px'; $('#toast').style.top = (hb + 150) + 'px';
-  const nt = $('#nav').getBoundingClientRect().top-origin; const panel = $('#card');
-  document.documentElement.style.setProperty('--main-dock-height', (H - nt) + 'px');
-  panel.style.bottom = (H - nt + 10) + 'px';
-  panel.style.maxHeight = Math.max(140, nt - ($('#eyeTool').getBoundingClientRect().bottom-origin) - 18) + 'px';
+  const panel = $('#card');
+  const cardSpace = H - ($('#eyeTool').getBoundingClientRect().bottom-origin) - 18;
+  panel.style.bottom = 'calc(10px + env(safe-area-inset-bottom, 0px))';
+  panel.style.maxHeight = 'max(140px, calc(' + cardSpace + 'px - env(safe-area-inset-bottom, 0px)))';
 }
 
 /* ================= info card ================= */
@@ -15128,6 +15132,7 @@ if (!testCity && !micksDriveDemo && !facilityRoadDemo && (S.upgraded || S.firstR
   showFoundingPrompt();
 }
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resize(); paintStaticIcons(); lastClockKind = ''; lastFace = -1; });
+document.body.classList.add('city-ready');
 requestAnimationFrame(frame);
 prepareRoomsWhenIdle();
 if(micksDriveDemo&&!deletedModelIds.has(driveDemoShop)){

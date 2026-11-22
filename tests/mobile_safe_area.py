@@ -14,6 +14,12 @@ class QuietHandler(SimpleHTTPRequestHandler):
         pass
 
 
+def check_home_menu(page, visible):
+    dock = page.locator("#nav")
+    assert dock.locator("> button[data-open]:visible").count() == (6 if visible else 0)
+    assert dock.get_by_role("button").count() == (6 if visible else 0)
+
+
 def check_layout(page, base, viewport, insets):
     width, height = viewport
     top, side, bottom = insets
@@ -52,6 +58,7 @@ def check_layout(page, base, viewport, insets):
 
     page.goto(base + "/", wait_until="domcontentloaded")
     check(".beta-brand img", True)
+    check_home_menu(page, False)
     check_pinned(".beta-scroll", ".beta-brand")
     check(".beta-actions button:last-child", True)
 
@@ -99,7 +106,14 @@ def check_layout(page, base, viewport, insets):
         assert page.locator('script[src*="building-renderer"]').count() == 0, room
 
     page.goto(base + "/?demo=full-city", wait_until="domcontentloaded")
+    page.locator("body.city-ready").wait_for(state="attached")
+    if page.evaluate("JSON.parse(localStorage.getItem('bit-burbs-full-test-city-v1'))?.bagPopupPending"):
+        later = page.locator("#modal.show #bagLater")
+        later.wait_for()
+        check_home_menu(page, False)
+        later.tap()
     check("#hud .cname")
+    check_home_menu(page, True)
     wallets = {
         "Build": ["cash", "deed"],
         "Tasks": ["crateVoucher", "dosh"],
@@ -115,19 +129,35 @@ def check_layout(page, base, viewport, insets):
             page.locator("#rsAll").tap()
         else:
             page.get_by_role("button", name=menu, exact=True).tap()
+        check_home_menu(page, False)
         if menu == "Wheel":
             header_controls("#mgPanel .mgtitle", "#mgPanel .mg-wallet", "#mgPanel .mgx")
             assert page.locator("#mgPanel .mg-wallet [data-icon=ticket]").count() == 1
             assert page.locator("#tixN").inner_text().strip()
             check_pinned("#mgPanel .wheel-content", "#mgPanel .mg-screen-head", "#mgPanel .mg-page-foot")
+            page.locator("#mgPanel .mgx").tap()
         else:
             header_controls("#sheetTitle", "#sheetWallet", '#sheet [data-act="closeSheet"]')
             icons = page.locator("#sheetWallet [data-icon]").evaluate_all("(els) => els.map(el => el.dataset.icon)")
             assert icons == wallets[menu], (menu, icons)
             for chip in page.locator("#sheetWallet .page-balance").all():
                 assert int(chip.get_attribute("data-amount")) >= 0 and chip.inner_text().strip()
-            assert background("#sheet .shead") == background("#nav"), menu
-            check_pinned("#sheetBody", "#sheet .shead", "#nav")
+            if menu == "Build":
+                tabs = page.locator('#sheet [data-act="tab"]')
+                for tab in tabs.all():
+                    tab.tap()
+                    assert tab.get_attribute("aria-pressed") == "true"
+                    check_home_menu(page, False)
+            if menu == "Tasks":
+                schedule = page.locator('#sheet details[data-login-schedule]')
+                schedule.locator("summary").tap()
+                assert schedule.evaluate("(el) => el.open")
+                check_home_menu(page, False)
+            sheet = check("#sheet")
+            assert abs(sheet["y"] + sheet["height"] - height) <= 1, (menu, sheet)
+            check_pinned("#sheetBody", "#sheet .shead")
+            last = page.locator("#sheetBody > :visible").last.bounding_box()
+            assert last["y"] + last["height"] <= height - bottom + 1, (menu, last)
             if menu == "Item bag":
                 cards = page.locator(".bag-supplies > .bag-card")
                 assert cards.count() == 2
@@ -138,6 +168,13 @@ def check_layout(page, base, viewport, insets):
                 assert cards.first.evaluate("(el) => getComputedStyle(el).backgroundColor") == "rgb(169, 220, 255)"
                 assert page.locator("#sheetBody h3").all_text_contents() == ["Stored buildings"]
             page.locator('#sheet [data-act="closeSheet"]').tap()
+        check_home_menu(page, True)
+
+    for menu in ["Crates", "Dosh Shop"]:
+        page.get_by_role("button", name=menu, exact=True).tap()
+        check_home_menu(page, False)
+        page.locator("#mgPanel .mgx").tap()
+        check_home_menu(page, True)
 
 
 def check_single_taps(page, session, base):
@@ -179,6 +216,7 @@ def check_single_taps(page, session, base):
     # notice at startup. Acknowledge the same buttons a player would tap.
     def acknowledge(notice_button):
         print('Acknowledged city notice:', page.locator('#modalBox h2').inner_text(), flush=True)
+        check_home_menu(page, False)
         notice_button.tap()
 
     page.add_locator_handler(page.locator('#modal.show #bagLater'), acknowledge)
@@ -215,7 +253,13 @@ def check_single_taps(page, session, base):
     toggle.tap()
     assert toggle.get_attribute('aria-pressed') == ('false' if before == 'true' else 'true')
     check_city_covered()
+    page.get_by_role('button', name='Change username', exact=True).tap()
+    page.locator('dialog[open] [name="nextName"]').wait_for()
+    check_home_menu(page, False)
+    page.locator('dialog[open] [data-cancel]').tap()
+    check_home_menu(page, False)
     page.locator('#sheet [data-act="closeSheet"]').tap()
+    check_home_menu(page, True)
     page.get_by_role('button', name='Wheel', exact=True).tap()
     page.locator('#mgPanel .wodds summary').tap()
     assert page.locator('#mgPanel .wodds').evaluate('(el) => el.open')
@@ -225,6 +269,7 @@ def check_single_taps(page, session, base):
     page.wait_for_function('(n) => window.cityPaints > n', arg=count)
 
     page.locator('#advisor').tap()
+    check_home_menu(page, False)
     page.locator(f'#card button[data-i="{col}"][data-j="{row}"]').tap()
     manage = page.locator('#card [data-act="manageProperty"]')
     manage.scroll_into_view_if_needed()
@@ -235,6 +280,15 @@ def check_single_taps(page, session, base):
     page.wait_for_timeout(1300)
     session.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
     page.locator('#card [data-act="manageBack"]').wait_for(state='visible')
+    check_home_menu(page, False)
+    page.locator('#card [data-act="closeCard"]').tap()
+    check_home_menu(page, True)
+    page.get_by_role('button', name='Build', exact=True).tap()
+    page.locator('#sheetBody [data-act="choose"][data-id="house"]').tap()
+    page.locator('#card [data-act="cancelPlace"]').wait_for()
+    check_home_menu(page, False)
+    page.locator('#card [data-act="cancelPlace"]').tap()
+    check_home_menu(page, True)
 
     # The renderer swap must keep the original map alive. Both the first tap
     # and a reopen must work without downloading another page or reading an account.
@@ -254,11 +308,20 @@ def check_single_taps(page, session, base):
             # Each dock button must work with a single real touch.
             panel = page.frame_locator('.city-exchange-room[open] iframe')
             panel.locator(f'body[data-screen="{room}"] #wallet .currency').wait_for(state='visible')
+            check_home_menu(page, False)
             if room == 'vault':
                 purchase = panel.locator('[data-action="buy-crate"]')
                 assert purchase.is_enabled()
                 panel.locator('#pageNav [data-page="storage"]').tap()
-                assert panel.get_by_role('button', name='Select Silver crate, 3 stored').is_enabled()
+                silver = panel.get_by_role('button', name='Select Silver crate, 3 stored')
+                assert silver.is_enabled()
+                check_home_menu(page, False)
+                silver.tap()
+                panel.get_by_role('button', name='Drop odds').tap()
+                odds = panel.locator('#modalRoot [role="dialog"]')
+                odds.wait_for()
+                check_home_menu(page, False)
+                odds.get_by_role('button', name='Close', exact=True).tap()
             else:
                 assert panel.locator('[data-offer]').count() == 4
                 assert panel.locator('[data-offer]').first.is_enabled()
@@ -269,6 +332,7 @@ def check_single_taps(page, session, base):
                 panel.locator('.city-close').tap()
             page.locator('.city-exchange-room[open]').wait_for(state='hidden')
             page.wait_for_function('!history.state?.bitBurbsRoom')
+            check_home_menu(page, True)
             assert page.evaluate("window.preExchangeCanvas === document.querySelector('#game')")
             assert page.url == base + '/'
     assert not room_downloads, room_downloads
