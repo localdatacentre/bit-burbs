@@ -17,7 +17,7 @@
 <link rel="preload" as="font" type="font/woff2" href="./fonts/silkscreen-400.woff2" crossorigin>
 <link rel="preload" as="script" href="./residential-cats.js?v=yard1">
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
-<link rel="preload" as="script" href="./daily-task-core.js?v=ten-tasks1">
+<link rel="preload" as="script" href="./daily-task-core.js?v=city-goals1">
 <link rel="preload" as="script" href="./daily-task-session.js">
 <link rel="preload" as="style" href="./page-shell.css?v=mobile-polish1">
 <style>
@@ -8599,7 +8599,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=mobile-polish1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=ten-tasks1"></script><script src="./daily-task-session.js"></script>
+<script src="./exchange-room.js?v=mobile-polish1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=city-goals1"></script>
 <script>
 (async () => {
 'use strict';
@@ -8634,7 +8634,14 @@ function labAccrue(to=now(),offline=false){
   if(result.minutes>0){Core.operation(S,result.minutes,result.onlineCoins,end-1,labServicesOK());}
   const ticks=Math.floor(end/interval)-Math.floor(from/interval);
   const arrivals=Math.min(room,ticks*3);
-  if(arrivals>0){S.pop+=arrivals;derive();}
+  if(arrivals>0){
+   const employed=D.employed;
+   S.pop+=arrivals;derive();
+   if(!offline&&!document.hidden&&end<=to){
+    dailyAction('newResidents',arrivals,null,end);
+    dailyAction('newJobs',Math.max(0,D.employed-employed),null,end);
+   }
+  }
  }
  S.cash+=total;return total;
 }
@@ -8649,22 +8656,6 @@ function labRestock(tile){const e=labState();e.restocks++;
  if(tile.labSold>0&&e.restockAwards<2){e.restockAwards++;labAward(7);tile.labSold=0;}labSyncTasks();}
 function labServicesOK(){const relevant=D?.list?.filter(b=>b.d.type==='home'||ECON[b.t.id])||[];return relevant.length>0&&relevant.every(b=>b.ok&&b.pow&&b.wat);}
 const Daily = window.DailyTasks;
-function dailySnapshot(at){
- const services={0:[],1:[],2:[],3:[]};
- for(const b of D.list){
-  if(!b.t.labId)b.t.labId='existing-'+(++labState().nextId);
-  if(b.d.type==='home'&&b.ok&&b.pow&&b.wat)services[0].push(b.t.labId);
-  if(!ECON[b.t.id])continue;
-  if(b.pow)services[1].push(b.t.labId);
-  if(b.wat)services[2].push(b.t.labId);
-  if(b.ok)services[3].push(b.t.labId);
- }
- const stops=streetMap().stops.map(({t})=>{
-  if(!t.labId)t.labId='existing-'+(++labState().nextId);
-  return {id:t.labId,connected:true};
- });
- return Daily.snapshot(S,D.list,Core.configFor(S,ECON),DEFS,businessRates,at,{services,stops});
-}
 const starterTaskLabels={
  hall:'Place your Town Hall', home:'Connect a home to roads, power and water',
  business:'Get a staffed business running', road:'Place a road',
@@ -8672,86 +8663,85 @@ const starterTaskLabels={
  residents:'Welcome 3 residents', jobs:'Fill 3 jobs',
  operation:'Trade for 15 active minutes', revenue:'Earn 100 coins from active trading'
 };
-function starterTaskConditions(){
- const buildings=D.list, activity=labState();
- return {
-  hall:buildings.some(b=>b.t.id==='hall'),
-  home:buildings.some(b=>b.d.type==='home'&&b.ok&&b.pow&&b.wat),
-  business:buildings.some(b=>ECON[b.t.id]&&b.ok&&b.pow&&b.wat&&b.employees>0),
-  road:S.tiles.some(t=>t?.id==='road'),
-  utilityPower:buildings.some(b=>b.ok&&b.d.supP>0),
-  utilityWater:buildings.some(b=>b.ok&&b.d.supW>0),
-  residents:S.pop>=3, jobs:D.employed>=3,
-  operation:activity.minutes>=15, revenue:activity.onlineCoins>=100
- };
-}
-function fillDailyBoard(board){
- const used=new Set(board.tasks.map(t=>t.metric));
- const fallback=Object.keys(starterTaskLabels).filter(metric=>!used.has(metric));
- for(const metric of fallback.slice(0,10-board.tasks.length)){
-  board.tasks.push({id:'start-'+metric,metric,ids:[],key:board.day+':'+board.tasks.length,
-   assignedAt:board.assignedAt,target:1,progress:0,claimed:false,difficulty:'straightforward',
-   reward:{crateVouchers:1,dosh:1,xp:10}});
+function dailySnapshot(at){
+ const horizon=Math.min(120,Math.max(0,(nextDailyReset(at)-at)/60000));
+ const homes=D.list.filter(b=>b.d.type==='home'&&(b.t.rent||0)>=1);
+ const arrivals=Math.min(Math.max(0,D.cap-S.pop),Math.floor(horizon*4)*3);
+ const canUpgrade=D.list.some(({d,t})=>{
+  if(!canUp(d)||lvlOf(t)>=UP_MAX)return false;
+  const quote=upCost(d,lvlOf(t));
+  return quote.coins<=S.cash&&quote.deeds<=(S.deeds||0);
+ });
+ const plots=[];
+ for(let i=0;i<S.tiles.length;i++){
+  if(S.tiles[i])continue;
+  const x=i%N,y=Math.floor(i/N);
+  if(inB(x,y))plots.push([x,y]);
  }
- board.status='ready';
+ const fits=(id,turn)=>plots.some(([x,y])=>fpFree(x,y,id,turn));
+ const buildable=[...new Set(['hall',...BUILD_TABS.filter(([tab])=>tab!=='items').flatMap(([, ,ids])=>ids)])].filter(id=>id!=='road'&&!isStop(id)&&DEFS[id].lvl<=S.level&&
+  modelReady(id)&&costOf(id)<=S.cash&&!buildingLimitMessage(id)&&
+  (id!=='hall'||(!findHall()&&!storedHall()))&&!cityDecorationIds.has(id));
+ for(const b of D.list)if(!b.t.labId)b.t.labId='existing-'+(++labState().nextId);
+ return Daily.snapshot(S,D.list,Core.configFor(S,ECON),DEFS,businessRates,at,{
+  horizon,arrivals,jobs:Math.min(arrivals,D.availableJobs||0),
+  rentHomes:homes.length,rentCoins:homes.reduce((sum,b)=>sum+Math.floor(b.t.rent),0),
+  canUpgrade,canRoad:costOf('road')<=S.cash&&fits('road'),
+  canBuild:buildable.some(id=>fits(id)||fits(id,1)),
+  canDecorate:buildable.some(id=>DEFS[id].type==='decor'&&(fits(id)||fits(id,1))),
+  canRestore:(S.storedBuildings||[]).some(({building:t})=>modelReady(t.id)&&!buildingLimitMessage(t.id,true)&&
+   (t.id!=='hall'||!findHall())&&(fits(t.id,t.turned)||fits(t.id,(Number(t.turned)||0)+1))),
+  freeSpin:at-(S.wheelT||0)>=WHEEL_CD
+ });
 }
+let nextDailyOfferCheck=0;
 function labSyncTasks(){
  if(!S?.economyLab||!D?.list)return;
- const at=now(),day=Core.cycle(at),saved=S.dailyGenerated;
- if(saved?.day===day&&saved.status==='ready'&&saved.tasks?.length){
-  const expanded=saved.tasks.length<10;
-  if(expanded)fillDailyBoard(saved);
-  if(saved.tasks.some(task=>task.id.startsWith('start-')&&task.progress<1)){
-   const conditions=starterTaskConditions();
-   const completed=saved.tasks.filter(task=>task.id.startsWith('start-')&&task.progress<1&&conditions[task.metric]);
-   if(completed.length){
-    for(const task of completed)task.progress=1;
-    saved.revision++;
-    if(!expanded)save();
-   }
-  }
-  if(expanded)save();
-  return;
- }
- const snapshot=dailySnapshot(at);
- const previous=Array.isArray(saved?.tasks)?saved.tasks.map(t=>t.id):[];
- const board=Daily.assign(null,snapshot,'city',at,previous,DailyTaskSession.forecast(snapshot,at));
- fillDailyBoard(board);
+ const at=now(),saved=S.dailyGenerated;
+ if(saved?.version===2&&saved.day===Core.cycle(at)&&(saved.tasks.length>=10||at<nextDailyOfferCheck))return;
+ const board=Daily.liveBoard(saved,dailySnapshot(at),at,username||'guest');
+ nextDailyOfferCheck=at+60000;
+ if(board===saved)return;
  S.dailyGenerated=board;
  const city=S;
  Promise.resolve().then(()=>{if(S===city&&S.dailyGenerated===board)save();});
 }
+function dailyAction(type,amount=1,subject=null,at=now()){
+ Daily.liveProgress(S.dailyGenerated,type,at,amount,subject);
+}
 function dailyEvent(event){
- const daily=S.dailyGenerated;
- if(daily?.status==='ready')S.dailyGenerated=Daily.progress(daily,event,true);
+ if(event.type==='order')dailyAction('cityOrder',1,event.subject,event.at);
 }
 function dailySettlement(from,to,offline){
  const daily=S.dailyGenerated;
- if(daily?.status!=='ready'||offline||document.hidden)return;
+ if(daily?.version!==2||daily.status!=='ready')return;
  from=Math.max(from,daily.assignedAt);
- to=Math.min(to,(S.economyLab.lastAction||0)+600000);
- if(to<=from)return;
- const facts={},deliveries=[];
- const tracked=new Set(daily.tasks.filter(task=>!task.claimed&&task.progress<task.target).flatMap(task=>task.ids));
- if(!tracked.size)return;
+ if(to<=from||daily.day!==Core.cycle(to))return;
+ const open=metric=>daily.tasks.some(t=>t.metric===metric&&!t.claimed&&t.progress<t.target);
+ const delivery=open('cityDelivery');
+ const trading=!offline&&!document.hidden&&(open('trade')||open('cityCoins')||open('sellingStores'));
+ if(!delivery&&!trading)return;
  const config=Core.configFor(S,ECON);
+ const activeUntil=Math.min(to,(S.economyLab.lastAction||0)+600000);
+ const activeRanges=[];
+ let coins=0;
  for(const b of D.list){
-  const id=b.t.labId;
-  if(!tracked.has(id))continue;
-  const employees=b.employees??b.workers??0;
-  const connected=!!(b.ok&&b.pow&&b.wat);
   const p=config[b.t.id],product=b.t.pr?.[0];
-  let sold=0;
-  if(p&&product){
-   if(product.o>from&&product.o<=to)deliveries.push(id);
-   if(connected&&employees)sold=Core.unionMs(Core.intervals({...product},p.stock*60000,from,to));
+  if(!p||!product)continue;
+  if(delivery&&product.o>from&&product.o<=to)dailyAction('cityDelivery',1,b.t.labId,product.o);
+  const employees=b.employees??b.workers??0;
+  if(!trading||activeUntil<=from||!employees||!b.ok||!b.pow||!b.wat)continue;
+  const ranges=Core.intervals({...product},p.stock*60000,from,activeUntil);
+  if(!ranges.length)continue;
+  const rate=Core.gross(b.d,b.t,employees,p,businessRates)*(D.schoolMultiplier||1);
+  for(const [lo,hi] of ranges){
+   activeRanges.push([lo,hi]);
+   coins+=rate*(hi-lo+Math.max(0,Math.min(hi,S.boostUntil||0)-lo))/60000;
   }
-  facts[id]={employees,connected,selling:sold>=to-from,
-   coins:p?Core.gross(b.d,b.t,employees,p,businessRates)*sold/60000:0,
-   suppliedHomeMinutes:b.d.type==='home'&&connected,powerMinutes:b.pow,waterMinutes:b.wat,connectedMinutes:b.ok};
+  dailyAction('sellingStores',1,b.t.labId,to);
  }
- dailyEvent({type:'interval',id:'interval:'+to,at:to,from,active:true,foreground:true,facts});
- for(const subject of deliveries)dailyEvent({type:'delivery',id:'delivery:'+subject+':'+to,subject,at:to});
+ dailyAction('trade',Core.unionMs(activeRanges)/60000,null,to);
+ dailyAction('cityCoins',coins,null,to);
 }
 function labDailyClaim(key){
  labSyncTasks();
@@ -9970,7 +9960,7 @@ function upgrade(i, j) {
   const c = upCost(d, L);
   if (S.cash < c.coins) { snd('error'); toast('Upgrading costs ' + fmt(c.coins) + ' Coins.'); return; }
   if ((S.deeds || 0) < c.deeds) { snd('error'); toast('You need ' + c.deeds + ' Deed' + (c.deeds > 1 ? 's' : '') + ' for this upgrade.'); return; }
-  S.cash -= c.coins; S.deeds = (S.deeds || 0) - c.deeds; t.lvl = L + 1;
+  S.cash -= c.coins; S.deeds = (S.deeds || 0) - c.deeds; t.lvl = L + 1; dailyAction('upgradeAny');
   track('upgrade');if(!t.labId)t.labId='new-'+(++labState().nextId);labDevelopment('upgrade:'+t.labId+':'+t.lvl,30*L); popup(i, j, 'LEVEL ' + t.lvl + '!', '#FFE066');
   if (typeof confetti === 'function') { const p = P(i + .5, j + .5); confetti(t.lvl >= UP_MAX ? 120 : 40, p.x, p.y - 40); }
   if (typeof snd === 'function') snd(t.lvl >= UP_MAX ? 'maxup' : 'upgrade');
@@ -10326,7 +10316,9 @@ function collectShop(i, j) {
 function collectRent(i, j) {
   const t = tileAt(i, j); const amt = Math.floor(t.rent || 0);
   if (amt < 1) { toast('No rent to collect yet.'); return; }
-  S.cash += amt; t.rent = 0; grindAdd(1); snd('coins'); track('rent'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
+  S.cash += amt; t.rent = 0;
+  if(!t.labId)t.labId='existing-'+(++labState().nextId);
+  dailyAction('rentHomes',1,t.labId);dailyAction('rentCoins',amt); grindAdd(1); snd('coins'); track('rent'); addXP(amt / 25); popup(i, j, '+' + fmt(amt)); changed();
 }
 function collectInd(i, j) {
   const t = tileAt(i, j); const amt = Math.floor(t.stock || 0);
@@ -10362,6 +10354,12 @@ function placeAt(i, j, id, fromItem, turned=false) {
   if (fromItem && !(S.shopItems && S.shopItems[id] > 0)) { snd('error'); toast('You have none of this Dosh Shop item left.'); return false; }
   S.cash-=cost;const tile=newTile(id);tile.purchaseCoins=cost;tile.labId='new-'+(++labState().nextId);
   if(turned)tile.turned=Number(turned);occupy(i,j,tile);
+  if(id==='road')dailyAction('buildRoad');
+  else if(fromItem)dailyAction('restoreAny');
+  else{
+    dailyAction('buildAny');
+    if(d.type==='decor')dailyAction('buildDecor');
+  }
   if (fromItem) { S.items[id] = Math.max(0, (S.items[id] || 0) - 1); S.shopItems[id] = Math.max(0, (S.shopItems[id] || 0) - 1); }
   if (id === 'hall' && S.foundingGrant) {
     delete S.foundingGrant; S.cash += 8000; save(); toast('Town founded · 8,000 starter coins');
@@ -12996,6 +12994,7 @@ function restoreBuilding(entry,i,j,turned=entry.building.turned) {
   if (turned || tile.turned) tile.turned=Number(turned)||0;
   occupy(i,j,tile);
   S.storedBuildings.splice(index,1);
+  dailyAction('restoreAny');
   changed(); save(); snd('build');
   return true;
 }
@@ -13173,12 +13172,11 @@ function tasksHTML() {
   const complete=tasks.filter(t=>t.claimed).length;
   const resetTime=localDailyResetTime();
   let h=loginRewardsHTML(resetTime)+`<div class="daily-head"><div><small>Resets at ${resetTime}</small></div><span class="daily-count">${complete}/${tasks.length}</span></div><div class="daily-list">`;
-  if(!tasks.length)h+='<p class="note">Build and connect your city to unlock tasks.</p>';
+  if(!tasks.length)h+='<p class="note">More tasks become available as your city grows.</p>';
   tasks.forEach((task,q)=>{
-    const names=task.ids.length>2 ? task.ids.length+' locations' : [...new Set(task.ids.map(id=>D.list.find(b=>b.t.labId===id)?.d.name||'City'))].join(', ');
-    const labels={sales:'Earn coins through sales',tradingCoverage:'Open for trade',sellingMinutes:'Keep trading',staffedMinutes:'Keep businesses staffed',order:'Order stock',delivery:'Receive stock',visits:'Receive BinLink visits',suppliedHomeMinutes:'Keep homes supplied',powerMinutes:'Keep power connected',waterMinutes:'Keep water connected',connectedMinutes:'Keep businesses connected'};
+    const labels={sales:'Earn coins through sales',tradingCoverage:'Open for trade',sellingMinutes:'Keep trading',staffedMinutes:'Keep businesses staffed',order:'Order stock',delivery:'Receive stock',visits:'Receive BinLink visits',improve:'Improve a building',arrivals:'Welcome new residents',suppliedHomeMinutes:'Keep homes supplied',powerMinutes:'Keep power connected',waterMinutes:'Keep water connected',connectedMinutes:'Keep businesses connected'};
     const done=task.progress>=task.target;
-    h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-copy"><b>${starterTaskLabels[task.metric]||labels[task.metric]||'City task'}${names?' · '+names:''}</b><small>${task.difficulty} · ${fmt(task.progress)} / ${fmt(task.target)}</small><small>1 crate voucher, 1 dosh, ${task.reward.xp} XP</small></div>${dailyTaskProgress({p:task.progress,n:task.target})}<button class="pixel-btn pb sm" data-act="dclaim" data-k="${task.key}" ${task.claimed||!done?'disabled':''}>${task.claimed?'Claimed':done?'Collect reward':'In progress'}</button></div>`;
+    h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-copy"><b>${task.id.startsWith('city-')?String(task.text||'City task').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c]):starterTaskLabels[task.metric]||labels[task.metric]||'City task'}</b><small>${task.difficulty} · ${fmt(task.progress)} / ${fmt(task.target)}</small><small>1 crate voucher, 1 dosh, ${task.reward.xp} XP</small></div>${dailyTaskProgress({p:task.progress,n:task.target})}<button class="pixel-btn pb sm" data-act="dclaim" data-k="${task.key}" ${task.claimed||!done?'disabled':''}>${task.claimed?'Claimed':done?'Collect reward':'In progress'}</button></div>`;
   });
   h+='</div>';
   return h;
@@ -13850,7 +13848,7 @@ function finishWheelSpin() {
 function spin() {
   if (wheelAnim) return;
   const ready = now() - S.wheelT >= WHEEL_CD;
-  if (ready) S.wheelT = now(); else if (S.tickets > 0) S.tickets--; else { snd('error'); toast('Your next free spin is available after the cooldown.'); return; }
+  if (ready) { S.wheelT = now(); dailyAction('freeSpin'); } else if (S.tickets > 0) S.tickets--; else { snd('error'); toast('Your next free spin is available after the cooldown.'); return; }
   const prize = drawWheelPrize(Math.random());
   const from = ((S.wheelAng || 0) % TAU + TAU) % TAU;
   // Leave enough room on either side for the pointer's settling motion.
