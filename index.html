@@ -8943,9 +8943,14 @@ function showUsernameChange(){
  };
 }
 
+async function betaPasswordProof(salt,password){
+ if(password.length<12||password.length>256)throw Error('Use a password with 12–256 characters.');
+ const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(password),'PBKDF2',false,['deriveBits']);
+ return cityHex(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:cityBytes(salt),iterations:600000},material,256));
+}
 async function chooseCity(){
  const d=document.createElement('dialog');d.className='city-auth city-welcome';
- d.innerHTML='<div class="beta-shell"><header class="beta-brand"><img src="./bitburbs-icon.svg" width="32" height="32" alt=""><span>BIT-BURBS<small>BANKSIA BAY · BETA</small></span></header><div class="beta-scroll"><div class="beta-card"><h2 tabindex="-1" autofocus>Welcome,<br>beta testers.</h2><p class="beta-intro">Build your own little corner of Banksia Bay. Help us find bugs and fine-tune the city before our iOS and Android release.</p><ul class="beta-info"><li><b>Your city, wherever you play.</b><span>Progress autosaves online. Use the same username on your other devices.</span></li><li><b>Help shape the game.</b><span>Saved progression helps us balance levels, prices and rewards.</span></li><li><b>A work in progress.</b><span>Features and game balance may change during the beta.</span></li></ul><form><label for="betaUsername">Your username</label><input id="betaUsername" name="user" required minlength="1" maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Enter your username" aria-describedby="betaUserHelp"><p id="betaUserHelp" class="beta-help">Already playing? Enter your existing username. New here? Choose a name and create your city.</p><div class="beta-actions"><button class="pixel-btn primary" type="submit" value="open">Log in</button><button class="pixel-btn beta-create" type="submit" value="create">Create city</button></div><p class="beta-status" role="status" aria-live="polite"></p></form><p class="beta-access">Username-only beta access · 1–24 letters, numbers, underscores or hyphens</p></div></div></div>';
+ d.innerHTML='<div class="beta-shell"><header class="beta-brand"><img src="./bitburbs-icon.svg" width="32" height="32" alt=""><span>BIT-BURBS<small>BANKSIA BAY · BETA</small></span></header><div class="beta-scroll"><div class="beta-card"><h2 tabindex="-1" autofocus>Welcome,<br>beta testers.</h2><p class="beta-intro">Build your own little corner of Banksia Bay. Help us find bugs and fine-tune the city before our iOS and Android release.</p><ul class="beta-info"><li><b>Your city, wherever you play.</b><span>Progress autosaves online. Sign in on your other devices.</span></li><li><b>Help shape the game.</b><span>Saved progression helps us balance levels, prices and rewards.</span></li><li><b>A work in progress.</b><span>Features and game balance may change during the beta.</span></li></ul><form><label for="betaUsername">Your username</label><input id="betaUsername" name="user" required minlength="1" maxlength="24" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Enter your username" aria-describedby="betaUserHelp"><p id="betaUserHelp" class="beta-help">Existing beta cities can still sign in with their username. New cities require a password.</p><label for="betaPassword">Password</label><input id="betaPassword" name="password" type="password" maxlength="256" autocomplete="current-password" placeholder="12 or more characters"><div class="beta-actions"><button class="pixel-btn primary" type="submit" value="open">Log in</button><button class="pixel-btn beta-create" type="submit" value="create">Create city</button></div><p class="beta-status" role="status" aria-live="polite"></p></form><p class="beta-access">Beta access · 1–24 letters, numbers, underscores or hyphens</p></div></div></div>';
  let complete;const chosen=new Promise(resolve=>{complete=resolve});
  const viewport=window.visualViewport;
  const fitWelcome=()=>{if(viewport)d.style.setProperty('--welcome-visible-height',viewport.height+'px');};
@@ -8960,7 +8965,21 @@ async function chooseCity(){
  const first=!localStorage.getItem(rosterReady);
  const creating=e.submitter?.value==='create';
  f.querySelector('[role=status]').textContent=creating?'Creating your city…':'Opening your city…';for(const button of f.querySelectorAll('button'))button.disabled=true;
- const data=await cityApi({action:'username',name,create:creating,fresh:creating});
+ const password=f.elements.password.value;
+ let data;
+ if(creating){
+   const salt=cityHex(crypto.getRandomValues(new Uint8Array(16)));
+   const proof=await betaPasswordProof(salt,password);
+   data=await cityApi({action:'username',name,create:true,fresh:true,salt,proof});
+   if(!data.passwordProtected)throw Error('Password accounts are temporarily unavailable. Try again shortly.');
+ }else{
+   try{data=await cityApi({action:'username',name});}
+   catch(err){
+     if(err.status!==428||!/^[a-f0-9]{32}$/.test(err.responseData?.salt))throw err;
+     const proof=await betaPasswordProof(err.responseData.salt,password);
+     data=await cityApi({action:'username',name,proof});
+   }
+ }
  const resolvedName=validName(data.name)?data.name:name;
  const slot=localSlot(resolvedName);
  if(first&&creating&&!data.city){
@@ -8991,7 +9010,7 @@ if(namedPlay){
    username=remembered;
    let slot=localSlot(username);const oldCode=localStorage.getItem(slot+':cloud-key');
    try{
-     const data=loginResult || await cityApi({action:'username',name:username,create:true,legacy:oldCode});
+     const data=loginResult || await cityApi({action:'username',name:username,legacy:oldCode});
      if(validName(data.name)&&data.name!==username){copyUsernameSlot(username,data.name);username=data.name;slot=localSlot(username);localStorage.setItem(lastUser,username)}
      cityCode=data.code;cityRevision=data.revision||null;
      rememberRoomRecord(slot,data);
@@ -9000,7 +9019,7 @@ if(namedPlay){
      }
      localStorage.setItem(slot+':cloud-key',cityCode);localStorage.setItem(slot+':login-name',username);
    }catch(err){try{roomRecord=JSON.parse(localStorage.getItem(slot+':room-record'));}catch{}
-     cityCode=oldCode;cityRevision=localStorage.getItem(slot+':cloud-revision');if(!cityCode||!localStorage.getItem(slot))throw err}
+     cityCode=oldCode;cityRevision=localStorage.getItem(slot+':cloud-revision');if([401,403,404,428].includes(err.status)||!cityCode||!localStorage.getItem(slot))throw err}
 
  }catch(err){alert('Could not open city: '+err.message);return}
 }
