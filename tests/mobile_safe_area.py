@@ -470,7 +470,15 @@ def check_local_reset_labels(browser, base):
         page.add_locator_handler(page.locator("#modal.show #bagLater"), lambda button: button.click())
         page.get_by_role("button", name="Tasks", exact=True).click()
         check_time("#sheet .daily-head small", "6:00 pm")
-        assert page.locator("#sheet .daily-task-card").count() == 10
+        keys = set()
+        while True:
+            keys.update(page.locator(".daily-task-card [data-k]").evaluate_all("(els) => els.map(el => el.dataset.k)"))
+            forward = page.get_by_role("button", name="Next tasks")
+            if forward.is_disabled():
+                break
+            forward.click()
+        assert len(keys) == 10
+        page.get_by_role("button", name="Rewards", exact=True).click()
         page.get_by_role("button", name="Claim login reward").click()
         check_time("#sheet .sect p:last-of-type", login_time)
         context.close()
