@@ -2835,6 +2835,8 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #sheet .login-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 8px;margin:0;padding:6px 8px}
 #sheet .login-strip :is(h3,p){margin:0}
 #sheet .login-strip details{grid-column:1/-1}
+#sheet .reward-stamp{display:inline-flex;justify-self:center;align-items:center;gap:3px;white-space:nowrap;border:1px dashed #f3c762;outline:1px solid #976b24;outline-offset:1px;background:#383124;color:#ffda7a;padding:2px 3px;font:15px/1 VT323,monospace;transform:rotate(-2deg)}
+#sheet .reward-stamp i{background:#f3c762;color:#382b18;font:12px/1 VT323,monospace;padding:1px 2px}
 #sheet .mission-board{display:grid;gap:6px;font:20px/1 VT323,monospace}
 #sheet .mission-summary{display:flex;align-items:center;justify-content:space-between;gap:6px}
 #sheet .mission-summary small{display:block;font-size:16px;color:#c6dcef}
@@ -13152,7 +13154,17 @@ function claimLoginReward(){
   const rewards=LOGIN_REWARDS[index].map(grant);
   S.loginRewards={day,next:(index+1)%LOGIN_REWARDS.length};
   changed();save();renderSheet(true);
+  stampReward(sheetBody.querySelector('.login-strip'));
   toast(rewards.join(' + '));
+}
+function rewardStamp(){
+  return '<span class="reward-stamp" role="img" aria-label="Reward collected"><i aria-hidden="true">BB</i> PAID OUT</span>';
+}
+function stampReward(container){
+  const stamp=container?.querySelector('.reward-stamp');
+  if(stamp?.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    stamp.animate([{transform:'scale(1.24) rotate(-7deg)',opacity:.35},{transform:'scale(.96) rotate(-2deg)',opacity:1},{transform:'scale(1) rotate(-2deg)'}],{duration:240,easing:'ease-out'});
+  }
 }
 function loginRewardsHTML(resetTime){
   const {index,available}=loginRewardState();
@@ -13165,7 +13177,7 @@ function loginRewardsHTML(resetTime){
   return `<section class="sect login-strip"><div><h3>Daily login reward</h3>
     <p>Day ${day+1} · ${LOGIN_REWARDS[day].map(rewLabel).join(' + ')}</p>
     ${available?'':`<p>Next reward at ${resetTime}</p>`}</div>
-    <button class="pixel-btn pb sm" data-act="loginReward" ${available?'':'disabled'}>${available?'Claim login reward':'Claimed today'}</button>
+    ${available?'<button class="pixel-btn pb sm" data-act="loginReward">Claim login reward</button>':rewardStamp()}
     <details data-login-schedule><summary>See all seven rewards</summary><p>Miss a day and your streak resets to Day 1.</p><ol>${rows}</ol></details></section>`;
 }
 function tasksHTML() {
@@ -13185,7 +13197,7 @@ function tasksHTML() {
         <span><canvas data-icon="crateVoucher" width="28" height="28" role="img" aria-label="Crate vouchers"></canvas>1
         <canvas data-icon="dosh" width="28" height="28" role="img" aria-label="Dosh"></canvas>1</span>
         <span>${t.reward.xp} XP</span>
-        ${t.claimed?'<span>Claimed ✓</span>':t.progress>=t.target?`<button class="pixel-btn pb sm" data-act="dclaim" data-k="${t.key}">Claim</button>`:''}
+        ${t.claimed?rewardStamp():t.progress>=t.target?`<button class="pixel-btn pb sm" data-act="dclaim" data-k="${t.key}">Claim</button>`:''}
       </div>
     </article>`).join('');
   return `<div class="mission-board">${loginRewardsHTML(localDailyResetTime())}<div class="mission-summary"><div>${complete}/${tasks.length} claimed<small>Resets at ${resetTime}</small></div></div>
@@ -13296,7 +13308,11 @@ sheetEl.addEventListener('click', e => {
   }
   if (a === 'fps') { setFPSVisibility(!showFPS); snd('toggle'); sheetKeyVal = ''; renderSheet(true); return; }
   else if (a === 'loginReward') claimLoginReward();
-  else if (a === 'dclaim') claimDaily(b.dataset.k);
+  else if (a === 'dclaim') {
+    const key=b.dataset.k;
+    claimDaily(key);
+    stampReward(sheetBody.querySelector('.mission-row[data-task="'+CSS.escape(key)+'"]'));
+  }
   else if (a === 'eclaim') claimEvent(+b.dataset.k);
   else if (a === 'reset') { if (!resetArm) { resetArm = true; renderSheet(true); return; } N=BAY_SIZE; MID=N/2; ISL=makeIsland(); S = newGame();economyMigrate();Core.rebalance(S,ECON,S.economyLab.settled); if(testCity)seedFullTestCity(); streetNetwork=null;traffic=[];buses=[];serviceClock=null;walkingGraph=null; walkers.length=0; nextWalkerIn=.3; S.welcomeBonus = true; S.firstRun = false; sel = null; placing = null; save(); closeSheet(); derive(); centerOn(MID, MID); toast('A fresh city awaits.'); }
 });
