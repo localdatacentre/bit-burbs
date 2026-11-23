@@ -476,7 +476,7 @@ def check_local_reset_labels(browser, base):
         for pick in picks.all():
             pick.click()
             assert pick.get_attribute("aria-pressed") == "true"
-            assert page.locator(".mission-detail h3").inner_text() in pick.get_attribute("aria-label")
+            assert page.locator(".mission-detail h3").text_content() in pick.get_attribute("aria-label")
         page.get_by_role("button", name="Rewards", exact=True).click()
         page.get_by_role("button", name="Claim login reward").click()
         check_time("#sheet .sect p:last-of-type", login_time)
