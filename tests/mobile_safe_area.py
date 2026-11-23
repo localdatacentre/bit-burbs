@@ -221,6 +221,7 @@ def check_layout(page, base, viewport, insets):
                     assert tab.get_attribute("aria-pressed") == "true"
                     check_home_menu(page, False)
             if menu == "Tasks":
+                page.get_by_role("button", name="Rewards", exact=True).tap()
                 page.get_by_role("button", name="Claim login reward").tap()
                 check_toast("#sheet .shead")
                 assert "voucher" in page.locator("#toast").inner_text().lower()
@@ -469,15 +470,13 @@ def check_local_reset_labels(browser, base):
         page.goto(base + "/?demo=full-city", wait_until="domcontentloaded")
         page.add_locator_handler(page.locator("#modal.show #bagLater"), lambda button: button.click())
         page.get_by_role("button", name="Tasks", exact=True).click()
-        check_time("#sheet .daily-head small", "6:00 pm")
-        keys = set()
-        while True:
-            keys.update(page.locator(".daily-task-card [data-k]").evaluate_all("(els) => els.map(el => el.dataset.k)"))
-            forward = page.get_by_role("button", name="Next tasks")
-            if forward.is_disabled():
-                break
-            forward.click()
-        assert len(keys) == 10
+        check_time("#sheet .mission-summary small", "6:00 pm")
+        picks = page.locator(".mission-pick")
+        assert picks.count() == 10
+        for pick in picks.all():
+            pick.click()
+            assert pick.get_attribute("aria-pressed") == "true"
+            assert page.locator(".mission-detail h3").inner_text() in pick.get_attribute("aria-label")
         page.get_by_role("button", name="Rewards", exact=True).click()
         page.get_by_role("button", name="Claim login reward").click()
         check_time("#sheet .sect p:last-of-type", login_time)
