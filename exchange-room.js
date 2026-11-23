@@ -182,7 +182,7 @@ body[data-screen="opening"] #modalRoot .dialog{border-color:color-mix(in srgb,va
 .exchange header:has(.city-close:not([hidden])) #wallet{grid-column:2;grid-row:1 / 3}
 .exchange header .city-close{grid-column:3;grid-row:1 / 3}
 /* Dosh Shop colours follow the green banknote sprite. */
-body[data-screen="shop"]{background:#102b20;--shop-offer-width:min(86%, 280px)}
+body[data-screen="shop"]{background:#102b20;--shop-offer-width:min(76%, 208px)}
 body[data-screen="shop"] .exchange{color:#f0f7e4}
 body[data-screen="shop"] .exchange header small,
 body[data-screen="shop"] .sub{color:#c1dfb8}
@@ -190,7 +190,7 @@ body[data-screen="shop"] .shop-offer{background:#305d40;border-color:#53835b}
 .exchange .shop-menu {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  gap: 8px;
   width: var(--shop-offer-width);
   margin: 0 auto;
 }
@@ -198,7 +198,7 @@ body[data-screen="shop"] .shop-menu .shop-offer {
   aspect-ratio: 1;
   height: auto;
   min-height: 0;
-  padding: clamp(10px, 3vw, 16px);
+  padding: clamp(6px, 2vw, 10px);
   border: 2px solid #63916c;
   box-shadow: inset 0 2px #477653, inset 0 -3px #244c33;
 }
@@ -207,7 +207,7 @@ body[data-screen="shop"] .shop-menu .shop-offer {
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: 10px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -225,21 +225,21 @@ body[data-screen="shop"] .shop-menu .shop-offer {
   display: grid;
   justify-items: center;
   align-content: start;
-  gap: 8px;
+  gap: 4px;
   text-align: center;
-  font-size: clamp(21px, 5.8vw, 26px);
+  font-size: clamp(18px, 4.6vw, 21px);
   line-height: 1;
 }
 .shop-menu .offer-rewards .icon {
-  width: 72px;
-  height: 72px;
+  width: 52px;
+  height: 52px;
   max-width: 100%;
   object-fit: contain;
 }
-.shop-menu .offer-rewards:has(li + li) .icon { width: 60px; height: 60px; }
+.shop-menu .offer-rewards:has(li + li) .icon { width: 40px; height: 40px; }
 body[data-screen="shop"] #screen .shop-offer button {
-  min-height: 48px;
-  font-size: 24px;
+  min-height: 44px;
+  font-size: 21px;
 }
 body[data-screen="shop"] .shop-reset { width: var(--shop-offer-width); margin: 2px auto 10px; }
 
