@@ -221,7 +221,8 @@ def check_layout(page, base, viewport, insets):
                     assert tab.get_attribute("aria-pressed") == "true"
                     check_home_menu(page, False)
             if menu == "Tasks":
-                page.get_by_role("button", name="Claim login reward").tap()
+                page.locator(".login-strip").get_by_role("button", name="Collect", exact=True).tap()
+                assert page.locator(".login-strip").get_by_role("button", name="Reward collected").is_disabled()
                 check_toast("#sheet .shead")
                 assert "voucher" in page.locator("#toast").inner_text().lower()
                 schedule = page.locator('#sheet details[data-login-schedule]')
@@ -473,7 +474,7 @@ def check_local_reset_labels(browser, base):
         rows = page.locator(".mission-row")
         assert len(set(rows.evaluate_all("(rows) => rows.map(row => row.dataset.task)"))) == 10
         assert page.get_by_role("button", name="Next tasks").count() == 0
-        page.get_by_role("button", name="Claim login reward").click()
+        page.locator(".login-strip").get_by_role("button", name="Collect", exact=True).click()
         check_time("#sheet .login-strip > div p:last-child", login_time)
         context.close()
 
