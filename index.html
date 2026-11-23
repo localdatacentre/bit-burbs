@@ -2831,7 +2831,13 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 .city-exchange-room[data-room=shop] { background:#102b20; }
 .city-exchange-room iframe { display:block; width:100%; height:100%; border:0; }
 </style>
-</head>
+<style>
+.task-pages{display:flex;align-items:center;justify-content:space-between;margin:4px 0;font:20px VT323,monospace}
+.task-pages button{min-width:44px}
+#sheet[data-view="tasks"] .daily-task-card{padding:5px 8px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 8px}
+#sheet[data-view="tasks"] .daily-task-card .daily-progress{grid-row:2;grid-column:1/-1}
+#sheet[data-view="tasks"] .daily-task-card button{grid-column:2;grid-row:1}
+</style></head>
 <body>
 <canvas id="game" aria-label="Your city. Drag to move around, pinch to zoom, tap buildings to manage them."></canvas>
 
@@ -12852,7 +12858,7 @@ function syncPageChrome(view) {
   const edge = getComputedStyle(document.body).getPropertyValue('--page-edge').trim();
   document.querySelector('meta[name="theme-color"]').content = edge || '#243b5b';
 }
-function openSheet(name) { cityNeedsOpen=false;managingProperty=false;pickingMove=false; snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); syncPageChrome(name); }
+function openSheet(name) { if(name==="tasks"){taskPage=0;showTaskRewards=false;} cityNeedsOpen=false;managingProperty=false;pickingMove=false; snd('open'); document.body.classList.add('sheet-open'); $('#coach').classList.remove('show'); document.body.classList.remove('tut-on'); setHL(null); closeMg(); sheet = name; resetArm = false; card.classList.remove('show'); renderSheet(true); sheetEl.classList.add('open'); scrim.classList.add('open'); syncPageChrome(name); }
 function closeSheet() { snd('close'); document.body.classList.remove('sheet-open'); sheet = null; buildTarget = null; sheetEl.classList.remove('open'); scrim.classList.remove('open'); syncPageChrome(null); renderCard(true); }
 scrim.addEventListener('click', closeSheet);
 function sheetKey() {
@@ -12862,7 +12868,7 @@ function sheetKey() {
   if(sheet==='tasks'){
     labSyncTasks();
     const tasks=(S.dailyGenerated?.tasks || []).map(t=>[t.key,fmt(t.progress),Math.floor(t.progress / t.target * 100),t.claimed,t.progress>=t.target]);
-    return JSON.stringify([tasks,loginRewardState()]);
+    return JSON.stringify([tasks,loginRewardState(),tasksPerPage(),taskPage,showTaskRewards]);
   }
   if (sheet === 'settings') return String(S.sound !== false) + '|' + rewardSoundEnabled() + '|' + showFPS + '|' + LOC.src + '|' + resetArm;
   return '';
@@ -13146,6 +13152,11 @@ function loginRewardsHTML(resetTime){
     <p>${available?'Day '+(index+1)+' · '+LOGIN_REWARDS[index].map(rewLabel).join(' + '):'Next reward at '+resetTime}</p>
     <button class="pixel-btn pb sm" data-act="loginReward" ${available?'':'disabled'}>${available?'Claim login reward':'Claimed today'}</button></section>`;
 }
+let taskPage=0, showTaskRewards=false;
+function tasksPerPage(){
+  const height=sheetBody.clientHeight || innerHeight*.65;
+  return Math.max(1,Math.min(5,Math.floor((height-100)/105)));
+}
 function tasksHTML() {
   labSyncTasks();
   const daily=S.dailyGenerated;
@@ -13155,9 +13166,15 @@ function tasksHTML() {
   const resetTime=cityClockFormat.format(Daily.nextLocalReset(now()));
   const previousRewards=rewards.length?'<section class="sect"><h3>Previous task rewards</h3>'+rewards.map(t=>
     `<button class="pixel-btn pb sm" data-act="dclaim" data-k="${t.key}">Collect reward · ${t.reward.xp} XP</button>`).join(' ')+'</section>':'';
-  let h=loginRewardsHTML(localDailyResetTime())+previousRewards+`<div class="daily-head"><div><small>Resets at ${resetTime}</small></div><span class="daily-count">${complete}/${tasks.length}</span></div><div class="daily-list">`;
+  const count=tasksPerPage(), pages=Math.max(1,Math.ceil(tasks.length/count));
+  taskPage=Math.min(taskPage,pages-1);
+  const toggle='<button class="pixel-btn pb sm" data-act="taskRewards">'+(showTaskRewards?'Daily tasks':'Rewards')+'</button>';
+  if(showTaskRewards)return toggle+loginRewardsHTML(localDailyResetTime())+previousRewards;
+  let h=`<div class="daily-head"><small>Resets at ${resetTime} · ${complete}/${tasks.length}</small>${toggle}</div>
+    <div class="task-pages"><button class="pixel-btn pb sm" aria-label="Previous tasks" data-act="taskPrev" ${taskPage?'':'disabled'}>‹</button><span>Page ${taskPage+1} of ${pages}</span><button class="pixel-btn pb sm" aria-label="Next tasks" data-act="taskNext" ${taskPage+1<pages?'':'disabled'}>›</button></div><div class="daily-list">`;
   if(!tasks.length)h+='<p class="note">More tasks become available as your city grows.</p>';
-  tasks.forEach((task,q)=>{
+  tasks.slice(taskPage*count,(taskPage+1)*count).forEach((task,index)=>{
+    const q=taskPage*count+index;
     const done=task.progress>=task.target;
     h+=`<div class="daily-task-card task-col-${q%5}"><div class="daily-task-copy"><b>${(task.metric==='buildDecor'?'Place '+task.target+' from Parks & Greenery':String(task.text||'City task')).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[c])}</b><small>${task.difficulty} · ${fmt(task.progress)} / ${fmt(task.target)}</small><small>1 crate voucher, 1 dosh, ${task.reward.xp} XP</small></div>${dailyTaskProgress({p:task.progress,n:task.target})}<button class="pixel-btn pb sm" data-act="dclaim" data-k="${task.key}" ${task.claimed||!done?'disabled':''}>${task.claimed?'Claimed':done?'Collect reward':'In progress'}</button></div>`;
   });
@@ -13269,6 +13286,11 @@ sheetEl.addEventListener('click', e => {
   }
   if (a === 'fps') { setFPSVisibility(!showFPS); snd('toggle'); sheetKeyVal = ''; renderSheet(true); return; }
   else if (a === 'loginReward') claimLoginReward();
+  else if (['taskNext','taskPrev','taskRewards'].includes(a)){
+    if(a==='taskRewards')showTaskRewards=!showTaskRewards;
+    else taskPage=Math.max(0,taskPage+(a==='taskNext'?1:-1));
+    renderSheet(true);sheetBody.scrollTop=0;
+  }
   else if (a === 'dclaim') claimDaily(b.dataset.k);
   else if (a === 'eclaim') claimEvent(+b.dataset.k);
   else if (a === 'reset') { if (!resetArm) { resetArm = true; renderSheet(true); return; } N=BAY_SIZE; MID=N/2; ISL=makeIsland(); S = newGame();economyMigrate();Core.rebalance(S,ECON,S.economyLab.settled); if(testCity)seedFullTestCity(); streetNetwork=null;traffic=[];buses=[];serviceClock=null;walkingGraph=null; walkers.length=0; nextWalkerIn=.3; S.welcomeBonus = true; S.firstRun = false; sel = null; placing = null; save(); closeSheet(); derive(); centerOn(MID, MID); toast('A fresh city awaits.'); }
