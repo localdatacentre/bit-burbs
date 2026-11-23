@@ -2842,8 +2842,15 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #sheet .login-strip details{grid-column:1/-1;color:#f4d9ff;font-size:17px}
 #sheet .login-strip details[open] ol{margin:5px 0;padding-inline-start:24px}
 #sheet[data-view="tasks"] #sheetBody .collect-btn {
-  min-width:70px;min-height:28px;padding:2px 6px!important;font-size:18px!important;
+  width:66px;min-width:0;min-height:28px!important;padding:0!important;font-size:16px!important;
+  background:none!important;border:0!important;clip-path:none!important;
   text-shadow:none!important;color:#153411!important;
+}
+#sheet[data-view="tasks"] #sheetBody .collect-face {
+  display:inline-grid;place-items:center;box-sizing:border-box;width:58px;height:21px;
+  border:1px solid var(--bb-edge);background:var(--bb-face);
+  box-shadow:inset 0 1px var(--bb-top),inset 0 -2px var(--bb-bottom);
+  clip-path:polygon(2px 0,calc(100% - 2px) 0,100% 2px,100% calc(100% - 2px),calc(100% - 2px) 100%,2px 100%,0 calc(100% - 2px),0 2px);
 }
 #sheet[data-view="tasks"] #sheetBody .collect-btn:disabled {
   --bb-face:#59677a;--bb-top:#7a8799;--bb-bottom:#465365;--bb-edge:#323e50;
@@ -13169,7 +13176,7 @@ function claimLoginReward(){
   toast(rewards.join(' + '));
 }
 function collectButton(action,ready,collected,key){
-  return `<button type="button" class="pixel-btn pb sm green collect-btn${collected?' collected':''}" data-act="${action}" ${key?'data-k="'+key+'"':''} ${collected||!ready?'disabled':''} ${collected?'aria-label="Reward collected"':''}>${collected?'✓':'Collect'}</button>`;
+  return `<button type="button" class="pixel-btn pb sm green collect-btn${collected?' collected':''}" data-act="${action}" ${key?'data-k="'+key+'"':''} ${collected||!ready?'disabled':''} ${collected?'aria-label="Reward collected"':''}><span class="collect-face">${collected?'✓':'Collect'}</span></button>`;
 }
 function loginRewardsHTML(resetTime){
   const {index,available}=loginRewardState();
