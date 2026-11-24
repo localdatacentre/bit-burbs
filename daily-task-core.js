@@ -298,9 +298,22 @@ const LIVE_TEMPLATES=liveGroups.flatMap(([family,metric,targets,label])=>targets
     difficulty:DIFFICULTIES[rank],reward:{crateVouchers:1,dosh:1,xp:XP[rank]}};
 }));
 
+function applyLivePayouts(board){
+  let slot=0;
+  for(const task of board.tasks){
+    if(task.archived)continue;
+    slot++;
+    if(task.claimed)continue;
+    task.reward.crateVouchers=2;
+    task.reward.dosh=3;
+    if(slot===3||slot===8)task.reward.wheelTickets=1;
+  }
+  return board;
+}
+
 function liveBoard(saved,at,player){
   const day=localDay(at);
-  if(saved?.version===LIVE_VERSION&&saved.day===day)return saved;
+  if(saved?.version===LIVE_VERSION&&saved.day===day)return applyLivePayouts(saved);
   const oldCycle=saved&&saved.version<LIVE_VERSION&&saved.day===Core.cycle(at);
   const carried=oldCycle?(saved.tasks||[]).filter(t=>t.claimed||t.progress>=t.target)
     .map(t=>({...t,archived:true})):[];
@@ -314,8 +327,8 @@ function liveBoard(saved,at,player){
     picked.push({...clone(t),key:day+':fixed:'+t.family,assignedAt:at,progress:0,claimed:false});
     if(families.size===10)break;
   }
-  return {version:LIVE_VERSION,day,status:'ready',assignedAt:at,tasks:picked,
-    receipts:oldCycle?saved.receipts||{}:{},revision:oldCycle?saved.revision||0:0};
+  return applyLivePayouts({version:LIVE_VERSION,day,status:'ready',assignedAt:at,tasks:picked,
+    receipts:oldCycle?saved.receipts||{}:{},revision:oldCycle?saved.revision||0:0});
 }
 
 function liveProgress(board,type,at,amount=1,subject=null){

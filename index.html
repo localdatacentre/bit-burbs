@@ -17,7 +17,7 @@
 <link rel="preload" as="font" type="font/woff2" href="./fonts/silkscreen-400.woff2" crossorigin>
 <link rel="preload" as="script" href="./residential-cats.js?v=yard1">
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
-<link rel="preload" as="script" href="./daily-task-core.js?v=build-categories1">
+<link rel="preload" as="script" href="./daily-task-core.js?v=task-payout2">
 <link rel="preload" as="script" href="./daily-task-session.js">
 <link rel="preload" as="style" href="./page-shell.css?v=mobile-polish1">
 <style>
@@ -8633,7 +8633,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=shop-compact1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=build-categories1"></script>
+<script src="./exchange-room.js?v=shop-compact1"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=task-payout2"></script>
 <script>
 (async () => {
 'use strict';
@@ -13214,9 +13214,9 @@ function tasksHTML() {
     <article class="mission-row" data-task="${t.key}">
       <div class="mission-objective"><b>${title(t)}</b><small>${fmt(t.progress)} / ${fmt(t.target)}</small>${dailyTaskProgress({p:t.progress,n:t.target})}</div>
       <div class="mission-payout">
-        <span><canvas data-icon="crateVoucher" width="28" height="28" role="img" aria-label="Crate vouchers"></canvas>1
-        <canvas data-icon="dosh" width="28" height="28" role="img" aria-label="Dosh"></canvas>1</span>
-        <span>${t.reward.xp} XP</span>
+        <span><canvas data-icon="crateVoucher" width="28" height="28" role="img" aria-label="Crate vouchers"></canvas>${t.reward.crateVouchers}
+        <canvas data-icon="dosh" width="28" height="28" role="img" aria-label="Dosh"></canvas>${t.reward.dosh}</span>
+        <span>${t.reward.xp} XP${t.reward.wheelTickets?" · 1 spin":""}</span>
         ${collectButton('dclaim',t.progress>=t.target,t.claimed,t.key)}
       </div>
     </article>`).join('');
@@ -14564,7 +14564,7 @@ const INFO = {
   crates: ['Banksia Exchange', ['Spend crate vouchers on Silver, Gold, Emerald, Ruby or Diamond crates.', 'Purchased crates go into storage. Open one or three of the same tier for one reward per crate.', 'Diamond crates have a 2% chance of a 1,000 Dosh jackpot.', 'The Exchange saves each reward before the reel starts. You can skip the reel or return after a reload.']],
   get market() { return ['Dosh Shop', [`Four offers refresh daily at ${localDailyResetTime()}.`, 'Each offer can be claimed once per day.', 'Rewards go straight to your city.']]; },
   build: ['Building', ['Everything needs a road next to it.', 'Most buildings need power and water too: build a Wind Turbine and a Water Tower.', 'Shops need workers, so build homes to bring people in.', 'Tap any building to upgrade it. Levels 4 and 5 need Deeds.']],
-  get tasks() { return ['Tasks', [`Your tasks are set for the day and refresh at ${cityClockFormat.format(Daily.nextLocalReset(now()))}.`, 'Claim a completed task for a crate voucher, Dosh and XP.', 'Claim a login reward each day to keep your streak.']]; },
+  get tasks() { return ['Tasks', [`Your tasks are set for the day and refresh at ${cityClockFormat.format(Daily.nextLocalReset(now()))}.`, 'Each task pays 2 crate vouchers, 3 Dosh and XP. Two tasks also award a wheel ticket.', 'Claim a login reward each day to keep your streak.']]; },
   hall: ['Town Hall', ['Expand your land here once you reach the right level.', 'Expanding costs Coins and Deeds.', 'Power and water show how much your city makes and uses.', 'Workers come from homes, and businesses need them to run.']]
 };
 function showFoundingPrompt() {

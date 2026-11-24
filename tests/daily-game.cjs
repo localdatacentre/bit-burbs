@@ -52,7 +52,7 @@ const completed=run('S.dailyGenerated.tasks.filter(t=>t.progress>=t.target).leng
 if(!completed)run('dailyAction(S.dailyGenerated.tasks[0].metric,S.dailyGenerated.tasks[0].target)');
 const claimable=run('S.dailyGenerated.tasks.filter(t=>t.progress>=t.target).length');
 run('for(const task of S.dailyGenerated.tasks)labDailyClaim(task.key)');
-assert.equal(run('S.crateVouchers'),claimable);
+assert.equal(run('S.crateVouchers'),2*claimable);
 const before = context.saved;
 run('S=JSON.parse(saved);labDailyClaim(S.dailyGenerated.tasks.find(t=>t.claimed).key)');
 assert.equal(context.saved,before);
@@ -65,6 +65,8 @@ const Daily=require('../daily-task-core.js');
 assert(Daily.LIVE_TEMPLATES.length>=40);
 assert.equal(new Set(Daily.LIVE_TEMPLATES.map(t=>t.id)).size,Daily.LIVE_TEMPLATES.length);
 const fresh=Daily.liveBoard(null,at,'fixture');
+assert.equal(fresh.tasks.reduce((sum,t)=>sum+(t.reward.wheelTickets||0),0),2);
+assert(fresh.tasks.every(t=>t.reward.crateVouchers===2&&t.reward.dosh===3));
 const active=board=>board.tasks.filter(t=>!t.archived);
 assert.equal(active(fresh).length,10);
 assert.equal(new Set(active(fresh).map(t=>t.family)).size,10);
