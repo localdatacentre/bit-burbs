@@ -8670,11 +8670,9 @@ function labAccrue(to=now(),offline=false){
   const ticks=Math.floor(end/interval)-Math.floor(from/interval);
   const arrivals=Math.min(room,ticks*3);
   if(arrivals>0){
-   const employed=D.employed;
-   S.pop+=arrivals;derive();
+   S.pop+=arrivals;derive(offline?null:end);
    if(!offline&&!document.hidden&&end<=to){
     dailyAction('newResidents',arrivals,null,end);
-    dailyAction('newJobs',Math.max(0,D.employed-employed),null,end);
    }
   }
  }
@@ -9982,7 +9980,8 @@ function upBenefit(d) { return d.type === 'shop' || d.type === 'ind' ? 'Earnings
 let D = { list: [], homes: [], shops: [], ind: [], happy: 50, cap: 0, jobs: 0, employed: 0, supP: 0, supW: 0, useP: 0, useW: 0, demand: [0, 0, 0], val: new Float32Array(N * N), svc: new Uint8Array(N * N), poll: new Float32Array(N * N) };
 function jobCapacity(t,d){const id=t?.id||Object.keys(DEFS).find(k=>DEFS[k]===d);return ECON[id]?.jobs||d.jobs||0;}
 function schoolBonusPct(list){return list.reduce((pct,b)=>b.t.id==='school'&&b.ok&&b.pow&&b.wat?Math.max(pct,Math.min(5,lvlOf(b.t))):pct,0);}
-function derive() {
+function derive(taskTime=null) {
+  const populationBefore=S.pop;
   const list = [];
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
     const t = S.tiles[j * N + i]; if (!t || t.id === 'road' || t.id === '_occ') continue;
@@ -10021,14 +10020,17 @@ function derive() {
     free-=b.employees;
     workplaces.push(b);
   }
+  let hires=0;
   function hireUpTo(b,target){
     if(!b.works || free<=0)return;
     const vacancies=Math.max(0,Math.min(target,b.jobCapacity)-b.employees);
-    const hires=Math.min(vacancies,free);
-    b.employees+=hires;free-=hires;
+    const count=Math.min(vacancies,free);
+    b.employees+=count;free-=count;hires+=count;
   }
   // Fill operating positions with unemployed residents before filling extra jobs.
   // This also seeds older saves using their original staffing order.
+  // One worker can reopen a business. Prioritise empty operating businesses first.
+  for(const b of workplaces)if(isBiz(b.d))hireUpTo(b,1);
   for(const b of workplaces)hireUpTo(b,isBiz(b.d)?3:b.jobCapacity);
   for(const b of workplaces){
     hireUpTo(b,b.jobCapacity);
@@ -10063,6 +10065,10 @@ function derive() {
   const availableJobs = workplaces.reduce((total,b)=>total+(b.works?b.jobCapacity-b.employees:0),0);
   D = { list, occupiedHomes: homes.filter(h=>h.res>0), schoolMultiplier: 1 + schoolBonusPct(list) / 100, homes, shops, ind, happy, cap, jobs, availableJobs, employed, supP, supW, useP: supP - remP, useW: supW - remW, demand, val, svc, poll };
   list.forEach(b => { b.t._ = b; });
+  if(taskTime!==null && !document.hidden){
+    if(S.pop>populationBefore)dailyAction('newResidents',S.pop-populationBefore,null,taskTime);
+    if(hires)dailyAction('newJobs',hires,null,taskTime);
+  }
 }
 const info = (i, j) => { const t = tileAt(i, j); return t && t._ ? t._ : null; };
 
@@ -10417,6 +10423,7 @@ function busArrive() {
   derive();
   if (S.pop >= D.cap) return;
   S.pop += 1;
+  if(!document.hidden)dailyAction('newResidents',1);
   track('rent', 1);
   toast('A new resident moved in.');
 }
@@ -10426,7 +10433,7 @@ function busArrive() {
 let simulationDirty=true,lastPopulation=-1;
 function refreshCityStats(){
   if(simulationDirty || lastPopulation!==S.pop){
-    derive();simulationDirty=false;lastPopulation=S.pop;
+    derive(now());simulationDirty=false;lastPopulation=S.pop;
   }
 }
 function tick(dt) {
@@ -12884,7 +12891,7 @@ card.addEventListener('click', e => {
   else if (a === 'gotoHall') { const h = findHall(); if (h) { animateTo(h.i + .5, h.j + .5); select(h.i, h.j); } return; }
   else if (a === 'buildHere') { buildTarget = { i: sel.i, j: sel.j }; openSheet('build'); return; }
   else if (a === 'demolish') { if (!demoArm) { demoArm = true; renderCard(true); return; } demolish(sel.i, sel.j); }
-  derive(); renderCard(true);
+  derive(now()); renderCard(true);
 });
 function storedHall(){return S.storedBuildings?.find(entry=>entry.building?.id==='hall');}
 function findHall() { for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const t = tileAt(i, j); if (t && t.id === 'hall') return { i, j }; } return null; }
@@ -14396,7 +14403,7 @@ function depotPlan(tn, onlyKey=null, voucherOnly=false) {
   return {queue,selected,fee,stocked,arriving};
 }
 function manualRestock(quoted,onlyKey=null,voucherOnly=false){
-  derive();
+  derive(now());
   const tn=now(),plan=depotPlan(tn,onlyKey,voucherOnly);
   if(voucherOnly && (!plan.selected.length || !plan.selected[0].free)){
     toast('No voucher used. Check which businesses need stock.');return false;
