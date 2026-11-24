@@ -10,7 +10,7 @@ function setup({version=2,until=config.bakery.stock,boost=0,action=at,hired=3}={
 // Every business at every level remains proportional to its fixed job capacity.
 for(const[id,p]of Object.entries(config))for(let lvl=1;lvl<=5;lvl++){
  const full=C.gross(ctx.defs[id],{lvl},p.jobs,p,rates),old=C.gross(ctx.defs[id],{lvl},p.jobs,{...p,...p.previous},rates);
- assert(full>old);assert.equal(p.jobs,p.earningStaff*2);
+ assert(full>old);assert.equal(p.jobs,p.earningStaff);
  near(C.gross(ctx.defs[id],{lvl},p.earningStaff/2,p,rates),full/2);
  near(C.gross(ctx.defs[id],{lvl},p.earningStaff,p,rates),full);
  assert(p.stock>p.previous.stock);assert(p.delivery<p.previous.delivery);assert(p.fee<p.previous.fee);
