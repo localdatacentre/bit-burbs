@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+require('./menu-notifications.cjs');
 
 require('./camera.cjs');
 const root = path.join(__dirname, '..');

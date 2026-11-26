@@ -628,6 +628,7 @@ body:not([data-city-preview]) #exchangeAccount {
   --navy-muted: #bbccdf;
   --navy-accent: #48d8cb;
   --navy-accent-dark: #092b32;
+  --bb-cut: inset(0);
   --p-ink: var(--navy-bg); --p-outline: var(--navy-edge);
   --p-surface: var(--navy-panel); --p-surface-raised: var(--navy-raised);
   --p-panel: var(--navy-bg); --p-card: var(--navy-panel);
@@ -931,6 +932,52 @@ body #sheet[data-view="tasks"] #sheetBody .collect-btn:disabled {
   color: var(--navy-muted) !important;
 }
 body #sheet .login-strip details { color: var(--navy-muted); }
+
+/* Solid pixel frames: clipping a border into steps left disconnected edges on
+   iOS. Keep the frame intact and the notification inside the touch target. */
+body button.pixel-btn,
+body #nav > button.pixel-btn[data-open],
+body #mapctl button.pixel-btn,
+body #sheet #sheetBody button.pixel-btn,
+body #mg #mgPanel button.pixel-btn,
+body .exchange :is(#screen,#modalRoot,#pageNav,#exchangeAccount) button,
+body .exchange a.city-close {
+  clip-path: none !important;
+  border: 2px solid var(--navy-edge) !important;
+  border-radius: 0 !important;
+  box-shadow: inset 0 1px 0 #ffffff12, inset 0 -2px 0 #00000024 !important;
+}
+body #nav > button.pixel-btn[data-open], body #mapctl button.pixel-btn {
+  background: var(--bb-face) !important;
+}
+body #nav > button.pixel-btn.bag-unread[data-open="bag"] {
+  border-color: var(--navy-edge) !important;
+  box-shadow: inset 0 1px 0 #ffffff12, inset 0 -2px 0 #00000024 !important;
+}
+body #nav .bag-unread .dock-icon { filter: none; }
+body #nav .dot {
+  position: absolute !important;
+  top: 2px !important;
+  right: 2px !important;
+  display: grid;
+  place-items: center;
+  width: 16px !important;
+  min-width: 16px !important;
+  height: 16px !important;
+  padding: 0 !important;
+  border: 1px solid #ffb1bd !important;
+  border-radius: 0 !important;
+  background: #bd304e !important;
+  color: #fff !important;
+  font: 20px/1 'VT323', monospace !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  z-index: 2;
+}
+body #nav .dot[hidden] { display: none !important; }
+body .exchange :is(#screen,#modalRoot,#pageNav,#exchangeAccount) button::before {
+  clip-path: none !important;
+}
 </style>
 <style>:root { --safe-top:0px; --safe-right:0px; --safe-bottom:0px; --safe-left:0px; }</style></head><body>
 <div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a><div id="roomNotice" role="status" aria-atomic="true"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>

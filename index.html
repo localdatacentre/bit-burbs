@@ -19,7 +19,7 @@
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
 <link rel="preload" as="script" href="./daily-task-core.js?v=task-payout2">
 <link rel="preload" as="script" href="./daily-task-session.js">
-<link rel="preload" as="style" href="./page-shell.css?v=navy-system2">
+<link rel="preload" as="style" href="./page-shell.css?v=navy-buttons4">
 <style>
 /* Legacy renderer styles isolated; new design is in pocket-ui.css. */
 @layer legacy {
@@ -2825,7 +2825,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #mgPanel .wheel-content > *{flex-shrink:0;max-width:100%}
 #mgPanel .mg-page-foot{flex:none;height:env(safe-area-inset-bottom,0px);background:var(--wheel-face)}
 </style>
-<link rel="stylesheet" href="./page-shell.css?v=navy-system2">
+<link rel="stylesheet" href="./page-shell.css?v=navy-buttons4">
 <style>
 .city-exchange-room { position:fixed; inset:0; box-sizing:border-box; width:100%; height:100%; max-width:none; max-height:none; margin:0; border:0; padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); overflow:hidden; background:#171b28; }
 .city-exchange-room[data-room=shop] { background:#102b20; }
@@ -2917,11 +2917,11 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 
 <nav id="nav" aria-label="Main">
   <button class="pixel-btn pb" data-open="build" aria-label="Build" title="Build"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA+0lEQVR4nGMMnfaYgZaAiaamDwsLWAgpOD8v/T8+ecOkmYwUWcDAwMDQaXWDISjHDUVs3ZRdDOXHNAjqxWkBhssl3BgYXuzCqQ6XT7DGAUzT7Z4fDLd7fuB0HbI8rqDEsADZcGIBPkuw+gBuuGYkyZYQZQHc8OvLiTL80umXOOVQLDg/L/3/7Z4fJBnOwMDAoGcqznDp9EuG2z0/MIJpEOVkLEmUGEBURmNggGQs6lmAFv5BQQpkGc7AwMDAGDrtMcHyhlxgmDSTEe6D28sJlyukANXIGwwMDEhBpBp5g+FIHu70TAqwmSQOZzPCqkxqBxOs8GMcrZMH3AIAXediLJwSHdkAAAAASUVORK5CYII="></button>
-  <button class="pixel-btn pb purple" data-open="tasks" aria-label="Tasks" title="Tasks"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA30lEQVR4nGOU2LuNgZaAhZACnvIp//HJf+nMYcQnz4juA2wGZpflMIS4WqGIrdl9jGFq1xSCFmL1Qa4Nwo7JRxjhBhKrlqAFDAwMDHkNTRBNLvW4lKCom9RQh1WeYBwwMDBgDQpiAUELbu9pxCv/6tkDvPJMJDmHDEC0BSpTF5BlAd4gUpm6gOFOdgKchoHk9h1wdnu8BvkWYDOcgYGBYW6lB5xNcRygG04qGI2DIRQH5AK8QbRrOyKs3Tw9MMSRxciyAJcBxBgMAwMXRLjKd6pYgK1mIhdg1MnUBjSPAwCQ81q30BOVeQAAAABJRU5ErkJggg=="><span class="dot" id="dotTasks" hidden></span></button>
-  <button class="pixel-btn pb" data-open="crates" aria-label="Crates" title="Crates"><img class="dock-icon" width="24" height="24" alt="" src="./exchange-art/silver.png?v=freight-face-v2"></button>
-  <button class="pixel-btn pb purple" data-open="wheel" aria-label="Wheel" title="Wheel"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAB0klEQVR4nLVVMUvDUBD+IiIigWKlQ1HBweyC4BDaIaWldHAqdKqIiIubi1ChDXVooYOCq4P4CzoKTWkKlg6C4OYQN5EMxYoQrAVtHMKLTfNeE4v9IPDe3b377i5373Fmbh/TxKxfQ0HRTbLWEmHuXwkERTc19fR3LxVMvyQzfiOZFGMJBEU3BUU32zIPQSpYMqmAtszbuokJBEU3tWYebZnHd2/Oofu8WURb5qE18/Ai4WhdRKIedRytdNHYWnXI5lNvEIsG88e7MmA5Z4Fkw8rEQUCcs3B7HHTsg9kBgtkBADBJqG16/3RgrzeWrwFY5bFglYk4BoCFpQA+Xt+pQblKFJKOHPuHl11EK11o9T37i909uxyNnmMSdNRzqqEXWOf8XxXxK8c+Z8RQ5hue56hzsLl+CQCoBUKoBULYPiw59KnSjk0CgFl/gDIHpJPKnRPqga+VR5cs368yZ8GVgZYIc2LRQC5UGlVRMc45lWCY5CzTYxLl+1VciGtjnQOMq4KADA5t+MSiYQfDdAAfXRSJSxCLKlXeqrvlvglI9Jl0Epl0kmrTqqvWrfvXEgmKbkbikmd0w0QsEmoGWiLMCYrq+ZgM27N0zBL95WEfh6m/yT+ZZsr6TYtJowAAAABJRU5ErkJggg=="><span class="dot" id="dotWheel" hidden></span></button>
-  <button class="pixel-btn pb" data-open="bag" aria-label="Item bag" title="Item bag"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABCUlEQVR4nGNgGOqAkZCCUFO1//jkV5++hdcMvJIww+c2eWKVT67bTtASFnwWIBuEbgghn8EAEzGKKAEYXiPWZbgAuk+xenvV8gqSDf58+yI8TpAtwrAAV4QSC9AjHh4HlAYNOoCZR/VIrgrUQeETlUwZGBhQwpeBAXfeOH3+EYOrAh/D7gefsFtw9/xjBmVDWQyNq9YnoPA/X36JoWbFvKMYYlh9gO5amAWzC9cxMDAwMKT2B2FV46rAR5wFsHA8ff4RinhqfxBWw0wN5bCqx2kBukYGBgaGsMAFWB1BCOBMRdjigRxAdCoi1sXogOaFHYYPYBGFLcKIBbA8wMBAQx/gLOyobcHQBwATV16XN7NtHwAAAABJRU5ErkJggg=="></button>
-  <button class="pixel-btn pb" id="zmkt" data-open="market" title="Dosh Shop" aria-label="Dosh Shop" style="position:relative"><img class="dock-icon" width="24" height="24" alt="" src="./dosh-shop-dock.png"><span class="dot" id="dotMkt" hidden>!</span></button>
+  <button class="pixel-btn pb purple" data-open="tasks" aria-label="Tasks" title="Tasks"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAA30lEQVR4nGOU2LuNgZaAhZACnvIp//HJf+nMYcQnz4juA2wGZpflMIS4WqGIrdl9jGFq1xSCFmL1Qa4Nwo7JRxjhBhKrlqAFDAwMDHkNTRBNLvW4lKCom9RQh1WeYBwwMDBgDQpiAUELbu9pxCv/6tkDvPJMJDmHDEC0BSpTF5BlAd4gUpm6gOFOdgKchoHk9h1wdnu8BvkWYDOcgYGBYW6lB5xNcRygG04qGI2DIRQH5AK8QbRrOyKs3Tw9MMSRxciyAJcBxBgMAwMXRLjKd6pYgK1mIhdg1MnUBjSPAwCQ81q30BOVeQAAAABJRU5ErkJggg=="><span class="dot" id="dotTasks" aria-hidden="true" hidden></span></button>
+  <button class="pixel-btn pb" data-open="crates" aria-label="Crates" title="Crates"><img class="dock-icon" width="24" height="24" alt="" src="./exchange-art/silver.png?v=freight-face-v2"><span class="dot" id="dotCrates" hidden aria-hidden="true"></span></button>
+  <button class="pixel-btn pb purple" data-open="wheel" aria-label="Wheel" title="Wheel"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAB0klEQVR4nLVVMUvDUBD+IiIigWKlQ1HBweyC4BDaIaWldHAqdKqIiIubi1ChDXVooYOCq4P4CzoKTWkKlg6C4OYQN5EMxYoQrAVtHMKLTfNeE4v9IPDe3b377i5373Fmbh/TxKxfQ0HRTbLWEmHuXwkERTc19fR3LxVMvyQzfiOZFGMJBEU3BUU32zIPQSpYMqmAtszbuokJBEU3tWYebZnHd2/Oofu8WURb5qE18/Ai4WhdRKIedRytdNHYWnXI5lNvEIsG88e7MmA5Z4Fkw8rEQUCcs3B7HHTsg9kBgtkBADBJqG16/3RgrzeWrwFY5bFglYk4BoCFpQA+Xt+pQblKFJKOHPuHl11EK11o9T37i909uxyNnmMSdNRzqqEXWOf8XxXxK8c+Z8RQ5hue56hzsLl+CQCoBUKoBULYPiw59KnSjk0CgFl/gDIHpJPKnRPqga+VR5cs368yZ8GVgZYIc2LRQC5UGlVRMc45lWCY5CzTYxLl+1VciGtjnQOMq4KADA5t+MSiYQfDdAAfXRSJSxCLKlXeqrvlvglI9Jl0Epl0kmrTqqvWrfvXEgmKbkbikmd0w0QsEmoGWiLMCYrq+ZgM27N0zBL95WEfh6m/yT+ZZsr6TYtJowAAAABJRU5ErkJggg=="><span class="dot" id="dotWheel" aria-hidden="true" hidden></span></button>
+  <button class="pixel-btn pb" data-open="bag" aria-label="Item bag" title="Item bag"><img class="dock-icon" width="24" height="24" alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAABCUlEQVR4nGNgGOqAkZCCUFO1//jkV5++hdcMvJIww+c2eWKVT67bTtASFnwWIBuEbgghn8EAEzGKKAEYXiPWZbgAuk+xenvV8gqSDf58+yI8TpAtwrAAV4QSC9AjHh4HlAYNOoCZR/VIrgrUQeETlUwZGBhQwpeBAXfeOH3+EYOrAh/D7gefsFtw9/xjBmVDWQyNq9YnoPA/X36JoWbFvKMYYlh9gO5amAWzC9cxMDAwMKT2B2FV46rAR5wFsHA8ff4RinhqfxBWw0wN5bCqx2kBukYGBgaGsMAFWB1BCOBMRdjigRxAdCoi1sXogOaFHYYPYBGFLcKIBbA8wMBAQx/gLOyobcHQBwATV16XN7NtHwAAAABJRU5ErkJggg=="><span class="dot" id="dotBag" hidden aria-hidden="true"></span></button>
+  <button class="pixel-btn pb" id="zmkt" data-open="market" title="Dosh Shop" aria-label="Dosh Shop" style="position:relative"><img class="dock-icon" width="24" height="24" alt="" src="./dosh-shop-dock.png"><span class="dot" id="dotMkt" aria-hidden="true" hidden>!</span></button>
 </nav>
 
 <div id="scrim"></div>
@@ -8633,7 +8633,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=navy-system2"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=task-payout2"></script>
+<script src="./exchange-room.js?v=navy-buttons4"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=task-payout2"></script>
 <script>
 (async () => {
 'use strict';
@@ -12545,9 +12545,19 @@ function updateHUD() {
   $('#advisor').setAttribute('aria-label', label);
   $('#advisor').setAttribute('aria-expanded', String(cityNeedsOpen));
 
-  dot(hud.dotWheel, S.tickets + (now() - S.wheelT >= WHEEL_CD ? 1 : 0));
-  dot(hud.dotTasks, (S.dailyGenerated?.tasks || []).filter(t => !t.claimed && t.progress >= t.target).length);
-  $('#dotMkt').hidden = namedPlay ? lastShopVisit===Core.cycle(now()) : S.market?.dailySeen===Core.cycle(now());
+  const projected = window.BBProjectedCrateWallet(S);
+  const notices = menuNotifications(S, {
+    at: now(), wheelCooldown: WHEEL_CD, loginAvailable: loginRewardState().available,
+    crateVouchers: projected.crateVouchers,
+    crateStock: roomRecord?.stock || lastExchangeView?.stock || [],
+    boostMinutes: coinToken.min,
+    storedItems: Object.entries(S.shopItems || {}).some(([id,n]) => n > 0 && cityDecorationIds.has(id))
+  });
+  dot(hud.dotWheel, notices.wheel);
+  dot(hud.dotTasks, notices.tasks);
+  dot($('#dotCrates'), notices.crates);
+  dot($('#dotBag'), notices.bag);
+  dot($('#dotMkt'), namedPlay ? lastShopVisit!==Core.cycle(now()) : S.market?.dailySeen!==Core.cycle(now()));
 }
 let cityNeedsOpen = false;
 let managingProperty = false;
@@ -12589,7 +12599,20 @@ $('#advisor').addEventListener('click',()=>{
   sel=null;placing=null;pickingMove=false;managingProperty=false;cityNeedsOpen=open;
   $('#advisor').setAttribute('aria-expanded',String(open));renderCard(true);
 });
-function dot(el, n) { el.hidden = !(n > 0); if (n > 0) setText(el, n > 99 ? '99+' : n); }
+function menuNotifications(city, context) {
+  return {
+    wheel: city.tickets > 0 || context.at - city.wheelT >= context.wheelCooldown,
+    tasks: context.loginAvailable || (city.dailyGenerated?.tasks || []).some(t => !t.claimed && t.progress >= t.target),
+    // Silver is the cheapest crate at two vouchers. Stored crates also need attention.
+    crates: context.crateVouchers >= 2 || context.crateStock.some(n => n > 0),
+    bag: city.restockVouchers > 0 || city.coinBoostTokens?.[context.boostMinutes] > 0 ||
+      !!city.storedBuildings?.length || context.storedItems
+  };
+}
+function dot(el, available) {
+  el.hidden = !available;
+  setText(el, '!');
+}
 function layoutUI() {
   const origin=canvasBounds.top;
   const hb = hudBottom = $('#hud').getBoundingClientRect().bottom-origin;

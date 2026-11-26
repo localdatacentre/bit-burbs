@@ -20,6 +20,16 @@ def check_home_menu(page, visible):
     dock = page.locator("#nav")
     assert dock.locator("> button[data-open]:visible").count() == (6 if visible else 0)
     assert dock.get_by_role("button").count() == (6 if visible else 0)
+    if visible:
+        for button in dock.locator("> button[data-open]").all():
+            assert button.evaluate("(el) => ['none', 'inset(0px)'].includes(getComputedStyle(el).clipPath)")
+            badge = button.locator(".dot:visible")
+            if badge.count():
+                assert badge.inner_text() == "!"
+                frame, mark = button.bounding_box(), badge.bounding_box()
+                assert frame["x"] <= mark["x"] and frame["y"] <= mark["y"]
+                assert mark["x"] + mark["width"] <= frame["x"] + frame["width"]
+                assert mark["y"] + mark["height"] <= frame["y"] + frame["height"]
 
 
 def check_shop_offers(room):
