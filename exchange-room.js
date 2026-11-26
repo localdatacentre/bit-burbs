@@ -109,7 +109,7 @@ function doshShopSchedule(now) {
   return {day,resetAt:(day+1)*doshShopDayMs+doshShopResetUtcMs,
     offers:offers.map(([id,price,rewards])=>({id,price,rewards}))};
 }
-</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta id="room-theme" name="theme-color" content="#171b28"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Banksia Exchange · Bit-Burbs</title>
+</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta id="room-theme" name="theme-color" content="#081426"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Banksia Exchange · Bit-Burbs</title>
 
 
 <style>
@@ -618,38 +618,37 @@ body:not([data-city-preview]) #exchangeAccount {
   --page-currency-size: 24px;
 }
 
-body[data-menu-page] {
-  --page-ink: #fff;
-  --page-muted: #d2e3f4;
+/* One palette for the city, sheets and embedded Exchange rooms. */
+:root {
+  --navy-bg: #081426;
+  --navy-panel: #12243b;
+  --navy-raised: #1a324c;
+  --navy-edge: #29435c;
+  --navy-text: #f0f5fc;
+  --navy-muted: #bbccdf;
+  --navy-accent: #48d8cb;
+  --navy-accent-dark: #092b32;
+  --p-ink: var(--navy-bg); --p-outline: var(--navy-edge);
+  --p-surface: var(--navy-panel); --p-surface-raised: var(--navy-raised);
+  --p-panel: var(--navy-bg); --p-card: var(--navy-panel);
+  --p-card-alt: var(--navy-panel); --p-header: var(--navy-panel);
+  --p-light: var(--navy-edge); --p-deep: var(--navy-bg);
+  --p-text: var(--navy-text); --p-muted: var(--navy-muted);
+  --p-accent: var(--navy-accent);
+  --home-blue: var(--navy-panel); --home-edge: var(--navy-edge);
+  --exchange-navy: var(--navy-bg);
 }
-body[data-menu-page="build"] {
-  --page-surface: #355783;
-  --page-band: #446b98;
-  --page-edge: #233b59;
+body[data-menu-page], body[data-screen] {
+  --page-surface: var(--navy-bg);
+  --page-band: var(--navy-panel);
+  --page-edge: var(--navy-edge);
+  --page-ink: var(--navy-text);
+  --page-muted: var(--navy-muted);
+  --room-surface: var(--navy-bg);
+  --room-chrome: var(--navy-panel);
+  --room-frame: var(--navy-edge);
+  --room-rule: var(--navy-edge);
 }
-body[data-menu-page="tasks"] {
-  --page-surface: #202e47;
-  --page-band: #28618a;
-  --page-edge: #194465;
-}
-body[data-menu-page="bag"] {
-  --page-surface: var(--bag-yellow);
-  --page-band: var(--bag-yellow);
-  --page-edge: #192840;
-  --page-ink: #192840;
-  --page-muted: #39455c;
-}
-body[data-menu-page="settings"] {
-  --page-surface: #3d4f70;
-  --page-band: #485e80;
-  --page-edge: #253550;
-}
-body[data-menu-page="depot"] {
-  --page-surface: var(--p-panel);
-  --page-band: var(--p-header);
-  --page-edge: var(--p-outline);
-}
-body[data-menu-page="wheel"] { --page-edge: #2c294b; }
 
 body.sheet-open #scrim {
   background: var(--page-edge);
@@ -758,6 +757,180 @@ body.sheet-open #sheet .shead.page-head {
 #exchangeHandoff::backdrop { background: #121623a8; }
 #exchangeHandoff p { margin: 0; }
 #exchangeHandoff button { margin-top: 10px; }
+
+/* Presentation only: retain existing sizing, navigation and gameplay handlers.
+   These scoped rules win over the older page-specific inline colour rules. */
+html, body, body::before, body::after,
+body .city-exchange-room, body .city-exchange-room[data-room="shop"] {
+  background: var(--navy-bg) !important;
+}
+body #hud, body #nav {
+  background: var(--navy-panel) !important;
+  border-color: var(--navy-edge) !important;
+}
+body #sheet, body #sheet #sheetBody,
+body #mg #mgPanel.mgp, body #mg #mgPanel.mg-wheel,
+body #mg #mgPanel.mg-market, body #card, body #modalBox {
+  background: var(--navy-bg) !important;
+  color: var(--navy-text) !important;
+  border-color: var(--navy-edge) !important;
+  box-shadow: none !important;
+}
+body #mg #mgPanel.mg-wheel {
+  --wheel-face: var(--navy-bg);
+  --wheel-head: var(--navy-panel);
+  --wheel-edge: var(--navy-edge);
+}
+body #sheet .shead.page-head, body #mg #mgPanel .mg-screen-head,
+body #mgPanel .mg-page-foot, body #sheet::after {
+  background: var(--navy-panel) !important;
+  color: var(--navy-text) !important;
+  border-color: var(--navy-edge) !important;
+  box-shadow: none !important;
+}
+body #sheet #sheetTitle, body #sheet #sheetBody :is(h3,.note),
+body #sheet .bag-card :is(b,small,span), body #mgPanel .mg-screen-head small {
+  color: var(--navy-text) !important;
+}
+body #sheet #sheetBody :is(p,small,label), body #sheet .page-heading small {
+  color: var(--navy-muted) !important;
+}
+body #sheet #sheetBody :is(.sect,.bcard,.bag-card,.daily-head,.daily-task-card,.daily-count),
+body #sheet .settings-profile dl div,
+body #mg #mgPanel :is(.wheel-rewards,.pips,.odds,.mcard,.ptable,.pr,.ph,.grind) {
+  background: var(--navy-panel) !important;
+  border-color: var(--navy-edge) !important;
+  color: var(--navy-text) !important;
+  box-shadow: none !important;
+}
+/* Neutral controls everywhere; teal denotes a selected or primary action. */
+body button.pixel-btn, body .city-auth button {
+  --bb-face: var(--navy-raised) !important;
+  --bb-top: var(--navy-edge) !important;
+  --bb-bottom: var(--navy-panel) !important;
+  --bb-edge: var(--navy-edge) !important;
+  color: var(--navy-text) !important;
+  text-shadow: none !important;
+}
+body button.pixel-btn:is([aria-pressed="true"],.daily-claim,[data-act="saveCityNow"],
+  [data-act="accountSave"],[data-act="confirmPlace"],#spinBtn),
+body .city-auth button.primary, body .city-welcome .beta-actions button {
+  --bb-face: var(--navy-accent) !important;
+  --bb-top: #82e8df !important;
+  --bb-bottom: #299e9b !important;
+  color: var(--navy-accent-dark) !important;
+}
+body button.pixel-btn:is(.red,[data-act="demolish"],[data-act="reset"]) {
+  color: #ffbac5 !important;
+}
+body button.pixel-btn:focus-visible, body .exchange button:focus-visible {
+  outline: 2px solid var(--navy-accent) !important;
+  outline-offset: 2px !important;
+}
+body #hud :is(#clock,#fpsCounter), body #advisor, body #legend, body #toast,
+body #exchangeHandoff {
+  background: var(--navy-panel) !important;
+  border-color: var(--navy-edge) !important;
+  color: var(--navy-text) !important;
+}
+/* Account and welcome pages follow the same palette, including form fields. */
+body .city-auth, body .city-auth.city-welcome, body .city-welcome .beta-card {
+  background: var(--navy-bg) !important;
+  color: var(--navy-text) !important;
+  border-color: var(--navy-edge) !important;
+  box-shadow: none !important;
+}
+body .city-welcome .beta-card { background: var(--navy-panel) !important; }
+body .city-auth :is(h2,label,b), body .city-welcome .beta-info b {
+  color: var(--navy-text) !important;
+}
+body .city-auth :is(.hint,details,.beta-intro,.beta-help,.beta-access),
+body .city-welcome .beta-info span { color: var(--navy-muted) !important; }
+body .city-auth input, body .city-auth select {
+  background: var(--navy-bg) !important;
+  color: var(--navy-text) !important;
+  border-color: var(--navy-edge) !important;
+}
+body .city-welcome :is(.beta-brand,form,.beta-shell)::after,
+body .city-welcome :is(.beta-brand,form) { border-color: var(--navy-edge) !important; }
+body .city-welcome .beta-status { color: #ffbac5; }
+
+/* These selectors also apply inside the generated srcdoc crate/shop rooms. */
+body[data-screen], body[data-city-preview] {
+  --cream: var(--navy-text); --muted: var(--navy-muted);
+  --bg: var(--navy-bg); --panel: var(--navy-panel); --hi: var(--navy-raised);
+  --ink: var(--navy-bg); --cyan: var(--navy-accent);
+}
+body .exchange, body .exchange #screen, body .exchange #exchangeAccount {
+  background: var(--navy-bg) !important;
+  color: var(--navy-text) !important;
+  border-color: var(--navy-edge) !important;
+}
+body .exchange > header, body .exchange #pageNav {
+  background: var(--navy-panel) !important;
+  border-color: var(--navy-edge) !important;
+}
+body .exchange :is(.panel,.tile,.shop-offer,.crate-plate,.collection-strip,.dialog,.notice) {
+  background: var(--navy-panel) !important;
+  border-color: var(--navy-edge) !important;
+  color: var(--navy-text) !important;
+  box-shadow: none !important;
+}
+body .exchange :is(header small,.sub,.muted,.offer-title) {
+  color: var(--navy-muted) !important;
+}
+body .exchange :is(#screen,#modalRoot,#pageNav,#exchangeAccount) button {
+  --button-fill: var(--navy-raised) !important;
+  --button-text: var(--navy-text) !important;
+}
+body .exchange :is(#screen,#modalRoot,#pageNav) button:is(.primary,[aria-current="page"],[aria-pressed="true"]) {
+  --button-fill: var(--navy-accent) !important;
+  --button-text: var(--navy-accent-dark) !important;
+}
+body .exchange .dialog-backdrop { background: #081426dc; }
+body .exchange a { color: var(--navy-accent); }
+body #mg.show, body #modal.show, body.sheet-open #scrim {
+  background: var(--navy-bg) !important;
+}
+body #mg #mgPanel .wodds,
+body #mg #mgPanel :is(.odds,.wodds) summary {
+  background: var(--navy-panel) !important;
+  color: var(--navy-muted) !important;
+  border-color: var(--navy-edge) !important;
+}
+body .exchange :is(#screen,#modalRoot,#pageNav,#exchangeAccount) button {
+  background: var(--navy-edge) !important;
+}
+body .exchange a.city-close {
+  background: var(--navy-raised) !important;
+  border-color: var(--navy-edge) !important;
+  color: var(--navy-text) !important;
+  box-shadow: none !important;
+}
+body #sheet #sheetBody .mission-row {
+  background: var(--navy-panel) !important;
+  border-color: var(--navy-edge) !important;
+  --task-accent: var(--navy-accent);
+}
+body #sheet #sheetBody .mission-payout {
+  background: var(--navy-raised) !important;
+}
+body #sheet #sheetBody .daily-progress-step {
+  background: var(--navy-bg);
+}
+body #sheet[data-view="tasks"] #sheetBody .collect-btn {
+  color: var(--navy-accent-dark) !important;
+  --bb-face: var(--navy-accent) !important;
+  --bb-top: #82e8df !important;
+  --bb-bottom: #299e9b !important;
+}
+body #sheet[data-view="tasks"] #sheetBody .collect-btn:disabled {
+  --bb-face: var(--navy-raised) !important;
+  --bb-top: var(--navy-edge) !important;
+  --bb-bottom: var(--navy-panel) !important;
+  color: var(--navy-muted) !important;
+}
+body #sheet .login-strip details { color: var(--navy-muted); }
 </style>
 <style>:root { --safe-top:0px; --safe-right:0px; --safe-bottom:0px; --safe-left:0px; }</style></head><body>
 <div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a><div id="roomNotice" role="status" aria-atomic="true"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>

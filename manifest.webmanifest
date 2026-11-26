@@ -3,8 +3,8 @@
   "short_name": "Bit-Burbs",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#243b5b",
-  "theme_color": "#243b5b",
+  "background_color": "#081426",
+  "theme_color": "#081426",
   "orientation": "any",
   "icons": [
     {
