@@ -8805,6 +8805,7 @@ const legacySlot=n=>n===localStorage.getItem('bit-burbs:first-username')?'blockt
 const localSlot=n=>profilePrefix+n;
 let username='',cityCode='',cityRevision=null,cityConflict=false,cityRequest=null,lastCityPush=0,cityRenaming=false;
 let cityHandedToExchange=false;
+let showMayorGift=false;
 let roomRecord=null, lastExchangeView=null;
 function rememberRoomRecord(slot,record){
  const crate=record.crateExchange;
@@ -8817,6 +8818,7 @@ const randomKey=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.t
 
 async function cityApi(body,signal){
  body.roster='beta-roster-2';
+ if(body.action==='username')body.mayorGift=true;
  if(!body.account&&body.name&&['open','revision','save'].includes(body.action))body.account=localStorage.getItem(localSlot(body.name)+':login-name');
  const controller=signal?null:new AbortController();
  const timeout=controller?setTimeout(()=>controller.abort(),18000):null;
@@ -8999,6 +9001,7 @@ if(namedPlay){
      const data=loginResult || await cityApi({action:'username',name:username,legacy:oldCode});
      if(validName(data.name)&&data.name!==username){copyUsernameSlot(username,data.name);username=data.name;slot=localSlot(username);localStorage.setItem(lastUser,username)}
      cityCode=data.code;cityRevision=data.revision||null;
+     showMayorGift=data.showMayorGift===true;
      rememberRoomRecord(slot,data);
      if(data.city&&(!localStorage.getItem(slot)||localStorage.getItem(slot+':cloud-revision')!==data.revision)){
        const old=localStorage.getItem(slot);if(old)localStorage.setItem(slot+':before-cloud-load',old);acceptCity(slot,data);
@@ -15348,6 +15351,25 @@ if (!testCity && !micksDriveDemo && !facilityRoadDemo && (S.upgraded || S.firstR
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resize(); paintStaticIcons(); lastClockKind = ''; lastFace = -1; });
 document.body.classList.add('city-ready');
 requestAnimationFrame(frame);
+if(showMayorGift){
+ const dialog=document.createElement('dialog');
+ dialog.setAttribute('aria-labelledby','mayorGiftTitle');
+ dialog.style.cssText='width:min(330px,90vw);box-sizing:border-box;padding:18px 14px;background:#14263d;color:white;border:3px solid #7397bb;text-align:center;font:inherit;max-height:90dvh;overflow:auto';
+ dialog.innerHTML='<strong id="mayorGiftTitle">a gift for the mayor</strong><p>thanks for helping test bit-burbs</p>';
+ const grid=document.createElement('div');
+ grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px';
+ dialog.append(grid);
+ for(const [icon,quantity,label] of [['cash','100,000','coins'],['dosh','100','dosh'],['deed','2','deeds'],['ticket','3','wheel tickets'],['crateVoucher','10','crate vouchers'],['voucher','5','restock vouchers']]){
+  const cell=document.createElement('div');
+  cell.style.cssText='display:grid;justify-items:center;gap:3px;background:#203852;padding:7px 2px';
+  const amount=document.createElement('strong');amount.textContent='+'+quantity;amount.style.color='#ffdc76';
+  const name=document.createElement('span');name.textContent=label;
+  cell.append(iconCanvas(icon,null,28),amount,name);grid.append(cell);
+ }
+ const close=document.createElement('button');close.className='pixel-btn pb';close.textContent='cheers';
+ close.style.cssText='width:100%;margin-top:12px';close.onclick=()=>dialog.close();
+ dialog.append(close);dialog.onclose=()=>dialog.remove();document.body.append(dialog);dialog.showModal();
+}
 prepareRoomsWhenIdle();
 if(micksDriveDemo&&!deletedModelIds.has(driveDemoShop)){
  const i=MID-3,j=MID-1;
