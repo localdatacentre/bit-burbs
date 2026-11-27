@@ -42,21 +42,26 @@ def check_shop_offers(room):
         const style = getComputedStyle(el);
         return el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     }""")
-    expected_width = min(0.76 * content_width, 208)
-    previous_bottom = None
+    assert cards.count() == 4
+    expected_width = (content_width - 10) / 2
+    boxes = []
     for card in cards.all():
         box = card.bounding_box()
+        boxes.append(box)
         bottom = box["y"] + box["height"]
         assert abs(box["width"] - expected_width) <= 1, (box, expected_width)
-        assert abs(box["height"] - box["width"]) <= 1, box
-        assert previous_bottom is None or box["y"] >= previous_bottom, box
-        previous_bottom = bottom
+        assert 184 <= box["height"] <= 219, box
         button = card.locator("[data-offer]").bounding_box()
         assert button["height"] >= 44 and button["y"] + button["height"] <= bottom + 1, button
         for reward in card.locator(".offer-rewards li").all():
             item = reward.bounding_box()
             assert item["y"] >= box["y"] and item["y"] + item["height"] <= button["y"] + 1, item
             assert reward.evaluate("(el) => el.scrollWidth <= el.clientWidth + 1")
+
+    for left, right in [boxes[:2], boxes[2:]]:
+        assert abs(left["y"] - right["y"]) <= 1
+        assert left["x"] + left["width"] < right["x"]
+    assert boxes[2]["y"] >= boxes[0]["y"] + boxes[0]["height"]
 
 
 def check_layout(page, base, viewport, insets):
