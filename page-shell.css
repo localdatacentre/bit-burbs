@@ -561,3 +561,5 @@ body[data-screen] #pageNav {
  padding-right:max(4px,env(safe-area-inset-right,0px)) !important;
  background:var(--navy-panel) !important;
 }
+
+body #toast { left:max(8px,env(safe-area-inset-left,0px)) !important; max-width:calc(100% - max(8px,env(safe-area-inset-left,0px)) - max(8px,env(safe-area-inset-right,0px))) !important; }
