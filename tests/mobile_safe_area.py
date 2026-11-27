@@ -152,7 +152,8 @@ def check_layout(page, base, viewport, insets):
         if room == "shop":
             offers = page.locator("[data-offer]")
             check_shop_offers(page)
-            assert page.locator("#screen").evaluate("(el) => el.scrollHeight > el.clientHeight")
+            if height >= 700:
+                assert page.locator("#screen").evaluate("(el) => el.scrollHeight <= el.clientHeight + 1")
             # Resize the already-open shop, including a height below the offers.
             for current_height in (height, max(300, height // 2), height):
                 page.set_viewport_size({"width": width, "height": current_height})
