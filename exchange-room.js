@@ -1096,6 +1096,50 @@ body :is(#sheet,#mg,#card,#modal) button:is(.pixel-close,.mgx)::before,
 body .exchange a.city-close::before { background:#a32c46 !important; }
 body :is(#sheet,#mg,#card,#modal) button:is(.pixel-close,.mgx)::after,
 body .exchange a.city-close::after { background:#e95168 !important; box-shadow:inset 0 2px #ff8295,inset 0 -3px #bb3550 !important; }
+
+/* Borderless full-screen pages; safe areas belong to the page surface. */
+body.sheet-open #sheet.open, body #mg #mgPanel.mg-wheel,
+body[data-screen] .exchange, body .city-exchange-room {
+ border:0 !important; outline:0 !important; box-shadow:none !important;
+}
+html:has(body[data-menu-page="build"]) { --navy-bg:#102439; }
+html:has(body[data-menu-page="tasks"]) { --navy-bg:#102c2b; }
+html:has(body[data-menu-page="bag"]) { --navy-bg:#30271a; }
+html:has(body[data-menu-page="wheel"]) { --navy-bg:#301e2c; }
+html:has(body[data-menu-page="settings"]) { --navy-bg:#20252d; }
+html:has(.city-exchange-room[open]) { --navy-bg:#1c213a; }
+html:has(.city-exchange-room[data-room="shop"][open]) { --navy-bg:#172c25; }
+body:has(.city-exchange-room[open])::before,
+body:has(.city-exchange-room[open])::after { background:var(--navy-bg) !important; }
+body.sheet-open #sheet.open::after, body #mgPanel .mg-page-foot,
+body[data-screen] .exchange { background:var(--navy-bg) !important; }
+body[data-menu-page],body:has(.city-exchange-room[open]) { background:var(--navy-bg) !important; }
+/* Same painted outline on every exit, independent of legacy header rules. */
+body :is(#sheet #sheetBody,#sheet,#mg #mgPanel,#mg,#card,#modal,.exchange)
+:is(button.pixel-close,button.mgx,a.city-close):is(.pixel-close,.mgx,.city-close) {
+ position:relative !important; isolation:isolate !important;
+ background:transparent !important; background-image:none !important;
+ border:0 !important; box-shadow:none !important; clip-path:none !important;
+ --bb-face:#e95168 !important; --bb-edge:#a32c46 !important;
+ --button-fill:#e95168 !important; color:white !important;
+ width:36px !important; height:36px !important; padding:0 !important;
+}
+body :is(#sheet #sheetBody,#sheet,#mg #mgPanel,#mg,#card,#modal,.exchange)
+:is(button.pixel-close,button.mgx,a.city-close):is(.pixel-close,.mgx,.city-close)::before,
+body :is(#sheet #sheetBody,#sheet,#mg #mgPanel,#mg,#card,#modal,.exchange)
+:is(button.pixel-close,button.mgx,a.city-close):is(.pixel-close,.mgx,.city-close)::after {
+ content:"" !important; display:block !important; position:absolute !important;
+ clip-path:var(--pixel-round) !important; border:0 !important; pointer-events:none;
+}
+body :is(#sheet #sheetBody,#sheet,#mg #mgPanel,#mg,#card,#modal,.exchange)
+:is(button.pixel-close,button.mgx,a.city-close):is(.pixel-close,.mgx,.city-close)::before {
+ inset:0 !important; z-index:-2 !important; background:#a32c46 !important; box-shadow:none !important;
+}
+body :is(#sheet #sheetBody,#sheet,#mg #mgPanel,#mg,#card,#modal,.exchange)
+:is(button.pixel-close,button.mgx,a.city-close):is(.pixel-close,.mgx,.city-close)::after {
+ inset:2px !important; z-index:-1 !important; background:#e95168 !important;
+ box-shadow:inset 0 2px #ff8295,inset 0 -3px #bb3550 !important;
+}
 </style>
 <style>:root { --safe-top:0px; --safe-right:0px; --safe-bottom:0px; --safe-left:0px; }</style></head><body>
 <div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a><div id="roomNotice" role="status" aria-atomic="true"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>
