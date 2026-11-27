@@ -1154,6 +1154,19 @@ body[data-screen] #pageNav {
 }
 
 body #toast { left:max(8px,env(safe-area-inset-left,0px)) !important; max-width:calc(100% - max(8px,env(safe-area-inset-left,0px)) - max(8px,env(safe-area-inset-right,0px))) !important; }
+
+/* Compact home dock and one continuous navy safe-area surface. */
+html:has(body:not([data-menu-page])):not(:has(.city-exchange-room[open])) { background:#12243b !important; }
+body:not([data-menu-page]):not(:has(.city-exchange-room[open]))::after { background:#12243b !important; }
+body #nav {
+ --dock-safe-bottom:clamp(0px,env(safe-area-inset-bottom,0px),8px);
+ height:calc(54px + var(--dock-safe-bottom)) !important;
+ padding-top:6px !important; padding-bottom:calc(6px + var(--dock-safe-bottom)) !important;
+ background:#12243b !important; border-top:0 !important;
+}
+@media(max-height:650px) and (orientation:landscape) {
+ body #nav { height:calc(48px + var(--dock-safe-bottom)) !important; }
+}
 </style>
 <style>:root { --safe-top:0px; --safe-right:0px; --safe-bottom:0px; --safe-left:0px; }</style></head><body>
 <div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a><div id="roomNotice" role="status" aria-atomic="true"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>
