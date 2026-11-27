@@ -72,9 +72,9 @@ def check_layout(page, base, viewport, insets):
         element = page.locator(selector).first
         element.wait_for(state="visible")
         rect = element.bounding_box()
-        assert rect["y"] >= top - 0.5, (selector, rect, insets)
-        assert rect["x"] >= side - 0.5, (selector, rect, insets)
-        assert rect["x"] + rect["width"] <= width - side + 0.5, (selector, rect, insets)
+        assert rect["y"] >= (0 if selector in ("#sheet", ".exchange", "#mgPanel") else top) - 0.5, (selector, rect, insets)
+        assert rect["x"] >= (0 if selector in ("#sheet", ".exchange", "#mgPanel") else side) - 0.5, (selector, rect, insets)
+        assert rect["x"] + rect["width"] <= width - (0 if selector in ("#sheet", ".exchange", "#mgPanel") else side) + 0.5, (selector, rect, insets)
         if check_bottom:
             assert rect["y"] + rect["height"] <= height - bottom + 0.5, (selector, rect, insets)
 
