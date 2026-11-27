@@ -167,7 +167,8 @@ def check_layout(page, base, viewport, insets):
                 check(".exchange header h1")
             scroller = page.locator("#screen")
             before = scroller.evaluate("el => el.scrollTop")
-            assert before > 0
+            overflows = scroller.evaluate("el => el.scrollHeight > el.clientHeight + 1")
+            assert before > 0 if overflows else before == 0
             offers.last.tap()
             page.locator("#roomNotice").filter(has_text="Rewards added to your city.").wait_for()
             assert offers.last.is_disabled()
