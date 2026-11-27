@@ -14717,9 +14717,8 @@ let last = performance.now(), uiAcc = 0, saveAcc = 0, skyAcc = 99;
 // Follow continuous footpaths from one doorway to another.
 let walkingGraph = null, walkingKerbs=null, nextWalkerIn = .3;
 let walkingDestinations=[];
-// Temporary beta switch: walking NPCs are paused until their clipping is repaired.
-// Set to true to restore NPC activity after testing.
-const WALKING_NPCS_ENABLED = false;
+// Live pedestrians use pavement routing and model/vehicle clearance checks.
+const WALKING_NPCS_ENABLED = true;
 const walkers = [];
 // A pedestrian's ground position must stay on the narrow kerb-side pavement.
 // Never step into road lanes, building plots, parks or the fountain.
