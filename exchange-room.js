@@ -1014,6 +1014,42 @@ body #nav .dot {
   z-index: 2;
 }
 body #nav .dot[hidden] { display: none !important; }
+
+/* Destination palettes share the dock colours. */
+body[data-menu-page="build"] { --navy-bg:#102439; --navy-panel:#1b3b57; --navy-raised:#285675; --navy-edge:#41749a; --navy-accent:#58ade8; }
+body[data-menu-page="tasks"] { --navy-bg:#102c2b; --navy-panel:#1b4540; --navy-raised:#285d55; --navy-edge:#468b7b; --navy-accent:#71cdb8; }
+body[data-menu-page="bag"] { --navy-bg:#30271a; --navy-panel:#493b25; --navy-raised:#635032; --navy-edge:#98794a; --navy-accent:#e9bf70; }
+body[data-menu-page="wheel"] { --navy-bg:#301e2c; --navy-panel:#492d40; --navy-raised:#643b54; --navy-edge:#985d7b; --navy-accent:#ef91ac; }
+body[data-menu-page="settings"] { --navy-bg:#20252d; --navy-panel:#333c47; --navy-raised:#46515e; --navy-edge:#778593; --navy-accent:#eef3f8; }
+body:is([data-screen="vault"],[data-screen="storage"],[data-screen="opening"]) { --navy-bg:#1c213a; --navy-panel:#2d3555; --navy-raised:#424d75; --navy-edge:#6676aa; --navy-accent:#8f9ce6; }
+body[data-screen="shop"] { --navy-bg:#172c25; --navy-panel:#28473a; --navy-raised:#38624d; --navy-edge:#5b9271; --navy-accent:#88cba2; }
+/* Explicit local colours prevent page palettes from recolouring exits. */
+body #sheet button.pixel-close, body #mg button.pixel-close, body #card button.pixel-close,
+body .exchange a.city-close {
+ --bb-face:#e95168 !important; --bb-edge:#8c293d !important;
+ --button-fill:#e95168 !important; color:#fff !important;
+}
+body #mapctl #settingsBtn.pixel-btn {
+ --bb-face:#687786 !important; --bb-edge:#354350 !important;
+ color:#fff !important;
+}
+body #advisor.pixel-btn {
+ --bb-face:#458be0 !important; --bb-edge:#234e8e !important;
+ background:transparent !important; padding:0 !important;
+ width:36px !important; height:36px !important;
+}
+body #advisor canvas { width:28px !important; height:28px !important; }
+body #advisor .adv { display:none !important; }
+/* The shop ID has older special-case paint rules; use the dock's exact layers. */
+body #nav > #zmkt.pixel-btn::before {
+ display:block !important; content:"" !important; inset:0 !important;
+ background:#467b5b !important; clip-path:var(--pixel-round) !important;
+}
+body #nav > #zmkt.pixel-btn::after {
+ display:block !important; content:"" !important; inset:2px !important;
+ background:#88cba2 !important; clip-path:var(--pixel-round) !important;
+ box-shadow:inset 0 2px #ffffff2b,inset 0 -3px #00000026 !important;
+}
 </style>
 <style>:root { --safe-top:0px; --safe-right:0px; --safe-bottom:0px; --safe-left:0px; }</style></head><body>
 <div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a><div id="roomNotice" role="status" aria-atomic="true"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>
