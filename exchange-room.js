@@ -933,26 +933,62 @@ body #sheet[data-view="tasks"] #sheetBody .collect-btn:disabled {
 }
 body #sheet .login-strip details { color: var(--navy-muted); }
 
-/* Solid pixel frames: clipping a border into steps left disconnected edges on
-   iOS. Keep the frame intact and the notification inside the touch target. */
-body button.pixel-btn,
-body #nav > button.pixel-btn[data-open],
-body #mapctl button.pixel-btn,
-body #sheet #sheetBody button.pixel-btn,
-body #mg #mgPanel button.pixel-btn,
-body .exchange :is(#screen,#modalRoot,#pageNav,#exchangeAccount) button,
-body .exchange a.city-close {
+/* Paint a filled stepped outline and an inset face. The button itself stays
+   unclipped, so its focus ring and notification are never cut off. */
+:root {
+  --pixel-round: polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,
+    calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,
+    calc(100% - 3px) 6px,100% 6px,100% calc(100% - 6px),
+    calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),
+    calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,6px 100%,
+    6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px));
+}
+body :is(#sheet #sheetBody button.pixel-btn, #mg #mgPanel button.pixel-btn, #nav > button.pixel-btn, #mapctl button.pixel-btn, #modal button.pixel-btn, #hud button.pixel-btn, #card button.pixel-btn, #advisor.pixel-btn, .exchange button, .exchange a.city-close, .city-auth button) {
+  position: relative !important;
+  isolation: isolate;
   clip-path: none !important;
-  border: 2px solid var(--navy-edge) !important;
+  border: 0 !important;
   border-radius: 0 !important;
-  box-shadow: inset 0 1px 0 #ffffff12, inset 0 -2px 0 #00000024 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
-body #nav > button.pixel-btn[data-open], body #mapctl button.pixel-btn {
-  background: var(--bb-face) !important;
+body :is(#sheet #sheetBody button.pixel-btn, #mg #mgPanel button.pixel-btn, #nav > button.pixel-btn, #mapctl button.pixel-btn, #modal button.pixel-btn, #hud button.pixel-btn, #card button.pixel-btn, #advisor.pixel-btn, .exchange button, .exchange a.city-close, .city-auth button)::before,
+body :is(#sheet #sheetBody button.pixel-btn, #mg #mgPanel button.pixel-btn, #nav > button.pixel-btn, #mapctl button.pixel-btn, #modal button.pixel-btn, #hud button.pixel-btn, #card button.pixel-btn, #advisor.pixel-btn, .exchange button, .exchange a.city-close, .city-auth button)::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  pointer-events: none;
+  clip-path: var(--pixel-round) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  transform: none !important;
 }
-body #nav > button.pixel-btn.bag-unread[data-open="bag"] {
-  border-color: var(--navy-edge) !important;
-  box-shadow: inset 0 1px 0 #ffffff12, inset 0 -2px 0 #00000024 !important;
+body :is(#sheet #sheetBody button.pixel-btn, #mg #mgPanel button.pixel-btn, #nav > button.pixel-btn, #mapctl button.pixel-btn, #modal button.pixel-btn, #hud button.pixel-btn, #card button.pixel-btn, #advisor.pixel-btn, .exchange button, .exchange a.city-close, .city-auth button)::before {
+  inset: 0 !important;
+  z-index: -2 !important;
+  background: var(--bb-edge,var(--navy-edge)) !important;
+  box-shadow: none !important;
+}
+body :is(#sheet #sheetBody button.pixel-btn, #mg #mgPanel button.pixel-btn, #nav > button.pixel-btn, #mapctl button.pixel-btn, #modal button.pixel-btn, #hud button.pixel-btn, #card button.pixel-btn, #advisor.pixel-btn, .exchange button, .exchange a.city-close, .city-auth button)::after {
+  inset: 2px !important;
+  z-index: -1 !important;
+  background: var(--button-fill,var(--bb-face,var(--navy-raised))) !important;
+  box-shadow: inset 0 2px 0 #ffffff2b,inset 0 -3px 0 #00000026 !important;
+}
+/* Each home destination gets its own fresh colour; pages remain navy. */
+body #nav > button.pixel-btn[data-open="build"] { --bb-face:#58ade8 !important; --bb-edge:#2b5f8a !important; }
+body #nav > button.pixel-btn[data-open="tasks"] { --bb-face:#71cdb8 !important; --bb-edge:#35796e !important; }
+body #nav > button.pixel-btn[data-open="crates"] { --bb-face:#8f9ce6 !important; --bb-edge:#4a568f !important; }
+body #nav > button.pixel-btn[data-open="wheel"] { --bb-face:#ef91ac !important; --bb-edge:#99506e !important; }
+body #nav > button.pixel-btn[data-open="bag"] { --bb-face:#e9bf70 !important; --bb-edge:#92713a !important; }
+body #nav > #zmkt.pixel-btn[data-open="market"] { --bb-face:#88cba2 !important; --bb-edge:#467b5b !important; }
+body #nav > button.pixel-btn.bag-unread[data-open="bag"] { box-shadow:none !important; }
+/* Let compact task labels use the same single painted face. */
+body #sheet #sheetBody .collect-face {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  clip-path: none !important;
 }
 body #nav .bag-unread .dock-icon { filter: none; }
 body #nav .dot {
@@ -975,9 +1011,6 @@ body #nav .dot {
   z-index: 2;
 }
 body #nav .dot[hidden] { display: none !important; }
-body .exchange :is(#screen,#modalRoot,#pageNav,#exchangeAccount) button::before {
-  clip-path: none !important;
-}
 </style>
 <style>:root { --safe-top:0px; --safe-right:0px; --safe-bottom:0px; --safe-left:0px; }</style></head><body>
 <div class="exchange"><header><h1>Banksia Exchange</h1><small>BANKSIA BAY</small><div id="wallet"></div><a hidden class="city-close" href="./" aria-label="Back to city" title="Back to city">✕</a><div id="roomNotice" role="status" aria-atomic="true"></div></header><div id="exchangeAccount" class="small"></div><nav id="pageNav" aria-label="Crate rooms"></nav><main id="screen"></main><div id="modalRoot"></div></div><script>

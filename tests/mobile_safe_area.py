@@ -21,7 +21,10 @@ def check_home_menu(page, visible):
     assert dock.locator("> button[data-open]:visible").count() == (6 if visible else 0)
     assert dock.get_by_role("button").count() == (6 if visible else 0)
     if visible:
+        colours = dock.locator("> button[data-open]").evaluate_all("(els) => els.map(el => getComputedStyle(el, '::after').backgroundColor)")
+        assert len(set(colours)) == 6, colours
         for button in dock.locator("> button[data-open]").all():
+            assert button.evaluate("(el) => getComputedStyle(el, '::after').clipPath.startsWith('polygon(')")
             assert button.evaluate("(el) => ['none', 'inset(0px)'].includes(getComputedStyle(el).clipPath)")
             badge = button.locator(".dot:visible")
             if badge.count():

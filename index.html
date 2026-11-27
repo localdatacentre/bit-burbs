@@ -19,7 +19,7 @@
 <link rel="preload" as="script" href="./economy-core.js?v=jobs1">
 <link rel="preload" as="script" href="./daily-task-core.js?v=task-payout2">
 <link rel="preload" as="script" href="./daily-task-session.js">
-<link rel="preload" as="style" href="./page-shell.css?v=navy-buttons4">
+<link rel="preload" as="style" href="./page-shell.css?v=pixel-rounded6">
 <style>
 /* Legacy renderer styles isolated; new design is in pocket-ui.css. */
 @layer legacy {
@@ -2825,7 +2825,7 @@ body,button,input,select,textarea{font-family:'VT323',monospace}
 #mgPanel .wheel-content > *{flex-shrink:0;max-width:100%}
 #mgPanel .mg-page-foot{flex:none;height:env(safe-area-inset-bottom,0px);background:var(--wheel-face)}
 </style>
-<link rel="stylesheet" href="./page-shell.css?v=navy-buttons4">
+<link rel="stylesheet" href="./page-shell.css?v=pixel-rounded6">
 <style>
 .city-exchange-room { position:fixed; inset:0; box-sizing:border-box; width:100%; height:100%; max-width:none; max-height:none; margin:0; border:0; padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); overflow:hidden; background:#171b28; }
 .city-exchange-room[data-room=shop] { background:#102b20; }
@@ -8633,7 +8633,7 @@ return {render,nativeSprite};})();
 
 </script>
 
-<script src="./exchange-room.js?v=navy-buttons4"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=task-payout2"></script>
+<script src="./exchange-room.js?v=pixel-rounded6"></script><script src="./residential-cats.js?v=yard1"></script><script src="./economy-core.js?v=jobs1"></script><script src="./daily-task-core.js?v=task-payout2"></script>
 <script>
 (async () => {
 'use strict';
@@ -12551,7 +12551,8 @@ function updateHUD() {
     crateVouchers: projected.crateVouchers,
     crateStock: roomRecord?.stock || lastExchangeView?.stock || [],
     boostMinutes: coinToken.min,
-    storedItems: Object.entries(S.shopItems || {}).some(([id,n]) => n > 0 && cityDecorationIds.has(id))
+    storedBuildings: (S.storedBuildings || []).some(entry => bagEntryVisible(entry.building?.id)),
+    storedItems: Object.entries(S.shopItems || {}).some(([id,n]) => n > 0 && cityDecorationIds.has(id) && bagEntryVisible(id))
   });
   dot(hud.dotWheel, notices.wheel);
   dot(hud.dotTasks, notices.tasks);
@@ -12599,6 +12600,7 @@ $('#advisor').addEventListener('click',()=>{
   sel=null;placing=null;pickingMove=false;managingProperty=false;cityNeedsOpen=open;
   $('#advisor').setAttribute('aria-expanded',String(open));renderCard(true);
 });
+function bagEntryVisible(id) { return !!DEFS[id] && modelReady(id); }
 function menuNotifications(city, context) {
   return {
     wheel: city.tickets > 0 || context.at - city.wheelT >= context.wheelCooldown,
@@ -12606,7 +12608,7 @@ function menuNotifications(city, context) {
     // Silver is the cheapest crate at two vouchers. Stored crates also need attention.
     crates: context.crateVouchers >= 2 || context.crateStock.some(n => n > 0),
     bag: city.restockVouchers > 0 || city.coinBoostTokens?.[context.boostMinutes] > 0 ||
-      !!city.storedBuildings?.length || context.storedItems
+      context.storedBuildings || context.storedItems
   };
 }
 function dot(el, available) {
@@ -13022,7 +13024,7 @@ function itemBagHTML() {
   const buildings = S.storedBuildings || [];
   const collectables = Object.entries(S.shopItems).filter(([id,count]) => cityDecorationIds.has(id) && count > 0);
   function card(id, action, detail) {
-    if(!modelReady(id))return '';
+    if(!bagEntryVisible(id))return '';
     return `<button class="pixel-btn bcard bag-card" ${action}><canvas data-prev="${id}" width="220" height="184" aria-hidden="true"></canvas><b>${DEFS[id].name}</b><span>${detail}</span><span class="price">Place</span></button>`;
   }
   const groups=new Map();
