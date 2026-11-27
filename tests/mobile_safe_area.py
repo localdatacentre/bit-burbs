@@ -267,7 +267,7 @@ def check_layout(page, base, viewport, insets):
                 assert abs(boost["width"] - voucher["width"]) <= 1
                 assert abs(boost["height"] - voucher["height"]) <= 1
                 assert boost["y"] == voucher["y"] and boost["x"] < voucher["x"]
-                assert cards.first.evaluate("(el) => getComputedStyle(el).backgroundColor") == "rgb(18, 36, 59)"
+                assert cards.first.evaluate("(el) => getComputedStyle(el).backgroundColor") == "rgb(73, 59, 37)"
                 assert page.locator("#sheetBody h3").all_text_contents() == ["Stored buildings"]
             page.locator('#sheet [data-act="closeSheet"]').tap()
         check_home_menu(page, True)
