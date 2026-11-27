@@ -8806,6 +8806,7 @@ const localSlot=n=>profilePrefix+n;
 let username='',cityCode='',cityRevision=null,cityConflict=false,cityRequest=null,lastCityPush=0,cityRenaming=false;
 let cityHandedToExchange=false;
 let showMayorGift=false;
+let pendingOwnerGifts=[],giftAcknowledging=false;
 let roomRecord=null, lastExchangeView=null;
 function rememberRoomRecord(slot,record){
  const crate=record.crateExchange;
@@ -8819,7 +8820,7 @@ const randomKey=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.t
 async function cityApi(body,signal){
  body.roster='beta-roster-2';
  if(body.action==='username')body.mayorGift=true;
- if(!body.account&&body.name&&['open','revision','save'].includes(body.action))body.account=localStorage.getItem(localSlot(body.name)+':login-name');
+ if(!body.account&&body.name&&['open','revision','save','giftSeen'].includes(body.action))body.account=localStorage.getItem(localSlot(body.name)+':login-name');
  const controller=signal?null:new AbortController();
  const timeout=controller?setTimeout(()=>controller.abort(),18000):null;
  try{
@@ -8831,6 +8832,8 @@ async function cityApi(body,signal){
 }
 
 function acceptCity(slot,data){
+ pendingOwnerGifts=Object.values(data.ownerGifts||{}).filter(gift=>gift&&typeof gift.id==='string'&&!data.ownerGiftSeen?.[gift.id]).sort((a,b)=>a.at-b.at);
+
  if(!data.city||!Array.isArray(data.city.tiles)||data.city.v!==2)throw Error('The cloud city could not be opened.');
  const raw=JSON.stringify(data.city,(key,value)=>{
    if(['__proto__','prototype','constructor'].includes(key)||/[<>"\x00-\x1f]/.test(key)||typeof value==='string'&&/[<>"]/.test(value))throw Error('This cloud save contains an unsupported value.');
@@ -9728,7 +9731,7 @@ function lastSyncLabel(slot){
 }
 let cityRequestSnapshot=null;
 async function pushCity(force=false,roomSave=false,signal){
- if(signal?.aborted)return false;
+ if(signal?.aborted||giftAcknowledging)return false;
  if(!namedPlay||!username||(cityHandedToExchange&&!roomSave)||(!force&&(document.hidden||cityRenaming)))return false;
  if(cityConflict){if(force)toast('Another browser saved. Reopen to load its city.');return false}
  if(cityRequest){
@@ -15376,6 +15379,35 @@ if (!testCity && !micksDriveDemo && !facilityRoadDemo && (S.upgraded || S.firstR
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resize(); paintStaticIcons(); lastClockKind = ''; lastFace = -1; });
 document.body.classList.add('city-ready');
 requestAnimationFrame(frame);
+function tryShowOwnerGift(){
+ if(!pendingOwnerGifts.length||document.hidden||document.querySelector('dialog[open]')||sheet||mg||$('#modal').classList.contains('show'))return;
+ const gift=pendingOwnerGifts[0],dialog=document.createElement('dialog');
+ dialog.setAttribute('aria-labelledby','ownerGiftTitle');
+ dialog.style.cssText='width:min(340px,90vw);box-sizing:border-box;padding:18px;background:#192c43;color:#fff;border:2px solid #6885a3;text-align:center;font:20px/1.2 VT323,monospace;max-height:85dvh;overflow:auto';
+ const title=document.createElement('h2');title.id='ownerGiftTitle';title.textContent='a gift for the mayor';title.style.cssText='font:14px/1.4 Silkscreen,monospace;margin:0 0 12px';dialog.append(title);
+ if(gift.message){const message=document.createElement('p');message.textContent=gift.message;message.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0';dialog.append(message);}
+ const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';dialog.append(grid);
+ const labels={cash:['cash','coins'],stars:['dosh','dosh'],crateVouchers:['crateVoucher','crate vouchers'],tickets:['ticket','wheel tickets'],restockVouchers:['voucher','restock vouchers'],deeds:['deed','deeds']};
+ for(const [key,[icon,label]] of Object.entries(labels))if(gift.amounts?.[key]>0){const cell=document.createElement('div');cell.style.cssText='display:grid;justify-items:center;gap:4px;background:#243f5a;padding:9px 4px';const amount=document.createElement('b');amount.textContent='+'+Number(gift.amounts[key]).toLocaleString();const name=document.createElement('span');name.textContent=label;cell.append(iconCanvas(icon,null,28),amount,name);grid.append(cell);}
+ const note=document.createElement('p');note.textContent='already added to your city';dialog.append(note);
+ const status=document.createElement('p');status.setAttribute('role','status');dialog.append(status);
+ const close=document.createElement('button');close.className='pixel-btn pb';close.textContent='thanks';close.style.cssText='width:100%;min-height:44px';dialog.append(close);
+ close.onclick=async()=>{
+  close.disabled=true;
+  if(cityRequest)await cityRequest;
+  giftAcknowledging=true;
+  try{
+   const result=await cityApi({action:'giftSeen',name:username,code:cityCode,baseRevision:cityRevision,ids:[gift.id]});
+   cityRevision=result.revision;localStorage.setItem(SAVE_KEY+':cloud-revision',cityRevision);
+   pendingOwnerGifts.shift();dialog.close();dialog.remove();
+  }catch(error){if(error.status===409){cityConflict=true;location.reload();return;}status.textContent='Could not sync the receipt. Tap to retry.';close.disabled=false;}
+  finally{giftAcknowledging=false;}
+ };
+ dialog.addEventListener('cancel',event=>{event.preventDefault();if(!close.disabled)close.click();});
+ document.body.append(dialog);dialog.showModal();
+}
+setInterval(tryShowOwnerGift,1000);
+setInterval(()=>{if(!document.hidden&&!giftAcknowledging&&!document.querySelector('dialog[open]'))void refreshCityRevision();},30000);
 if(showMayorGift){
  const dialog=document.createElement('dialog');
  dialog.setAttribute('aria-labelledby','mayorGiftTitle');
