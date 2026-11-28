@@ -9890,11 +9890,24 @@ function fpOf(id,turned=false,compactHall=false){
 }
 const anchorOf = (i, j) => { const t = tileAt(i, j); return t && t.id === '_occ' ? { i: t.ref[0], j: t.ref[1] } : { i, j }; };
 function roadNearFP(i, j, id, turned=tileAt(i,j)?.turned) { if(id==="warehouse")return !missingGateRoad(i,j,id,turned); if(id==='space'&&DEFS.space.fx===10)return facilityGateConnected(i,j,turned); const [fx, fy] = fpOf(id,turned); for (let a = 0; a < fx; a++) { if (isRoad(i + a, j - 1) || isRoad(i + a, j + fy)) return true; } for (let b = 0; b < fy; b++) { if (isRoad(i - 1, j + b) || isRoad(i + fx, j + b)) return true; } return false; }
-const roadWidthMessage = 'Roads must stay one tile wide.';
+const roadWidthMessage = 'Keep roads one tile wide and leave a road tile between junctions.';
 function completesRoadSquare(i, j, source = null, planned = null) {
   const road = (x,y) => !(source && x === source.i && y === source.j) && (isRoad(x,y) || (x>=0 && y>=0 && x<N && y<N && planned?.has(y*N+x)));
   for (const dx of [-1,1]) for (const dy of [-1,1]) {
     if (road(i+dx,j) && road(i,j+dy) && road(i+dx,j+dy)) return true;
+  }
+  // Recalculate every junction affected by this placement, including neighbours.
+  const after=(x,y)=>x===i&&y===j||road(x,y);
+  const degree=(x,y)=>[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>after(x+dx,y+dy)).length;
+  for(const [x,y] of [[i,j],[i+1,j],[i-1,j],[i,j+1],[i,j-1]]){
+    if(!after(x,y)||degree(x,y)<3)continue;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx=x+dx,ny=y+dy;
+      if(after(nx,ny)&&degree(nx,ny)>=3 &&
+        ((x===i&&y===j)||(nx===i&&ny===j)||!road(x,y)||
+         [[1,0],[-1,0],[0,1],[0,-1]].filter(([a,b])=>road(x+a,y+b)).length<3||
+         [[1,0],[-1,0],[0,1],[0,-1]].filter(([a,b])=>road(nx+a,ny+b)).length<3))return true;
+    }
   }
   return false;
 }
@@ -11718,6 +11731,24 @@ function nextSegment(road,inDir){
   if(!exits.length)return null;
   return carSegment(road,inDir,exits[Math.floor(Math.random()*exits.length)]);
 }
+// Adjacent junction tiles in older cities form one reserved crossing.
+function junctionGroup(map,road){
+  if(road.arms.length<3)return null;
+  if(!map.junctionGroups){
+    map.junctionGroups=new Map();
+    for(const r of map.roads.values()){
+      const key=r.j*N+r.i;if(r.arms.length<3||map.junctionGroups.has(key))continue;
+      const group=new Set([key]),queue=[r];map.junctionGroups.set(key,group);
+      for(let n=0;n<queue.length;n++)for(const d of queue[n].arms){
+        const [dx,dy]=directions[d],k=(queue[n].j+dy)*N+queue[n].i+dx,v=map.roads.get(k);
+        if(v&&v.arms.length>=3&&!map.junctionGroups.has(k)){
+          group.add(k);map.junctionGroups.set(k,group);queue.push(v);
+        }
+      }
+    }
+  }
+  return map.junctionGroups.get(road.j*N+road.i);
+}
 function updateCars(dt,seconds){
   const map=streetMap(),target=Math.min(12,Math.max(map.parkingDemo?3:0,Math.ceil(S.pop/5)));
   nextCar-=dt;
@@ -11767,11 +11798,13 @@ function updateCars(dt,seconds){
      const edge=v.path[0];
      return v.leg===-1||Math.hypot(other.x-edge.x,other.y-edge.y)<(other.half||.36)+.1;
     }))room=Math.max(0,left-car.half-.12);
-    if(next.arms.length>=3){
+    const group=junctionGroup(map,next);
+    const insideGroup=group?.has(s.road.j*N+s.road.i);
+    if(group&&!insideGroup){
       const green=signalPhase(next.i,next.j,dx,seconds)<7;
-      const occupied=traffic.some(v=>v!==car&&v.seg.road.i===next.i&&v.seg.road.j===next.j);
+      const occupied=vehicles.some(v=>v!==car&&v.seg&&group.has(v.seg.road.j*N+v.seg.road.i));
       if(car.committed==null && left<=.48 && green && !occupied){
-        const reserved=traffic.some(v=>v!==car&&v.committed===next.j*N+next.i);
+        const reserved=traffic.some(v=>v!==car&&group.has(v.committed));
         if(!car.plan || car.plan.road!==next)car.plan=nextSegment(next,s.outDir);
         if(car.plan){
           const exit=car.plan.point(1);
@@ -11791,7 +11824,11 @@ function updateCars(dt,seconds){
     }
     const desired=Math.min(car.cruise,Math.sqrt(2*1.5*room));
     car.speed+=Math.max(-1.5*dt,Math.min(.9*dt,desired-car.speed));
-    car.travel+=Math.min(room,Math.max(0,car.speed)*dt);
+    const advance=Math.min(room,Math.max(0,car.speed)*dt);
+    car.stalled=advance<.001?(car.stalled||0)+dt:0;
+    // Ambient traffic must not leave permanent blockers after layout changes.
+    if(car.stalled>30){car.alpha=Math.max(0,car.alpha-dt*2);if(!car.alpha)traffic.splice(n,1);continue;}
+    car.travel+=advance;
     car.alpha=Math.min(1,car.alpha+dt*1.8);
     if(next.arms.length===1&&!map.parking?.has(next))car.alpha=Math.min(car.alpha,Math.max(0,left/.45));
     if(car.travel>=s.length){

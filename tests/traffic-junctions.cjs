@@ -1,0 +1,16 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const html=fs.readFileSync('index.html','utf8');
+const directions=[[1,0],[0,1],[-1,0],[0,-1]],N=32;
+let roads=new Set();
+const c=vm.createContext({N,directions,isRoad:(i,j)=>roads.has(j*N+i)});
+for(const [start,end] of [['function completesRoadSquare(', 'function parkingGateTile('],['function junctionGroup(', 'function updateCars(']])vm.runInContext(html.slice(html.indexOf(start),html.indexOf(end,html.indexOf(start))),c);
+const set=pts=>{roads=new Set(pts.map(([i,j])=>j*N+i));};
+set([[4,5],[6,5],[5,4]]);assert.equal(c.completesRoadSquare(5,5),false,'T junction allowed');
+set([[4,5],[6,5],[5,4],[5,6]]);assert.equal(c.completesRoadSquare(5,5),false,'crossroads allowed');
+set([[4,5],[6,5],[5,4],[6,4]]);assert.equal(c.completesRoadSquare(5,5),true,'wide road forbidden');
+set([[4,5],[5,5],[6,5],[7,5],[5,4]]);assert.equal(c.completesRoadSquare(6,6),true,'adjacent T junction forbidden');
+set([[4,5],[5,5],[6,5],[7,5],[8,5],[5,4]]);assert.equal(c.completesRoadSquare(7,6),false,'spaced T junction allowed');
+const map={roads:new Map()};for(const [i,j,arms] of [[5,5,[0,1,2]],[6,5,[0,2,3]],[7,5,[0,2]]])map.roads.set(j*N+i,{i,j,arms});
+const a=c.junctionGroup(map,map.roads.get(165)),b=c.junctionGroup(map,map.roads.get(166));
+assert.equal(a,b,'legacy neighbouring junctions share a reservation');assert.equal(a.size,2);assert.equal(c.junctionGroup(map,map.roads.get(167)),null);
+console.log('PASS: road width, junction spacing and legacy crossing groups');
